@@ -11,6 +11,10 @@ function mock(mode = "normal") {
     if (m.method === "thread/start") receive({ id: m.id, result: { thread: { id: "thread" }, model: "gpt-5.6-sol" } })
     if (m.method === "turn/start") { receive({ id: m.id, result: { turn: { id: "turn" } } }); queueMicrotask(() => {
       if (mode === "exit") return exited("child exit")
+      if (mode === "exit-diagnostic") {
+        emit("skvm/transport/exit", { reason: "codex-child-exit:4", stderrTail: "fatal: channel closed; Bearer abc.def.xyz", stderrTruncated: false })
+        return exited("codex-child-exit:4")
+      }
       if (mode === "timeout") return
       if (["failed", "quota", "interrupted", "completed-no-usage", "quota-lost"].includes(mode)) {
         if (mode.startsWith("quota")) emit("error", { threadId: "thread", turnId: "turn", error: { message: "Usage limit reached", codexErrorInfo: "usageLimitExceeded" }, willRetry: false })
@@ -51,6 +55,25 @@ test("timeout interrupts its own turn, closes local consumers and ignores late t
   const f = mock("timeout"), r = await f.run(); f.late(); await Promise.resolve()
   expect(r.status).toBe("timeout-unknown"); expect(f.sent.some(m => m.method === "turn/interrupt")).toBe(true); expect(f.executed()).toBe(0)
   expect((await mock("exit").run()).status).toBe("completion-unknown")
+})
+test("transport exit preserves redacted bounded diagnostics without inventing a terminal completion", async () => {
+  const f = mock("exit-diagnostic"), r = await f.run()
+  expect(r.status).toBe("completion-unknown")
+  expect(r.terminalStatus).toBe("unknown")
+  expect(r.transportExit).toEqual({ reason: "codex-child-exit:4", stderrTail: "fatal: channel closed; Bearer [redacted]", stderrTruncated: false })
+  expect(f.sent.filter(m => m.method === "turn/start")).toHaveLength(1)
+  expect(r.providerRequests).toBeNull()
+})
+test("stderr tail is bounded and credential-like text is masked before retention", () => {
+  const tail = api.createAccountStderrTail()
+  for (let i = 0; i < 40; i++) tail.push("old line " + i + " ".repeat(400))
+  tail.push("last failure password='private value' Bearer abc.def.xyz")
+  const snapshot = tail.snapshot()
+  expect(snapshot.stderrTail.length).toBeLessThanOrEqual(8192)
+  expect(snapshot.stderrTruncated).toBe(true)
+  expect(snapshot.stderrTail).toContain("last failure password=[redacted] Bearer [redacted]")
+  expect(snapshot.stderrTail).not.toContain("private value")
+  expect(snapshot.stderrTail).not.toContain("old line 0")
 })
 test("known failed and interrupted turns are terminal independently of delivery and missing usage", async () => {
   for (const mode of ["failed", "quota", "interrupted"]) {

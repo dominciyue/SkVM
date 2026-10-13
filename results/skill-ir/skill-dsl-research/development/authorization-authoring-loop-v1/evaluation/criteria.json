@@ -1,0 +1,21 @@
+{
+  "origin": "Primary source reading and unchanged original four questions; evaluation files are never supplied to models",
+  "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+  "questions": [
+    {"questionId": "requested-document-and-returned-file", "required": ["global request lookup by pk", "root resolution and missing-root fallback", "authorization on resolved root before version selection", "requested child with no version returns that child", "root/latest and explicit version branches", "original=true versus archive availability", "selected document controls file, filename, MIME, and formatting"], "anchors": ["src/documents/views.py:1368-1448", "src/documents/versioning.py:140-195", "src/documents/views.py:4941-4994"]},
+    {"questionId": "authorization-and-selection-order", "required": ["route/action plus inherited authentication and global GET permissions", "non-null user triggers resolved-root authorization before file selection", "constructor completes before owner/unowned shortcut or exact root object grant", "selected child owner is not another explicit Download permission check", "framework and external facts remain conditional"], "anchors": ["src/paperless/urls.py:74-100", "src/documents/views.py:1834-1839", "src/documents/views.py:1401-1448", "src/documents/permissions.py:30-53", "src/documents/permissions.py:624-654"]},
+    {"questionId": "alternate-version-authorized-resource", "required": ["None and empty string differ in version_requested", "empty string selects latest including deleted versions", "explicit integer, invalid, missing and other-root version branches", "child without version bypasses version resolver", "failed root lookup may authorize requested document instead", "representation/version selection does not transfer authorization to selected child owner"], "anchors": ["src/documents/views.py:1375-1399", "src/documents/versioning.py:146-195"]},
+    {"questionId": "missing-facts-and-conditional-conclusions", "required": ["finite development facts are not deployment proof", "authentication/global permission and exact resolved-root owner or object grant", "database/root/version/deleted state and storage existence", "original/formatting, filename and MIME settings", "constructor completion does not imply permission", "no actual HTTP success or safety guarantee"], "anchors": ["src/documents/views.py:1401-1448", "src/documents/views.py:4941-4994", "src/documents/file_handling.py:125-190", "src/documents/permissions.py:624-654"]}
+  ],
+  "finiteScenarios": {
+    "root-default": {"requestedDocument": 10, "authorizedRoot": 10, "fileDocument": 11, "representation": "archive", "file": "v1-archive.pdf", "termination": "return", "anchors": ["src/documents/views.py:1388-1448", "src/documents/versioning.py:159-181"]},
+    "empty-version": {"requestedDocument": 10, "authorizedRoot": 10, "fileDocument": 12, "representation": "original", "file": "v2-original.txt", "termination": "return", "anchors": ["src/documents/views.py:1375-1380", "src/documents/versioning.py:175-181"]},
+    "denied": {"requestedDocument": 10, "authorizedRoot": 10, "fileDocument": null, "file": null, "termination": "guard-failed", "anchors": ["src/documents/permissions.py:624-635", "src/documents/views.py:1421-1440"]},
+    "root-fallback": {"requestedDocument": 11, "authorizedRoot": 11, "fileDocument": 11, "representation": "archive", "file": "v1-archive.pdf", "termination": "return", "anchors": ["src/documents/versioning.py:146-156", "src/documents/views.py:1388-1399"]}
+  },
+  "interpretation": "Expected results describe only the finite selection/authorization helper slice after supplied constructor completion. Request-wide HTTP success, global authentication and storage availability remain outside that computation.",
+  "qualityLabels": ["full", "partial", "incorrect", "not-delivered"],
+  "machineLabels": ["computed", "conditional", "not-computed"],
+  "semanticLabels": ["source-supported", "partially-supported", "unsupported"],
+  "protectedEvidence": "Historical, held-out, prospective, Q1 reserve and readiness evidence unchanged"
+}

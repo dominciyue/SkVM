@@ -3064,6 +3064,8 @@ check/run/compare已接入`--execution-policy=progressive`，strict仍为默认�
 
 **使用与验证。** 原程序省略inputBinding即可保留同题规则；显式对象及patch的null撤销沿既有`authorization_program`/`authorization_program_patch`入口，`authorization_program_details({view:'draft'})`可在首稿前调用。普通命令继续为`authorization inquiry check/run/inspect`与`--previous`，full默认。聚焦验证用`bun test ./src/task-dsl/authorization/program-input-binding.test.ts ./src/task-dsl/authorization/resource-program-draft.test.ts ./src/task-dsl/authorization/program-authoring-context.test.ts ./src/task-dsl/authorization/program-consumption-context.test.ts ./src/benchmarks/authorization-dsl/executable-contract-entrypoints.test.ts`及主类型检查。新增/修改数据键、operation映射、报告投影或反馈时维护同一解析器和匿名公共路径测试；字段结构不支持时保留unknown，不能自动补值或扩张语义职责。BJ派生BI binding-only诊断只新增顶层绑定，原BI字节不变，该结果属于developer-assisted，不能计自动成功。
 
+恢复只做patch时，`firstProposalToolUnit`记录首个实际提案，`firstProgramToolUnit`仅记录program调用，首次有效草稿仍由`firstDraftToolUnit`承载。当前草稿诊断、candidate adopted与preview可用状态只来自同revision候选，过期候选不能提供当前阻断点。匿名测试分别沿缺对象字段、多候选select及独立缺external前提的实际事件核验一个根因和受影响步骤。
+
 **语义责任。** 模型从源码表达请求对象、root与缺失回退、版本选择、owner/非owner分流、权限拒绝、文件及表示选择。源码可见的分支应成为程序；真正的外部grant、检查器构造和部署事实分别保留条件。条件候选文件与获准返回区分，整体conditional可以伴随已计算的局部步骤。原skill和四问继续保留，程序执行、源码质量、自然补答分轴评价。
 
 **真实队列与隔离。** R0仅恢复自己的BI A2稿；F0/F1为不见旧稿、参考程序、历史答案及评价器的独立编写。C0/C1/C2固定自动原稿消费原/变/拒绝输入，优先F0；若用R0则明确为恢复稿，不能升级为独立编写成功。B0/B1使用同期原skill与相同事实/源码/预算，安排C0→B0、B1→C1，测含程序工具的工作流价值并单列作者成本，不归因为DSL语法自身。S0仅在源码变化后确有可恢复程序时执行。full保持默认，compact不占主面板；ShareLink仅离线。以隔离测试和一次实际首包抽查检查评价器未进入模型上下文，不重复建立等价门禁。

@@ -12,13 +12,14 @@ const shownValue = (value: any) => Array.isArray(value) ? { ...shape(value), sam
 /** One session's mechanical progress, using existing replies rather than a
  * separate generation call. A checkpoint never disables source tools. */
 export function createProgramAuthorLoop() {
-  let firstProgramToolUnit: number | undefined, firstDraftToolUnit: number | undefined, patchCount = 0, programCount = 0
+  let firstProgramToolUnit: number | undefined, firstProposalToolUnit: number | undefined, firstDraftToolUnit: number | undefined, patchCount = 0, programCount = 0
   let checkpoint: { toolUnit: number; explorationUnits: number; completeSources: readonly any[]; instruction: string } | undefined
   let previousValues: Record<string, unknown> = {}
   const changes: Array<{ kind: "program" | "patch"; toolUnit?: number; revision?: string; valid: boolean; newValues?: Record<string, unknown>; removedValues?: string[]; returned?: unknown; termination?: string; unresolvedGaps?: string[] }> = []
   return {
     record(record: { kind: "program" | "patch"; toolUnit?: number; revision?: string; valid: boolean; execution?: any }) {
-      firstProgramToolUnit ??= record.toolUnit
+      firstProposalToolUnit ??= record.toolUnit
+      if (record.kind === "program") firstProgramToolUnit ??= record.toolUnit
       if (record.kind === "patch") patchCount++; else programCount++
       if (record.valid) firstDraftToolUnit ??= record.toolUnit
       const execution = record.execution
@@ -28,7 +29,7 @@ export function createProgramAuthorLoop() {
     },
     snapshot(progress?: { toolUnit: number; explorationUnits: number; completeSources: readonly any[]; hasDraft?: boolean }) {
       if (!checkpoint && firstDraftToolUnit === undefined && !progress?.hasDraft && progress && progress.explorationUnits >= 12 && progress.completeSources.length) checkpoint = { toolUnit: progress.toolUnit, explorationUnits: progress.explorationUnits, completeSources: structuredClone(progress.completeSources.slice(0, 8)), instruction: "Early authoring checkpoint: a complete current source function is available. Submit a small source-supported authorization_program now, inspect its actual preview, then patch its named gaps while continuing necessary source reads. Retain every original duty; this checkpoint neither supplies source meanings nor closes source tools." }
-      return structuredClone({ firstProgramToolUnit, firstDraftToolUnit, patchCount, programCount, changes, checkpoint })
+      return structuredClone({ firstProgramToolUnit, firstProposalToolUnit, firstDraftToolUnit, patchCount, programCount, changes, checkpoint })
     },
   }
 }
@@ -58,7 +59,8 @@ function executionBlockers(execution: any, declaredNames: readonly string[]) {
 
 /** Presentation only. Output fields are computation, never semantic coverage. */
 export function projectProgramAuthoring(report: any, questions: readonly OriginalQuestion[], remainingActions?: number, inputs: AuthorInputs = {}) {
-  const hasDraft = !!report?.currentDraft, execution = hasDraft ? report?.candidate?.revision === report.currentDraft.revision ? report.candidate?.resourceExecution : undefined : report?.resourceExecution, scopeQuestion = report?.scope?.questionId
+  const hasDraft = !!report?.currentDraft, candidate = !hasDraft || report?.candidate?.revision === report.currentDraft.revision ? report?.candidate : undefined
+  const execution = hasDraft ? candidate?.resourceExecution : report?.resourceExecution, scopeQuestion = report?.scope?.questionId
   const returned = execution?.returned
   const fields = returned && typeof returned === "object" && !Array.isArray(returned) ? Object.keys(returned) : []
   const raw = report?.currentDraft?.raw ?? report?.program, questionId = raw?.scope?.questionId ?? scopeQuestion
@@ -66,7 +68,7 @@ export function projectProgramAuthoring(report: any, questions: readonly Origina
   const resolution = resolveProgramInputBinding(raw, { questions, operationQuestions: inputs.operationQuestions }, inputs)
   const inputNames = Object.keys(resolution.resourceInputs)
   const suppliedScopes = [...new Set([...Object.keys(inputs.resourceInputs ?? {}), ...Object.keys(inputs.externalAssumptions ?? {})])].map(id => ({ questionId: id, inputNames: Object.keys(inputs.resourceInputs?.[id] ?? {}), valueShapes: Object.fromEntries(Object.entries(inputs.resourceInputs?.[id] ?? {}).map(([name, value]) => [name, shape(value)])), externalAssumptionNames: [...new Set((inputs.externalAssumptions?.[id] ?? []).map(a => a.name))], operationId: inputs.operationQuestions?.find(q => q.questionId === id)?.operationId }))
-  const diagnostics = report?.candidate?.diagnostics ?? report?.currentDraftDiagnostics ?? report?.diagnostics ?? []
+  const diagnostics = candidate?.diagnostics ?? report?.currentDraftDiagnostics ?? report?.diagnostics ?? []
   const rootBlockers = executionBlockers(execution, declaredNames)
   const inputError = resolution.diagnostics.find(d => d.severity === "error" || d.code === "program-input-dataset-missing")
   const firstError = diagnostics.find((d: any) => d.severity === "error")
@@ -74,7 +76,7 @@ export function projectProgramAuthoring(report: any, questions: readonly Origina
   return {
     goal: PROGRAM_AUTHORING_GOAL, completion: "unreviewed", activeRevision: report?.program ? report.revision : undefined,
     draftRevision: report?.currentDraft?.revision, candidateRevision: report?.candidate?.revision,
-    candidateAdopted: report?.candidate?.adopted, candidatePreviewAvailable: !!report?.candidate?.resourceExecution,
+    candidateAdopted: candidate?.adopted, candidatePreviewAvailable: !!candidate?.resourceExecution,
     draftStepOrder: Array.isArray(report?.currentDraft?.raw?.resourceWorkflow?.steps) ? report.currentDraft.raw.resourceWorkflow.steps.map((s: any) => ({ id: s?.id, op: s?.op })) : undefined,
     phase: !raw ? "discover" : firstBlocker ? "repair" : execution ? "review" : "draft", ...report?.authorLoop,
     adoptedStepIds: report?.program?.resourceWorkflow?.steps?.map((s: any) => s.id) ?? [], firstBlocker, rootBlockers,

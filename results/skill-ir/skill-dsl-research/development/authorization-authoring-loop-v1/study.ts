@@ -3,6 +3,7 @@ import path from "node:path"
 import { createHash } from "node:crypto"
 import { execFileSync } from "node:child_process"
 import { executeLocalInquiryRun, inspectLocalInquiry } from "../../../../../src/benchmarks/authorization-dsl/inquiry-local.ts"
+import { classifyTerminalReport, measureAuthorTimeline, observedAccountCost } from "./measurement.ts"
 
 const base = import.meta.dir, repo = path.resolve(base, "../../../../.."), example = path.join(repo, "examples/authorization-assessment/download-workflow")
 const load = async (file: string) => JSON.parse(await readFile(file, "utf8"))
@@ -17,7 +18,7 @@ const positions = ["R0", "F0", "F1", "C0", "C1", "C2", "B0", "B1", "S0"]
 const limits = { maxToolCalls: 64, maxDisplayBytes: 786432, maxReadBytes: 33554432, sessionTimeoutMs: 2700000 }
 
 async function prepare() {
-  for (const variant of ["root-default", "empty-version", "denied"]) {
+  for (const variant of ["root-default", "empty-version", "denied", "root-fallback"]) {
     const original = path.join(example, `inputs/${variant}.json`), input = await load(original)
     input.sourceRoot = path.relative(path.join(base, "inputs"), path.resolve(path.dirname(original), input.sourceRoot)).split(path.sep).join("/")
     await save(path.join(base, `inputs/${variant}.json`), input)
@@ -58,8 +59,11 @@ async function run(position: string, attempt = "first") {
   try {
     const report: any = await executeLocalInquiryRun({ inputFile, domainProgramFile, outDir: path.join(base, "runs", `${position}-${attempt}`), model: entry.model, method: "D1", strategy: "question-checked-v1", harness: "codex-account", domainTools: !baseline, programMode: entry.programMode, executionPolicy: "progressive", programContext: "full", ...(previous ? { previous } : {}), accountBoundaryFile, skillFile, execution: limits })
     const account = report.telemetry?.account, execution = report.domain?.executableContract?.resourceExecution
-    Object.assign(entry, { status: report.status, endedAt: new Date().toISOString(), session: report.sessionPath && relative(report.sessionPath), terminalStatus: report.terminalStatus, answerDelivery: report.answerDelivery, inferenceDispatched: account?.inferenceDispatched ?? false, reason: account?.reason ?? report.error ?? report.recovery, quotaOrAuth: report.quotaRefused || /quota|authentication|unauthorized/i.test(account?.reason ?? ""), routingFailure: /routing/i.test(account?.reason ?? ""), usage: account?.usage ?? null, providerRequests: account?.providerRequests ?? 0, durationMs: report.durationMs, returned: execution?.returned, termination: execution?.termination, resourceSteps: report.domain?.executableContract?.program?.resourceWorkflow?.steps?.length ?? 0, authorLoop: report.domain?.programDraft?.authorLoop, sourceFilesSha256: report.sourceFiles && hash(JSON.stringify(report.sourceFiles)), actualUsd: null })
-    if (["timeout-unknown", "completion-unknown"].includes(report.status)) entry.status = "unknown"
+    Object.assign(entry, classifyTerminalReport(report), observedAccountCost(report), { endedAt: new Date().toISOString(), session: report.sessionPath && relative(report.sessionPath), terminalStatus: report.terminalStatus, answerDelivery: report.answerDelivery, durationMs: report.durationMs, returned: execution?.returned, termination: execution?.termination, resourceSteps: report.domain?.executableContract?.program?.resourceWorkflow?.steps?.length ?? 0, authorLoop: report.domain?.programDraft?.authorLoop, sourceFilesSha256: report.sourceFiles && hash(JSON.stringify(report.sourceFiles)) })
+    if (report.sessionPath) {
+      const archived = await load(path.join(report.sessionPath, "run.json"))
+      await save(path.join(base, `evaluation/timeline-${position}-${attempt}.json`), measureAuthorTimeline(archived))
+    }
     if (author && report.domain) {
       await save(path.join(base, `authoring/${position}-${attempt}-process.json`), { session: entry.session, active: report.domain.executableContract, draft: report.domain.programDraft, proposals: report.domain.proposals })
       const adopted = report.domain.executableContract?.adoptedDraft

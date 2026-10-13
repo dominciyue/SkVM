@@ -34,6 +34,7 @@ export interface AccountSessionResult {
   terminalStatus: "completed" | "failed" | "interrupted" | "unknown" | "not-started"
   answerDelivery: "delivered" | "undelivered"; usageVisibility: "observed" | "unknown"; quotaRefused: boolean
   terminalError?: { message?: string; codexErrorInfo?: unknown; additionalDetails?: string }
+  transportExit?: { reason: string; stderrTail: string; stderrTruncated: boolean }
   durationMs: number; events: unknown[]; tools: LLMToolCall[]; model: string; effort: "high"; inferenceDispatched: boolean
   toolRejections: Array<{ call: LLMToolCall; diagnostics: AccountArgumentDiagnostic[] }>
   capability?: { status: "verified-controlled"; cliVersion: string; effectiveConfig: Record<string, unknown>; instructionSources: Array<{ path: string; sha256: string }>; runtimeWorkspaceRoots: string[] }
@@ -59,6 +60,20 @@ export function redactCodexEvent(value: unknown): any {
   if (Array.isArray(value)) return value.map(redactCodexEvent)
   if (value && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, /^(?:account.?id|user.?id|email|api.?key|access.?token|refresh.?token|id.?token|auth.?token|session.?token|authorization|cookie|credentials|auth|password|secret|private.?key)$/i.test(key) ? "[redacted]" : redactCodexEvent(item)]))
   return typeof value === "string" ? value.replace(/Bearer\s+[^\s"']+/gi, "Bearer [redacted]").replace(/\b(?:sk-|gh[pousr]_|github_pat_)[A-Za-z0-9_-]+/g, "[redacted]").replace(/\b((?:password|secret|api_key|access_token)\s*[=:]\s*)(?:"[^"]*"|'[^']*'|[^\s,;]+)/gi, "$1[redacted]").replace(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g, "[redacted-email]") : value
+}
+/** Host process diagnostics only: bounded, redacted, and never a provider terminal. */
+export function createAccountStderrTail() {
+  const lines: string[] = []
+  let truncated = false
+  return {
+    push(line: string) {
+      const safe: string = redactCodexEvent(line)
+      truncated ||= safe.length > 2048
+      lines.push(safe.slice(-2048))
+      while (lines.length > 16 || lines.join("\n").length > 8192) { lines.shift(); truncated = true }
+    },
+    snapshot: () => ({ stderrTail: lines.join("\n"), stderrTruncated: truncated }),
+  }
 }
 // Admit exact versions whose experimental RPC/config contracts were inspected.
 // Every real session still rechecks effective config, roots and instruction pins.
@@ -117,18 +132,24 @@ export function createCodexStdioTransport(): AccountTransport {
   const command = windows ? String(spawnSync("where.exe", ["codex"], { encoding: "utf8", windowsHide: true }).stdout ?? "").split(/\r?\n/).find(p => /\.exe$/i.test(p.trim()))?.trim() ?? "codex.exe" : "codex"
   const version = String(spawnSync(command, ["--version"], { encoding: "utf8", windowsHide: true }).stdout ?? "").trim().replace(/^codex-cli /, "")
   let receive = (_message: any) => {}, exited = (_reason: string) => {}
-  let child: ReturnType<typeof spawn>, reader: ReturnType<typeof createInterface>, generation = 0
+  let child: ReturnType<typeof spawn>, reader: ReturnType<typeof createInterface>, stderrReader: ReturnType<typeof createInterface>, generation = 0
   const start = (config: Record<string, unknown>) => {
     const own = ++generation
     child = spawn(command, ["app-server", "--stdio", ...Object.entries(config).flatMap(([k, v]) => ["-c", k + "=" + toml(v)])], { stdio: ["pipe", "pipe", "pipe"], windowsHide: true })
+    const stderr = createAccountStderrTail()
     reader = createInterface({ input: child.stdout! })
     reader.on("line", line => { if (own !== generation) return; if (line.length > 16 * 1024 * 1024) { exited("app-server-frame-limit"); return }; try { receive(JSON.parse(line)) } catch { exited("app-server-invalid-json") } })
-    child.stderr!.resume()
+    stderrReader = createInterface({ input: child.stderr! })
+    stderrReader.on("line", line => { if (own === generation) stderr.push(line) })
     child.on("error", () => { if (own === generation) exited("codex-cli-unavailable") })
-    child.on("exit", code => { if (own === generation) exited("codex-child-exit:" + (code ?? "unknown")) })
+    child.on("exit", code => { if (own === generation) {
+      const reason = "codex-child-exit:" + (code ?? "unknown")
+      receive({ method: "skvm/transport/exit", params: { reason, ...stderr.snapshot() } })
+      exited(reason)
+    } })
   }
   const close = async () => {
-    ++generation; reader.close(); child.stdin!.end()
+    ++generation; reader.close(); stderrReader.close(); child.stdin!.end()
     if (windows && child.pid && child.exitCode === null) await new Promise<void>(resolve => {
       const cleanup = spawn("taskkill", ["/pid", String(child.pid), "/T", "/F"], { windowsHide: true, stdio: "ignore" })
       cleanup.on("error", () => { child.kill(); resolve() }); cleanup.on("exit", () => resolve())
@@ -150,6 +171,7 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
   let usageSource: AccountSessionResult["usageSource"]
   let terminalStatus: AccountSessionResult["terminalStatus"] = "not-started", quotaRefused = false
   let terminalError: AccountSessionResult["terminalError"]
+  let transportExit: AccountSessionResult["transportExit"]
   const validators = new Map<string, ReturnType<Ajv["compile"]>>()
   const pending = new Map<number, { method: string; resolve: (value: any) => void; reject: (error: Error) => void }>(), executed = new Map<string, { fingerprint: string; output: Promise<Record<string, unknown>> }>()
   let finish!: (status: AccountSessionStatus) => void, finished = false
@@ -164,7 +186,7 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
     const id = ++sequence; pending.set(id, { method, resolve, reject }); record({ direction: "client", id, method, params })
     try { transport!.send({ id, method, params }) } catch { pending.delete(id); reject(new Error("codex-send-failed")) }
   })
-  const result = (status: AccountSessionStatus): AccountSessionResult => redactCodexEvent({ status, text, terminalStatus, answerDelivery: terminalStatus === "completed" && status === "completed" && text.trim() ? "delivered" : "undelivered", usageVisibility: usage ? "observed" : "unknown", quotaRefused, ...(terminalError ? { terminalError } : {}), ...(failure ? { reason: failure } : {}), usage, ...(usageDetails ? { usageDetails } : {}), ...(usageSource ? { usageSource } : {}), actualUsd: null, providerRequests: null, durationMs: Date.now() - started, events, tools, toolRejections, model: options.model, effort: options.effort, inferenceDispatched, ...(capability ? { capability } : {}) })
+  const result = (status: AccountSessionStatus): AccountSessionResult => redactCodexEvent({ status, text, terminalStatus, answerDelivery: terminalStatus === "completed" && status === "completed" && text.trim() ? "delivered" : "undelivered", usageVisibility: usage ? "observed" : "unknown", quotaRefused, ...(terminalError ? { terminalError } : {}), ...(transportExit ? { transportExit } : {}), ...(failure ? { reason: failure } : {}), usage, ...(usageDetails ? { usageDetails } : {}), ...(usageSource ? { usageSource } : {}), actualUsd: null, providerRequests: null, durationMs: Date.now() - started, events, tools, toolRejections, model: options.model, effort: options.effort, inferenceDispatched, ...(capability ? { capability } : {}) })
   let timer: ReturnType<typeof setTimeout> | undefined
   const abort = () => { failure = "account-session-interrupted-or-timeout"; finish("timeout-unknown"); for (const p of pending.values()) p.reject(new Error(failure)); pending.clear() }
   try {
@@ -179,6 +201,11 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
     transport = (options.transportFactory ?? createCodexStdioTransport)()
     transport.onExit(reason => { if (finished) return; failure = reason; finish(inferenceDispatched ? "completion-unknown" : "unavailable"); for (const p of pending.values()) p.reject(new Error(reason)); pending.clear() })
     transport.onMessage(message => {
+      if (message.method === "skvm/transport/exit") {
+        if (!finished) transportExit = { reason: String(message.params?.reason ?? "transport-exit"), stderrTail: String(message.params?.stderrTail ?? "").slice(-8192), stderrTruncated: !!message.params?.stderrTruncated }
+        record({ direction: "transport", method: message.method, params: transportExit })
+        return
+      }
       const rpcMethod = typeof message.id === "number" ? pending.get(message.id)?.method : undefined
       record({ direction: "server", ...message, ...(rpcMethod === "config/read" && message.result ? { result: { config: safeConfig(message.result.config) } } : {}) })
       if (typeof message.id === "number" && !message.method) { const p = pending.get(message.id); pending.delete(message.id); if (message.error) p?.reject(new Error("codex-rpc-error")); else p?.resolve(message.result); return }

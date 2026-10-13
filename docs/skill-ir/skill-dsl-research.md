@@ -2694,6 +2694,8 @@ ShareLink第二离线开发程序使用同一select/guard/return核，六场景�
 
 **BJ0–BJ6实施。** 空草稿TypeError先红测再局部修复；shared inputBinding已连入canonical/input schema、patch、省略/对象/null、digest、普通check/run、previous与execution/v2展示，性质contractInputs仍取原语义题。作者共享反馈使用同一resolver，实际值/集合结构和external参数可见，草稿错版不显示旧active计算。一个缺documents的五步链沿实际事件归并为一个根因；补输入后立即消失，旧事件保留。首个有效稿工具单位、patch次数、新计算值及一次12探索单位后的试写提示来自实际宿主状态，提示不封闭源码工具；source-visible external候选仅定位待解释函数，不注入含义。native/structured mock完整经历空稿详情、读源、缺数据草稿、绑定patch、算值、插入拒绝guard与全部原题自然交付。最新53测试/433断言及主/BJ类型通过，此前相关495测试/2783断言通过；两项只读接口/反馈核验未发现物料缺陷。BI原稿在BJ目录仅加绑定的developer-assisted诊断得到文档11/archive条件候选，原稿与剩余权限/版本/回退缺口保持。这是离线接线证据，尚无BJ真实作者采用、完整自动主链或消费收益；R0是下一动作。
 
+**BJ7/R0与中断恢复。** 源码判据与过程记录已单独建立，首个实际发送包核验四问存在、评价与旧自然答不在上下文、工具scope仅允许源码。R0-first于2026-10-12T21:58:48Z派发，恢复来源限定BI A2；子进程退出4，原生命周期只有turn/started及用户消息，没有完成事件、模型工具或答案。会话为ephemeral，后续普通线程读取未找到保存线程，原状态保持completion-unknown，后续外部队列暂停而不重发。使用量、隐藏provider请求和美元均unknown；不把脚本原先的请求数零默认计为零成本。平台中断后的未工作墙钟时间不计约12小时有效开发。独立离线核验后补充字段缺失、多候选及缺external根因测试，并先红后绿修正patch冒充program首调用与过期candidate诊断投影；官方子进程今后的退出将保留脱敏限长stderr，但旧请求不补造终态。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

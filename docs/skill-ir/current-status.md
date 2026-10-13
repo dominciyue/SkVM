@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-**BJ正在实施；BJ0–BJ6共享接线及离线验证完成，真实作者确认待运行。** [任务书](../superpowers/plans/2026-10-13-authorization-authoring-loop-and-program-completion.md)按约12小时有效开发量安排，由`gpt-6.1-sol/max`线程独占代码、共享状态和Git写入，identity为`authorization-authoring-loop-v1`。显式同operation输入绑定、空草稿详情、实际值/根因反馈、首稿与补丁计量、一次早期试写提示已接通；full保持默认。当前53项聚焦测试/433断言、主及BJ研究类型通过，先前495项相关回归/2783断言通过。下一动作是R0恢复BI A2自身稿取得真实确认；模型补齐版本、权限和root关系及收益仍未测。方法见[spec§14.49](skill-ir-aot-optimization-spec.md#1449-bj-authoring-loop-and-program-completion)及[研究§7.71](skill-dsl-research.md#771-bj-输入接线与自动编写运行闭环)，实际状态见[BJ status](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-loop-v1/status.json)。
+**BJ正在实施；BJ0–BJ7共享接线与评价准备完成，R0原生命周期为completion-unknown。** [任务书](../superpowers/plans/2026-10-13-authorization-authoring-loop-and-program-completion.md)按约12小时有效开发量安排，由`gpt-6.1-sol/max`线程独占代码、共享状态和Git写入，identity为`authorization-authoring-loop-v1`。同operation输入绑定、空稿详情、实际值/根因、首稿与patch计量及一次早期试写已接通；full默认。R0 child退出4，原临时线程无完成事件/模型工具/答案，后续外部派发暂停、不重发。离线补修stale candidate投影、patch-only计量及脱敏stderr退出诊断；当前106相关测试/791断言及主/BJ类型通过，先前495相关回归/2783断言通过。下一步完成变化、源码失效/搬移/恢复和第二结构离线工程；实际作者采用、fresh自动主链与收益未达。方法见[spec§14.49](skill-ir-aot-optimization-spec.md#1449-bj-authoring-loop-and-program-completion)及[研究§7.71](skill-dsl-research.md#771-bj-输入接线与自动编写运行闭环)，实际状态见[BJ status](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-loop-v1/status.json)。
 
 实施基线为BI最终提交`ace945fa`。发布后复核的68项定向测试、502断言通过，普通自动稿仍为conditional且无文件返回；仅诊断性补入输入后仍暴露空version、拒绝及root回退缺口，未计为自动成功。空草稿details还可触发TypeError。BJ要求共享修复得到实际作者确认，恢复修稿、独立新编写、固定原稿消费与对照分别留账。
 

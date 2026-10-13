@@ -59,3 +59,38 @@ test("author loop records actual first valid draft repairs and new values and tr
   const restored = (author as any).createProgramAuthorLoop()
   expect(restored.snapshot({ toolUnit: 20, explorationUnits: 18, completeSources: [source], hasDraft: true }).checkpoint).toBeUndefined()
 })
+
+test("a patch-only restored author records the first proposal without inventing a program call", () => {
+  const loop = author.createProgramAuthorLoop()
+  loop.record({ kind: "patch", toolUnit: 2, revision: "patched", valid: true })
+  expect(loop.snapshot().firstProgramToolUnit).toBeUndefined()
+  expect((loop.snapshot() as any).firstProposalToolUnit).toBe(2)
+  expect(loop.snapshot().firstDraftToolUnit).toBe(2)
+})
+
+test("a stale candidate cannot supply current draft diagnostics or preview availability", () => {
+  const raw = { scope: { questionId: "meaning" }, resourceWorkflow: { inputs: [], steps: [] } }
+  const feedback: any = author.projectProgramAuthoring({ currentDraft: { revision: "new", raw }, currentDraftDiagnostics: [], candidate: { revision: "old", adopted: true, diagnostics: [{ code: "old-error", severity: "error" }], resourceExecution: { returned: 999, events: [] } } }, questions, undefined, { resourceInputs: { meaning: {} } })
+  expect(feedback.computed).toBeUndefined()
+  expect(feedback.diagnostics).toEqual([])
+  expect(feedback.firstBlocker).toBeUndefined()
+  expect(feedback.candidatePreviewAvailable).toBe(false)
+  expect(feedback.candidateAdopted).toBeUndefined()
+})
+
+for (const scenario of [
+  { name: "missing object field", first: { id: "initial", op: "value", value: { field: { of: { ref: "item" }, key: "key" } }, source: at }, inputs: { item: {} }, declared: ["item"], code: "object-field", dependency: "field-missing:key" },
+  { name: "non-unique selection", first: { id: "initial", op: "select", from: "rows", where: { op: "eq", left: { literal: true }, right: { literal: true } }, unique: true, source: at }, inputs: { rows: [{ key: 1 }, { key: 2 }] }, declared: ["rows"], code: "selection", dependency: "selection-not-unique:initial" },
+  { name: "absent external premise", first: { id: "initial", op: "external", name: "service", arguments: { key: { literal: 1 } }, source: at }, inputs: {}, declared: [], code: "external-assumption", dependency: "external:service" },
+]) test(`author feedback traces one ${scenario.name} root through dependent steps`, () => {
+  const workflow = { inputs: scenario.declared, steps: [scenario.first,
+    { id: "guard", op: "guard", test: { op: "truthy", language: "python", value: { binding: "initial" } }, failure: "denied", source: at },
+    { id: "copy", op: "value", value: { ref: "initial" }, source: at },
+    { id: "result", op: "return", value: { ref: "copy" }, source: at },
+  ] }
+  const execution = executeResourceWorkflow(workflow, scenario.inputs)
+  const feedback: any = author.projectProgramAuthoring({ currentDraft: { revision: "current", raw: { scope: { questionId: "meaning" }, resourceWorkflow: workflow } }, candidate: { revision: "current", resourceExecution: execution } }, questions, undefined, { resourceInputs: { meaning: scenario.inputs } } as any)
+  expect(feedback.rootBlockers).toHaveLength(1)
+  expect(feedback.firstBlocker).toMatchObject({ stepId: "initial", code: scenario.code, dependencies: [scenario.dependency], affectedStepIds: ["initial", "guard", "copy", "result"] })
+  expect(feedback.computed.conditions.length).toBeGreaterThan(0)
+})
