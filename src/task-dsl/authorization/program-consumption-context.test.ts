@@ -1,6 +1,28 @@
 import { expect, test } from "bun:test"
 const api = await import("./program-consumption-context.ts").catch(() => ({} as any))
 const author = await import("./program-authoring-context.ts")
+test("full output leaves existing reference-shaped data and guide fields untouched", () => {
+  const large = { text: "x".repeat(600) }
+  for (const output of [
+    { currentDraft: large, executableContract: { currentDraft: large, data: { toolOutputReference: { kind: "business" } } } },
+    { toolOutputReferenceGuide: "A".repeat(512), currentDraft: large, executableContract: { currentDraft: large, toolOutputReferenceGuide: "A".repeat(512) } },
+  ]) {
+    expect(api.projectProgramToolOutput(output, [])).toEqual(output)
+    expect(api.resolveProgramToolOutput(output)).toEqual(output)
+  }
+})
+test("full tool output sends exact duplicate draft fields once with independently verifiable references", () => {
+  const draft = { revision: "d", raw: { text: "source-grounded draft ".repeat(200) } }, trials = [{ revision: "d", cases: [{ execution: { events: Array(20).fill({ id: "x", value: 3 }) } }] }]
+  const output = { currentDraft: draft, trials, candidate: { different: true }, executableContract: { currentDraft: structuredClone(draft), trials: structuredClone(trials), candidate: { different: false }, resourceExecution: { returned: 7 } } }
+  const before = JSON.stringify(output), projected = api.projectProgramToolOutput(output, [])
+  expect(JSON.stringify(projected).length).toBeLessThan(before.length * 0.7)
+  expect(api.resolveProgramToolOutput(projected)).toEqual(output)
+  expect(projected.executableContract.candidate).toEqual({ different: false })
+  expect(projected.executableContract.resourceExecution).toEqual({ returned: 7 })
+  expect(JSON.stringify(output)).toBe(before)
+  const altered = structuredClone(projected); altered.currentDraft.raw.text += " changed"
+  expect(() => api.resolveProgramToolOutput(altered)).toThrow("tool-output-reference-digest")
+})
 test("trial details require the exact current draft and never substitute active events", () => {
   const report = { currentDraft: { revision: "d", raw: { resourceWorkflow: { steps: [{ id: "result" }] } } }, trials: [{ revision: "d", status: "completed", cases: [{ id: "alternate", execution: { returned: 19, events: [{ id: "result", outputs: { value: 19 } }] } }] }], resourceExecution: { returned: 7 } }
   expect(api.programConsumptionDetails(report, { view: "draft", expectedRevision: "d", trialCaseId: "alternate" }).execution.returned).toBe(19)

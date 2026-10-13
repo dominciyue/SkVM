@@ -47,8 +47,37 @@ export function programConsumptionDetails(report: any, query: z.input<typeof Pro
   return { view: args.view, revision: currentRevision, activeRevision: report.revision, draftRevision: report.currentDraft?.revision, status: args.stepId && !steps.length ? "program-detail-not-found" : report.status, ...(args.stepId || args.questionId ? {} : { program, execution, currentDraft: report.currentDraft }), steps, events, diagnostics: args.view === "draft" ? report.candidate?.diagnostics ?? report.currentDraftDiagnostics : report.diagnostics, semanticSupport: "unreviewed" }
 }
 
+const TOOL_OUTPUT_REFERENCE_GUIDE = "Each executableContract toolOutputReference is the EXACT value at the named top-level field of this SAME tool output. Substitute that full value; sha256 and bytes verify its JSON. This removes duplicate transmission only; full program, draft, trial, source and execution information remain present."
 export function projectProgramToolOutput(output: any, questions: readonly { id: string; request?: string }[], mode: ProgramContext = "full") {
-  if (mode === "full" || !output?.executableContract) return output
+  if (!output?.executableContract) return output
+  if (mode === "full") {
+    if (Object.hasOwn(output, "toolOutputReferenceGuide") || Object.values(output.executableContract).some(v => v && typeof v === "object" && Object.hasOwn(v, "toolOutputReference"))) return output
+    const contract = { ...output.executableContract }; let changed = false
+    for (const [key, value] of Object.entries(contract)) {
+      // Both occurrences are in this response. Equality is byte exact and the
+      // top-level occurrence remains intact; no previous-turn state is needed.
+      const json = JSON.stringify(value)
+      if (key !== "executableContract" && Object.hasOwn(output, key) && json !== undefined && Buffer.byteLength(json) >= 512 && json === JSON.stringify(output[key])) {
+        contract[key] = { toolOutputReference: { field: key, sha256: revision(value), bytes: Buffer.byteLength(json) } }; changed = true
+      }
+    }
+    return changed ? { ...output, executableContract: contract, toolOutputReferenceGuide: TOOL_OUTPUT_REFERENCE_GUIDE } : output
+  }
   const { currentDraft: _draft, candidate: _candidate, propertyChecks: _checks, ...rest } = output
   return { ...rest, executableContract: projectProgramConsumption(output.executableContract, questions, mode) }
+}
+
+/** Deterministic wire reconstruction; uses only values present in the packet. */
+export function resolveProgramToolOutput(output: any) {
+  if (output?.toolOutputReferenceGuide !== TOOL_OUTPUT_REFERENCE_GUIDE || !output.executableContract) return output
+  const { toolOutputReferenceGuide: _guide, ...rest } = output, contract = { ...output.executableContract }
+  for (const [key, value] of Object.entries(contract)) {
+    const ref = value && typeof value === "object" && Object.keys(value).length === 1 && (value as any).toolOutputReference
+    if (!ref) continue
+    if (ref.field !== key || !Object.hasOwn(output, key)) throw new Error("tool-output-reference-missing")
+    const original = output[key], json = JSON.stringify(original)
+    if (json === undefined || revision(original) !== ref.sha256 || Buffer.byteLength(json) !== ref.bytes) throw new Error("tool-output-reference-digest")
+    contract[key] = original
+  }
+  return { ...rest, executableContract: contract }
 }
