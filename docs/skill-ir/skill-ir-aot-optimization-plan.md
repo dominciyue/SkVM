@@ -2,7 +2,7 @@
 
 更新于2026-10-14。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BL0–BL21](../superpowers/plans/2026-10-14-authorization-reusable-program-semantics-and-delivery.md)，适用工程/八用途已处置；两独立作者最终15/18，两对消费negative，C2缺交付、S0维护成立。完整自动范围与净收益未达，最终发布核验中。
+- 当前任务书：[BL0–BL21](../superpowers/plans/2026-10-14-authorization-reusable-program-semantics-and-delivery.md)，适用工程/八用途已处置；两独立作者最终15/18，两对消费negative，C2缺交付、S0维护成立。完整自动范围与净收益未达，实质成果fe9abe21已推用户origin并核对同SHA。
 - 方法合同：[spec§14.51](skill-ir-aot-optimization-spec.md#1451-bl-reusable-program-semantics-and-delivery)；复核和开发过程统一在[研究§7.73](skill-dsl-research.md#773-bk-复核与-bl-可复用程序开发决定)。BK实际结果保留在§7.72。
 - identity：`authorization-reusable-program-v1`，已核对生产基线`02b79e4b`。继续`skill-ir-aot`，只推用户origin，不建分支/worktree；开发线程独占代码、共享方法文档与Git写入。
 - 开发`gpt-6-astra/high`，按用户指定；实验沿已授权官方账号`gpt-5.6-sol/high`。第三方暂停，OWUI/历史未知ShareLink仅离线，旧未知和保护证据保持。接管时tracked干净，原有未跟踪`.tmp/`不清理。

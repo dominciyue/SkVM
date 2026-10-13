@@ -6,7 +6,7 @@
 
 **BL以completed-with-unmet-criteria收束适用工程与八用途：自动编写和当前依据交付成立，完整可复用范围与净收益未达。** A0/A1首稿均0/18、最终均15/18；默认11/archive、空版本12/original、明确false拒绝。非法/跨根版本拒绝及constructor条件仍遗漏。两对C/B四问均full，C输入分别为B的4.63/5.23倍，输出和耗时也更高；两对negative。C2预算耗尽无自然答，只读确认interrupted，原unavailable/部分费用保留。S0一次模型维护及四case trial后，三个保留输入的源码变化重放符合反转条件；不替换固定稿。见[执行过程](../../results/skill-ir/skill-dsl-research/development/authorization-reusable-program-v1/execution.md)、[summary](../../results/skill-ir/skill-dsl-research/development/authorization-reusable-program-v1/summary.json)、[任务书](../superpowers/plans/2026-10-14-authorization-reusable-program-semantics-and-delivery.md)、[spec§14.51](skill-ir-aot-optimization-spec.md#1451-bl-reusable-program-semantics-and-delivery)及[研究§7.73](skill-dsl-research.md#773-bk-复核与-bl-可复用程序开发决定)。
 
-BL共享实现至34ae933e，169定向测试/1136断言、主/研究类型、3研究测试/58断言及15文档测试通过；八归档本地关闭，14观察turn、7用途自然交付。已知input21,097,032（含cache19,419,008）、output106,101，C2最终usage及全部实际USD/开发探子/真人成本unknown。无损响应引用反事实少333568字节，不称因果token收益。full默认，普通示例使用固定14步A0；当前发布核验中，原有`.tmp/`和原件保留。开发gpt-6-astra/high、实验官方gpt-5.6-sol/high，第三方暂停，无额外修复抽样。
+BL共享实现至34ae933e，169定向测试/1136断言、主/研究类型、3研究测试/58断言及15文档测试通过；八归档本地关闭，14观察turn、7用途自然交付。已知input21,097,032（含cache19,419,008）、output106,101，C2最终usage及全部实际USD/开发探子/真人成本unknown。无损响应引用反事实少333568字节，不称因果token收益。full默认，普通示例使用固定14步A0；实质成果fe9abe21已推用户origin并核对同SHA，见[发布回执](../../results/skill-ir/skill-dsl-research/development/authorization-reusable-program-v1/publication.json)，原有`.tmp/`和原件保留。开发gpt-6-astra/high、实验官方gpt-5.6-sol/high，第三方暂停，无额外修复抽样。
 
 ## BK 已结束的实际结果
 

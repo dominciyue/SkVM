@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有有限表达式/资源求值器、PowerShell 示例、官方 Codex account adapter；不引入另一套 CLI、语言分析器或展示系统。
 
-**状态：** 2026-10-14 从 b516e106 接管，共享实现至34ae933e，联合169测试/1136断言通过。八用途/14观察turn已处置，7用途交付；C2预算失败只读确认interrupted，原记录保留。A0/A1首稿0/18、最终15/18，两对比较negative，S0维护三输入符合源码。适用工程/有限队列完成，完整自动范围/研究收益未达，最终发布核验中；详见status/summary/execution。
+**状态：** 2026-10-14 从 b516e106 接管，共享实现至34ae933e，联合169测试/1136断言通过。八用途/14观察turn已处置，7用途交付；C2预算失败只读确认interrupted，原记录保留。A0/A1首稿0/18、最终15/18，两对比较negative，S0维护三输入符合源码。适用工程/有限队列完成，完整自动范围/研究收益未达，实质成果fe9abe21已推用户origin且live SHA一致；详见status/summary/execution。
 
 | 项目 | 本轮约定 |
 |---|---|
@@ -265,7 +265,7 @@ type AuthoringTarget = {
 
 ### BL21 — 发布和最终交接
 
-- [ ] 分目的提交实现/证据/文档，只推用户origin/skill-ir-aot并核对live SHA。保护原件、`.tmp/`、其它线程和历史未跟踪内容。
+- [x] 共享实现至34ae933e，证据49adf748，实质文档fe9abe21均已推用户origin/skill-ir-aot；live SHA与fe9abe218cf92ad835d6f86616b3933dcf060437逐字一致，publication.json保留回执。原件、`.tmp/`和历史材料未删除。
 - [x] 当前示例命令/14步过程、默认/空/拒绝实际值、15/18未达项、自然答与程序区分、两对负向及费用分账已公开。
 - [x] 八用途及C2失败处置终结，无活动；工程/有限队列true，完整自动范围/研究false。下一责任明确指向遗漏guard/constructor、材料实际采用和预算内自然交付，不追加抽样。
 
