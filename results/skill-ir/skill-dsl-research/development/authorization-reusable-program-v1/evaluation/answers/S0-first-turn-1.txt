@@ -1,0 +1,156 @@
+## 结论摘要
+
+下载入口是 `GET /api/documents/{pk}/download/`。`pk` 首先选出请求指向的文档，再解析其根文档；局部权限判断针对**根文档**，而版本和 original/archive 文件选择发生在该判断之后。[src/paperless/urls.py:74-78] [framework/rest_framework-3.18.1/rest_framework/routers.py:128-134] [src/documents/views.py:1429-1448]
+
+本修订中存在一个关键的、源码明确可见的反向条件：
+
+```python
+if request.user is not None and has_perms_owner_aware(..., root_doc):
+    return HttpResponseForbidden(...)
+```
+
+但 `has_perms_owner_aware` 在用户是所有者、文档无所有者或用户持有对象权限时返回 `True`。因此，通过前置全局权限检查后：
+
+- 根文档所有者、无所有者文档的用户、或持有对象授权的用户会得到 403；
+- 不是所有者且没有对象授权的用户反而继续进行文件选择。
+
+[src/documents/views.py:1421-1427] [src/documents/permissions.py:624-635]
+
+这是对该修订源码行为的描述，不是假定的预期策略。
+
+## 1. 请求、文档、版本和最终文件
+
+### 路由和入口
+
+`UnifiedSearchViewSet` 注册在 `documents` 路由下，并继承 `DocumentViewSet`；DRF 为 `detail=True` 的 `download` action 生成详情路由。最终入口为上述 GET 路径，URL 中的 `{pk}` 作为 `download(..., pk=...)` 的参数。[src/paperless/urls.py:74-78] [src/paperless/urls.py:297-300] [src/documents/views.py:2503-2507] [src/documents/views.py:1834-1839]
+
+`download` 用固定的 `"attachment"` disposition 调用 `file_response`。文件不存在或打开时抛出 `FileNotFoundError`，以及被捕获的 `Document.DoesNotExist`，最终表现为 404。[src/documents/views.py:1834-1839]
+
+### 请求文档和根文档
+
+`file_response` 使用 `include_deleted=True`：
+
+1. 通过 `Document.global_objects.get(id=pk)` 取得 `request_doc`，因此初始查找包含已删除文档。
+2. 如果它是根文档，`root_doc = request_doc`。
+3. 如果它是版本文档，优先使用已加载的 `root_document`；否则从包含已删除对象的管理器查根文档。
+4. 找不到根文档时回退到 `request_doc` 本身。
+
+[src/documents/views.py:1401-1420] [src/documents/versioning.py:136-156]
+
+找不到 `pk` 对应文档则是 404。[src/documents/views.py:1408-1415]
+
+### 有效版本 `file_doc`
+
+权限分支完成后才调用 `_get_effective_file_doc`。[src/documents/views.py:1429-1441]
+
+具体分支如下：
+
+- **`pk` 本身指向版本，且完全没有 `version` 参数**：直接返回这个 `request_doc`，即下载 URL 指向的那个版本。[src/documents/views.py:1388-1399]
+- **其他情况且没有 `version` 参数**：从根文档的未删除版本中选择最新版本；排序为 `version_index DESC NULLS LAST, id DESC`，没有版本则回退到根文档。[src/documents/versioning.py:23-28] [src/documents/versioning.py:159-182]
+- **非空 `version` 参数**：
+  - 必须能转换为整数，否则返回 “Invalid version parameter”的 404；
+  - 该 ID 必须是根文档本身，或直接以该根文档为 `root_document` 的版本；
+  - 不存在或属于别的版本树均为 404；
+  - 因参数“存在”，查找使用包含已删除对象的管理器，所以可显式选到已删除版本。
+  [src/documents/views.py:1375-1386] [src/documents/versioning.py:169-195]
+- **`?version=` 空字符串**是一个特殊分支：参数“存在”，所以启用 `include_deleted=True`；但解析器又将空值视为“未指定版本”，因此选择包含已删除版本在内的最新版本。[src/documents/views.py:1375-1381] [src/documents/versioning.py:175-182]
+
+### original/archive 选择
+
+`original` 只有在查询参数恰好为 `original=true` 时才成立；其他值（包括 `false`、空值或缺失）都按未请求 original 处理。[src/documents/views.py:1368-1373]
+
+然后：
+
+- `original=true`：使用所选 `file_doc.source_file`；
+- 否则，如果 `file_doc.has_archive_version`：使用 `archive_file`；
+- 否则回退到 `source_file`。
+
+`has_archive_version` 仅表示 `archive_filename is not None`。[src/documents/views.py:1442-1448] [src/documents/models.py:459-475] [src/documents/views.py:4941-4965]
+
+archive 固定以 `application/pdf` 返回；original 使用文档 MIME 类型。响应是 `FileResponse`，并设置 attachment 文件名。`follow_formatting` 不改变文件内容，只改变下载文件名是使用底层文件名还是公开格式化名称。该参数按 Python 真值处理，所以非空字符串 `follow_formatting=false` 仍为真。[src/documents/views.py:4941-4995]
+
+## 2. 授权检查及其顺序
+
+### 框架级检查
+
+在 action handler 执行前，DRF 依次进行认证、权限和限流检查，然后才调用绑定到 GET 的 `download` 方法。[framework/rest_framework-3.18.1/rest_framework/views.py:404-421] [framework/rest_framework-3.18.1/rest_framework/views.py:490-524]
+
+视图声明：
+
+```python
+permission_classes = (IsAuthenticated, PaperlessObjectPermissions)
+```
+
+因此正常路由要求：
+
+1. `request.user` 存在且已认证；
+2. 用户通过 `PaperlessObjectPermissions.has_permission`。
+
+[src/documents/views.py:1008-1027] [framework/rest_framework-3.18.1/rest_framework/permissions.py:145-151]
+
+`PaperlessObjectPermissions` 为 GET 映射到 `documents.view_document`。继承的全局 `has_permission` 对用户执行不带具体对象的 `user.has_perms(...)`，所以这是模型级/全局检查，不是对 `{pk}` 文档的对象检查。[src/documents/permissions.py:30-44] [framework/rest_framework-3.18.1/rest_framework/permissions.py:233-246]
+
+DRF 通常在 `GenericAPIView.get_object()` 中调用 `check_object_permissions`，但本 action 没有调用 `get_object()`：它直接通过 `global_objects.get(id=pk)` 查询。因此 `PaperlessObjectPermissions.has_object_permission` 不会经由标准详情对象流程对下载目标执行。[framework/rest_framework-3.18.1/rest_framework/generics.py:79-105] [src/documents/views.py:1408-1415]
+
+### 应用级根文档判断
+
+在版本和文件表示选择之前，代码对 `root_doc` 调用：
+
+```python
+has_perms_owner_aware(request.user, "view_document", root_doc)
+```
+
+该 helper 在以下任一条件成立时返回真：
+
+- 根文档没有 owner；
+- 根文档 owner 就是当前用户；
+- Guardian `ObjectPermissionChecker` 报告用户拥有 `view_document` 对象权限。
+
+[src/documents/permissions.py:624-635]
+
+但调用方在结果为真时返回 403。因此当前实际顺序是：
+
+1. 认证；
+2. 模型级 `documents.view_document`；
+3. 按 `pk` 查 `request_doc` 并解析 `root_doc`；
+4. 执行上述反向的根文档判断，可能返回 403；
+5. 选择具体版本 `file_doc`；
+6. 选择 original/archive；
+7. 打开文件并构造响应。
+
+## 3. 选择其他版本是否改变授权资源
+
+不会，正常分支中它只改变权限判断后的 `file_doc` 和文件表示：
+
+- 局部对象判断始终使用预先解析的 `root_doc`；
+- `version` 参数的处理发生在该判断之后；
+- 显式版本只验证其属于同一个版本树，没有再次检查其 owner 或对象授权；
+- `original=true` 或 archive 选择仅决定同一 `file_doc` 的 `source_file`/`archive_file`，完全不改变授权资源。
+
+[src/documents/views.py:1421-1448] [src/documents/versioning.py:189-195]
+
+因此可能出现：
+
+- 权限判断资源：根文档；
+- 返回内容资源：某个子版本，包括显式选择的已删除版本；
+- 实际文件：该版本的 original 或 archive。
+
+唯一退化情况是找不到声明的根文档时，`get_root_document` 回退到 `request_doc`，此时判断资源和请求文档重新成为同一对象。[src/documents/versioning.py:146-156]
+
+## 4. 缺失事实与受阻结论
+
+| 缺失事实 | 阻止的具体结论 |
+|---|---|
+| 实际认证方式、用户认证状态 | 无法断言某个真实请求能通过 `IsAuthenticated`。 |
+| 用户是否拥有模型级 `documents.view_document` | 无法断言请求能到达 `download`；此权限在 handler 之前检查。 |
+| 根文档的实际 owner、是否无 owner、Guardian 对象授权 | 无法断言局部反向条件最终返回 403 还是继续。 |
+| 配置的 Django/Guardian 认证后端及运行时授权数据 | 无法确定 `user.has_perms` 和 `ObjectPermissionChecker.has_perm` 对具体用户的结果。 |
+| 实际数据库中的版本树、删除状态和 `version_index` | 无法确定最终选中的 `file_doc`。 |
+| 实际查询参数 | 无法确定显式版本、空 `version`、original/archive 和文件名分支。 |
+| `archive_filename`、存储路径、文件存在性和可读性 | 无法确定能够完成流式返回还是最终 404。 |
+| 反向条件是否为有意策略 | 源码只能证明实际行为，不能证明维护者意图。 |
+| 仓库外代理或部署访问控制 | 无法断言是否还存在额外外部限制；它们不改变上述应用源码顺序。 |
+
+对于提供的开发示例，actor 7 是根文档 10 的 owner；即使其全局权限允许请求进入 handler，owner-aware 谓词已经为真，因此当前源码会直接返回 403，不会进入版本或 archive 选择。示例中的构造器成功假设不是对象授权，不能改变这一结论。
+
+辅助机器属性检查仍为 `unknown/unbound`，主要因为跨函数文件返回效果未被机器角色绑定；以上结论来自逐段源码追踪，而非该机器状态。

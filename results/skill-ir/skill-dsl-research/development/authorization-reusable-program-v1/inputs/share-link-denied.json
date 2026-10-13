@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "authorization-inquiry-input/v1",
+  "taskId": "paperless-share-create",
+  "repository": "paperless-ngx/paperless-ngx",
+  "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+  "sourceRoot": "../../authorization-domain-execution-v1/model/public-source/paperless",
+  "allowedPaths": [
+    "src/documents",
+    "src/paperless/urls.py"
+  ],
+  "inquiry": {
+    "schemaVersion": "authorization-inquiry/v2",
+    "mode": "conformance",
+    "policy": {
+      "text": "A caller creating a document share must have view_document permission for the exact shared document. A global add_sharelink permission or knowing a document ID alone is insufficient.",
+      "origin": "user",
+      "location": "experimental-user-brief:paperless-share-policy/v1"
+    },
+    "questions": [
+      {
+        "id": "share-create",
+        "request": "Check creating a share through ShareLinkViewSet against the current independently supplied policy. A principal asks to share an existing document; determine which endpoint and object controls apply to that exact document before the share is created. Include relevant inherited permission and serializer paths. Do not assume that document existence or a global model permission grants access to this document. Explain source behavior, policy compliance and specific missing facts.",
+        "premises": [],
+        "entryHint": "ShareLinkSerializer.validate_document",
+        "operationId": "share-action",
+        "intent": "policy-comparison"
+      },
+      {
+        "id": "scenario-facts",
+        "operationId": "share-action",
+        "intent": "scope",
+        "request": "Retain supplied development scenario facts",
+        "premises": []
+      }
+    ],
+    "operations": [
+      {
+        "id": "share-action",
+        "request": "Inspect the original share operation"
+      }
+    ]
+  },
+  "resourceInputs": {
+    "scenario-facts": {
+      "actor": {
+        "id": 7,
+        "authenticated": true
+      },
+      "request": {
+        "document_id": 10
+      },
+      "documents": [
+        {
+          "id": 10,
+          "owner_id": 9
+        },
+        {
+          "id": 20,
+          "owner_id": 8
+        }
+      ],
+      "model_grants": [
+        {
+          "actor_id": 7,
+          "permission": "documents.add_sharelink"
+        },
+        {
+          "actor_id": 7,
+          "permission": "documents.view_document"
+        }
+      ],
+      "object_grants": []
+    }
+  }
+}

@@ -1,0 +1,90 @@
+## Trace summary
+
+The operation is the detail action:
+
+`GET /api/documents/{pk}/download/`
+
+The API router registers `documents` to `UnifiedSearchViewSet`, which inherits the document actions; `download` is a `GET`, `detail=True` action and delegates to `file_response(..., disposition="attachment")` (`src/paperless/urls.py:74-78`, `src/paperless/urls.py:99`, `src/paperless/urls.py:297`, `src/documents/views.py:1834-1839`).
+
+### 1. Document, version, and representation selection
+
+1. **Initial document**
+   - `{pk}` is looked up by ID using `Document.global_objects`, so the initial lookup is not limited to the ordinary manager.
+   - Failure produces 404.
+   - If the selected row is a version, its root is resolved; otherwise it is its own root (`src/documents/views.py:1401-1419`, `src/documents/versioning.py:146-156`).
+
+2. **Authorization occurs here**, against that root document, before selecting the effective version or original/archive representation (`src/documents/views.py:1421-1427`).
+
+3. **Effective version**
+   - If `{pk}` directly identifies a version row and the `version` query parameter is absent, that row itself is returned as the effective file document.
+   - Otherwise selection is relative to the resolved root (`src/documents/views.py:1388-1399`).
+   - An absent `version` selects the latest version, falling back to the root when no version exists.
+   - A present but empty `version=` also means “latest,” but its presence enables the `global_objects`/include-deleted path.
+   - A nonempty value must parse as an integer document ID. The candidate must be either the root itself or a direct version whose `root_document_id` is that root ID.
+   - Malformed values produce DRF `NotFound`; missing or unrelated IDs lead to 404 (`src/documents/views.py:1375-1386`, `src/documents/versioning.py:140-143`, `src/documents/versioning.py:159-195`).
+   - “Latest” is ordered by descending `version_index`, then descending ID (`src/documents/versioning.py:23-28`).
+
+4. **Original versus archive**
+   - Original is requested only when the query contains `original` with the exact value `"true"`.
+   - Otherwise, if the effective document has an archive version, the archive is served.
+   - If no archive exists, the source/original file is served even without `original=true` (`src/documents/views.py:1368-1373`, `src/documents/views.py:1442-1448`).
+
+5. **Response**
+   - Archive: `archive_file`, archive filename, `application/pdf`.
+   - Source: `source_file`, source filename, and the document MIME type.
+   - The download action uses attachment disposition. `follow_formatting` can influence filename formatting, not which document or file bytes are selected (`src/documents/views.py:4941-4995`).
+
+File absence and `Document.DoesNotExist` are converted by `download` to 404 (`src/documents/views.py:1835-1839`).
+
+## 2. Authorization checks and their order
+
+The order is:
+
+1. **Authentication and view-level permission**
+   - `DocumentViewSet` declares `IsAuthenticated` and `PaperlessObjectPermissions` (`src/documents/views.py:1008-1027`).
+   - DRF performs authentication and view permission checks before invoking the action (`framework/rest_framework-3.18.1/rest_framework/views.py:404-421`).
+   - For `GET`, `PaperlessObjectPermissions` requires `view_document`; its parent checks the authenticated user’s model permissions (`src/documents/permissions.py:30-44`, `framework/rest_framework-3.18.1/rest_framework/permissions.py:233-246`).
+
+2. **Initial `{pk}` and root resolution**
+   - The action then loads the requested row and resolves its root.
+
+3. **Explicit root-document authorization**
+   - `has_perms_owner_aware(user, "view_document", root_doc)` allows access when:
+     - the root has no owner;
+     - the user owns the root; or
+     - `ObjectPermissionChecker.has_perm` grants the permission on the root.
+   - Failure immediately returns HTTP 403 (`src/documents/permissions.py:624-635`, `src/documents/views.py:1421-1427`).
+
+4. **Version and representation selection**
+   - Only after the root check succeeds does the code select the effective version and choose archive versus source (`src/documents/views.py:1429-1448`).
+
+Although `PaperlessObjectPermissions` defines object-permission behavior, this custom action does not use DRF’s normal `get_object()` path or call `check_object_permissions()` for the selected version. The operative object-specific check in this flow is the explicit root check.
+
+## 3. Which resource is authorized?
+
+Selecting another version or toggling original/archive **does not change the object passed to the explicit authorization check**.
+
+- Authorization resource: the resolved **root document**.
+- Returned resource: a potentially different **version row**, followed by either that version’s archive file or source file.
+- There is no separate owner or object-grant check on the selected version row or its file representation.
+
+Therefore, permission on the root governs all source/archive representations and eligible versions in that root’s version family. A version having a different `owner` value does not cause authorization to be reevaluated against that version.
+
+Changing the URL `{pk}` can still change authorization indirectly: a `{pk}` belonging to another version family resolves to a different root, and that different root is checked. An explicit `version` ID cannot cross to an unrelated root because the resolver rejects candidates outside the already-authorized root family (`src/documents/versioning.py:169-195`).
+
+## 4. Missing facts and blocked conclusions
+
+| Missing fact | Conclusion it prevents |
+|---|---|
+| Actual authenticated identity and credential outcome | Whether the request reaches the action at all |
+| User’s global `documents.view_document` permission | Whether the pre-handler model-permission check passes |
+| Root document’s actual owner | Whether owner-aware authorization succeeds through ownership |
+| Actual Guardian/object grants, groups, superuser status, and configured permission backends | Whether a non-owner is granted `view_document` on the root |
+| Actual `{pk}`, `version`, and `original` values | Which version and representation are selected |
+| Current database rows, version links, and deletion state | Whether lookup succeeds, which row is latest, and whether the requested version belongs to the root |
+| `has_archive_version` and actual storage contents | Whether archive or source is selected and whether opening the file succeeds |
+| Storage backend and deployment/proxy configuration | Whether source selection ultimately results in successful transport, and how it is delivered outside the application response |
+
+Consequently, the source establishes the decision procedure and ordering, but the supplied evidence does not establish that any particular real user is allowed or denied, or which concrete production file is returned.
+
+The auxiliary machine property check remained unresolved because its effect/authorization relations were not fully bound; the conclusions above come from direct inspection of the cited source rather than that machine result.

@@ -20,10 +20,8 @@ export async function runOffline(programFile = path.join(base, "authoring/automa
   const saved = await load(matrixFile).catch(() => undefined)
   if (saved) {
     assert(saved.programSha256 === programSha256, "Offline track already names other raw bytes")
-    if (!saved.semanticFieldAssessment) {
-      saved.semanticFieldAssessment = saved.results.map((row: any) => ({ variant: row.variant, ...assessAutomaticCase(row.expected, row.actual) }))
-      await save(matrixFile, saved)
-    }
+    saved.semanticFieldAssessment = saved.results.map((row: any) => ({ variant: row.variant, ...assessAutomaticCase(row.expected, row.actual, programSha256) }))
+    await save(matrixFile, saved)
     return saved
   }
   const seeds = await Promise.all(["root-default", "empty-version", "denied", "root-fallback"].map(n => load(path.join(base, `inputs/${n}.json`))))
@@ -45,7 +43,7 @@ export async function runOffline(programFile = path.join(base, "authoring/automa
   const original = rows.find(r => r.variant === "root-default")
   const equivalent = (name: string) => { const row = rows.find(r => r.variant === name); return isDeepStrictEqual({ returned: row.actual?.returned, termination: row.actual?.termination, gaps: row.actual?.gaps }, { returned: original.actual?.returned, termination: original.actual?.termination, gaps: original.actual?.gaps }) }
   const result = { track, origin: "Current BL model raw; no developer semantic edits", program: relative(programFile), programSha256, providerCalls: 0, variants: rows.length, visibility: { authorVisibleFacts: ["root-default", "empty-version", "explicit-version", "denied"], evaluationOnlyDevelopment: cases.map(c => c.name).filter(n => !["root-default", "empty-version", "explicit-version", "denied"].includes(n)), prospectiveOrHeldOut: false }, rootQueryApplicability: "Local get_root_document branch at versioning.py:149-156 over explicit finite relation/query observations. ORM snapshot/concurrency invariants and full request reachability are not certified; no deployment claim.", results: rows, invariants: { recordOrder: equivalent("reordered"), unrelatedDocument: equivalent("unrelated-document") }, exactShapeFiniteMatches: rows.filter(r => r.finiteMachineMatch).length }
-  const evaluated = { ...result, semanticFieldAssessment: rows.map(row => ({ variant: row.variant, ...assessAutomaticCase(row.expected, row.actual) })) }
+  const evaluated = { ...result, semanticFieldAssessment: rows.map(row => ({ variant: row.variant, ...assessAutomaticCase(row.expected, row.actual, programSha256) })) }
   await save(matrixFile, evaluated); return evaluated
 }
 
@@ -60,8 +58,10 @@ export async function verifyPortableAndChangedSource() {
   const inspected: any = await inspectLocalInquiry(copiedSession)
   assert(inspected.sessionPath === copiedSession, "Moved inspection resolved outside copied session")
   const results = []
-  for (const variant of ["root-default", "empty-version", "denied"]) {
-    const current = await load(path.join(base, `inputs/${variant}.json`)), file = path.join(moved, `${variant}.json`); current.sourceRoot = "source"; await save(file, current)
+  for (const variant of ["root-default", "empty-version", "denied", "renamed-and-reordered"]) {
+    const row = matrix.results.find((r: any) => r.variant === variant)
+    assert(row?.input, `Missing current matrix input: ${variant}`)
+    const current = await load(path.resolve(repo, row.input)), file = path.join(moved, `${variant}.json`); current.sourceRoot = "source"; await save(file, current)
     const fresh: any = await checkAuthorizationInquiry(file, "D1", "question-checked-v1", programFile, { executionPolicy: "progressive" })
     const previous: any = await compareLocalInquiry(file, copiedSession, "question-checked-v1", programFile, { executionPolicy: "progressive" })
     assert(fresh.providerCalls === 0 && previous.providerCalls === 0 && previous.answerReused === false, "Offline reuse dispatched or reused an answer")

@@ -6,7 +6,7 @@ import { executeLocalInquiryRun, inspectLocalInquiry, loadInquiryInput } from ".
 import { createNativeInquiryRuntime } from "../../../../../src/benchmarks/authorization-dsl/inquiry-native.ts"
 import { admitPurpose, verifyPairBinding, observedUsageSummary } from "../authorization-recoverable-authoring-v1/study.ts"
 import { classifyTerminalReport, measureAuthorTimeline, observedAccountCost } from "../authorization-authoring-loop-v1/measurement.ts"
-import { verifyShareLink } from "../authorization-authoring-loop-v1/practical.ts"
+import { verifySecondStructure } from "./sharelink.ts"
 import { runOffline, verifyPortableAndChangedSource } from "./offline.ts"
 import { createCases, question } from "./cases.ts"
 const base = import.meta.dir, repo = path.resolve(base, "../../../../.."), identity = "authorization-reusable-program-v1"
@@ -128,7 +128,7 @@ if (import.meta.main) {
   else if (command === "freeze") await freeze(position)
   else if (command === "status") console.log(JSON.stringify(await load(ledgerFile), null, 2))
   else if (command === "offline") { const result = await runOffline(position && path.resolve(repo, position), attempt ?? "selected"); if (!position) await verifyPortableAndChangedSource(); console.log(JSON.stringify({ variants: result.variants, providerCalls: 0 })) }
-  else if (command === "sharelink") await verifyShareLink(base)
+  else if (command === "sharelink") await verifySecondStructure()
   else if (command === "summarize") console.log(JSON.stringify(await summarize()))
   else if (command === "verify") console.log(JSON.stringify(await verify()))
   else throw new Error("Use prepare | preflight | status | run <purpose> <attempt> | freeze <A0-attempt> | offline [program track] | summarize | verify")

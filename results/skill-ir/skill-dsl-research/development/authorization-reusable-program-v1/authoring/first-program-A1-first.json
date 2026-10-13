@@ -1,0 +1,216 @@
+{
+  "schemaVersion": "authorization-executable-contract/v1",
+  "id": "document-download-selection",
+  "description": "Finite selection contract rooted at the Download action; request routing and framework dispatch remain upstream.",
+  "scope": {
+    "kind": "function-contract",
+    "questionId": "requested-document-and-returned-file",
+    "root": {
+      "path": "src/documents/views.py",
+      "symbol": "documents.views.DocumentViewSet.download"
+    },
+    "upstream": [
+      "Router binding, REST framework authentication, and request-level permission outcomes remain upstream.",
+      "Actual ownership and Guardian object grants are not supplied deployment facts."
+    ]
+  },
+  "inputBinding": {
+    "questionId": "requested-document-and-returned-file"
+  },
+  "sourceDeclarations": [
+    {
+      "source": {
+        "path": "src/documents/views.py",
+        "symbol": "documents.views.DocumentViewSet.download"
+      },
+      "statements": []
+    },
+    {
+      "source": {
+        "path": "src/documents/views.py",
+        "symbol": "documents.views.DocumentViewSet.file_response"
+      },
+      "statements": []
+    },
+    {
+      "source": {
+        "path": "src/documents/views.py",
+        "symbol": "documents.views.DocumentViewSet._resolve_request_and_root_doc"
+      },
+      "statements": []
+    }
+  ],
+  "queries": [
+    {
+      "property": "task-property-b4de981d7267eec5dfa4",
+      "effect": {
+        "path": "src/documents/views.py",
+        "startLine": 1442,
+        "endLine": 1448
+      }
+    },
+    {
+      "property": "task-property-55a3dd727c36eb7ffbbc",
+      "guard": {
+        "path": "src/documents/views.py",
+        "startLine": 1421,
+        "endLine": 1426
+      },
+      "effect": {
+        "path": "src/documents/views.py",
+        "startLine": 1442,
+        "endLine": 1448
+      }
+    },
+    {
+      "property": "task-property-c9ce1fc5266591a31c41",
+      "guard": {
+        "path": "src/documents/views.py",
+        "startLine": 1421,
+        "endLine": 1426
+      },
+      "effect": {
+        "path": "src/documents/views.py",
+        "startLine": 1442,
+        "endLine": 1448
+      }
+    }
+  ],
+  "assumptions": [
+    {
+      "origin": "user",
+      "text": "The operation under investigation is the document Download operation in this Paperless revision."
+    }
+  ],
+  "authoringTarget": {
+    "mode": "reusable",
+    "coverage": [
+      {
+        "id": "request-root",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1401,
+          "endLine": 1420
+        },
+        "stepIds": [
+          "request_doc",
+          "root_candidate",
+          "root_doc",
+          "result"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "authorization-version-representation",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1421,
+          "endLine": 1448
+        },
+        "stepIds": [],
+        "disposition": "unwritten",
+        "reason": "Retained for incremental authoring and natural explanation."
+      }
+    ]
+  },
+  "resourceWorkflow": {
+    "inputs": [
+      "actor",
+      "documents",
+      "related_root",
+      "request"
+    ],
+    "gaps": [
+      "Authorization, version resolution, and original/archive choice remain to be authored.",
+      "Authentication, model permission, ownership, and object grants are not supplied actual facts."
+    ],
+    "steps": [
+      {
+        "id": "request_doc",
+        "op": "select",
+        "from": "documents",
+        "where": {
+          "op": "eq",
+          "left": {
+            "binding": "row.id"
+          },
+          "right": {
+            "binding": "request.pk"
+          }
+        },
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1408,
+          "endLine": 1415
+        }
+      },
+      {
+        "id": "root_candidate",
+        "op": "select",
+        "from": "documents",
+        "where": {
+          "op": "eq",
+          "left": {
+            "binding": "row.id"
+          },
+          "right": {
+            "binding": "request_doc.root_document_id"
+          }
+        },
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1417,
+          "endLine": 1420
+        }
+      },
+      {
+        "id": "root_doc",
+        "op": "value",
+        "value": {
+          "coalesce": [
+            {
+              "ref": "root_candidate"
+            },
+            {
+              "ref": "request_doc"
+            }
+          ]
+        },
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1417,
+          "endLine": 1420
+        }
+      },
+      {
+        "id": "result",
+        "op": "return",
+        "value": {
+          "record": {
+            "requested_document_id": {
+              "field": {
+                "of": {
+                  "ref": "request_doc"
+                },
+                "key": "id"
+              }
+            },
+            "authorization_document_id": {
+              "field": {
+                "of": {
+                  "ref": "root_doc"
+                },
+                "key": "id"
+              }
+            }
+          }
+        },
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1427,
+          "endLine": 1427
+        }
+      }
+    ]
+  }
+}

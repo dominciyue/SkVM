@@ -1,0 +1,1726 @@
+{
+  "delivery": {
+    "schemaVersion": "authorization-program-delivery/v1",
+    "status": "current",
+    "currentBasis": {
+      "revision": "c14823e46e81a61728b287693c69f62aceec6e4fa5c0d64ec49e49239e337933",
+      "components": {
+        "task": "3531df1ef7baee4205442a2e68ffa1d84db8e70bdd823a0054077403aa3b2622",
+        "sources": "f79d1567363d2285f3869550574aa6ad4de34d2cbcc2d4112ff93758fdb65626",
+        "inputs": "fa767560e72a4f30d4c38de620777b2951a57c961cb93eaa18cc859ec3633d87",
+        "program": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "sourceCurrent": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b"
+      },
+      "sourceCurrent": true
+    },
+    "firstAnswer": {
+      "sequence": 1,
+      "phase": "task-answer",
+      "answer": "## Conclusion\n\n`GET /api/documents/{pk}/download/` is a router-generated detail action. Authorization is evaluated against the **root document**, while `pk`, `version`, and `original` subsequently determine which version and file representation is returned. No separate ownership or object-permission check is made on the selected version record or its original/archive file.\n\nThis establishes root-document authority over the complete version family. Whether that matches the intended security policy is not available from the reviewed source.\n\n## 1. Request-to-file trace\n\n### Routing\n\n- `/api/` includes the REST router, which registers `documents` to `UnifiedSearchViewSet`: `src/paperless/urls.py:74-77,97-100,297`.\n- `UnifiedSearchViewSet` inherits `DocumentViewSet`: `src/documents/views.py:2503`.\n- DRF creates `/{lookup}/download/` for `@action(detail=True)`: `framework/rest_framework-3.18.1/rest_framework/routers.py:128-135`.\n- Therefore the effective route is `GET /api/documents/{pk}/download/`.\n- `/fetch/doc/{pk}` merely redirects to that route: `src/paperless/urls.py:305-312`.\n\n### Handler\n\n`DocumentViewSet.download()` calls:\n\n```text\ndownload\n  -> file_response(pk, request, \"attachment\")\n  -> _resolve_request_and_root_doc(...)\n  -> _get_effective_file_doc(...)\n  -> serve_file(...)\n```\n\nEvidence: `src/documents/views.py:1834-1839,1429-1448`.\n\n### How `pk` and `version` select a document\n\nThe initial `pk` lookup uses `Document.global_objects`, because downloads call `_resolve_request_and_root_doc(..., include_deleted=True)`. It therefore intentionally asks for a manager that includes soft-deleted records: `src/documents/views.py:1401-1415,1429-1434`.\n\nAfter deriving the root document, the effective file document is selected as follows:\n\n| Request form | Selected document |\n|---|---|\n| `pk` names a version and there is **no `version` query key** | Exactly the version named by `pk`, including a soft-deleted version. |\n| `pk` names a root and there is no `version` key | Newest non-deleted child version, ordered by descending `version_index` then ID; if none exists, the root itself. |\n| `version=<numeric document ID>` | That exact document, provided it is either the root or a direct version whose `root_document_id` equals the authorized root ID. Deleted candidates are included. |\n| `version` is nonnumeric | `404`, reported as “Invalid version parameter.” |\n| Numeric version does not exist or belongs to another root | `404`. |\n| `version=` is present but empty | It is treated as “latest,” but the presence of the key enables the include-deleted manager; consequently the newest version may be deleted. |\n\nThe `version` value is a **document primary key**, not `version_index`: `src/documents/versioning.py:169-195`. Version ordering is defined at `src/documents/versioning.py:23-28`.\n\nThe direct-child special case appears at `src/documents/views.py:1388-1399`; general resolution appears at `src/documents/views.py:1375-1386`.\n\n### Original versus archive\n\nAfter selecting `file_doc`:\n\n- Only the exact query value `original=true` requests the original.\n- Otherwise, if `file_doc.has_archive_version` is true, the archive is returned.\n- Otherwise, the original/source file is returned.\n\nEvidence: `src/documents/views.py:1368-1373,1442-1447`.\n\n`has_archive_version` means `archive_filename is not None`: `src/documents/models.py:463-475`.\n\n`serve_file()` then chooses:\n\n- **Archive:** `doc.archive_file`, PDF content type.\n- **Original:** `doc.source_file`, using `doc.mime_type`.\n- The response is a `FileResponse` with `Content-Disposition: attachment`.\n- `follow_formatting` changes the download filename, not which bytes are selected.\n\nEvidence: `src/documents/views.py:4941-4995`.\n\nOne implementation detail: `follow_formatting` is passed as the raw query value, so any nonempty value—including `follow_formatting=false`—is truthy at this call site: `src/documents/views.py:1447,4953-4965`.\n\n## 2. Authorization and its order\n\n### Request-level checks\n\nBefore invoking `download`, DRF performs authentication and permission checks: `framework/rest_framework-3.18.1/rest_framework/views.py:404-421,490-524`.\n\n`DocumentViewSet` specifies:\n\n```python\npermission_classes = (IsAuthenticated, PaperlessObjectPermissions)\n```\n\nat `src/documents/views.py:1017-1027`.\n\nConsequently:\n\n1. `IsAuthenticated` requires `request.user.is_authenticated`:  \n   `framework/rest_framework-3.18.1/rest_framework/permissions.py:145-151`.\n2. `PaperlessObjectPermissions.has_permission`, inherited from DRF, derives the model from `get_queryset()` and requires the global GET permission configured by Paperless:\n   `documents.view_document`.  \n   See `src/documents/permissions.py:30-44` and `framework/rest_framework-3.18.1/rest_framework/permissions.py:218-246`.\n\nThat global check happens before any `pk` lookup.\n\n### Root-object authorization\n\nThe handler then:\n\n1. Loads the document named by `pk`.\n2. Resolves its root document.\n3. Checks `view_document` against the **root document**.\n4. Only after success selects the effective version and original/archive representation.\n\nEvidence: `src/documents/views.py:1408-1427,1429-1448`.\n\n`has_perms_owner_aware()` allows access when:\n\n- the root has no owner;\n- the requesting user owns the root; or\n- `ObjectPermissionChecker(user).has_perm(\"view_document\", root)` succeeds.\n\nEvidence: `src/documents/permissions.py:624-635`.\n\nFailure returns an explicit `403 Insufficient permissions`: `src/documents/views.py:1421-1426`.\n\n### Why the normal DRF object check/filter does not apply\n\nAlthough the view declares `PermittedObjectsFilter`, `download()` does not call `get_object()` or `filter_queryset()`. In DRF, the normal object-permission call occurs inside `get_object()`: `framework/rest_framework-3.18.1/rest_framework/generics.py:79-105`.\n\nInstead, Download performs its own global-object lookup and manual root authorization. Thus:\n\n- `PermittedObjectsFilter` does not select or authorize this download.\n- `PaperlessObjectPermissions.has_object_permission()` is not invoked for the requested or selected version.\n- The manual root check is the operative object-level control.\n\n## 3. Does alternate-version or representation selection change the authorized resource?\n\nNo. Authorization remains tied to the root document.\n\nAfter root authorization:\n\n- A `pk` naming another version can select that version directly.\n- `version=<id>` can select the root or any direct member of that root’s version family.\n- Selecting original versus archive only changes the file handle and representation.\n- The selected version’s `owner` is not consulted.\n- No permission is checked on `source_file` or `archive_file` as separate resources.\n\nTherefore:\n\n- A user authorized on the root may download a version owned by somebody else.\n- A grant on a child version alone does not satisfy the manual check if the user lacks authority over the root.\n- A root grant covers both original and archive representations and all selectable family versions, including deleted versions reachable through the branches above.\n- An unrelated version ID is rejected as `404` by the family-membership test, rather than authorized independently.\n\nThis is a source-established behavior, not by itself a vulnerability finding: the repository’s intended policy for independently owned version records is unavailable.\n\n## 4. Supplied development scenario\n\nGiven:\n\n- actor ID 7;\n- root document 10 owned by actor 7;\n- version 11 is active with `version_index=1` and has an archive;\n- version 12 has a higher index but is deleted;\n- request `pk=10`, with no `version` and no `original`;\n\nthen, **provided the request-level `documents.view_document` check succeeds**:\n\n1. `pk=10` resolves to root 10.\n2. Root authorization succeeds through `root.owner == user`; no Guardian grant is needed.\n3. With no `version` key, normal `Document.objects` version resolution excludes deleted version 12.\n4. Version 11 is therefore the newest eligible version.\n5. Because `original=true` was not supplied and version 11 has an archive, the returned bytes come from **`v1-archive.pdf`**.\n6. It is returned as a PDF attachment.\n\nThe differing owner of version 11—owner 9—does not cause another authorization check.\n\n## 5. Missing facts and blocked conclusions\n\n| Missing fact | Conclusion blocked |\n|---|---|\n| Whether the actual user has global `documents.view_document` | Whether an authenticated request reaches the Download handler at all. |\n| Actual root ownership and Guardian root-object grants | Whether a non-owner passes the manual root check. |\n| Guardian/backend implementation and permission database | Exact outcome of `ObjectPermissionChecker.has_perm()` for a non-owner. |\n| Configured authentication classes and credentials | How a deployed request becomes the asserted authenticated user. |\n| Actual database records, family relationships, deletion state, and version indexes | Which concrete version is selected in a real deployment. |\n| Actual archive filenames and file existence/readability | Whether the response contains the selected file or becomes `404` through `FileNotFoundError`. |\n| Third-party `SoftDeleteModel` manager implementation | Independent confirmation of the precise `objects` versus `global_objects` deletion semantics, although the application explicitly uses them as normal versus include-deleted managers. |\n| Product policy for ownership of version records | Whether root-only authorization across differently owned versions is intended or constitutes an authorization defect. |\n| Proxy or deployment file-serving behavior | Final transport behavior outside the application’s `FileResponse`; it does not alter the source-level selection decision. |",
+      "basis": {
+        "revision": "c14823e46e81a61728b287693c69f62aceec6e4fa5c0d64ec49e49239e337933",
+        "components": {
+          "task": "3531df1ef7baee4205442a2e68ffa1d84db8e70bdd823a0054077403aa3b2622",
+          "sources": "f79d1567363d2285f3869550574aa6ad4de34d2cbcc2d4112ff93758fdb65626",
+          "inputs": "fa767560e72a4f30d4c38de620777b2951a57c961cb93eaa18cc859ec3633d87",
+          "program": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "sourceCurrent": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b"
+        },
+        "sourceCurrent": true
+      },
+      "delivered": true
+    },
+    "selected": {
+      "sequence": 1,
+      "phase": "task-answer",
+      "answer": "## Conclusion\n\n`GET /api/documents/{pk}/download/` is a router-generated detail action. Authorization is evaluated against the **root document**, while `pk`, `version`, and `original` subsequently determine which version and file representation is returned. No separate ownership or object-permission check is made on the selected version record or its original/archive file.\n\nThis establishes root-document authority over the complete version family. Whether that matches the intended security policy is not available from the reviewed source.\n\n## 1. Request-to-file trace\n\n### Routing\n\n- `/api/` includes the REST router, which registers `documents` to `UnifiedSearchViewSet`: `src/paperless/urls.py:74-77,97-100,297`.\n- `UnifiedSearchViewSet` inherits `DocumentViewSet`: `src/documents/views.py:2503`.\n- DRF creates `/{lookup}/download/` for `@action(detail=True)`: `framework/rest_framework-3.18.1/rest_framework/routers.py:128-135`.\n- Therefore the effective route is `GET /api/documents/{pk}/download/`.\n- `/fetch/doc/{pk}` merely redirects to that route: `src/paperless/urls.py:305-312`.\n\n### Handler\n\n`DocumentViewSet.download()` calls:\n\n```text\ndownload\n  -> file_response(pk, request, \"attachment\")\n  -> _resolve_request_and_root_doc(...)\n  -> _get_effective_file_doc(...)\n  -> serve_file(...)\n```\n\nEvidence: `src/documents/views.py:1834-1839,1429-1448`.\n\n### How `pk` and `version` select a document\n\nThe initial `pk` lookup uses `Document.global_objects`, because downloads call `_resolve_request_and_root_doc(..., include_deleted=True)`. It therefore intentionally asks for a manager that includes soft-deleted records: `src/documents/views.py:1401-1415,1429-1434`.\n\nAfter deriving the root document, the effective file document is selected as follows:\n\n| Request form | Selected document |\n|---|---|\n| `pk` names a version and there is **no `version` query key** | Exactly the version named by `pk`, including a soft-deleted version. |\n| `pk` names a root and there is no `version` key | Newest non-deleted child version, ordered by descending `version_index` then ID; if none exists, the root itself. |\n| `version=<numeric document ID>` | That exact document, provided it is either the root or a direct version whose `root_document_id` equals the authorized root ID. Deleted candidates are included. |\n| `version` is nonnumeric | `404`, reported as “Invalid version parameter.” |\n| Numeric version does not exist or belongs to another root | `404`. |\n| `version=` is present but empty | It is treated as “latest,” but the presence of the key enables the include-deleted manager; consequently the newest version may be deleted. |\n\nThe `version` value is a **document primary key**, not `version_index`: `src/documents/versioning.py:169-195`. Version ordering is defined at `src/documents/versioning.py:23-28`.\n\nThe direct-child special case appears at `src/documents/views.py:1388-1399`; general resolution appears at `src/documents/views.py:1375-1386`.\n\n### Original versus archive\n\nAfter selecting `file_doc`:\n\n- Only the exact query value `original=true` requests the original.\n- Otherwise, if `file_doc.has_archive_version` is true, the archive is returned.\n- Otherwise, the original/source file is returned.\n\nEvidence: `src/documents/views.py:1368-1373,1442-1447`.\n\n`has_archive_version` means `archive_filename is not None`: `src/documents/models.py:463-475`.\n\n`serve_file()` then chooses:\n\n- **Archive:** `doc.archive_file`, PDF content type.\n- **Original:** `doc.source_file`, using `doc.mime_type`.\n- The response is a `FileResponse` with `Content-Disposition: attachment`.\n- `follow_formatting` changes the download filename, not which bytes are selected.\n\nEvidence: `src/documents/views.py:4941-4995`.\n\nOne implementation detail: `follow_formatting` is passed as the raw query value, so any nonempty value—including `follow_formatting=false`—is truthy at this call site: `src/documents/views.py:1447,4953-4965`.\n\n## 2. Authorization and its order\n\n### Request-level checks\n\nBefore invoking `download`, DRF performs authentication and permission checks: `framework/rest_framework-3.18.1/rest_framework/views.py:404-421,490-524`.\n\n`DocumentViewSet` specifies:\n\n```python\npermission_classes = (IsAuthenticated, PaperlessObjectPermissions)\n```\n\nat `src/documents/views.py:1017-1027`.\n\nConsequently:\n\n1. `IsAuthenticated` requires `request.user.is_authenticated`:  \n   `framework/rest_framework-3.18.1/rest_framework/permissions.py:145-151`.\n2. `PaperlessObjectPermissions.has_permission`, inherited from DRF, derives the model from `get_queryset()` and requires the global GET permission configured by Paperless:\n   `documents.view_document`.  \n   See `src/documents/permissions.py:30-44` and `framework/rest_framework-3.18.1/rest_framework/permissions.py:218-246`.\n\nThat global check happens before any `pk` lookup.\n\n### Root-object authorization\n\nThe handler then:\n\n1. Loads the document named by `pk`.\n2. Resolves its root document.\n3. Checks `view_document` against the **root document**.\n4. Only after success selects the effective version and original/archive representation.\n\nEvidence: `src/documents/views.py:1408-1427,1429-1448`.\n\n`has_perms_owner_aware()` allows access when:\n\n- the root has no owner;\n- the requesting user owns the root; or\n- `ObjectPermissionChecker(user).has_perm(\"view_document\", root)` succeeds.\n\nEvidence: `src/documents/permissions.py:624-635`.\n\nFailure returns an explicit `403 Insufficient permissions`: `src/documents/views.py:1421-1426`.\n\n### Why the normal DRF object check/filter does not apply\n\nAlthough the view declares `PermittedObjectsFilter`, `download()` does not call `get_object()` or `filter_queryset()`. In DRF, the normal object-permission call occurs inside `get_object()`: `framework/rest_framework-3.18.1/rest_framework/generics.py:79-105`.\n\nInstead, Download performs its own global-object lookup and manual root authorization. Thus:\n\n- `PermittedObjectsFilter` does not select or authorize this download.\n- `PaperlessObjectPermissions.has_object_permission()` is not invoked for the requested or selected version.\n- The manual root check is the operative object-level control.\n\n## 3. Does alternate-version or representation selection change the authorized resource?\n\nNo. Authorization remains tied to the root document.\n\nAfter root authorization:\n\n- A `pk` naming another version can select that version directly.\n- `version=<id>` can select the root or any direct member of that root’s version family.\n- Selecting original versus archive only changes the file handle and representation.\n- The selected version’s `owner` is not consulted.\n- No permission is checked on `source_file` or `archive_file` as separate resources.\n\nTherefore:\n\n- A user authorized on the root may download a version owned by somebody else.\n- A grant on a child version alone does not satisfy the manual check if the user lacks authority over the root.\n- A root grant covers both original and archive representations and all selectable family versions, including deleted versions reachable through the branches above.\n- An unrelated version ID is rejected as `404` by the family-membership test, rather than authorized independently.\n\nThis is a source-established behavior, not by itself a vulnerability finding: the repository’s intended policy for independently owned version records is unavailable.\n\n## 4. Supplied development scenario\n\nGiven:\n\n- actor ID 7;\n- root document 10 owned by actor 7;\n- version 11 is active with `version_index=1` and has an archive;\n- version 12 has a higher index but is deleted;\n- request `pk=10`, with no `version` and no `original`;\n\nthen, **provided the request-level `documents.view_document` check succeeds**:\n\n1. `pk=10` resolves to root 10.\n2. Root authorization succeeds through `root.owner == user`; no Guardian grant is needed.\n3. With no `version` key, normal `Document.objects` version resolution excludes deleted version 12.\n4. Version 11 is therefore the newest eligible version.\n5. Because `original=true` was not supplied and version 11 has an archive, the returned bytes come from **`v1-archive.pdf`**.\n6. It is returned as a PDF attachment.\n\nThe differing owner of version 11—owner 9—does not cause another authorization check.\n\n## 5. Missing facts and blocked conclusions\n\n| Missing fact | Conclusion blocked |\n|---|---|\n| Whether the actual user has global `documents.view_document` | Whether an authenticated request reaches the Download handler at all. |\n| Actual root ownership and Guardian root-object grants | Whether a non-owner passes the manual root check. |\n| Guardian/backend implementation and permission database | Exact outcome of `ObjectPermissionChecker.has_perm()` for a non-owner. |\n| Configured authentication classes and credentials | How a deployed request becomes the asserted authenticated user. |\n| Actual database records, family relationships, deletion state, and version indexes | Which concrete version is selected in a real deployment. |\n| Actual archive filenames and file existence/readability | Whether the response contains the selected file or becomes `404` through `FileNotFoundError`. |\n| Third-party `SoftDeleteModel` manager implementation | Independent confirmation of the precise `objects` versus `global_objects` deletion semantics, although the application explicitly uses them as normal versus include-deleted managers. |\n| Product policy for ownership of version records | Whether root-only authorization across differently owned versions is intended or constitutes an authorization defect. |\n| Proxy or deployment file-serving behavior | Final transport behavior outside the application’s `FileResponse`; it does not alter the source-level selection decision. |",
+      "basis": {
+        "revision": "c14823e46e81a61728b287693c69f62aceec6e4fa5c0d64ec49e49239e337933",
+        "components": {
+          "task": "3531df1ef7baee4205442a2e68ffa1d84db8e70bdd823a0054077403aa3b2622",
+          "sources": "f79d1567363d2285f3869550574aa6ad4de34d2cbcc2d4112ff93758fdb65626",
+          "inputs": "fa767560e72a4f30d4c38de620777b2951a57c961cb93eaa18cc859ec3633d87",
+          "program": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "sourceCurrent": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b"
+        },
+        "sourceCurrent": true
+      },
+      "delivered": true
+    },
+    "answer": "## Conclusion\n\n`GET /api/documents/{pk}/download/` is a router-generated detail action. Authorization is evaluated against the **root document**, while `pk`, `version`, and `original` subsequently determine which version and file representation is returned. No separate ownership or object-permission check is made on the selected version record or its original/archive file.\n\nThis establishes root-document authority over the complete version family. Whether that matches the intended security policy is not available from the reviewed source.\n\n## 1. Request-to-file trace\n\n### Routing\n\n- `/api/` includes the REST router, which registers `documents` to `UnifiedSearchViewSet`: `src/paperless/urls.py:74-77,97-100,297`.\n- `UnifiedSearchViewSet` inherits `DocumentViewSet`: `src/documents/views.py:2503`.\n- DRF creates `/{lookup}/download/` for `@action(detail=True)`: `framework/rest_framework-3.18.1/rest_framework/routers.py:128-135`.\n- Therefore the effective route is `GET /api/documents/{pk}/download/`.\n- `/fetch/doc/{pk}` merely redirects to that route: `src/paperless/urls.py:305-312`.\n\n### Handler\n\n`DocumentViewSet.download()` calls:\n\n```text\ndownload\n  -> file_response(pk, request, \"attachment\")\n  -> _resolve_request_and_root_doc(...)\n  -> _get_effective_file_doc(...)\n  -> serve_file(...)\n```\n\nEvidence: `src/documents/views.py:1834-1839,1429-1448`.\n\n### How `pk` and `version` select a document\n\nThe initial `pk` lookup uses `Document.global_objects`, because downloads call `_resolve_request_and_root_doc(..., include_deleted=True)`. It therefore intentionally asks for a manager that includes soft-deleted records: `src/documents/views.py:1401-1415,1429-1434`.\n\nAfter deriving the root document, the effective file document is selected as follows:\n\n| Request form | Selected document |\n|---|---|\n| `pk` names a version and there is **no `version` query key** | Exactly the version named by `pk`, including a soft-deleted version. |\n| `pk` names a root and there is no `version` key | Newest non-deleted child version, ordered by descending `version_index` then ID; if none exists, the root itself. |\n| `version=<numeric document ID>` | That exact document, provided it is either the root or a direct version whose `root_document_id` equals the authorized root ID. Deleted candidates are included. |\n| `version` is nonnumeric | `404`, reported as “Invalid version parameter.” |\n| Numeric version does not exist or belongs to another root | `404`. |\n| `version=` is present but empty | It is treated as “latest,” but the presence of the key enables the include-deleted manager; consequently the newest version may be deleted. |\n\nThe `version` value is a **document primary key**, not `version_index`: `src/documents/versioning.py:169-195`. Version ordering is defined at `src/documents/versioning.py:23-28`.\n\nThe direct-child special case appears at `src/documents/views.py:1388-1399`; general resolution appears at `src/documents/views.py:1375-1386`.\n\n### Original versus archive\n\nAfter selecting `file_doc`:\n\n- Only the exact query value `original=true` requests the original.\n- Otherwise, if `file_doc.has_archive_version` is true, the archive is returned.\n- Otherwise, the original/source file is returned.\n\nEvidence: `src/documents/views.py:1368-1373,1442-1447`.\n\n`has_archive_version` means `archive_filename is not None`: `src/documents/models.py:463-475`.\n\n`serve_file()` then chooses:\n\n- **Archive:** `doc.archive_file`, PDF content type.\n- **Original:** `doc.source_file`, using `doc.mime_type`.\n- The response is a `FileResponse` with `Content-Disposition: attachment`.\n- `follow_formatting` changes the download filename, not which bytes are selected.\n\nEvidence: `src/documents/views.py:4941-4995`.\n\nOne implementation detail: `follow_formatting` is passed as the raw query value, so any nonempty value—including `follow_formatting=false`—is truthy at this call site: `src/documents/views.py:1447,4953-4965`.\n\n## 2. Authorization and its order\n\n### Request-level checks\n\nBefore invoking `download`, DRF performs authentication and permission checks: `framework/rest_framework-3.18.1/rest_framework/views.py:404-421,490-524`.\n\n`DocumentViewSet` specifies:\n\n```python\npermission_classes = (IsAuthenticated, PaperlessObjectPermissions)\n```\n\nat `src/documents/views.py:1017-1027`.\n\nConsequently:\n\n1. `IsAuthenticated` requires `request.user.is_authenticated`:  \n   `framework/rest_framework-3.18.1/rest_framework/permissions.py:145-151`.\n2. `PaperlessObjectPermissions.has_permission`, inherited from DRF, derives the model from `get_queryset()` and requires the global GET permission configured by Paperless:\n   `documents.view_document`.  \n   See `src/documents/permissions.py:30-44` and `framework/rest_framework-3.18.1/rest_framework/permissions.py:218-246`.\n\nThat global check happens before any `pk` lookup.\n\n### Root-object authorization\n\nThe handler then:\n\n1. Loads the document named by `pk`.\n2. Resolves its root document.\n3. Checks `view_document` against the **root document**.\n4. Only after success selects the effective version and original/archive representation.\n\nEvidence: `src/documents/views.py:1408-1427,1429-1448`.\n\n`has_perms_owner_aware()` allows access when:\n\n- the root has no owner;\n- the requesting user owns the root; or\n- `ObjectPermissionChecker(user).has_perm(\"view_document\", root)` succeeds.\n\nEvidence: `src/documents/permissions.py:624-635`.\n\nFailure returns an explicit `403 Insufficient permissions`: `src/documents/views.py:1421-1426`.\n\n### Why the normal DRF object check/filter does not apply\n\nAlthough the view declares `PermittedObjectsFilter`, `download()` does not call `get_object()` or `filter_queryset()`. In DRF, the normal object-permission call occurs inside `get_object()`: `framework/rest_framework-3.18.1/rest_framework/generics.py:79-105`.\n\nInstead, Download performs its own global-object lookup and manual root authorization. Thus:\n\n- `PermittedObjectsFilter` does not select or authorize this download.\n- `PaperlessObjectPermissions.has_object_permission()` is not invoked for the requested or selected version.\n- The manual root check is the operative object-level control.\n\n## 3. Does alternate-version or representation selection change the authorized resource?\n\nNo. Authorization remains tied to the root document.\n\nAfter root authorization:\n\n- A `pk` naming another version can select that version directly.\n- `version=<id>` can select the root or any direct member of that root’s version family.\n- Selecting original versus archive only changes the file handle and representation.\n- The selected version’s `owner` is not consulted.\n- No permission is checked on `source_file` or `archive_file` as separate resources.\n\nTherefore:\n\n- A user authorized on the root may download a version owned by somebody else.\n- A grant on a child version alone does not satisfy the manual check if the user lacks authority over the root.\n- A root grant covers both original and archive representations and all selectable family versions, including deleted versions reachable through the branches above.\n- An unrelated version ID is rejected as `404` by the family-membership test, rather than authorized independently.\n\nThis is a source-established behavior, not by itself a vulnerability finding: the repository’s intended policy for independently owned version records is unavailable.\n\n## 4. Supplied development scenario\n\nGiven:\n\n- actor ID 7;\n- root document 10 owned by actor 7;\n- version 11 is active with `version_index=1` and has an archive;\n- version 12 has a higher index but is deleted;\n- request `pk=10`, with no `version` and no `original`;\n\nthen, **provided the request-level `documents.view_document` check succeeds**:\n\n1. `pk=10` resolves to root 10.\n2. Root authorization succeeds through `root.owner == user`; no Guardian grant is needed.\n3. With no `version` key, normal `Document.objects` version resolution excludes deleted version 12.\n4. Version 11 is therefore the newest eligible version.\n5. Because `original=true` was not supplied and version 11 has an archive, the returned bytes come from **`v1-archive.pdf`**.\n6. It is returned as a PDF attachment.\n\nThe differing owner of version 11—owner 9—does not cause another authorization check.\n\n## 5. Missing facts and blocked conclusions\n\n| Missing fact | Conclusion blocked |\n|---|---|\n| Whether the actual user has global `documents.view_document` | Whether an authenticated request reaches the Download handler at all. |\n| Actual root ownership and Guardian root-object grants | Whether a non-owner passes the manual root check. |\n| Guardian/backend implementation and permission database | Exact outcome of `ObjectPermissionChecker.has_perm()` for a non-owner. |\n| Configured authentication classes and credentials | How a deployed request becomes the asserted authenticated user. |\n| Actual database records, family relationships, deletion state, and version indexes | Which concrete version is selected in a real deployment. |\n| Actual archive filenames and file existence/readability | Whether the response contains the selected file or becomes `404` through `FileNotFoundError`. |\n| Third-party `SoftDeleteModel` manager implementation | Independent confirmation of the precise `objects` versus `global_objects` deletion semantics, although the application explicitly uses them as normal versus include-deleted managers. |\n| Product policy for ownership of version records | Whether root-only authorization across differently owned versions is intended or constitutes an authorization defect. |\n| Proxy or deployment file-serving behavior | Final transport behavior outside the application’s `FileResponse`; it does not alter the source-level selection decision. |",
+    "rawLastAnswer": "## Conclusion\n\n`GET /api/documents/{pk}/download/` is a router-generated detail action. Authorization is evaluated against the **root document**, while `pk`, `version`, and `original` subsequently determine which version and file representation is returned. No separate ownership or object-permission check is made on the selected version record or its original/archive file.\n\nThis establishes root-document authority over the complete version family. Whether that matches the intended security policy is not available from the reviewed source.\n\n## 1. Request-to-file trace\n\n### Routing\n\n- `/api/` includes the REST router, which registers `documents` to `UnifiedSearchViewSet`: `src/paperless/urls.py:74-77,97-100,297`.\n- `UnifiedSearchViewSet` inherits `DocumentViewSet`: `src/documents/views.py:2503`.\n- DRF creates `/{lookup}/download/` for `@action(detail=True)`: `framework/rest_framework-3.18.1/rest_framework/routers.py:128-135`.\n- Therefore the effective route is `GET /api/documents/{pk}/download/`.\n- `/fetch/doc/{pk}` merely redirects to that route: `src/paperless/urls.py:305-312`.\n\n### Handler\n\n`DocumentViewSet.download()` calls:\n\n```text\ndownload\n  -> file_response(pk, request, \"attachment\")\n  -> _resolve_request_and_root_doc(...)\n  -> _get_effective_file_doc(...)\n  -> serve_file(...)\n```\n\nEvidence: `src/documents/views.py:1834-1839,1429-1448`.\n\n### How `pk` and `version` select a document\n\nThe initial `pk` lookup uses `Document.global_objects`, because downloads call `_resolve_request_and_root_doc(..., include_deleted=True)`. It therefore intentionally asks for a manager that includes soft-deleted records: `src/documents/views.py:1401-1415,1429-1434`.\n\nAfter deriving the root document, the effective file document is selected as follows:\n\n| Request form | Selected document |\n|---|---|\n| `pk` names a version and there is **no `version` query key** | Exactly the version named by `pk`, including a soft-deleted version. |\n| `pk` names a root and there is no `version` key | Newest non-deleted child version, ordered by descending `version_index` then ID; if none exists, the root itself. |\n| `version=<numeric document ID>` | That exact document, provided it is either the root or a direct version whose `root_document_id` equals the authorized root ID. Deleted candidates are included. |\n| `version` is nonnumeric | `404`, reported as “Invalid version parameter.” |\n| Numeric version does not exist or belongs to another root | `404`. |\n| `version=` is present but empty | It is treated as “latest,” but the presence of the key enables the include-deleted manager; consequently the newest version may be deleted. |\n\nThe `version` value is a **document primary key**, not `version_index`: `src/documents/versioning.py:169-195`. Version ordering is defined at `src/documents/versioning.py:23-28`.\n\nThe direct-child special case appears at `src/documents/views.py:1388-1399`; general resolution appears at `src/documents/views.py:1375-1386`.\n\n### Original versus archive\n\nAfter selecting `file_doc`:\n\n- Only the exact query value `original=true` requests the original.\n- Otherwise, if `file_doc.has_archive_version` is true, the archive is returned.\n- Otherwise, the original/source file is returned.\n\nEvidence: `src/documents/views.py:1368-1373,1442-1447`.\n\n`has_archive_version` means `archive_filename is not None`: `src/documents/models.py:463-475`.\n\n`serve_file()` then chooses:\n\n- **Archive:** `doc.archive_file`, PDF content type.\n- **Original:** `doc.source_file`, using `doc.mime_type`.\n- The response is a `FileResponse` with `Content-Disposition: attachment`.\n- `follow_formatting` changes the download filename, not which bytes are selected.\n\nEvidence: `src/documents/views.py:4941-4995`.\n\nOne implementation detail: `follow_formatting` is passed as the raw query value, so any nonempty value—including `follow_formatting=false`—is truthy at this call site: `src/documents/views.py:1447,4953-4965`.\n\n## 2. Authorization and its order\n\n### Request-level checks\n\nBefore invoking `download`, DRF performs authentication and permission checks: `framework/rest_framework-3.18.1/rest_framework/views.py:404-421,490-524`.\n\n`DocumentViewSet` specifies:\n\n```python\npermission_classes = (IsAuthenticated, PaperlessObjectPermissions)\n```\n\nat `src/documents/views.py:1017-1027`.\n\nConsequently:\n\n1. `IsAuthenticated` requires `request.user.is_authenticated`:  \n   `framework/rest_framework-3.18.1/rest_framework/permissions.py:145-151`.\n2. `PaperlessObjectPermissions.has_permission`, inherited from DRF, derives the model from `get_queryset()` and requires the global GET permission configured by Paperless:\n   `documents.view_document`.  \n   See `src/documents/permissions.py:30-44` and `framework/rest_framework-3.18.1/rest_framework/permissions.py:218-246`.\n\nThat global check happens before any `pk` lookup.\n\n### Root-object authorization\n\nThe handler then:\n\n1. Loads the document named by `pk`.\n2. Resolves its root document.\n3. Checks `view_document` against the **root document**.\n4. Only after success selects the effective version and original/archive representation.\n\nEvidence: `src/documents/views.py:1408-1427,1429-1448`.\n\n`has_perms_owner_aware()` allows access when:\n\n- the root has no owner;\n- the requesting user owns the root; or\n- `ObjectPermissionChecker(user).has_perm(\"view_document\", root)` succeeds.\n\nEvidence: `src/documents/permissions.py:624-635`.\n\nFailure returns an explicit `403 Insufficient permissions`: `src/documents/views.py:1421-1426`.\n\n### Why the normal DRF object check/filter does not apply\n\nAlthough the view declares `PermittedObjectsFilter`, `download()` does not call `get_object()` or `filter_queryset()`. In DRF, the normal object-permission call occurs inside `get_object()`: `framework/rest_framework-3.18.1/rest_framework/generics.py:79-105`.\n\nInstead, Download performs its own global-object lookup and manual root authorization. Thus:\n\n- `PermittedObjectsFilter` does not select or authorize this download.\n- `PaperlessObjectPermissions.has_object_permission()` is not invoked for the requested or selected version.\n- The manual root check is the operative object-level control.\n\n## 3. Does alternate-version or representation selection change the authorized resource?\n\nNo. Authorization remains tied to the root document.\n\nAfter root authorization:\n\n- A `pk` naming another version can select that version directly.\n- `version=<id>` can select the root or any direct member of that root’s version family.\n- Selecting original versus archive only changes the file handle and representation.\n- The selected version’s `owner` is not consulted.\n- No permission is checked on `source_file` or `archive_file` as separate resources.\n\nTherefore:\n\n- A user authorized on the root may download a version owned by somebody else.\n- A grant on a child version alone does not satisfy the manual check if the user lacks authority over the root.\n- A root grant covers both original and archive representations and all selectable family versions, including deleted versions reachable through the branches above.\n- An unrelated version ID is rejected as `404` by the family-membership test, rather than authorized independently.\n\nThis is a source-established behavior, not by itself a vulnerability finding: the repository’s intended policy for independently owned version records is unavailable.\n\n## 4. Supplied development scenario\n\nGiven:\n\n- actor ID 7;\n- root document 10 owned by actor 7;\n- version 11 is active with `version_index=1` and has an archive;\n- version 12 has a higher index but is deleted;\n- request `pk=10`, with no `version` and no `original`;\n\nthen, **provided the request-level `documents.view_document` check succeeds**:\n\n1. `pk=10` resolves to root 10.\n2. Root authorization succeeds through `root.owner == user`; no Guardian grant is needed.\n3. With no `version` key, normal `Document.objects` version resolution excludes deleted version 12.\n4. Version 11 is therefore the newest eligible version.\n5. Because `original=true` was not supplied and version 11 has an archive, the returned bytes come from **`v1-archive.pdf`**.\n6. It is returned as a PDF attachment.\n\nThe differing owner of version 11—owner 9—does not cause another authorization check.\n\n## 5. Missing facts and blocked conclusions\n\n| Missing fact | Conclusion blocked |\n|---|---|\n| Whether the actual user has global `documents.view_document` | Whether an authenticated request reaches the Download handler at all. |\n| Actual root ownership and Guardian root-object grants | Whether a non-owner passes the manual root check. |\n| Guardian/backend implementation and permission database | Exact outcome of `ObjectPermissionChecker.has_perm()` for a non-owner. |\n| Configured authentication classes and credentials | How a deployed request becomes the asserted authenticated user. |\n| Actual database records, family relationships, deletion state, and version indexes | Which concrete version is selected in a real deployment. |\n| Actual archive filenames and file existence/readability | Whether the response contains the selected file or becomes `404` through `FileNotFoundError`. |\n| Third-party `SoftDeleteModel` manager implementation | Independent confirmation of the precise `objects` versus `global_objects` deletion semantics, although the application explicitly uses them as normal versus include-deleted managers. |\n| Product policy for ownership of version records | Whether root-only authorization across differently owned versions is intended or constitutes an authorization defect. |\n| Proxy or deployment file-serving behavior | Final transport behavior outside the application’s `FileResponse`; it does not alter the source-level selection decision. |",
+    "records": [
+      {
+        "sequence": 1,
+        "phase": "task-answer",
+        "answer": "## Conclusion\n\n`GET /api/documents/{pk}/download/` is a router-generated detail action. Authorization is evaluated against the **root document**, while `pk`, `version`, and `original` subsequently determine which version and file representation is returned. No separate ownership or object-permission check is made on the selected version record or its original/archive file.\n\nThis establishes root-document authority over the complete version family. Whether that matches the intended security policy is not available from the reviewed source.\n\n## 1. Request-to-file trace\n\n### Routing\n\n- `/api/` includes the REST router, which registers `documents` to `UnifiedSearchViewSet`: `src/paperless/urls.py:74-77,97-100,297`.\n- `UnifiedSearchViewSet` inherits `DocumentViewSet`: `src/documents/views.py:2503`.\n- DRF creates `/{lookup}/download/` for `@action(detail=True)`: `framework/rest_framework-3.18.1/rest_framework/routers.py:128-135`.\n- Therefore the effective route is `GET /api/documents/{pk}/download/`.\n- `/fetch/doc/{pk}` merely redirects to that route: `src/paperless/urls.py:305-312`.\n\n### Handler\n\n`DocumentViewSet.download()` calls:\n\n```text\ndownload\n  -> file_response(pk, request, \"attachment\")\n  -> _resolve_request_and_root_doc(...)\n  -> _get_effective_file_doc(...)\n  -> serve_file(...)\n```\n\nEvidence: `src/documents/views.py:1834-1839,1429-1448`.\n\n### How `pk` and `version` select a document\n\nThe initial `pk` lookup uses `Document.global_objects`, because downloads call `_resolve_request_and_root_doc(..., include_deleted=True)`. It therefore intentionally asks for a manager that includes soft-deleted records: `src/documents/views.py:1401-1415,1429-1434`.\n\nAfter deriving the root document, the effective file document is selected as follows:\n\n| Request form | Selected document |\n|---|---|\n| `pk` names a version and there is **no `version` query key** | Exactly the version named by `pk`, including a soft-deleted version. |\n| `pk` names a root and there is no `version` key | Newest non-deleted child version, ordered by descending `version_index` then ID; if none exists, the root itself. |\n| `version=<numeric document ID>` | That exact document, provided it is either the root or a direct version whose `root_document_id` equals the authorized root ID. Deleted candidates are included. |\n| `version` is nonnumeric | `404`, reported as “Invalid version parameter.” |\n| Numeric version does not exist or belongs to another root | `404`. |\n| `version=` is present but empty | It is treated as “latest,” but the presence of the key enables the include-deleted manager; consequently the newest version may be deleted. |\n\nThe `version` value is a **document primary key**, not `version_index`: `src/documents/versioning.py:169-195`. Version ordering is defined at `src/documents/versioning.py:23-28`.\n\nThe direct-child special case appears at `src/documents/views.py:1388-1399`; general resolution appears at `src/documents/views.py:1375-1386`.\n\n### Original versus archive\n\nAfter selecting `file_doc`:\n\n- Only the exact query value `original=true` requests the original.\n- Otherwise, if `file_doc.has_archive_version` is true, the archive is returned.\n- Otherwise, the original/source file is returned.\n\nEvidence: `src/documents/views.py:1368-1373,1442-1447`.\n\n`has_archive_version` means `archive_filename is not None`: `src/documents/models.py:463-475`.\n\n`serve_file()` then chooses:\n\n- **Archive:** `doc.archive_file`, PDF content type.\n- **Original:** `doc.source_file`, using `doc.mime_type`.\n- The response is a `FileResponse` with `Content-Disposition: attachment`.\n- `follow_formatting` changes the download filename, not which bytes are selected.\n\nEvidence: `src/documents/views.py:4941-4995`.\n\nOne implementation detail: `follow_formatting` is passed as the raw query value, so any nonempty value—including `follow_formatting=false`—is truthy at this call site: `src/documents/views.py:1447,4953-4965`.\n\n## 2. Authorization and its order\n\n### Request-level checks\n\nBefore invoking `download`, DRF performs authentication and permission checks: `framework/rest_framework-3.18.1/rest_framework/views.py:404-421,490-524`.\n\n`DocumentViewSet` specifies:\n\n```python\npermission_classes = (IsAuthenticated, PaperlessObjectPermissions)\n```\n\nat `src/documents/views.py:1017-1027`.\n\nConsequently:\n\n1. `IsAuthenticated` requires `request.user.is_authenticated`:  \n   `framework/rest_framework-3.18.1/rest_framework/permissions.py:145-151`.\n2. `PaperlessObjectPermissions.has_permission`, inherited from DRF, derives the model from `get_queryset()` and requires the global GET permission configured by Paperless:\n   `documents.view_document`.  \n   See `src/documents/permissions.py:30-44` and `framework/rest_framework-3.18.1/rest_framework/permissions.py:218-246`.\n\nThat global check happens before any `pk` lookup.\n\n### Root-object authorization\n\nThe handler then:\n\n1. Loads the document named by `pk`.\n2. Resolves its root document.\n3. Checks `view_document` against the **root document**.\n4. Only after success selects the effective version and original/archive representation.\n\nEvidence: `src/documents/views.py:1408-1427,1429-1448`.\n\n`has_perms_owner_aware()` allows access when:\n\n- the root has no owner;\n- the requesting user owns the root; or\n- `ObjectPermissionChecker(user).has_perm(\"view_document\", root)` succeeds.\n\nEvidence: `src/documents/permissions.py:624-635`.\n\nFailure returns an explicit `403 Insufficient permissions`: `src/documents/views.py:1421-1426`.\n\n### Why the normal DRF object check/filter does not apply\n\nAlthough the view declares `PermittedObjectsFilter`, `download()` does not call `get_object()` or `filter_queryset()`. In DRF, the normal object-permission call occurs inside `get_object()`: `framework/rest_framework-3.18.1/rest_framework/generics.py:79-105`.\n\nInstead, Download performs its own global-object lookup and manual root authorization. Thus:\n\n- `PermittedObjectsFilter` does not select or authorize this download.\n- `PaperlessObjectPermissions.has_object_permission()` is not invoked for the requested or selected version.\n- The manual root check is the operative object-level control.\n\n## 3. Does alternate-version or representation selection change the authorized resource?\n\nNo. Authorization remains tied to the root document.\n\nAfter root authorization:\n\n- A `pk` naming another version can select that version directly.\n- `version=<id>` can select the root or any direct member of that root’s version family.\n- Selecting original versus archive only changes the file handle and representation.\n- The selected version’s `owner` is not consulted.\n- No permission is checked on `source_file` or `archive_file` as separate resources.\n\nTherefore:\n\n- A user authorized on the root may download a version owned by somebody else.\n- A grant on a child version alone does not satisfy the manual check if the user lacks authority over the root.\n- A root grant covers both original and archive representations and all selectable family versions, including deleted versions reachable through the branches above.\n- An unrelated version ID is rejected as `404` by the family-membership test, rather than authorized independently.\n\nThis is a source-established behavior, not by itself a vulnerability finding: the repository’s intended policy for independently owned version records is unavailable.\n\n## 4. Supplied development scenario\n\nGiven:\n\n- actor ID 7;\n- root document 10 owned by actor 7;\n- version 11 is active with `version_index=1` and has an archive;\n- version 12 has a higher index but is deleted;\n- request `pk=10`, with no `version` and no `original`;\n\nthen, **provided the request-level `documents.view_document` check succeeds**:\n\n1. `pk=10` resolves to root 10.\n2. Root authorization succeeds through `root.owner == user`; no Guardian grant is needed.\n3. With no `version` key, normal `Document.objects` version resolution excludes deleted version 12.\n4. Version 11 is therefore the newest eligible version.\n5. Because `original=true` was not supplied and version 11 has an archive, the returned bytes come from **`v1-archive.pdf`**.\n6. It is returned as a PDF attachment.\n\nThe differing owner of version 11—owner 9—does not cause another authorization check.\n\n## 5. Missing facts and blocked conclusions\n\n| Missing fact | Conclusion blocked |\n|---|---|\n| Whether the actual user has global `documents.view_document` | Whether an authenticated request reaches the Download handler at all. |\n| Actual root ownership and Guardian root-object grants | Whether a non-owner passes the manual root check. |\n| Guardian/backend implementation and permission database | Exact outcome of `ObjectPermissionChecker.has_perm()` for a non-owner. |\n| Configured authentication classes and credentials | How a deployed request becomes the asserted authenticated user. |\n| Actual database records, family relationships, deletion state, and version indexes | Which concrete version is selected in a real deployment. |\n| Actual archive filenames and file existence/readability | Whether the response contains the selected file or becomes `404` through `FileNotFoundError`. |\n| Third-party `SoftDeleteModel` manager implementation | Independent confirmation of the precise `objects` versus `global_objects` deletion semantics, although the application explicitly uses them as normal versus include-deleted managers. |\n| Product policy for ownership of version records | Whether root-only authorization across differently owned versions is intended or constitutes an authorization defect. |\n| Proxy or deployment file-serving behavior | Final transport behavior outside the application’s `FileResponse`; it does not alter the source-level selection decision. |",
+        "basis": {
+          "revision": "c14823e46e81a61728b287693c69f62aceec6e4fa5c0d64ec49e49239e337933",
+          "components": {
+            "task": "3531df1ef7baee4205442a2e68ffa1d84db8e70bdd823a0054077403aa3b2622",
+            "sources": "f79d1567363d2285f3869550574aa6ad4de34d2cbcc2d4112ff93758fdb65626",
+            "inputs": "fa767560e72a4f30d4c38de620777b2951a57c961cb93eaa18cc859ec3633d87",
+            "program": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+            "sourceCurrent": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b"
+          },
+          "sourceCurrent": true
+        },
+        "delivered": true
+      }
+    ],
+    "finalDelivered": true,
+    "instruction": "Task answer remains current for this recorded basis; semantic support stays unreviewed.",
+    "decisions": [
+      {
+        "runFinal": false,
+        "reason": "task-answer-current"
+      }
+    ]
+  },
+  "transmission": {
+    "schemaVersion": "authorization-transmission-accounting/v1",
+    "boundary": "official-account-static-tools-and-sent-envelopes",
+    "exactUtf8Bytes": true,
+    "exactComponentTokens": null,
+    "classification": "Disjoint coarse JSON field categories; JSON framing and host instructions are schemaProtocol. Skill bytes are exact. No archive domain is measured.",
+    "samples": [
+      {
+        "sequence": 1,
+        "kind": "static-tools",
+        "bytes": 2527,
+        "sha256": "36d8f2bda1c4e9cfe717f2878eeec04fdc8e156ed50f510f703ce33eb0be1a99",
+        "components": {
+          "source": 0,
+          "taskSkill": 0,
+          "stateGap": 0,
+          "schemaProtocol": 2527
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [],
+        "actions": []
+      },
+      {
+        "sequence": 2,
+        "kind": "system",
+        "bytes": 28416,
+        "sha256": "254aecd1d26a767d21d7b2bb7994518832b292b802b237d67a4e88775879bc0b",
+        "components": {
+          "source": 0,
+          "taskSkill": 22318,
+          "stateGap": 0,
+          "schemaProtocol": 6098
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [],
+        "actions": []
+      },
+      {
+        "sequence": 3,
+        "kind": "initial-context",
+        "bytes": 361,
+        "sha256": "5ddfa8cf221e320a7ec2fb6810ab11dd8c32d841368ff0786a14fc14b7527dec",
+        "components": {
+          "source": 0,
+          "taskSkill": 0,
+          "stateGap": 13,
+          "schemaProtocol": 348
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [],
+        "actions": []
+      },
+      {
+        "sequence": 4,
+        "kind": "tool-reply",
+        "bytes": 7847,
+        "sha256": "3ba8f1480fd0618ff1ab152e7358af8940567e188cbd510861d115555d04bed7",
+        "components": {
+          "source": 2,
+          "taskSkill": 0,
+          "stateGap": 4356,
+          "schemaProtocol": 3489
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [],
+        "actions": []
+      },
+      {
+        "sequence": 5,
+        "kind": "tool-reply",
+        "bytes": 3588,
+        "sha256": "6983989673b9951c58d63b92d3518cd5be497a7cf4da7a70cdefcbd7ca2e10e8",
+        "components": {
+          "source": 2499,
+          "taskSkill": 0,
+          "stateGap": 411,
+          "schemaProtocol": 678
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/models.py",
+            "startLine": 570,
+            "endLine": 570
+          },
+          {
+            "path": "src/documents/serialisers.py",
+            "startLine": 2474,
+            "endLine": 2474
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 190,
+            "endLine": 190
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 758,
+            "endLine": 758
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 4079,
+            "endLine": 4079
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 4086,
+            "endLine": 4086
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 4088,
+            "endLine": 4088
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 6,
+        "kind": "tool-reply",
+        "bytes": 6109,
+        "sha256": "20955e45aa6a103969138ac84d6a51fb492293a04636020aa81b228ef2f6eda1",
+        "components": {
+          "source": 4519,
+          "taskSkill": 0,
+          "stateGap": 720,
+          "schemaProtocol": 870
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/consumer.py",
+            "startLine": 367,
+            "endLine": 367
+          },
+          {
+            "path": "src/documents/models.py",
+            "startLine": 570,
+            "endLine": 570
+          },
+          {
+            "path": "src/documents/tasks.py",
+            "startLine": 23,
+            "endLine": 23
+          },
+          {
+            "path": "src/documents/tasks.py",
+            "startLine": 24,
+            "endLine": 24
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 109,
+            "endLine": 109
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 110,
+            "endLine": 110
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 111,
+            "endLine": 111
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 757,
+            "endLine": 757
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 1835,
+            "endLine": 1835
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 4078,
+            "endLine": 4078
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 4924,
+            "endLine": 4924
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 4926,
+            "endLine": 4926
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 4933,
+            "endLine": 4933
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 7,
+        "kind": "tool-reply",
+        "bytes": 8929,
+        "sha256": "556b2c6870c4594efb0664b26a0c8bcba842177fc2258923c4e56200c6de8980",
+        "components": {
+          "source": 6799,
+          "taskSkill": 0,
+          "stateGap": 1036,
+          "schemaProtocol": 1094
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/paperless/urls.py",
+            "startLine": 19,
+            "endLine": 19
+          },
+          {
+            "path": "src/paperless/urls.py",
+            "startLine": 20,
+            "endLine": 20
+          },
+          {
+            "path": "src/paperless/urls.py",
+            "startLine": 21,
+            "endLine": 21
+          },
+          {
+            "path": "src/paperless/urls.py",
+            "startLine": 22,
+            "endLine": 22
+          },
+          {
+            "path": "src/paperless/urls.py",
+            "startLine": 23,
+            "endLine": 23
+          },
+          {
+            "path": "src/paperless/urls.py",
+            "startLine": 24,
+            "endLine": 24
+          },
+          {
+            "path": "src/paperless/urls.py",
+            "startLine": 25,
+            "endLine": 25
+          },
+          {
+            "path": "src/paperless/urls.py",
+            "startLine": 26,
+            "endLine": 26
+          },
+          {
+            "path": "src/paperless/urls.py",
+            "startLine": 27,
+            "endLine": 27
+          },
+          {
+            "path": "src/paperless/urls.py",
+            "startLine": 28,
+            "endLine": 28
+          },
+          {
+            "path": "src/paperless/urls.py",
+            "startLine": 29,
+            "endLine": 29
+          },
+          {
+            "path": "src/paperless/urls.py",
+            "startLine": 30,
+            "endLine": 30
+          },
+          {
+            "path": "src/paperless/urls.py",
+            "startLine": 31,
+            "endLine": 31
+          },
+          {
+            "path": "src/paperless/urls.py",
+            "startLine": 32,
+            "endLine": 32
+          },
+          {
+            "path": "src/paperless/urls.py",
+            "startLine": 33,
+            "endLine": 33
+          },
+          {
+            "path": "src/paperless/urls.py",
+            "startLine": 34,
+            "endLine": 34
+          },
+          {
+            "path": "src/paperless/urls.py",
+            "startLine": 35,
+            "endLine": 35
+          },
+          {
+            "path": "src/paperless/urls.py",
+            "startLine": 36,
+            "endLine": 36
+          },
+          {
+            "path": "src/paperless/urls.py",
+            "startLine": 37,
+            "endLine": 37
+          },
+          {
+            "path": "src/paperless/urls.py",
+            "startLine": 38,
+            "endLine": 38
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 8,
+        "kind": "tool-reply",
+        "bytes": 700,
+        "sha256": "3dc94705e6d7b20c0233d402a023b4a52d1cca30dcc687aa66ed5a4fb074ed2f",
+        "components": {
+          "source": 2,
+          "taskSkill": 0,
+          "stateGap": 195,
+          "schemaProtocol": 503
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/views.py",
+            "startLine": 1008,
+            "endLine": 2396
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 9,
+        "kind": "tool-reply",
+        "bytes": 739,
+        "sha256": "8439644cd935a4d6eb541eebec78f2caa6c0d2ef39b3e4d673a49b48f97381d1",
+        "components": {
+          "source": 2,
+          "taskSkill": 0,
+          "stateGap": 224,
+          "schemaProtocol": 513
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/views.py",
+            "startLine": 1834,
+            "endLine": 1840
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 10,
+        "kind": "tool-reply",
+        "bytes": 4469,
+        "sha256": "e530af9f260c104d04402a46b37b8ed753161e12d569e5339a381f8018fb9909",
+        "components": {
+          "source": 2,
+          "taskSkill": 0,
+          "stateGap": 2810,
+          "schemaProtocol": 1657
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/admin.py",
+            "startLine": 96,
+            "endLine": 101
+          },
+          {
+            "path": "src/documents/admin.py",
+            "startLine": 132,
+            "endLine": 135
+          },
+          {
+            "path": "src/documents/admin.py",
+            "startLine": 180,
+            "endLine": 187
+          },
+          {
+            "path": "src/documents/admin.py",
+            "startLine": 194,
+            "endLine": 197
+          },
+          {
+            "path": "src/documents/admin.py",
+            "startLine": 204,
+            "endLine": 214
+          },
+          {
+            "path": "src/documents/admin.py",
+            "startLine": 229,
+            "endLine": 236
+          },
+          {
+            "path": "src/documents/serialisers.py",
+            "startLine": 742,
+            "endLine": 745
+          },
+          {
+            "path": "src/documents/serialisers.py",
+            "startLine": 747,
+            "endLine": 750
+          },
+          {
+            "path": "src/documents/serialisers.py",
+            "startLine": 752,
+            "endLine": 755
+          },
+          {
+            "path": "src/documents/serialisers.py",
+            "startLine": 757,
+            "endLine": 760
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 558,
+            "endLine": 579
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 1165,
+            "endLine": 1217
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 4515,
+            "endLine": 4541
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 4759,
+            "endLine": 4766
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 11,
+        "kind": "tool-reply",
+        "bytes": 458,
+        "sha256": "74012ecb2c15b600db07ff4a74e5935eec9b6ceec4737cccee6bdb836a8ab76f",
+        "components": {
+          "source": 2,
+          "taskSkill": 0,
+          "stateGap": 30,
+          "schemaProtocol": 426
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [],
+        "actions": []
+      },
+      {
+        "sequence": 12,
+        "kind": "tool-reply",
+        "bytes": 458,
+        "sha256": "0a6e367a6475ec967d2222f53a09b6d676e34a49c7c551f16adb6fcc69f9ddff",
+        "components": {
+          "source": 2,
+          "taskSkill": 0,
+          "stateGap": 30,
+          "schemaProtocol": 426
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [],
+        "actions": []
+      },
+      {
+        "sequence": 13,
+        "kind": "tool-reply",
+        "bytes": 462,
+        "sha256": "4e8574ef52e09d8b084ce180e334ea09a889f3f9f2956dbb1ad1ff3fffe32a86",
+        "components": {
+          "source": 2,
+          "taskSkill": 0,
+          "stateGap": 34,
+          "schemaProtocol": 426
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [],
+        "actions": []
+      },
+      {
+        "sequence": 14,
+        "kind": "tool-reply",
+        "bytes": 12473,
+        "sha256": "0f4ce35141d7899baa9f3b9ecf99f02bb0e2e1a23092057f1376cd9367ce74ac",
+        "components": {
+          "source": 11917,
+          "taskSkill": 0,
+          "stateGap": 71,
+          "schemaProtocol": 485
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/views.py",
+            "startLine": 1000,
+            "endLine": 1225
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 15,
+        "kind": "tool-reply",
+        "bytes": 6268,
+        "sha256": "d2ef4e7463c37ecb84838f59d56ecff6d39b9817293a84f20267e1af32cf5606",
+        "components": {
+          "source": 5714,
+          "taskSkill": 0,
+          "stateGap": 69,
+          "schemaProtocol": 485
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/views.py",
+            "startLine": 700,
+            "endLine": 825
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 16,
+        "kind": "tool-reply",
+        "bytes": 3583,
+        "sha256": "134664bc99ca2c718a5fe0a81cb6f0900ca6f5210768b6c045e0a56dd0ab7c71",
+        "components": {
+          "source": 3027,
+          "taskSkill": 0,
+          "stateGap": 71,
+          "schemaProtocol": 485
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/views.py",
+            "startLine": 1800,
+            "endLine": 1865
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 17,
+        "kind": "tool-reply",
+        "bytes": 8814,
+        "sha256": "9c1091b9b9d52c18828aced5a76cd6bbc5e22cfbe44382b4779a3ddb714a7bb1",
+        "components": {
+          "source": 8263,
+          "taskSkill": 0,
+          "stateGap": 66,
+          "schemaProtocol": 485
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/paperless/urls.py",
+            "startLine": 1,
+            "endLine": 160
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 18,
+        "kind": "tool-reply",
+        "bytes": 8519,
+        "sha256": "8764062318b29e7a96b37d0516c17e60558c17865fe1c4348bbb9eeb6cf72c62",
+        "components": {
+          "source": 7966,
+          "taskSkill": 0,
+          "stateGap": 68,
+          "schemaProtocol": 485
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/paperless/urls.py",
+            "startLine": 160,
+            "endLine": 320
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 19,
+        "kind": "tool-reply",
+        "bytes": 6316,
+        "sha256": "1a22d127c7f9586ec2998d168de79d2253671e6412573142af6b919613da5df3",
+        "components": {
+          "source": 5763,
+          "taskSkill": 0,
+          "stateGap": 68,
+          "schemaProtocol": 485
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/paperless/urls.py",
+            "startLine": 320,
+            "endLine": 438
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 20,
+        "kind": "tool-reply",
+        "bytes": 6384,
+        "sha256": "c33d7b182e727a359f5b6c662c53d8ca9060e8203f08701d21a287066ac3aa1c",
+        "components": {
+          "source": 5828,
+          "taskSkill": 0,
+          "stateGap": 71,
+          "schemaProtocol": 485
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/views.py",
+            "startLine": 1720,
+            "endLine": 1850
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 21,
+        "kind": "tool-reply",
+        "bytes": 709,
+        "sha256": "1058a058aed2c07168deeed4c8da12afa978c267dc63155d3a348220c6c5edfa",
+        "components": {
+          "source": 2,
+          "taskSkill": 0,
+          "stateGap": 204,
+          "schemaProtocol": 503
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/views.py",
+            "startLine": 2503,
+            "endLine": 2743
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 22,
+        "kind": "tool-reply",
+        "bytes": 764,
+        "sha256": "d36586fe50afb4c37180b906b66e490997cfa235836e3c27283cb752b9c5ab2e",
+        "components": {
+          "source": 2,
+          "taskSkill": 0,
+          "stateGap": 249,
+          "schemaProtocol": 513
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/views.py",
+            "startLine": 1401,
+            "endLine": 1428
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 23,
+        "kind": "tool-reply",
+        "bytes": 702,
+        "sha256": "db64fe6e3fbb260325e510b3065d645edc40bdc1511f301627623f1b0bc99f3b",
+        "components": {
+          "source": 2,
+          "taskSkill": 0,
+          "stateGap": 197,
+          "schemaProtocol": 503
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/views.py",
+            "startLine": 4941,
+            "endLine": 4997
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 24,
+        "kind": "tool-reply",
+        "bytes": 9292,
+        "sha256": "2322d66f77072add75a3fd1ae6a732d53715b53fd0c3d88c61e87316df0e0fc1",
+        "components": {
+          "source": 7111,
+          "taskSkill": 0,
+          "stateGap": 1087,
+          "schemaProtocol": 1094
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/views.py",
+            "startLine": 83,
+            "endLine": 83
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 236,
+            "endLine": 236
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 237,
+            "endLine": 237
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 238,
+            "endLine": 238
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 239,
+            "endLine": 239
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 240,
+            "endLine": 240
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 241,
+            "endLine": 241
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 242,
+            "endLine": 242
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 243,
+            "endLine": 243
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 244,
+            "endLine": 244
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 693,
+            "endLine": 693
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 694,
+            "endLine": 694
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 809,
+            "endLine": 809
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 1132,
+            "endLine": 1132
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 1136,
+            "endLine": 1136
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 1187,
+            "endLine": 1187
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 1192,
+            "endLine": 1192
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 1194,
+            "endLine": 1194
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 1206,
+            "endLine": 1206
+          },
+          {
+            "path": "src/documents/views.py",
+            "startLine": 1272,
+            "endLine": 1272
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 25,
+        "kind": "tool-reply",
+        "bytes": 748,
+        "sha256": "04127b8d9a2d31176df3b61f1a4a6d020a46fb18479169c68ea89a8c7cf54f87",
+        "components": {
+          "source": 2,
+          "taskSkill": 0,
+          "stateGap": 233,
+          "schemaProtocol": 513
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/views.py",
+            "startLine": 1429,
+            "endLine": 1449
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 26,
+        "kind": "tool-reply",
+        "bytes": 758,
+        "sha256": "89cf1e3294ba3abe58617b43c8b72fed2502fc2cc812de1c19bddd49339bbdd5",
+        "components": {
+          "source": 2,
+          "taskSkill": 0,
+          "stateGap": 243,
+          "schemaProtocol": 513
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/views.py",
+            "startLine": 1388,
+            "endLine": 1400
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 27,
+        "kind": "tool-reply",
+        "bytes": 753,
+        "sha256": "1380c246d2c68a50c78660c09f6d849102c548dc419f1662f7532038df61eaa5",
+        "components": {
+          "source": 2,
+          "taskSkill": 0,
+          "stateGap": 238,
+          "schemaProtocol": 513
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/views.py",
+            "startLine": 1368,
+            "endLine": 1374
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 28,
+        "kind": "tool-reply",
+        "bytes": 717,
+        "sha256": "840d4c392ca7ce0c5f3a765842a64c636149cb3ad6f2212b20e7116d52530a6b",
+        "components": {
+          "source": 2,
+          "taskSkill": 0,
+          "stateGap": 212,
+          "schemaProtocol": 503
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/permissions.py",
+            "startLine": 30,
+            "endLine": 55
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 29,
+        "kind": "tool-reply",
+        "bytes": 713,
+        "sha256": "2f700048eff30cd3e5259975bcf66ec21efc1afc3ccd3a299b2701a9932715b6",
+        "components": {
+          "source": 2,
+          "taskSkill": 0,
+          "stateGap": 208,
+          "schemaProtocol": 503
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/filters.py",
+            "startLine": 1060,
+            "endLine": 1096
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 30,
+        "kind": "tool-reply",
+        "bytes": 720,
+        "sha256": "034e24dbd67d893e342fa24801e371a1c64dd0f3df60d3f69e66da229f83be2e",
+        "components": {
+          "source": 2,
+          "taskSkill": 0,
+          "stateGap": 215,
+          "schemaProtocol": 503
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/versioning.py",
+            "startLine": 140,
+            "endLine": 145
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 31,
+        "kind": "tool-reply",
+        "bytes": 729,
+        "sha256": "5f870e03e705d23a2ea7bb89dd37683418b9347887b4597212f7b5d74dd92c22",
+        "components": {
+          "source": 2,
+          "taskSkill": 0,
+          "stateGap": 224,
+          "schemaProtocol": 503
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/versioning.py",
+            "startLine": 169,
+            "endLine": 197
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 32,
+        "kind": "tool-reply",
+        "bytes": 712,
+        "sha256": "06413dc55c19dbc29aba5d45df488a00465ff47391d40b58f3d853a9ef3777ff",
+        "components": {
+          "source": 2,
+          "taskSkill": 0,
+          "stateGap": 207,
+          "schemaProtocol": 503
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/versioning.py",
+            "startLine": 146,
+            "endLine": 158
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 33,
+        "kind": "tool-reply",
+        "bytes": 10324,
+        "sha256": "60473dced81519ad00d8d426ff67a0644513e1ddeeef220edc6e0f418a8275a8",
+        "components": {
+          "source": 9768,
+          "taskSkill": 0,
+          "stateGap": 71,
+          "schemaProtocol": 485
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/views.py",
+            "startLine": 1240,
+            "endLine": 1460
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 34,
+        "kind": "tool-reply",
+        "bytes": 2438,
+        "sha256": "39f1cc6d57c145309fb5633c7017840cf7f25b7680354b2290e525ea7091954d",
+        "components": {
+          "source": 1882,
+          "taskSkill": 0,
+          "stateGap": 71,
+          "schemaProtocol": 485
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/views.py",
+            "startLine": 2490,
+            "endLine": 2525
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 35,
+        "kind": "tool-reply",
+        "bytes": 4208,
+        "sha256": "b1dcea026991e4be64d02bdf76a43d693843e4497c0b696827a84dd08b13abf3",
+        "components": {
+          "source": 3649,
+          "taskSkill": 0,
+          "stateGap": 74,
+          "schemaProtocol": 485
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/versioning.py",
+            "startLine": 130,
+            "endLine": 210
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 36,
+        "kind": "tool-reply",
+        "bytes": 3903,
+        "sha256": "a8471bb3a1dd34fe07029639137e161213e0a75b7700b55b9a6d7e65466af5c8",
+        "components": {
+          "source": 3346,
+          "taskSkill": 0,
+          "stateGap": 72,
+          "schemaProtocol": 485
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/permissions.py",
+            "startLine": 1,
+            "endLine": 75
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 37,
+        "kind": "tool-reply",
+        "bytes": 4336,
+        "sha256": "6743d0c1749564d332d7ee3e79deb898dc7843f1bceb8d450fbe6c455899320c",
+        "components": {
+          "source": 3778,
+          "taskSkill": 0,
+          "stateGap": 73,
+          "schemaProtocol": 485
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/filters.py",
+            "startLine": 1040,
+            "endLine": 1110
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 38,
+        "kind": "tool-reply",
+        "bytes": 3827,
+        "sha256": "6eff91b03b41c5b6357cc56422a4acf50c52cfb132fec0a63db75239800a7357",
+        "components": {
+          "source": 3271,
+          "taskSkill": 0,
+          "stateGap": 71,
+          "schemaProtocol": 485
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/views.py",
+            "startLine": 4935,
+            "endLine": 5005
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 39,
+        "kind": "tool-reply",
+        "bytes": 6942,
+        "sha256": "be92d3ca0d384b161c0d555c9e8830f97c05b553ddb4464a95117cdd2045d02b",
+        "components": {
+          "source": 6349,
+          "taskSkill": 0,
+          "stateGap": 108,
+          "schemaProtocol": 485
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "framework/rest_framework-3.18.1/rest_framework/permissions.py",
+            "startLine": 170,
+            "endLine": 310
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 40,
+        "kind": "tool-reply",
+        "bytes": 7292,
+        "sha256": "0307f55f9c9fbc62c0075c3eef5914a7f2df373f787c8e23597365ac122d8c6f",
+        "components": {
+          "source": 6705,
+          "taskSkill": 0,
+          "stateGap": 102,
+          "schemaProtocol": 485
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "framework/rest_framework-3.18.1/rest_framework/views.py",
+            "startLine": 400,
+            "endLine": 535
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 41,
+        "kind": "tool-reply",
+        "bytes": 4149,
+        "sha256": "fea2de45dd0738467dcac254b4e25c426b6cc2653da792e17ea666e0d438dac4",
+        "components": {
+          "source": 3560,
+          "taskSkill": 0,
+          "stateGap": 104,
+          "schemaProtocol": 485
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "framework/rest_framework-3.18.1/rest_framework/viewsets.py",
+            "startLine": 90,
+            "endLine": 155
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 42,
+        "kind": "tool-reply",
+        "bytes": 4444,
+        "sha256": "deec3474b22fa10f8f132ee7b25901555eb989f98c123b6de1549b9180622075",
+        "components": {
+          "source": 3856,
+          "taskSkill": 0,
+          "stateGap": 103,
+          "schemaProtocol": 485
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "framework/rest_framework-3.18.1/rest_framework/routers.py",
+            "startLine": 90,
+            "endLine": 175
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 43,
+        "kind": "tool-reply",
+        "bytes": 717,
+        "sha256": "cb61ef3306a6fed05e243f09b5f119e518841df423101c9348e9c200a10b8ad7",
+        "components": {
+          "source": 2,
+          "taskSkill": 0,
+          "stateGap": 212,
+          "schemaProtocol": 503
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/permissions.py",
+            "startLine": 624,
+            "endLine": 637
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 44,
+        "kind": "tool-reply",
+        "bytes": 716,
+        "sha256": "d594463de7b0c3bb889366fa4705b7f74396247d89fd45f1c752564eb76d509d",
+        "components": {
+          "source": 2,
+          "taskSkill": 0,
+          "stateGap": 211,
+          "schemaProtocol": 503
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/permissions.py",
+            "startLine": 345,
+            "endLine": 407
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 45,
+        "kind": "tool-reply",
+        "bytes": 2894,
+        "sha256": "834f28e674f1c881190946f57ef1efef54ee91d8faa49484d1cfa4d557f936fc",
+        "components": {
+          "source": 2307,
+          "taskSkill": 0,
+          "stateGap": 102,
+          "schemaProtocol": 485
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "framework/rest_framework-3.18.1/rest_framework/views.py",
+            "startLine": 325,
+            "endLine": 365
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 46,
+        "kind": "tool-reply",
+        "bytes": 2726,
+        "sha256": "0cb24ea09d1300df5b9ad25314c9e14d1a278c2408ed20a62e35a53d95d2d1c4",
+        "components": {
+          "source": 2137,
+          "taskSkill": 0,
+          "stateGap": 104,
+          "schemaProtocol": 485
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "framework/rest_framework-3.18.1/rest_framework/generics.py",
+            "startLine": 75,
+            "endLine": 115
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 47,
+        "kind": "tool-reply",
+        "bytes": 2565,
+        "sha256": "7347aea38c161c1c17014565ed079fbff8672d965505258689e774f1c7f663d5",
+        "components": {
+          "source": 2005,
+          "taskSkill": 0,
+          "stateGap": 75,
+          "schemaProtocol": 485
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/permissions.py",
+            "startLine": 610,
+            "endLine": 650
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 48,
+        "kind": "tool-reply",
+        "bytes": 4477,
+        "sha256": "4b9c4ef252f997439462080081690de2f02909b8cf54a0ce26aa46828d4dd2f0",
+        "components": {
+          "source": 3920,
+          "taskSkill": 0,
+          "stateGap": 72,
+          "schemaProtocol": 485
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/models.py",
+            "startLine": 1190,
+            "endLine": 1280
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 49,
+        "kind": "tool-reply",
+        "bytes": 497,
+        "sha256": "e810793d02b5dcff0eee6ac26d799db06de4b5150ba835b9b2473b1b34de9731",
+        "components": {
+          "source": 2,
+          "taskSkill": 0,
+          "stateGap": 40,
+          "schemaProtocol": 455
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [],
+        "actions": []
+      },
+      {
+        "sequence": 50,
+        "kind": "tool-reply",
+        "bytes": 2011,
+        "sha256": "837d743c3bc5e83a60949bb37a94f552f4c0af8737027046e57d0fbc9e1809e6",
+        "components": {
+          "source": 1418,
+          "taskSkill": 0,
+          "stateGap": 108,
+          "schemaProtocol": 485
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "framework/rest_framework-3.18.1/rest_framework/permissions.py",
+            "startLine": 140,
+            "endLine": 175
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 51,
+        "kind": "tool-reply",
+        "bytes": 696,
+        "sha256": "7c8b28b4d3279f102ef683840f3ed48b25089e2e764d1f4d1839e6bf77a5c1cd",
+        "components": {
+          "source": 2,
+          "taskSkill": 0,
+          "stateGap": 191,
+          "schemaProtocol": 503
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/models.py",
+            "startLine": 158,
+            "endLine": 549
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 52,
+        "kind": "tool-reply",
+        "bytes": 917,
+        "sha256": "e7582eef41df00f0bd44fe1a7077a55d9ed0a6fe5ff858b9371fc82df390a97a",
+        "components": {
+          "source": 338,
+          "taskSkill": 0,
+          "stateGap": 93,
+          "schemaProtocol": 486
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/models.py",
+            "startLine": 315,
+            "endLine": 315
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 53,
+        "kind": "tool-reply",
+        "bytes": 2257,
+        "sha256": "6f78f0c2aaf4ddabf9cb9d52c1e911300f8b9d6a66d07146c0b11379377dfb9b",
+        "components": {
+          "source": 1423,
+          "taskSkill": 0,
+          "stateGap": 252,
+          "schemaProtocol": 582
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/models.py",
+            "startLine": 324,
+            "endLine": 324
+          },
+          {
+            "path": "src/documents/models.py",
+            "startLine": 349,
+            "endLine": 349
+          },
+          {
+            "path": "src/documents/models.py",
+            "startLine": 352,
+            "endLine": 352
+          },
+          {
+            "path": "src/documents/models.py",
+            "startLine": 354,
+            "endLine": 354
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 54,
+        "kind": "tool-reply",
+        "bytes": 1341,
+        "sha256": "0a868a1e6da0eac3d09ba3f64e022a3b8719ae80ec2f523d646e8fa5ddde1986",
+        "components": {
+          "source": 677,
+          "taskSkill": 0,
+          "stateGap": 146,
+          "schemaProtocol": 518
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/models.py",
+            "startLine": 463,
+            "endLine": 463
+          },
+          {
+            "path": "src/documents/models.py",
+            "startLine": 468,
+            "endLine": 468
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 55,
+        "kind": "tool-reply",
+        "bytes": 3222,
+        "sha256": "8b1952221a03ea75a99bc7614b8c11f6be55ed0e18dab0983d93e925fc69e0cc",
+        "components": {
+          "source": 2667,
+          "taskSkill": 0,
+          "stateGap": 70,
+          "schemaProtocol": 485
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/models.py",
+            "startLine": 300,
+            "endLine": 365
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 56,
+        "kind": "tool-reply",
+        "bytes": 3272,
+        "sha256": "f13e13f7582ececc1822b448312b36df9dc04b130ad8a81675e818d8a95017ac",
+        "components": {
+          "source": 2717,
+          "taskSkill": 0,
+          "stateGap": 70,
+          "schemaProtocol": 485
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/models.py",
+            "startLine": 420,
+            "endLine": 480
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 57,
+        "kind": "tool-reply",
+        "bytes": 6326,
+        "sha256": "c85ac9ea10601a77b3888cd546d8854f80dca53cd1a6f061c479578b86655e3c",
+        "components": {
+          "source": 5769,
+          "taskSkill": 0,
+          "stateGap": 72,
+          "schemaProtocol": 485
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/versioning.py",
+            "startLine": 1,
+            "endLine": 130
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 58,
+        "kind": "tool-reply",
+        "bytes": 7426,
+        "sha256": "c5ba641539c8c65b0b81936c97edd4b629a36adb4c50123c9a6b6ca2a7df1297",
+        "components": {
+          "source": 6877,
+          "taskSkill": 0,
+          "stateGap": 64,
+          "schemaProtocol": 485
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/documents/models.py",
+            "startLine": 1,
+            "endLine": 180
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 59,
+        "kind": "tool-reply",
+        "bytes": 2614,
+        "sha256": "a431f0ba2c0a3f70616acc640766eaf1832c28d318ea1fe1f7e77be69103e376",
+        "components": {
+          "source": 2066,
+          "taskSkill": 0,
+          "stateGap": 63,
+          "schemaProtocol": 485
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "src/paperless/urls.py",
+            "startLine": 70,
+            "endLine": 105
+          }
+        ],
+        "actions": []
+      },
+      {
+        "sequence": 60,
+        "kind": "tool-reply",
+        "bytes": 3189,
+        "sha256": "9f7b49b707df3c84b912c56bc38834f96aa0f709b808a6bb2ce0d0381f13f4ec",
+        "components": {
+          "source": 2606,
+          "taskSkill": 0,
+          "stateGap": 98,
+          "schemaProtocol": 485
+        },
+        "repeatedBytes": 0,
+        "repeatedParts": 0,
+        "sourceRanges": [
+          {
+            "path": "framework/rest_framework-3.18.1/rest_framework/views.py",
+            "startLine": 270,
+            "endLine": 325
+          }
+        ],
+        "actions": []
+      }
+    ]
+  }
+}

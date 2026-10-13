@@ -1,0 +1,15 @@
+import { expect, test } from "bun:test"
+const api = await import("./sharelink.ts").catch(() => ({} as any))
+test("second structure uses public target trial patch and delivery without target writes", async () => {
+  expect(typeof api.verifySecondStructure).toBe("function")
+  const r = await api.verifySecondStructure()
+  expect(r.providerCalls).toBe(0)
+  expect(r.actualTargetWrites).toBe(0)
+  expect(r.allowed).toBe(10)
+  expect(r.denied).toBe("serializer-object-permission-denied")
+  expect(r.mismatch).toBe("argument-mismatch")
+  expect(r.absent).toBe("no-fact")
+  expect(r.foreignOperation).toBe("program-trial-operation")
+  expect(r.deliveryStates).toEqual(["current", "stale", "current"])
+  expect(r.activeResultUnchangedByTrial).toBe(true)
+})

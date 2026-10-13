@@ -1,0 +1,155 @@
+{
+  "reviewer": "c2_budget_review_bl",
+  "outcome": "undelivered; readonly interrupted; no resend",
+  "machineEvents": [
+    {
+      "sequence": 5,
+      "id": "object_grant",
+      "op": "external",
+      "executor": "host",
+      "meaningOrigin": "external-assumption",
+      "source": {
+        "path": "src/documents/permissions.py",
+        "startLine": 624,
+        "endLine": 635,
+        "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+      },
+      "inputs": {
+        "arguments": {
+          "user": {
+            "known": true,
+            "value": 9,
+            "gaps": []
+          },
+          "resource": {
+            "known": true,
+            "value": 10,
+            "gaps": []
+          },
+          "permission": {
+            "known": true,
+            "value": "view_document",
+            "gaps": []
+          }
+        },
+        "name": "ObjectPermissionChecker.has_perm",
+        "externalMatch": {
+          "status": "matched",
+          "sameNameCount": 1,
+          "exactMatchCount": 1,
+          "candidates": [],
+          "candidatesTruncated": false,
+          "instruction": "Only exact name and complete argument values bind a fact. Use source-supported explicit field projections to align supplied facts; never borrow another object or permission grant. Supplied facts remain unreviewed assumptions."
+        },
+        "assumption": {
+          "name": "ObjectPermissionChecker.has_perm",
+          "arguments": {
+            "user": 9,
+            "resource": 10,
+            "permission": "view_document"
+          },
+          "value": false,
+          "reason": "Explicit development denial fixture."
+        }
+      },
+      "outputs": {
+        "value": false,
+        "known": true
+      },
+      "outcome": "computed",
+      "gaps": [],
+      "because": "Author explanation not supplied."
+    },
+    {
+      "sequence": 6,
+      "id": "authorization",
+      "op": "guard",
+      "executor": "host",
+      "meaningOrigin": "authored-program",
+      "source": {
+        "path": "src/documents/views.py",
+        "startLine": 1421,
+        "endLine": 1426,
+        "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+      },
+      "inputs": {
+        "test": {
+          "truth": "false",
+          "residual": null,
+          "missingBindings": [],
+          "trace": [
+            {
+              "op": "truthy",
+              "truth": "false"
+            },
+            {
+              "op": "truthy",
+              "truth": "false"
+            },
+            {
+              "op": "any",
+              "truth": "false"
+            }
+          ],
+          "diagnostics": [],
+          "valueTrace": [
+            {
+              "known": true,
+              "value": false,
+              "residual": {
+                "literal": false
+              },
+              "missingBindings": [],
+              "diagnostics": [],
+              "origin": "binding"
+            },
+            {
+              "known": true,
+              "value": false,
+              "residual": {
+                "literal": false
+              },
+              "missingBindings": [],
+              "diagnostics": [],
+              "origin": "binding"
+            }
+          ]
+        },
+        "permission": "view_document",
+        "principal": {
+          "id": 9
+        },
+        "resource": {
+          "id": 10,
+          "root_document_id": null,
+          "owner_id": 7,
+          "version_index": null,
+          "deleted": false,
+          "has_archive_version": true,
+          "source_file": "root-original.pdf",
+          "archive_file": "root-archive.pdf"
+        }
+      },
+      "outputs": {
+        "value": false,
+        "known": true
+      },
+      "outcome": "rejected",
+      "gaps": [],
+      "because": "Author explanation not supplied."
+    }
+  ],
+  "machineTermination": "authorization",
+  "wholeRequestCertified": false,
+  "sourceQuestionRatings": [
+    "unanswered",
+    "unanswered",
+    "unanswered",
+    "unanswered"
+  ],
+  "reviewerDisagreements": {
+    "blockedBudget": "Reviewer called charging rejected attempts a shared accounting bug. Main read native toolBudget and account hard ceiling: totalUsed intentionally includes argumentRejections/blockedAttempts and session toolRejections; this bounds rejected interactions rather than executed source calls. Four post-finalOnly requests were blocked and charged. No bypass of exploration execution was found; do not silently expand the registered budget.",
+    "machineEvidence": "Reviewer required a semantic check to confirm finite execution. Main inspected domain.executableContract.resourceExecution.events: sequence5 exact has_perm(user9,resource10,permission=view_document) matched false; sequence6 authorization guard rejected. This proves only the mechanical finite trace, not source correctness or a full authorization certificate."
+  },
+  "remainingResponsibility": "Model must stop source exploration and deliver prose within existing budget; missing answer remains in end-to-end denominator. Rejected attempts and executed tools should be reported separately when comparing cost."
+}

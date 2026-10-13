@@ -1,0 +1,161 @@
+{
+  "schemaVersion": "authorization-executable-contract/v1",
+  "id": "document-download-selection",
+  "description": "Source-visible starting point for document download selection.",
+  "scope": {
+    "kind": "function-contract",
+    "questionId": "requested-document-and-returned-file",
+    "root": {
+      "path": "src/documents/views.py",
+      "symbol": "documents.views.DocumentViewSet.download"
+    },
+    "upstream": [
+      "Router dispatch, authentication, global permission, object grants, and deployment storage facts remain unresolved."
+    ]
+  },
+  "inputBinding": {
+    "questionId": "requested-document-and-returned-file"
+  },
+  "sourceDeclarations": [
+    {
+      "source": {
+        "path": "src/documents/views.py",
+        "symbol": "documents.views.DocumentViewSet.download"
+      },
+      "statements": []
+    },
+    {
+      "source": {
+        "path": "src/documents/views.py",
+        "symbol": "documents.views.DocumentViewSet.file_response"
+      },
+      "statements": []
+    },
+    {
+      "source": {
+        "path": "src/documents/views.py",
+        "symbol": "documents.views.DocumentViewSet._resolve_request_and_root_doc"
+      },
+      "statements": []
+    },
+    {
+      "source": {
+        "path": "src/documents/views.py",
+        "symbol": "documents.views.DocumentViewSet._get_effective_file_doc"
+      },
+      "statements": []
+    },
+    {
+      "source": {
+        "path": "src/documents/versioning.py",
+        "symbol": "documents.versioning.resolve_requested_version_for_root"
+      },
+      "statements": []
+    },
+    {
+      "source": {
+        "path": "src/documents/views.py",
+        "symbol": "documents.views.serve_file"
+      },
+      "statements": []
+    }
+  ],
+  "queries": [
+    {
+      "property": "task-property-b4de981d7267eec5dfa4",
+      "effect": {
+        "path": "src/documents/views.py",
+        "startLine": 1442,
+        "endLine": 1448
+      }
+    }
+  ],
+  "assumptions": [
+    {
+      "origin": "user",
+      "text": "The operation under investigation is the document Download operation in this Paperless revision."
+    }
+  ],
+  "resourceWorkflow": {
+    "inputs": [
+      "actor",
+      "documents",
+      "related_root",
+      "request"
+    ],
+    "steps": [
+      {
+        "id": "request_doc",
+        "op": "select",
+        "from": "documents",
+        "where": {
+          "op": "eq",
+          "left": {
+            "binding": "row.id"
+          },
+          "right": {
+            "binding": "request.pk"
+          }
+        },
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1408,
+          "endLine": 1415
+        }
+      },
+      {
+        "id": "result",
+        "op": "return",
+        "value": {
+          "record": {
+            "request_document": {
+              "field": {
+                "of": {
+                  "ref": "request_doc"
+                },
+                "key": "id"
+              }
+            }
+          }
+        },
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1408,
+          "endLine": 1415
+        }
+      }
+    ],
+    "gaps": [
+      "Further source-visible root, permission, version, and representation branches remain to be authored."
+    ]
+  },
+  "authoringTarget": {
+    "mode": "reusable",
+    "coverage": [
+      {
+        "id": "request-lookup",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1408,
+          "endLine": 1415
+        },
+        "stepIds": [
+          "request_doc",
+          "result"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "remaining-download-flow",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1417,
+          "endLine": 1448
+        },
+        "stepIds": [],
+        "disposition": "unwritten",
+        "reason": "Will be added incrementally from the already-read source."
+      }
+    ]
+  }
+}

@@ -1,0 +1,197 @@
+## Conclusion
+
+`Download` is a `GET` detail action at:
+
+```text
+/api/documents/<pk>/download/
+```
+
+The decisive order is:
+
+1. Authenticate the request.
+2. Require the global `documents.view_document` model permission.
+3. Load the document identified by `<pk>`, including soft-deleted documents.
+4. Resolve its root document.
+5. Authorize `view_document` against that **root document**.
+6. Select the effective version.
+7. Select that version’s original or archive representation.
+8. Open the selected file and return it as an attachment.
+
+Version and original/archive selection do **not** cause a separate permission check on the selected version or file representation.
+
+## 1. Request, version, and returned-file selection
+
+### Routing and entry point
+
+`UnifiedSearchViewSet` is registered under `documents` and inherits `DocumentViewSet`; the router includes its generated routes under `/api/` [src/paperless/urls.py:74-78,97-100,297](src/paperless/urls.py#L74-L78). DRF creates detail-action routes of the form `prefix/<lookup>/<action>/` [framework/rest_framework-3.18.1/rest_framework/routers.py:128-135](framework/rest_framework-3.18.1/rest_framework/routers.py#L128-L135).
+
+The `download` action is a detail `GET` action and calls:
+
+```python
+self.file_response(pk, request, "attachment")
+```
+
+[src/documents/views.py:1834-1839](src/documents/views.py#L1834-L1839).
+
+### Document identified by `pk`
+
+`file_response()` calls `_resolve_request_and_root_doc(pk, ..., include_deleted=True)` [src/documents/views.py:1429-1436](src/documents/views.py#L1429-L1436). Consequently:
+
+- `pk` is looked up with `Document.global_objects`, not the normal manager.
+- The requested row may therefore be a root document, a version row, or a soft-deleted row.
+- Missing `pk` produces 404.
+- If it is a version, its `root_document` becomes the authorization root; otherwise the requested row is its own root.
+
+[src/documents/views.py:1401-1420](src/documents/views.py#L1401-L1420), [src/documents/versioning.py:146-156](src/documents/versioning.py#L146-L156).
+
+### Effective version selection
+
+After root authorization, `_get_effective_file_doc()` selects the row whose file will be served [src/documents/views.py:1437-1441](src/documents/views.py#L1437-L1441):
+
+| Request form | Selected document row |
+|---|---|
+| `pk` identifies a version and the `version` query key is entirely absent | That exact version row |
+| `pk` identifies a root and `version` is absent | Latest non-deleted version, falling back to the root |
+| Any `pk` in the chain and `version=<integer>` | That root or version ID, but only if it belongs to the same root chain |
+| `version` is nonempty but not an integer | 404, “Invalid version parameter” |
+| Integer version is missing or belongs to another root | 404 |
+| `version=` is present but empty | Latest version using the include-deleted/global manager, falling back to the root |
+
+The direct-version special case is at [src/documents/views.py:1388-1399](src/documents/views.py#L1388-L1399). Version parsing and same-root enforcement are at [src/documents/versioning.py:169-195](src/documents/versioning.py#L169-L195).
+
+A subtle distinction is important:
+
+- **Absent `version` key:** `get_request_version_param()` returns `None`, so version lookup excludes deleted rows.
+- **Present empty `version=`:** it returns `""`. `_resolve_file_doc()` treats the parameter as present for `include_deleted`, while the resolver treats it as falsy and selects the latest version. Thus the latest lookup includes deleted rows.
+
+[src/documents/views.py:1375-1386](src/documents/views.py#L1375-L1386), [src/documents/versioning.py:140-143,175-182](src/documents/versioning.py#L140-L143).
+
+“Latest” means descending `version_index`, then descending ID [src/documents/versioning.py:23-28,159-166](src/documents/versioning.py#L23-L28).
+
+### Original versus archive
+
+After selecting `file_doc`:
+
+```python
+use_archive = (
+    not self.original_requested(request)
+    and file_doc.has_archive_version
+)
+```
+
+[src/documents/views.py:1442-1448](src/documents/views.py#L1442-L1448).
+
+`original_requested()` is true only when the query value is exactly the lowercase string `"true"` [src/documents/views.py:1368-1373](src/documents/views.py#L1368-L1373). Therefore:
+
+- `?original=true`: serve `file_doc.source_file`.
+- Otherwise, if that selected version has an archive: serve `file_doc.archive_file`.
+- Otherwise: fall back to `file_doc.source_file`.
+
+An archive is determined by `archive_filename is not None` [src/documents/models.py:453-475](src/documents/models.py#L453-L475).
+
+For an archive, `serve_file()` returns PDF content. For an original, it uses the selected document’s MIME type. The response is a `FileResponse` with attachment disposition [src/documents/views.py:4941-4973,4988-4995](src/documents/views.py#L4941-L4973).
+
+`follow_formatting` only changes the download filename:
+
+- truthy value: on-disk `filename`/`archive_filename`;
+- false or absent: generated public filename.
+
+It does not change the file bytes. The value is not Boolean-parsed here, so a nonempty query string such as `follow_formatting=false` is truthy in this branch [src/documents/views.py:1447](src/documents/views.py#L1447), [src/documents/views.py:4952-4965](src/documents/views.py#L4952-L4965).
+
+Missing files and `Document.DoesNotExist` are converted to 404 by the action [src/documents/views.py:1835-1839](src/documents/views.py#L1835-L1839).
+
+## 2. Authorization checks and their order
+
+### Framework-level checks
+
+`DocumentViewSet` declares:
+
+```python
+permission_classes = (IsAuthenticated, PaperlessObjectPermissions)
+```
+
+[src/documents/views.py:1008-1027](src/documents/views.py#L1008-L1027).
+
+Before invoking `download`, DRF:
+
+1. performs authentication;
+2. calls each permission class’s request-level `has_permission`;
+3. only then dispatches to the action.
+
+[framework/rest_framework-3.18.1/rest_framework/views.py:404-421,510-524](framework/rest_framework-3.18.1/rest_framework/views.py#L404-L421).
+
+This requires:
+
+- an authenticated user (`IsAuthenticated`);
+- the global model permission `documents.view_document`, because `PaperlessObjectPermissions` maps GET to `view_<model>` and its inherited `has_permission()` calls `user.has_perms(...)`.
+
+[src/documents/permissions.py:30-44](src/documents/permissions.py#L30-L44), [framework/rest_framework-3.18.1/rest_framework/permissions.py:145-151,233-246](framework/rest_framework-3.18.1/rest_framework/permissions.py#L145-L151).
+
+### Explicit root-object check
+
+After loading the requested row and resolving the root—but **before version and representation selection**—the application checks:
+
+```python
+has_perms_owner_aware(
+    request.user,
+    "view_document",
+    root_doc,
+)
+```
+
+Failure returns 403 [src/documents/views.py:1417-1427](src/documents/views.py#L1417-L1427).
+
+That helper permits access when:
+
+- the root is unowned;
+- the user owns the root; or
+- Guardian’s `ObjectPermissionChecker` grants `view_document` on the root.
+
+[src/documents/permissions.py:624-635](src/documents/permissions.py#L624-L635).
+
+The action does not call DRF’s `get_object()` or `check_object_permissions()` for the requested or selected version. Its object-specific decision is the explicit root check above. DRF only invokes object permissions when application code calls `check_object_permissions()` [framework/rest_framework-3.18.1/rest_framework/views.py:344-355](framework/rest_framework-3.18.1/rest_framework/views.py#L344-L355).
+
+## 3. Effect of alternate versions and representations on authorization
+
+Selecting another version changes the `Document` row and file path ultimately served, but it does **not** change the object against which the explicit authorization decision is made:
+
+- `pk` version → authorization uses its root.
+- `version=<id>` → authorization still uses the previously resolved root.
+- latest-version resolution → authorization still uses the root.
+- original/archive choice → no new object authorization; it merely chooses `source_file` or `archive_file` from the already selected version.
+
+Therefore, a version’s own `owner` is not consulted by this download path. A user who passes the root authorization may receive a same-chain version even if that version row has a different owner. An unrelated version ID is rejected by the same-root test before it can be served.
+
+## 4. Supplied development scenario
+
+Given an actual query containing:
+
+```text
+pk=10
+version=
+```
+
+the empty-but-present `version` key enables include-deleted lookup. Versions are sorted by descending `version_index`, so document `12` is selected over `11`. Because document `12` has no archive, it returns:
+
+```text
+v2-original.txt
+```
+
+Whether `original` is omitted, empty, or the literal string `null`, it is not exactly `"true"` and does not force any different result.
+
+Authorization is evaluated on root document `10`, not version `12`. In the fixture, actor `7` owns root `10`, so the owner-aware check succeeds without consulting the supplied `ObjectPermissionChecker.construct` assumption. This conclusion additionally assumes actor `7` has already passed the global `documents.view_document` request-level check.
+
+For comparison, if the `version` key were **omitted entirely**, deleted version `12` would not participate; active version `11` would be selected and, because `original` is not `"true"` and it has an archive, the returned file would be `v1-archive.pdf`.
+
+## Evidence limits and missing facts
+
+The source establishes the control flow above, but these facts remain unavailable:
+
+- **Actual global model permission:** ownership alone does not establish that the user passes the earlier `documents.view_document` model-permission check.
+- **Actual root ownership and object grants:** for an owned root belonging to someone else, the result depends on Guardian grants and its configured permission backend, which are outside the allowed evidence.
+- **Actual query encoding:** HTTP query parameters are strings. A conceptual `null` does not establish whether the key is omitted, empty, or sent as `"null"`; all are false for `original`, but absent versus empty is materially different for `version`.
+- **Actual database state:** the development documents are examples, not evidence of deployed rows, root relationships, deletion state, or archive availability.
+- **Filesystem and storage state:** the source selects paths, but actual file existence, storage mounts, and settings are unavailable. A missing selected file results in 404.
+- **Authentication configuration:** DRF authentication runs before authorization, but configured authenticators and whether concrete credentials succeed are outside the allowed paths.
+
+These gaps block conclusions about what a real deployment or real user can download; they do not block the source-level selection and authorization ordering described above.
