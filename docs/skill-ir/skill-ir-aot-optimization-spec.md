@@ -3092,7 +3092,7 @@ check/run/compare已接入`--execution-policy=progressive`，strict仍为默认�
 
 ### 14.51 BL reusable program semantics and delivery
 
-2026-10-14授权[BL0–BL21](../superpowers/plans/2026-10-14-authorization-reusable-program-semantics-and-delivery.md)，开发`gpt-6-astra/high`，已核对生产基线`02b79e4b`，identity为`authorization-reusable-program-v1`。BL2诊断已提交，BL3–BL6普通入口实现和回归正在推进，尚无本轮真实模型效果。复核确认BK自动稿有实际默认值，但变化输入、外部参数及最终交付仍存在共享接口/编写缺口；本轮复用现有DSL、求值器和CLI，先取得可复用自动程序，再验证消费。
+2026-10-14授权[BL0–BL21](../superpowers/plans/2026-10-14-authorization-reusable-program-semantics-and-delivery.md)，开发`gpt-6-astra/high`，已核对生产基线`02b79e4b`，identity为`authorization-reusable-program-v1`。适用工程/八用途以completed-with-unmet-criteria收束。A0/A1实际trial与当前最终答成立，首稿均0/18、最终均15/18；非法/跨根拒绝和constructor完成条件仍遗漏。两对C/B四问均full而消费input/output/耗时更高，均negative。C2预算失败缺自然答、只读确认interrupted；S0一次模型维护与三输入重放符合变化源码，不替换固定A0。复用既有DSL/求值器/CLI，不回填模型原稿，不以自然答、机械值或有限维护成功认证完整请求。
 
 **可复用目标。** 编写目标与当前实例分开，显式reusable不因fixture缺某取值而缩成单例。覆盖摘要复用scope、源引用、steps和gaps，区分implemented/unwritten/external；宿主检查引用/版本，模型解释源内语义，独立评价判断完整性。作者自报覆盖不构成证明，不增加全anchor必填表。partial可保存、试算和修订，当前路径条件与未走分支覆盖缺口分列。
 
@@ -3101,6 +3101,8 @@ check/run/compare已接入`--execution-policy=progressive`，strict仍为默认�
 **精确语义接口。** 外部事实区分不存在、实参键/类型/值不匹配、歧义和明确false；grant仍绑定精确主体/对象/权限。模型用已有表达式显式映射，禁止按同名或近似字段自动授权。排序/唯一性优先修广告与现有操作接线。源内版本/root查询/回退关系由模型根据源码编写，不用开发者参考程序、oracle或任务书的正确分支说明回填。
 
 **交付与成本。** 宿主区分修稿反馈和原任务回答，保存原回合、首答及最终交付依据；源码/输入/程序变化使旧答stale，原预算内至多一次明确最终阶段，不能挑高分历史答。finalOnly停止，两宿主同核。先量测真实发送重复再做可读回的状态减负，四问/skill/备选规则保留，字节不充当精确token。full默认。
+
+共享full工具投影仅对同响应中顶层与executableContract的逐字相同大字段去重；带字段名、SHA及bytes的引用指向同响应完整原值，碰到已有引用形状则保持原文。归档、details和执行状态不变，确定性恢复验真。A0实际发送原件重放少333568字节，不能据此宣称模型token或耗时收益。
 
 **实际验证。** 八首用途为A0/A1独立作者、C0/C1/C2固定A0原稿消费、B0/B1同期基线及S0源码变化。A0/A1各至多两次有据继续、共享总预算；新增共享缺陷每根因至多一次真实确认、全轮至多三次，首件与修后分列。当前局部产物可诊断消费，不用整题full作为所有观察的前置；无稿不拿历史参考填位。比较按C0→B0、B1→C1，同epoch/事实/来源/模型/预算；作者预处理差异和成本单列，不能归因为纯DSL表示。原四问完整评价，旧未知依BK规则隔离、不重发；第三方暂停，目标执行0，保护证据保持。研究统一§7.73，工程/有限队列/自动可复用主链/净收益分别验收。
 

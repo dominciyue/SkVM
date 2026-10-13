@@ -2,10 +2,10 @@
 
 更新于2026-10-14。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BL0–BL21](../superpowers/plans/2026-10-14-authorization-reusable-program-semantics-and-delivery.md)，计划就绪、尚未实施。可复用作者目标、多输入试算和可靠最终交付优先，随后固定自动原稿消费与有限比较。
+- 当前任务书：[BL0–BL21](../superpowers/plans/2026-10-14-authorization-reusable-program-semantics-and-delivery.md)，适用工程/八用途已处置；两独立作者最终15/18，两对消费negative，C2缺交付、S0维护成立。完整自动范围与净收益未达，最终发布核验中。
 - 方法合同：[spec§14.51](skill-ir-aot-optimization-spec.md#1451-bl-reusable-program-semantics-and-delivery)；复核和开发过程统一在[研究§7.73](skill-dsl-research.md#773-bk-复核与-bl-可复用程序开发决定)。BK实际结果保留在§7.72。
 - identity：`authorization-reusable-program-v1`，已核对生产基线`02b79e4b`。继续`skill-ir-aot`，只推用户origin，不建分支/worktree；开发线程独占代码、共享方法文档与Git写入。
-- 开发`gpt-6-astra/high`，按用户指定；实验沿已授权官方账号`gpt-5.6-sol/high`。第三方暂停，OWUI/历史未知ShareLink仅离线，旧未知和保护证据保持。tracked干净，原有未跟踪`.tmp/`不清理。
+- 开发`gpt-6-astra/high`，按用户指定；实验沿已授权官方账号`gpt-5.6-sol/high`。第三方暂停，OWUI/历史未知ShareLink仅离线，旧未知和保护证据保持。接管时tracked干净，原有未跟踪`.tmp/`不清理。
 
 约8–12小时为参考实质任务窗口，不等待或重复验证凑时长。沿BK恢复合同区分旧unknown、本地宿主与研究处置；不重发原请求、不改终态/费用，核查隔离后可开展已授权独立用途。新额度/认证及重复通道故障按任务书暂停对应通道，仍推进独立工程。
 
@@ -20,7 +20,7 @@
 | 编写与复用 | BK值7/14、有限行为5/14，C1自然纠错未改原稿 | A0/A1独立编写，同一A0原稿变化与消费，S0源码维护 |
 | 质量与成本 | BK两对C均更贵，质量持平 | 实际重复量测与保真减负，C0→B0、B1→C1及作者成本分账 |
 
-普通入口当前使用[Download说明](../../examples/authorization-assessment/download-workflow/README.md)中的BK自动原稿，默认返回文件11且conditional。发布后105定向测试/667断言、三次普通运行核对了默认/空版本/拒绝仍返回同值的缺口；没有BL实现证据。BL交付当前自动原稿后再更新示例，不以历史或开发者稿补位。
+普通入口当前使用[Download说明](../../examples/authorization-assessment/download-workflow/README.md)中的BL A0固定14步自动稿：默认文件11/archive，空版本12/original，明确false在授权处停止，仍为有限conditional。A0/A1首稿均0/18、最终均15/18；非法/跨根拒绝及constructor完成条件缺口保留。完整请求证明和稳定净收益未达；没有历史或开发者稿补位。
 
 ## 继承的真实结果
 

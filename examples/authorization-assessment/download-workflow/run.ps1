@@ -17,9 +17,9 @@ if ($Mode -eq 'zero') { $command += 'check' } else { $command += 'run' }
 $command += @("--input=$PSScriptRoot/inputs/$Variant.json", '--strategy=question-checked-v1', '--execution-policy=progressive', "--program-context=$ProgramContext", "--out=$Out")
 if ($Mode -eq 'author') {
   if ($ProgramFile) { throw 'Author mode starts without a supplied program; use -Previous for a saved author session.' }
-  $command += '--program-mode=edit'
+  $command += @('--program-mode=edit', '--authoring-target=reusable')
 } else {
-  if (-not $ProgramFile) { $ProgramFile = Join-Path $repo 'results/skill-ir/skill-dsl-research/development/authorization-recoverable-authoring-v1/authoring/automatic-program.json' }
+  if (-not $ProgramFile) { $ProgramFile = Join-Path $repo 'results/skill-ir/skill-dsl-research/development/authorization-reusable-program-v1/authoring/automatic-program.json' }
   $ProgramFile = (Resolve-Path -LiteralPath $ProgramFile).Path
   $command += @("--domain-program=$ProgramFile", '--program-mode=consume')
 }

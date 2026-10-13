@@ -1,13 +1,27 @@
 # Download: input → source program → execution → result
 
-## Current BK model-authored original
+## Current BL model-authored original
 
-The default script now runs the [BK A0 automatic raw program](../../../results/skill-ir/skill-dsl-research/development/authorization-recoverable-authoring-v1/authoring/automatic-program.json), selected before consumption with no developer semantic edits:
+The default script runs the [BL A0 automatic raw program](../../../results/skill-ir/skill-dsl-research/development/authorization-reusable-program-v1/authoring/automatic-program.json), fixed before consumption with no developer semantic edits:
 
 ```powershell
 ./examples/authorization-assessment/download-workflow/run.ps1
 ./examples/authorization-assessment/download-workflow/run.ps1 -Variant empty-version
 ./examples/authorization-assessment/download-workflow/run.ps1 -Variant denied
+```
+
+Its 14 steps compute default `{request_document:10, authorized_root:10, selected_document:11, use_archive:true, selected_file:"v1-archive.pdf"}`. Empty `version` selects document 12 and `v2-original.txt`; explicit denial stops at the authorization guard. The [18-case matrix](../../../results/skill-ir/skill-dsl-research/development/authorization-reusable-program-v1/evaluation/selected/variation-matrix.json) records 15 matching finite behaviors after reviewed field-name mapping, with literal-shape comparisons retained. Invalid and cross-root version rejection and the unspecified checker-constructor condition remain incomplete. No full request authorization or real file delivery is certified.
+
+The author used two trial batches and repaired explicit-version selection from its own actual feedback. First draft, edits and all four turn texts remain separate; the final task answer matches the final program basis. See the [current execution walkthrough](../../../results/skill-ir/skill-dsl-research/development/authorization-reusable-program-v1/execution.md). Default/empty/denied/renamed facts agree under fresh versus previous execution after moving a copied package; a changed permission branch withdraws the old return. A1 independently also matches 15/18. Both consumer/baseline pairs answer all four source questions fully, but consumers use more input/output/time. C2 exhausts its tool budget without a natural answer. S0 independently repairs the changed guard and passes three finite maintenance cases; its raw does not replace the default program.
+
+`-Mode author` starts without a supplied program and requests a reusable target; trial accepts bounded same-operation facts without changing the active scenario. `-Mode account` consumes the fixed raw. Script failures keep the real exit code and never substitute the developer reference.
+
+## Historical BK model-authored original
+
+The prior default was the [BK A0 automatic raw program](../../../results/skill-ir/skill-dsl-research/development/authorization-recoverable-authoring-v1/authoring/automatic-program.json), selected before its consumption with no developer semantic edits. To reproduce that historical program, pass its file explicitly:
+
+```powershell
+./examples/authorization-assessment/download-workflow/run.ps1 -ProgramFile ./results/skill-ir/skill-dsl-research/development/authorization-recoverable-authoring-v1/authoring/automatic-program.json
 ```
 
 The 12-step program computes the default candidate `{requested_document_id: 10, authorization_root_document_id: 10, returned_document_id: 11, archive_representation: true, returned_file: "v1-archive.pdf"}`. This is conditional: the raw program still calls Guardian with arguments that do not match the supplied premise. Empty-version, explicit-version and missing-root behavior remain incomplete. A computed candidate does not certify an authorized download. The [14-case matrix](../../../results/skill-ir/skill-dsl-research/development/authorization-recoverable-authoring-v1/evaluation/selected/variation-matrix.json) records both exact JSON shape and semantic field comparisons, retaining all conditions.

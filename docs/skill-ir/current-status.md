@@ -4,9 +4,9 @@
 
 ## 当前工作
 
-**BL0–BL21正在实施：BL2诊断已提交，BL3–BL6目标、同核trial和回答生命周期已接线并进行回归；尚无本轮真实模型结果。** 用户指定`gpt-6-astra/high`，继续现有主开发分支。[本轮任务书](../superpowers/plans/2026-10-14-authorization-reusable-program-semantics-and-delivery.md)以`02b79e4b`为已核对生产基线，接管HEAD为b516e106，identity为`authorization-reusable-program-v1`。接下来进入薄研究入口和早期A0，再做固定原稿变化消费与两对同期比较。相关设计见[spec§14.51](skill-ir-aot-optimization-spec.md#1451-bl-reusable-program-semantics-and-delivery)、[研究§7.73](skill-dsl-research.md#773-bk-复核与-bl-可复用程序开发决定)。
+**BL以completed-with-unmet-criteria收束适用工程与八用途：自动编写和当前依据交付成立，完整可复用范围与净收益未达。** A0/A1首稿均0/18、最终均15/18；默认11/archive、空版本12/original、明确false拒绝。非法/跨根版本拒绝及constructor条件仍遗漏。两对C/B四问均full，C输入分别为B的4.63/5.23倍，输出和耗时也更高；两对negative。C2预算耗尽无自然答，只读确认interrupted，原unavailable/部分费用保留。S0一次模型维护及四case trial后，三个保留输入的源码变化重放符合反转条件；不替换固定稿。见[执行过程](../../results/skill-ir/skill-dsl-research/development/authorization-reusable-program-v1/execution.md)、[summary](../../results/skill-ir/skill-dsl-research/development/authorization-reusable-program-v1/summary.json)、[任务书](../superpowers/plans/2026-10-14-authorization-reusable-program-semantics-and-delivery.md)、[spec§14.51](skill-ir-aot-optimization-spec.md#1451-bl-reusable-program-semantics-and-delivery)及[研究§7.73](skill-dsl-research.md#773-bk-复核与-bl-可复用程序开发决定)。
 
-BK发布后复核105项定向测试/667断言及三次普通零模型运行通过执行；默认、空版本、拒绝均返回文件11且conditional，说明当前稿对变化输入仍有真实缺口。新轮不以手写语义回填模型稿，也不继续扩展通用语言语义。保留partial可执行与有界当场修复；八个首用途加最多三次具名共享修复确认，官方`gpt-5.6-sol/high`实验授权沿用，第三方暂停。接管时tracked工作区干净，原有未跟踪`.tmp/`保留。
+BL共享实现至34ae933e，169定向测试/1136断言、主/研究类型、3研究测试/58断言及15文档测试通过；八归档本地关闭，14观察turn、7用途自然交付。已知input21,097,032（含cache19,419,008）、output106,101，C2最终usage及全部实际USD/开发探子/真人成本unknown。无损响应引用反事实少333568字节，不称因果token收益。full默认，普通示例使用固定14步A0；当前发布核验中，原有`.tmp/`和原件保留。开发gpt-6-astra/high、实验官方gpt-5.6-sol/high，第三方暂停，无额外修复抽样。
 
 ## BK 已结束的实际结果
 
@@ -128,7 +128,7 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 
 | 阶段 | 保留记录 |
 |---|---|
-| 当前BL | [任务书](../superpowers/plans/2026-10-14-authorization-reusable-program-semantics-and-delivery.md)、spec§14.51、研究§7.73；计划就绪，尚无本轮实现/效果，先补可复用程序与最终交付 |
+| 当前BL | [任务书](../superpowers/plans/2026-10-14-authorization-reusable-program-semantics-and-delivery.md)、spec§14.51、研究§7.73；适用工程/八用途收束，自动范围15/18、两对negative、C2缺交付，完整研究目标未达 |
 | BK | [任务书](../superpowers/plans/2026-10-13-authorization-recoverable-authoring-and-real-delivery.md)、spec§14.50、研究§7.72；适用工程/有限队列结束，自动主链和净收益未达 |
 | BJ | [任务书](../superpowers/plans/2026-10-13-authorization-authoring-loop-and-program-completion.md)、spec§14.49、研究§7.71；离线工程已验证，R0原生命周期unknown且不重发，自动主链/四问交付/收益未达 |
 | BI | [任务书](../superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md)、spec§14.48、研究§7.70；已发布，工程与有限队列完成，自动主链及稳定收益未达 |

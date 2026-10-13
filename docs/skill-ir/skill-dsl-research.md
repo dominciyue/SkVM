@@ -4,7 +4,7 @@
 
 ## 1. 当前结论
 
-**BL准备实施可复用自动程序与可靠交付，尚无本轮效果结论。** 用户指定`gpt-6-astra/high`，任务见[BL0–BL21](../superpowers/plans/2026-10-14-authorization-reusable-program-semantics-and-delivery.md)。BK发布后复核定位了单例编写目标、外部参数不匹配、有序选择/root关系遗漏及修稿覆盖末答；下一轮将变化试算接进普通编写链，保留源码语义由作者补齐，再用同一自动原稿做消费。计划和诊断见[§7.73](#773-bk-复核与-bl-可复用程序开发决定)，BK实际结果保持如下。
+**BL适用工程与八用途已收束，自动可复用完整性和净收益未达。** [BL0–BL21](../superpowers/plans/2026-10-14-authorization-reusable-program-semantics-and-delivery.md)实际A0/A1各从无稿写出程序并使用trial，首稿均0/18、最终均15/18；三项源内/外部完成条件遗漏保留。两对固定稿消费与基线四问均full，C输入4.63/5.23倍且输出/耗时更高，均negative。7用途交付，C2工具预算耗尽未交付且只读确认interrupted；S0当前源码维护及三输入重放成立。没有把自然补答当程序修复，也没有开发者语义回填。过程、费用未知和下一责任见[§7.73](#773-bk-复核与-bl-可复用程序开发决定)，BK原结果保持如下。
 
 **BK适用恢复工程与有限队列结束，完整自动主链和稳定净收益未达。** [BK0–BK19](../superpowers/plans/2026-10-13-authorization-recoverable-authoring-and-real-delivery.md)由`gpt-6-astra/high`实施。A0写稿、执行和同线程修订形成固定12步原稿，14场景值7/14、有限行为5/14；A1独立起点及S0源码变化修稿实际发生。C0/C1与同期基线四问均partial/full/full/full，C的input/output/耗时均更高；C1自然补答纠正空版本原稿错误不等于程序修好。C2超时无答、只读查到interrupted，原未知记录与最终费用未知保留。BJ R0继续unknown、不重发。实际过程、费用分账及剩余责任见[§7.72](#772-bj-复核与-bk-可恢复自动编写决定)；下文更早段落保留当轮结论。
 
@@ -2750,9 +2750,17 @@ ShareLink第二离线开发程序使用同一select/guard/return核，六场景�
 
 **怎样验证。** A0无稿编写—试算—修稿、A1不同起点独立编写；同一A0原字节覆盖development变化输入，再做两对同期C/B、拒绝消费和一次S0源码维护。源码事实与实际轨迹可以给作者，评价expected、历史答案和开发者程序隔离。首个共享错误当场修复，首件与确认分别保留；partial程序可诊断消费，完整四问评价不删。模型原稿、自然补答、有限值/行为、完整请求证明和费用分别记录。只有实测质量和成本支持时才谈收益，USD和真人耗时没有来源仍unknown。
 
-**当前进度与文档修正。** 本轮只完成计划。旧当前计划及本地handoff仍写BK待实施，已在BL接管文档中修正；§7.72末段中途记录已标明历史语境，原实验数据不改。继续主分支，只推用户origin，保留原有`.tmp/`。BL实施、问题与修复后续追加本节，§1/§11和current-status同时维护，不另建研究正文。
+**计划阶段的文档修正。** 当时只完成计划；旧当前计划及本地handoff写BK待实施，已在BL接管文档中修正。§7.72末段中途记录已标明历史语境，原实验数据不改。继续主分支，只推用户origin，保留原有`.tmp/`。以下实施记录更新当前状态，不另建研究正文。
 
-**BL实施进展（2026-10-14）。** 已接管b516e106并以1c6a5072提交精确外部参数/选择诊断。匿名红绿推动可复用目标、来源/步骤覆盖声明、1–4场景同核trial和双入口read→program→trial→patch→trial；活动输入与原结果不变，试算按场景计预算。最终交付按显式task-answer/author-edit/final-answer阶段及任务/来源/输入/程序摘要保存，不按长度或预算关键词选答；旧依据变化保留stale，finalOnly或未知终态不追加空回合。当前是共享工程回归阶段，真实作者采用、原稿行为矩阵、四问质量及净收益尚未验证。
+**BL早期工程记录（2026-10-14，以下真实采用前的历史状态）。** 已接管b516e106并以1c6a5072提交精确外部参数/选择诊断。匿名红绿推动可复用目标、来源/步骤覆盖声明、1–4场景同核trial和双入口read→program→trial→patch→trial；活动输入与原结果不变，试算按场景计预算。最终交付按显式task-answer/author-edit/final-answer阶段及任务/来源/输入/程序摘要保存，不按长度或预算关键词选答；旧依据变化保留stale，finalOnly或未知终态不追加空回合。当前是共享工程回归阶段，真实作者采用、原稿行为矩阵、四问质量及净收益尚未验证。
+
+**BL实际采用与初步边界（2026-10-14）。** A0在第43工具单位首次试写，首件两步只返回请求ID，18场景完整有限行为0/18。原预算内2次作者继续实际做2批trial/5case，首次发现显式version不返回描述符后自行加入integer转换并复测；最终14步稿为15/18，默认11/archive、空版本12/original、明确false停止。非法/跨根版本缺拒绝guard、构造器完成事实缺失时未留条件，属于当前原稿遗漏，未手工修补。原4turn和首/最终答分存，第四次明确final phase使delivery=current。默认/空/拒绝/重命名fresh与previous一致，源码副本权限条件反转撤回旧结果。普通三命令及inspect零模型通过。A1独立作者和消费比较继续，未将局部成功称作完整主链。
+
+**BL传输与迁移。** A0实际响应重复同一草稿字段；共享投影保留同包原值，以SHA/bytes引用重复副本。红绿和碰撞反例、实际发送原件精确还原通过，字节反事实节省333568，非token或时间实测收益。ShareLink公用runtime离线验证目标、明确false/错误对象/缺事实、异operation拒绝、patch和current→stale→current交付；无新模型或目标写入。最终答本身interrupted/unknown的普通run/inspect新增2测试18断言，保留stale首答且无后续回合。
+
+**BL最终观察与失败分母。** A1独立空版本起点完成18步稿和1批trial，首稿0/18、最终15/18，与A0同缺非法/跨根拒绝及constructor完成条件。A0选择固定SHA600aa500…，A1/S0未替换。C0/B0和B1/C1严格同source epoch/事实/模型/skill/四问/总预算，四题均full且当前场景正确；C input为3,000,107/3,915,770，B为648,054/748,686，C output多1,816/1,903、耗时多221,783/221,300ms，故两对negative。C1恢复5材料、实际使用0，源码仍被重复阅读；固定程序本身确实重算12/original。自然质量、材料复用与机器证明分列，不能把恢复资格当采用。C2 exact false和guard拒绝有实际trace，但finalOnly后继续请求工具、四次阻挡耗尽64单位，缺自然答；原unavailable/部分usage与后查interrupted并存、不重发。
+
+**BL维护、成本与后续责任。** S0一次patch后重新提交当前程序并试算4case，guard随源码副本改为not(any(owner,grant))；默认/空输入在选文件前拒绝，原denied事实反而到11/archive，三个零调用重放均符合当前源码，旧稿先撤回。七交付用途原四问经独立评阅和主代理出处裁定均full，C2四题unanswered；评阅自身的错路径、错误源码推断与主裁理由也保留。总14观察turn、known input21,097,032（含cache19,419,008）/output106,101、444工具单位；C2最终usage、USD、开发/探子/真人成本未知。作者A0 input4,958,861/output22,916，独立A1 4,479,361/33,209，维护S0 2,207,831/14,321单列；已观察消费没有节省，不能给正摊销阈值。共享工程169测试/1136断言、主/研究类型、3研究测试/58断言、15文档测试及八archive核验通过，不称全src绿色。下一责任是作者将已理解的拒绝/constructor关系写成程序，以及减少未采用材料和重复探索、在既有预算内交付；不自动扩样或扩通用语言。完整原件与[汇总](../../results/skill-ir/skill-dsl-research/development/authorization-reusable-program-v1/summary.json)、[比较](../../results/skill-ir/skill-dsl-research/development/authorization-reusable-program-v1/evaluation/comparison.json)、[成本](../../results/skill-ir/skill-dsl-research/development/authorization-reusable-program-v1/evaluation/accounting.json)对应，工程/有限队列true、完整自动范围/研究效果false。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 
@@ -2892,6 +2900,8 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 - **2026-10-13 / BK规划：** 用户指定gpt-6-astra/high新线程。旧unknown经核查与隔离不再永久阻止已授权的新独立用途；原终态与费用不改、不重发R0。下一重点为实际作者循环、同稿变化与消费，八个首用途及有据修复确认按任务书安排；当前没有BK生产改动或模型实验，见§7.72。
 
 - **2026-10-14 / BL规划：** 用户指定gpt-6-astra/high继续。BK原稿和普通命令复核后，确定可复用意图、公共多输入试算、精确参数/选择反馈和最终答保真为共享责任；八首用途与有限具名修复，partial可观察、完整质量另评。计划未新增实现或效果，见§7.73。
+
+- **2026-10-14 / BL实施收束：** 共享目标/trial/精确反馈/交付和无损同响应去重接通；两独立作者原稿最终15/18、两对消费negative、C2未交付、S0变化维护三输入符合源码。八用途处置完成，七自然答四问full；无额外修复抽样，自动完整范围及净收益false。费用/失败/评阅裁定原样分存，见§7.73。
 
 ## 12. 后续追加规则
 
