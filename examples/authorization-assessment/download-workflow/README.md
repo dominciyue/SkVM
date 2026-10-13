@@ -2,7 +2,7 @@
 
 ## BI model-authored original
 
-The current automatic artifact is
+The latest retained automatic artifact is the BI program at
 `results/skill-ir/skill-dsl-research/development/authorization-authoring-closure-v1/authoring/automatic-program.json`.
 It is A2's adopted raw proposal, frozen before C1/C2 without developer semantic
 edits. Run that exact file from the repository root:
@@ -20,6 +20,42 @@ and empty-version selection, owner-aware permission behavior and missing-root
 fallback incomplete. These are visible in the printed `execution.md` and
 `execution.json`; all four original duties remain in the archive. Natural
 explanations of these branches do not establish automatic computation.
+
+BJ added explicit same-operation input binding and current author feedback, but
+its R0 account attempt ended `completion-unknown` after child exit 4, with no
+model tool call or answer. BJ has no newly adopted automatic raw program. The
+original request remains unresolved and further BJ account dispatch is paused;
+the commands above still run the unchanged BI artifact.
+
+BJ's [offline matrix](../../../results/skill-ir/skill-dsl-research/development/authorization-authoring-loop-v1/evaluation/variation-matrix.json)
+checks fourteen development inputs against the BI raw program and a separately
+labelled binding-only diagnostic. The former matches 0/14 returned values; the
+latter matches 6/14, including the default document 11/archive candidate. Both
+match 0/14 complete finite behaviors: permissions and source-visible helper,
+version, order and fallback relations remain incomplete. The diagnostic is
+developer-assisted and is not an automatic author success or permitted download.
+
+These resumable BJ actions make no account call:
+
+```powershell
+bun run ./results/skill-ir/skill-dsl-research/development/authorization-authoring-loop-v1/study.ts status
+bun run ./results/skill-ir/skill-dsl-research/development/authorization-authoring-loop-v1/study.ts offline
+bun run ./results/skill-ir/skill-dsl-research/development/authorization-authoring-loop-v1/study.ts summarize
+bun run ./results/skill-ir/skill-dsl-research/development/authorization-authoring-loop-v1/study.ts verify
+```
+
+`offline` retains existing observations and resumes only missing owned stages.
+The [move record](../../../results/skill-ir/skill-dsl-research/development/authorization-authoring-loop-v1/verification/move-result.json)
+points to the copied zero-model session and its `execution.md`; check/inspect and
+three fresh/previous input recomputations agree. A
+[source-copy change](../../../results/skill-ir/skill-dsl-research/development/authorization-authoring-loop-v1/verification/source-change-result.json)
+withdraws the old return using its previous source snapshot. A
+[ShareLink offline round](../../../results/skill-ir/skill-dsl-research/development/authorization-authoring-loop-v1/verification/sharelink-result.json)
+computes, revokes and rebinds a descriptor, then restores the draft under current
+denied facts without an old result or target write. These are engineering
+diagnostics; fresh authors, frozen BJ consumers, four-question answers and paired
+benefit measurements remain unconfirmed. Raw sessions and copied source are
+local evidence; compact records are committed.
 
 BI's eight recorded account sessions completed. A2's recovered natural answer
 and C2's changed-input answer cover all four questions, while A1 and C1 have

@@ -4,6 +4,9 @@ import { createHash } from "node:crypto"
 import { execFileSync } from "node:child_process"
 import { executeLocalInquiryRun, inspectLocalInquiry } from "../../../../../src/benchmarks/authorization-dsl/inquiry-local.ts"
 import { classifyTerminalReport, measureAuthorTimeline, observedAccountCost } from "./measurement.ts"
+import { runOfflineMatrix } from "./offline.ts"
+import { verifyMovedPackage, verifySourceChange, verifyShareLink } from "./practical.ts"
+import { writeStudySummary } from "./summarize.ts"
 
 const base = import.meta.dir, repo = path.resolve(base, "../../../../.."), example = path.join(repo, "examples/authorization-assessment/download-workflow")
 const load = async (file: string) => JSON.parse(await readFile(file, "utf8"))
@@ -45,7 +48,7 @@ async function run(position: string, attempt = "first") {
   if (attempt !== "first" && (!/^(routing-recovery|shared-fix|source-repair)-[a-z0-9-]+$/.test(attempt) || !repair?.cause || !repair?.evidence)) throw new Error("A recovery requires a registered diagnosed cause and evidence")
   const author = ["R0", "F0", "F1", "S0"].includes(position), baseline = position.startsWith("B")
   const variant = repair?.variant ?? (["F1", "C1", "B1"].includes(position) ? "empty-version" : position === "C2" ? "denied" : position === "S0" ? "source-change" : "root-default")
-  const inputFile = path.join(base, `inputs/${variant}.json`)
+  const inputFile = position === "S0" && !repair?.variant ? path.join(base, "verification/source-change/package/input.json") : path.join(base, `inputs/${variant}.json`)
   const domainProgramFile = author || baseline ? undefined : path.join(base, "authoring/automatic-program.json")
   const programBytes = domainProgramFile ? await readFile(domainProgramFile).catch(() => undefined) : undefined
   if (!author && !baseline && !programBytes) throw new Error("Freeze an actual automatic raw program before consumer dispatch")
@@ -82,15 +85,48 @@ async function freeze(position: string, attempt = "first") {
   if (ledger.some(entry => entry.position.startsWith("C") && entry.inferenceDispatched)) throw new Error("Selection is fixed before consumers")
   const selected = ledger.find(entry => entry.position === position && entry.attempt === attempt && entry.session)
   if (!selected) throw new Error("Actual author session unavailable")
+  if (["running", "unknown", "timeout-unknown", "completion-unknown"].includes(selected.status)) throw new Error("Resolve the original author lifecycle before selecting its program")
   const source = path.join(base, `authoring/automatic-program-${position}-${attempt}.json`), bytes = await readFile(source)
   const inspected = await inspectLocalInquiry(path.join(repo, selected.session)), adopted = inspected.domain.executableContract.adoptedDraft
   if (JSON.stringify(JSON.parse(bytes.toString("utf8"))) !== JSON.stringify(adopted.raw)) throw new Error("Automatic export differs from actual adopted raw proposal")
   await copyFile(source, path.join(base, "authoring/automatic-program.json"))
   await save(path.join(base, "authoring/frozen-selection.json"), { position, attempt, session: selected.session, selectedBeforeConsumers: true, programSha256: hash(bytes), rawRevision: adopted.revision, normalizedRevision: inspected.domain.executableContract.revision, origin: position === "R0" ? "recovered-author-program" : "independent-author-program", developerSemanticEdits: false, serialization: "model raw proposal as UTF-8 JSON", semanticSupport: "unreviewed" })
 }
+async function offline() {
+  const prior = await load(path.join(base, "evaluation/variation-matrix.json")).catch(error => { if (error.code === "ENOENT") return undefined; throw error })
+  if (!prior) await runOfflineMatrix()
+  await verifyMovedPackage(); await verifySourceChange(); await verifyShareLink()
+  console.log(JSON.stringify({ providerCalls: 0, matrix: prior ? "retained-existing-observations" : "new-zero-model-checks", practical: "completed-or-resumed-owned-stages" }))
+}
+async function verify() {
+  const [ledger, matrix, moved, source, sharelink, isolation] = await Promise.all([load(ledgerFile), load(path.join(base, "evaluation/variation-matrix.json")), load(path.join(base, "verification/move-result.json")), load(path.join(base, "verification/source-change-result.json")), load(path.join(base, "verification/sharelink-result.json")), load(path.join(base, "verification/R0-request-isolation.json"))])
+  const require = (condition: unknown, message: string) => { if (!condition) throw new Error(message) }
+  const unresolved = ledger.filter((entry: any) => ["running", "unknown", "timeout-unknown", "completion-unknown"].includes(entry.status))
+  require(unresolved.every((entry: any) => entry.lifecycleInspection?.noAutomaticResend === true), "An unresolved original lifecycle lacks its no-resend record")
+  require(matrix.providerCalls === 0 && matrix.automaticMainChainEvidence === false && matrix.historicalRawUnchanged, "Offline provenance changed")
+  require(matrix.variants === 14 && matrix.results.length === 28 && matrix.results.every((row: any) => row.providerCalls === 0), "Variation observations are incomplete")
+  for (const track of matrix.tracks) require(matrix.results.filter((row: any) => row.track === track.name).length === 14, "An offline track is incomplete")
+  const originalInput = await load(path.join(base, "inputs/root-default.json"))
+  for (const row of matrix.results) {
+    const input = await load(path.resolve(repo, row.input))
+    require(JSON.stringify(input.inquiry) === JSON.stringify(originalInput.inquiry), "A variation changed an original question or policy")
+  }
+  require(moved.providerCalls === 0 && moved.inspectResolvedCopiedPath && moved.sourceBytesPreserved && moved.results.every((row: any) => row.freshPreviousEqual && row.answerReused === false), "Moved package evidence is incomplete")
+  require(source.providerCalls === 0 && source.sourceChanged && source.resourceExecution?.returned === undefined && source.mutation.originalUnchanged, "Decisive source change retained an old return")
+  const originalSource = path.resolve(base, "inputs", originalInput.sourceRoot, source.mutation.path)
+  require(hash(await readFile(originalSource)) === source.mutation.beforeSha256, "Protected original source bytes changed")
+  require(sharelink.providerCalls === 0 && sharelink.actualTargetWrites === 0 && sharelink.originalProgramUnchanged && sharelink.originalPolicyPreserved && sharelink.deniedExecution?.returned === undefined, "ShareLink offline boundaries changed")
+  require(sharelink.deniedExecution?.termination === "serializer-object-permission-denied" && sharelink.remainingDuties.includes("share-create"), "ShareLink lost current denial or the original duty")
+  require(isolation.allFourQuestionIdsPresent && isolation.evaluationOriginAbsent && isolation.evaluationInterpretationAbsent && isolation.sourceAllowlist && isolation.toolExecutions === 0, "R0 original request isolation record changed")
+  const result = { providerCalls: 0, evidenceContractPassed: true, checks: ["original unresolved lifecycle preserved", "28 development observations retain four questions and policy", "moved current recomputation", "source mutation withdraws old return and preserves original", "ShareLink offline denial and duties"], actualAuthorConfirmation: "not-confirmed", researchGoalAchieved: false }
+  await save(path.join(base, "verification/evidence-check.json"), result); console.log(JSON.stringify(result))
+}
 const [command, position, attempt] = process.argv.slice(2)
 if (command === "prepare") await prepare()
 else if (command === "run") await run(position!, attempt)
 else if (command === "freeze") await freeze(position!, attempt)
 else if (command === "status") console.log(JSON.stringify(await load(ledgerFile), null, 2))
-else throw new Error("Use prepare | run <BJ purpose> [registered named attempt] | freeze F0/R0 [attempt] | status")
+else if (command === "offline") await offline()
+else if (command === "summarize") { const result = await writeStudySummary(); console.log(JSON.stringify({ status: result.status, externalDispatch: result.externalDispatch, automaticMainChainComplete: result.automaticMainChainComplete, tracks: result.offline.tracks, accounting: result.accounting })) }
+else if (command === "verify") await verify()
+else throw new Error("Use prepare | run <BJ purpose> [registered named attempt] | freeze F0/R0 [attempt] | status | offline | summarize | verify")

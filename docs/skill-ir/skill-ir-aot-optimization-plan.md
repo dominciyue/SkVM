@@ -2,25 +2,25 @@
 
 更新于2026-10-13。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BJ0–BJ25](../superpowers/plans/2026-10-13-authorization-authoring-loop-and-program-completion.md)正在实施；BJ0–BJ6共享接线已离线验证，下一动作为R0真实作者确认。完整工程、自动主链和比较收益仍待后续证据。
+- 当前任务书：[BJ0–BJ25](../superpowers/plans/2026-10-13-authorization-authoring-loop-and-program-completion.md)的适用离线责任已处理，正在完成文档与发布；工程验证通过，自动主链与比较收益未达。R0原生命周期completion-unknown，无模型工具或答案，后续外部派发暂停、不重发。实际分轴见[BJ summary](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-loop-v1/summary.json)。
 - 方法合同：[spec§14.49](skill-ir-aot-optimization-spec.md#1449-bj-authoring-loop-and-program-completion)；复核和后续开发过程统一在[研究§7.71](skill-dsl-research.md#771-bj-输入接线与自动编写运行闭环)。BI实际结果保留在§7.70。
 - identity：`authorization-authoring-loop-v1`，实施基线`ace945fa`，接管规划HEAD`3f1b7991`。继续`skill-ir-aot`，只推用户origin，不建分支/worktree；开发线程独占代码、共享方法文档与Git写入。
 - 开发`gpt-6.1-sol/max`，按用户指定；实验沿已授权官方账号`gpt-5.6-sol/high`。第三方暂停，OWUI/历史未知ShareLink仅离线，旧未知和保护证据保持。
 
-约12小时有效开发量：输入/普通入口约2小时、实际反馈和修稿约2.5小时、自动主链约2.5小时、同稿变化/恢复约2.5小时、比较/计量约1.5小时、必要交付约1小时。尽早在2–3小时内让真实作者使用共享修复；不等全部离线工作结束才运行。10小时左右复查剩余优先级，12小时附近完成当前有界动作并交接；不等待、重复审计或盲目抽样凑时长。
+约12小时为有效任务量而非必须耗时。R0已在首段约46分钟派发；平台中断的未工作墙钟不计开发量。未知完成后继续处理全部可独立的变化、失效、恢复和第二结构责任，未以等待或重复调用凑时长。后续只核查原thread/turn新增的可信终态；没有这项证据时，R/F/C/B/S实际确认保持未达。
 
 ## 当前开发责任
 
 | 责任 | 实际缺口 | BJ动作 |
 |---|---|---|
-| 空草稿详情 | 无candidate与无currentRevision相等后访问undefined | 公共路径失败测试和局部修复 |
-| 自动输入绑定 | A2/C1/C2按语义题目查不到事实 | 显式同operation数据绑定；resourceInputs/externalAssumptions共核，contractInputs保留语义scope |
-| 作者运行闭环 | 首次提交太晚，最后薄反馈无实际确认 | 早期草稿、实际数据、执行/阻断反馈、当场修复并真实确认 |
-| 版本、权限与root关系 | 有输入仍缺空version、拒绝与失查回退 | 模型从允许源码补规则，外部grant/构造与源码分支分开 |
-| 编写与复用 | 恢复成功和从零成功易被混用 | R/F/C/S各自留账，固定自动原稿检验变化；第二结构离线验证 |
-| 质量与成本 | BI P0取舍、P1负向 | full默认；同期原skill基线与自动稿消费反序配对，完整四问、作者成本和unknown费用分别报告 |
+| 空草稿详情 | 五种无稿/错版状态已修 | 双入口mock、当前归档与旧v1兼容通过 |
+| 自动输入绑定 | 同operation跨题已接入，前提未合并 | 省略/替换/null/恢复及匿名双operation公共反例通过；实际作者采用未确认 |
+| 作者运行闭环 | 数据、根因、首稿/patch与早期checkpoint已共享 | R0在工具执行前unknown；离线修stale candidate、patch-only计量和重复受影响ID，不冒称实测采用 |
+| 版本、权限与root关系 | 14场景中BI原稿0值匹配，binding-only为6；两轨有限完整匹配均0 | 源码可见helper被整体external化、empty/explicit/version排序及root回退仍由真实作者补写 |
+| 编写与复用 | 同稿fresh/previous、真实副本变化与搬移、ShareLink离线通过 | 旧raw来源重绑定漏洞已修；缺BJ自动稿/消费者，S0及实际复用收益not-run |
+| 质量与成本 | BJ无交付，四问not-delivered；provider/usage/USDunknown | full默认，预定反序比较不运行；一次R0已派发与零模型工程分账 |
 
-普通入口继续使用[Download说明](../../examples/authorization-assessment/download-workflow/README.md)。发现共享缺陷先修再确认，不继续派发受其影响的位置；修复前后版本及失败均保留。九个主用途之外可以运行有明确代码依据的具名确认，不以首位置已跑完替代工程责任完成。自动作者隔离评价器、参考程序和历史答案；恢复作者只能读自己的旧稿。
+普通入口继续使用[Download说明](../../examples/authorization-assessment/download-workflow/README.md)中的BI自动原稿显式命令；不回落到开发者程序冒称BJ成功。当前授权联合1950pass/1平台skip/12975断言、主/BJ类型通过；四问、政策、源码副本原件和历史未知保持。共享修复影响及具名未确认项见任务书实际处置表；原生命周期可信终态出现后才能决定相应真实恢复。
 
 ## 继承的真实结果
 

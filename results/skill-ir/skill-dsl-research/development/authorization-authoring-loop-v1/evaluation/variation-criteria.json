@@ -1,0 +1,226 @@
+{
+  "origin": "Source-derived evaluation only; not model facts",
+  "criteria": [
+    {
+      "variant": "root-default",
+      "inputSha256": "43f7e3407ee775c43fc4ea4a53cfa209cc794e87244d9d552f369d15380da9ee",
+      "expected": {
+        "requestedDocument": 10,
+        "authorizedResource": 10,
+        "kind": "computed",
+        "conditions": [],
+        "returned": {
+          "requested_document": 10,
+          "authorized_resource": 10,
+          "file_document": 11,
+          "archive_selected": true,
+          "selected_file": "v1-archive.pdf"
+        }
+      }
+    },
+    {
+      "variant": "empty-version",
+      "inputSha256": "a31b0e6891ff15bb49aa251db164f4a2e75b9685b0d076a2b3d4eaa77790e06f",
+      "expected": {
+        "requestedDocument": 10,
+        "authorizedResource": 10,
+        "kind": "computed",
+        "conditions": [],
+        "returned": {
+          "requested_document": 10,
+          "authorized_resource": 10,
+          "file_document": 12,
+          "archive_selected": false,
+          "selected_file": "v2-original.txt"
+        }
+      }
+    },
+    {
+      "variant": "explicit-version",
+      "inputSha256": "8ce381043e5d0fce3dfc768a1ac03c8bda55771c376f14b72277309776408b5a",
+      "expected": {
+        "requestedDocument": 10,
+        "authorizedResource": 10,
+        "kind": "computed",
+        "conditions": [],
+        "returned": {
+          "requested_document": 10,
+          "authorized_resource": 10,
+          "file_document": 11,
+          "archive_selected": true,
+          "selected_file": "v1-archive.pdf"
+        }
+      }
+    },
+    {
+      "variant": "explicit-deleted-version",
+      "inputSha256": "3f76add93f6d4f77e1958292e25c996d44c21da8c70e9f52470d02d9435e0b6a",
+      "expected": {
+        "requestedDocument": 10,
+        "authorizedResource": 10,
+        "kind": "computed",
+        "conditions": [],
+        "returned": {
+          "requested_document": 10,
+          "authorized_resource": 10,
+          "file_document": 12,
+          "archive_selected": false,
+          "selected_file": "v2-original.txt"
+        }
+      }
+    },
+    {
+      "variant": "invalid-version",
+      "inputSha256": "d80816c04d7ac249ce58285038fea67a69647434468bea8bedd9c41a2d0a30d8",
+      "expected": {
+        "requestedDocument": 10,
+        "authorizedResource": 10,
+        "kind": "rejected",
+        "rejection": "invalid-version",
+        "conditions": []
+      }
+    },
+    {
+      "variant": "other-root-version",
+      "inputSha256": "26a168d84c4655050c27d113389f21c9dadb36d664c8ba9a2ca419db3b2def19",
+      "expected": {
+        "requestedDocument": 10,
+        "authorizedResource": 10,
+        "kind": "rejected",
+        "rejection": "unrelated-version",
+        "conditions": []
+      }
+    },
+    {
+      "variant": "ordering",
+      "inputSha256": "5ff3d2b3c65b907131fceff7b176abb30b48c8473b7ee1ef640e1e9b4787a95a",
+      "expected": {
+        "requestedDocument": 10,
+        "authorizedResource": 10,
+        "kind": "computed",
+        "conditions": [],
+        "returned": {
+          "requested_document": 10,
+          "authorized_resource": 10,
+          "file_document": 12,
+          "archive_selected": false,
+          "selected_file": "v2-original.txt"
+        }
+      }
+    },
+    {
+      "variant": "ordering-tie",
+      "inputSha256": "55d2e136f4079d0fdfc7ca1d5443ffd4a02c60a383eb9a76410afe6e650747d6",
+      "expected": {
+        "requestedDocument": 10,
+        "authorizedResource": 10,
+        "kind": "computed",
+        "conditions": [],
+        "returned": {
+          "requested_document": 10,
+          "authorized_resource": 10,
+          "file_document": 21,
+          "archive_selected": false,
+          "selected_file": "additional-version.txt"
+        }
+      }
+    },
+    {
+      "variant": "denied",
+      "inputSha256": "434115f2654626c58529074547183d7d3b71233f4bb9a7922c02046ba4291672",
+      "expected": {
+        "requestedDocument": 10,
+        "authorizedResource": 10,
+        "kind": "denied",
+        "conditions": []
+      }
+    },
+    {
+      "variant": "granted",
+      "inputSha256": "d4751f1458b1a1646bebba3959dcb26e86dd29a8eeeac62170bb9f70f53c2644",
+      "expected": {
+        "requestedDocument": 10,
+        "authorizedResource": 10,
+        "kind": "computed",
+        "conditions": [],
+        "returned": {
+          "requested_document": 10,
+          "authorized_resource": 10,
+          "file_document": 11,
+          "archive_selected": true,
+          "selected_file": "v1-archive.pdf"
+        }
+      }
+    },
+    {
+      "variant": "root-fallback",
+      "inputSha256": "df666f8d4271a6df34115c3e16808d51efca4052bef8724c8c284cc51cedcf1c",
+      "expected": {
+        "requestedDocument": 11,
+        "authorizedResource": 11,
+        "kind": "computed",
+        "conditions": [],
+        "returned": {
+          "requested_document": 11,
+          "authorized_resource": 11,
+          "file_document": 11,
+          "archive_selected": true,
+          "selected_file": "v1-archive.pdf"
+        }
+      }
+    },
+    {
+      "variant": "no-external",
+      "inputSha256": "fe97c3b92dabfda502cac9e6dba6975e96bde1acd0cd6435c3a71fa5da7d395e",
+      "expected": {
+        "requestedDocument": 10,
+        "authorizedResource": 10,
+        "kind": "conditional",
+        "conditions": [
+          "ObjectPermissionChecker.construct completion is unspecified"
+        ],
+        "returned": {
+          "requested_document": 10,
+          "authorized_resource": 10,
+          "file_document": 11,
+          "archive_selected": true,
+          "selected_file": "v1-archive.pdf"
+        }
+      }
+    },
+    {
+      "variant": "reordered",
+      "inputSha256": "ed696823534c9daa7b1d6e43d248f91fcf6cec50d346ca98d8c78b529ccb5a1f",
+      "expected": {
+        "requestedDocument": 10,
+        "authorizedResource": 10,
+        "kind": "computed",
+        "conditions": [],
+        "returned": {
+          "requested_document": 10,
+          "authorized_resource": 10,
+          "file_document": 11,
+          "archive_selected": true,
+          "selected_file": "v1-archive.pdf"
+        }
+      }
+    },
+    {
+      "variant": "unrelated-document",
+      "inputSha256": "cd18c5f426fe3ea24da56ccd97cfca5bdfa66eea5c2015e428821bc71d873096",
+      "expected": {
+        "requestedDocument": 10,
+        "authorizedResource": 10,
+        "kind": "computed",
+        "conditions": [],
+        "returned": {
+          "requested_document": 10,
+          "authorized_resource": 10,
+          "file_document": 11,
+          "archive_selected": true,
+          "selected_file": "v1-archive.pdf"
+        }
+      }
+    }
+  ]
+}

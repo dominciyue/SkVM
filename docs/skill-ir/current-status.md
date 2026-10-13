@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-**BJ正在实施；BJ0–BJ7共享接线与评价准备完成，R0原生命周期为completion-unknown。** [任务书](../superpowers/plans/2026-10-13-authorization-authoring-loop-and-program-completion.md)按约12小时有效开发量安排，由`gpt-6.1-sol/max`线程独占代码、共享状态和Git写入，identity为`authorization-authoring-loop-v1`。同operation输入绑定、空稿详情、实际值/根因、首稿与patch计量及一次早期试写已接通；full默认。R0 child退出4，原临时线程无完成事件/模型工具/答案，后续外部派发暂停、不重发。离线补修stale candidate投影、patch-only计量及脱敏stderr退出诊断；当前106相关测试/791断言及主/BJ类型通过，先前495相关回归/2783断言通过。下一步完成变化、源码失效/搬移/恢复和第二结构离线工程；实际作者采用、fresh自动主链与收益未达。方法见[spec§14.49](skill-ir-aot-optimization-spec.md#1449-bj-authoring-loop-and-program-completion)及[研究§7.71](skill-dsl-research.md#771-bj-输入接线与自动编写运行闭环)，实际状态见[BJ status](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-loop-v1/status.json)。
+**BJ适用离线工程已处理，正在发布；实际自动主链与收益未达，R0原生命周期仍为completion-unknown。** [任务书](../superpowers/plans/2026-10-13-authorization-authoring-loop-and-program-completion.md)由`gpt-6.1-sol/max`线程实施，identity为`authorization-authoring-loop-v1`。同operation绑定、空稿详情、实际值/根因、首稿/patch计量、一次早期试写及源码变化的旧稿来源检查已接通；full默认。R0 child退出4，没有provider完成事件、模型工具或答案，后续外部派发暂停、不重发。14变体×2离线轨道保留原四问：BI原稿值匹配0/14，developer-assisted binding-only为6/14，两轨完整有限行为匹配均0/14。真实副本变化撤回旧返回、搬移后三场景fresh/previous一致，ShareLink绑定/撤销/恢复/拒绝和匿名双operation通过，均零provider。最新授权联合1950pass/1平台skip/12975断言及主/BJ类型通过。方法见[spec§14.49](skill-ir-aot-optimization-spec.md#1449-bj-authoring-loop-and-program-completion)、[研究§7.71](skill-dsl-research.md#771-bj-输入接线与自动编写运行闭环)；分轴、费用unknown和具名后续见[BJ summary](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-loop-v1/summary.json)与[status](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-loop-v1/status.json)。
 
 实施基线为BI最终提交`ace945fa`。发布后复核的68项定向测试、502断言通过，普通自动稿仍为conditional且无文件返回；仅诊断性补入输入后仍暴露空version、拒绝及root回退缺口，未计为自动成功。空草稿details还可触发TypeError。BJ要求共享修复得到实际作者确认，恢复修稿、独立新编写、固定原稿消费与对照分别留账。
 
@@ -110,7 +110,7 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 
 | 阶段 | 保留记录 |
 |---|---|
-| 当前BJ | [任务书](../superpowers/plans/2026-10-13-authorization-authoring-loop-and-program-completion.md)、spec§14.49、研究§7.71；BJ0–BJ6离线完成，准备R0真实确认，工程/自动主链/收益分轴留账 |
+| 当前BJ | [任务书](../superpowers/plans/2026-10-13-authorization-authoring-loop-and-program-completion.md)、spec§14.49、研究§7.71；离线工程已验证，R0原生命周期unknown且不重发，自动主链/四问交付/收益未达 |
 | BI | [任务书](../superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md)、spec§14.48、研究§7.70；已发布，工程与有限队列完成，自动主链及稳定收益未达 |
 | BH | [任务书](../superpowers/plans/2026-10-12-authorization-incremental-authoring-and-efficient-consumption.md)、spec§14.47、研究§7.69；有限队列完成、自动主链与稳定收益未达；实际程序、首失败、修复和分轴结论已归档 |
 | BG | [任务书](../superpowers/plans/2026-10-12-authorization-end-to-end-practical-execution.md)、[summary](../../results/skill-ir/skill-dsl-research/development/authorization-practical-execution-v1/summary.json)、spec§14.46、研究§7.68；主链运行/变化成立，自动编写和净收益未达 |

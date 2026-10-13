@@ -4,7 +4,7 @@
 
 ## 1. 当前结论
 
-**BJ已授权，当前处于计划交接，尚无新实现或效果证据。** [BJ0–BJ25](../superpowers/plans/2026-10-13-authorization-authoring-loop-and-program-completion.md)承接BI发布后发现的实际输入断接和自动关系缺口：先修共享接口，再让作者尽早提交、运行并按反馈修稿，最后固定自动原字节做变化消费和同期原skill比较。约12小时开发量优先用于自动主链与共享实现，默认full；具体诊断、设计及分轨规则见[§7.71](#771-bj-输入接线与自动编写运行闭环)。
+**BJ适用离线工程已验证，实际自动主链和收益未达，正在发布。** [BJ0–BJ25](../superpowers/plans/2026-10-13-authorization-authoring-loop-and-program-completion.md)接通同operation输入、早期试稿/实际根因、版本恢复和旧稿来源检查。R0首段已派发，但child退出4且没有provider终态、工具或答案；原生命周期保持completion-unknown，不重发或另开身份。14变体中BI原稿值匹配0/14，developer-assisted binding-only为6/14，完整有限行为两轨均0/14。源码副本变化撤回旧返回，搬移及ShareLink共享接口离线通过；1950授权测试/1平台skip/12975断言及主/BJ类型通过。四问无新交付，真实fresh/固定稿消费/比较均not-run，费用和用量unknown。分轴结论见[BJ summary](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-loop-v1/summary.json)与[§7.71](#771-bj-输入接线与自动编写运行闭环)；full默认。
 
 **BI以`completed-with-unmet-criteria`发布，工程和八个有限真实位置完成，自动主链未达。** [BI0–BI23](../superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md)已接通持续作者目标、原子stepOrder、revision详情、原稿/候选/活动归档及完整任务消费。A2恢复修稿采用12步，冻结原稿在C1/C2仍因question/input绑定和版本、权限、root回退缺口无文件返回；自然答案不能替代计算。原四问整题5/8 full是不同轨道的描述计数：A1 partial、A2恢复full，自动原稿C1 partial/C2 full，开发者材料P0两臂full/P1 compact partial/full full。
 
@@ -2696,6 +2696,14 @@ ShareLink第二离线开发程序使用同一select/guard/return核，六场景�
 
 **BJ7/R0与中断恢复。** 源码判据与过程记录已单独建立，首个实际发送包核验四问存在、评价与旧自然答不在上下文、工具scope仅允许源码。R0-first于2026-10-12T21:58:48Z派发，恢复来源限定BI A2；子进程退出4，原生命周期只有turn/started及用户消息，没有完成事件、模型工具或答案。会话为ephemeral，后续普通线程读取未找到保存线程，原状态保持completion-unknown，后续外部队列暂停而不重发。使用量、隐藏provider请求和美元均unknown；不把脚本原先的请求数零默认计为零成本。平台中断后的未工作墙钟时间不计约12小时有效开发。独立离线核验后补充字段缺失、多候选及缺external根因测试，并先红后绿修正patch冒充program首调用与过期candidate诊断投影；官方子进程今后的退出将保留脱敏限长stderr，但旧请求不补造终态。
 
+**变化判据与保留的失败。** 评价侧从views1368–1448、permissions624–635、versioning23–28/140–195及文件返回来源推导有限oracle：先构造检查器再owner/unowned/grant，版本是否缺省独立决定include_deleted，SQL按version_index降序/nulls last再ID排序，root失查回退请求对象。仅覆盖有依据的有限数字版本形状，超范围形式保留unknown。新development输入保持四问/政策，不读取held-out或Q1 reserve，expected不进入模型事实。28次普通check保持BI原raw和仅新增binding的developer-assisted两轨：原稿无返回值匹配，后者六项匹配但不能正确拆出源码可见helper与真正external边界、empty/explicit/排序/root回退。泛泛unknown不能替代缺检查器构造的具名原因，因此两轨完整有限行为均0/14；初次派生判定对此修正，原执行不重跑、不擦除。
+
+**来源变化的共享漏洞与修复。** 匿名红测及真实源码副本检验发现，普通compare和显式同稿previous消费会把无SHA的旧raw重新绑定当前源码，再返回旧值。现从已验证旧报告取得与raw匹配的canonical及文件SHA，沿既有compiler撤回stale owner/result；旧raw字节和节点含义不变。后续活动稿不能冒充原导入文件的来源basis，缺匹配覆盖具名撤回并在账号派发前停止。edit/previous不导入旧文件仍能恢复自己的raw、保留独立材料，旧计算不恢复。真实副本将versioning.py166的`return latest or root_doc`改为`return root_doc`，相关返回撤回，原受保护源码SHA不变；S0缺实际自动消费者而not-run。两个只读独立核验及新鲜联合测试没有发现物料缺陷。
+
+发布前主线程进一步核对partial渐进路径：caller/guard在未变app.py可保持checked，而只改变独立helper.py的资源来源，precheck仍valid；随后旧raw会被实际account runtime再次导入。新增mock红测复现completed，修为在已有stale诊断下派发前invalid，保留独立性质、撤回旧返回、原raw不变。顶层诊断也复用compiler具名原因；无真实模型调用或新probe。这项补修后才完成最终验证/发布，前述核验范围与原结果不回写。
+
+**搬移、第二结构与收束。** binding-only零模型会话/源码/程序复制到新普通目录，inspect解析新路径，三场景fresh/previous当前执行一致且旧答案不复用。ShareLink用现有开发者例验证跨题绑定、空稿、提交、撤销/重绑、拒绝编辑原子性、保存与缺grant恢复；当前拒绝不继承允许值，原policy/职责保留、零账号/目标写入。该回合暴露反馈合并多输入根因时重复step ID，红绿修为唯一集合，原回合记录保留旧epoch。thin study支持status/offline/run/summarize/verify，已存在观察不重复跑；源码评价、真实原生命周期和developer-assisted结果分存。当前1950pass/1平台skip/12975断言、10研究测试/90断言、主/BJ类型及证据契约通过。R0一次inference dispatched，实际usage/providerRequests/USD/隐藏请求未知、观测工具0、观测account耗时33,209ms，服务器最终耗时未知；开发/探子token和真人分钟不推测。剩余真实确认均具名未达，不以离线匹配或约12小时安排冒称主链、原任务质量或净收益成立。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
@@ -2759,12 +2767,12 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 | ID | 问题 | 当前依据 | 接下来的判断 |
 |---|---|---|---|
 | Q1 | 哪个任务范围共享领域语义？ | 固定来源的授权职责支持 principal/resource/operation/control/evidence；混合职责单列，见 §4–§7.10 | 保持单 repo/ref、源码可见的授权切片 |
-| Q2 | 声明如何带来实际行为？ | BI作者目标/stepOrder已修；A2恢复采用12步但scope与输入题不一致、主链含义缺失 | BJ增加显式数据绑定与早期执行反馈，模型从源码补分支；修复需实际作者确认，不手工修冻结稿 |
+| Q2 | 声明如何带来实际行为？ | BJ同operation绑定/早期实际反馈已接通；binding-only六项值匹配、完整有限匹配0/14 | R0终态未知，实际采用未确认；真实作者仍须补源内分支，不手工修冻结稿 |
 | Q3 | 为什么仍漏决定性源码或分支？ | BI已保留原问题、规则及源码线索；C1漏全局GET，P1 compact漏外部checker完成事实 | 区分必要范围、预算拒绝及重复读取，保留具体漏项；不预定单因果或删职责 |
-| Q4 | 领域方法相对好说明的增量是什么？ | BI两组同epochP为tradeoff/negative，首对质量保持、反序对第四问下降 | 稳定净收益未建立；默认full、compact显式，新的效果范围须另行定义 |
-| Q5 | 作者和变化复用是否可用？ | A2同原稿C1/C2实际消费及会话搬移成立，但空输入使两次机器均无文件返回 | BJ分别检验恢复稿、独立编写、固定自动稿消费和源码变化；前一轨道成功不替代后一轨道 |
+| Q4 | 领域方法相对好说明的增量是什么？ | BI两组同epochP为tradeoff/negative；BJ无实际自动消费者或基线配对 | 稳定净收益未建立；full默认，作者/修订成本保留，离线候选不计效果 |
+| Q5 | 作者和变化复用是否可用？ | BJ搬移/当前输入重算、源码副本失效、ShareLink恢复离线通过；旧raw重绑来源漏洞已修 | 实际F/C/S均not-run，R0原生命周期未知，不重发；独立材料与raw可恢复不替代真实复用收益 |
 | Q6 | 本地化路线如何处理？ | 保留 §8–§9 设计及结构回填反例 | 暂缓；重新选择该类时再处理，不混入授权验收 |
-| Q7 | 如何评价和计量？ | BI八真实交付，input15,938,854含cache14,767,744/output86,379，386工具；实际payload逐条对账 | 自动作者/恢复/自动消费/给定消费分母分开；USD/provider隐藏/开发探子/真人未知，不计算无依据的净收益 |
+| Q7 | 如何评价和计量？ | BJ一次R0已派发、0模型工具/无答案，usage/provider/USDunknown；28离线诊断两轨分开 | 四问not-delivered，首稿/修后/developer-assisted不混计；cache含在input，服务器最终耗时与开发/真人费用unknown |
 
 决策沿革：
 
@@ -2828,6 +2836,8 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 - **2026-10-13 / BI实施与有限收束：** mode优先作者进度、原子排序、三版本归档和当前详情落地；真实A2恢复采用12步但原/变自动消费无文件计算。八件全交付，自然整题5/8 full、自动与给定材料分母分开；同期P0 tradeoff/P1 negative，稳定净收益未达。1942相关测试/1平台skip、类型、15文档测试和当前链接锚点通过；15零模型观察、实际搬移及发送原件对账成立。有限队列结束，研究false，默认full/compact显式；剩余作者绑定及源内版本/权限/回退含义不由主线程回填、不追第三稿，见§7.70。
 
 - **2026-10-13 / BJ规划：** BI原稿公开运行与诊断性输入干预将空输入、语义缺口和空草稿details故障分开。用户授权约12小时的新线程，增加薄输入绑定、早期执行修稿、具名采用确认和固定自动稿消费，保留完整四问及全部旧失败；规划阶段没有新模型调用，见§7.71。
+
+- **2026-10-13 / BJ实施与适用工程收束：** 薄绑定/实际反馈/版本恢复接通，旧raw来源重绑及root反馈重复ID红绿修复，变化/迁移/第二结构零模型通过。R0-child-exit4无终态/工具/答案，原unknown不重发，后续真实用途具名not-run；两离线轨完整有限匹配0/14，自动主链、四问交付与收益未达。共享工程和研究结论分轴，原件、保护证据和full默认保持，见§7.71。
 
 ## 12. 后续追加规则
 
