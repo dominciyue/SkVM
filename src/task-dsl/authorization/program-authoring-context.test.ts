@@ -25,6 +25,7 @@ test("author continuations require a known terminal, budget, actionable work and
   expect(decide({ ...base, terminal: "unknown" }).continue).toBe(false)
   expect(decide({ ...base, mode: "consume" }).continue).toBe(false)
   expect(decide({ ...base, continuations: 2 }).continue).toBe(false)
+  expect(decide({ ...base, maxContinuations: 0 }).continue).toBe(false)
   expect(decide({ ...base, remainingMs: 0 }).continue).toBe(false)
   expect(decide({ ...base, previousProgress: next.progress, continuations: 1 }).reason).toBe("no-new-author-progress")
   expect(decide({ ...base, context: { ...context, authoring: { ...context.authoring, feedbackGroups: { inputStructure: [], execution: [], proof: [], external: [{ code: "external-assumption" }] } } } }).continue).toBe(false)

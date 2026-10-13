@@ -312,6 +312,9 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
           if (valid) tools.push(call)
           else toolRejections.push({ call, diagnostics })
           execution = Promise.resolve().then(async () => {
+            // Persist this call's identity before a tool can write its checkpoint.
+            await eventWrites
+            if (eventWriteFailure) throw new Error("account-tool-identity-write-failed")
             if (!active) return { success: false, contentItems: [{ type: "inputText", text: "session-closed" }] }
             // Known, malformed data is a local repair opportunity, never a host
             // execution. Unknown tools, identity conflicts and native activity

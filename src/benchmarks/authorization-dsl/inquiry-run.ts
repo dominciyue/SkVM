@@ -30,6 +30,7 @@ export interface RunAuthorizationInquiryOptions extends InquiryToolsOptions {
   provider: LLMProvider; method: InquiryMethod; inquiry?: unknown; brief?: string;
   mode?: "behavior" | "conformance"; policy?: AuthorizationInquiry["policy"];
   perCallTimeoutMs?: number; sessionTimeoutMs?: number; maxDispatches?: number; maxTokens?: number;
+  maxAuthorContinuations?: 0 | 1 | 2
   strategy?: InquiryStrategy; domainAblation?: DomainAblation;
   skillContent?: string; domainProgram?: unknown;
   sourceNotes?: { format: "markdown"; text: string };
@@ -291,7 +292,7 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
         if (initial === undefined) { initial = structuredClone(answer); initialValidation = structuredClone(validation) }
         if (options.programMode === "edit" && isQuestionCheckedStrategy(strategy)) {
           authorAnswers.push({ answer: structuredClone(answer), validation: structuredClone(validation), sequence: telemetry.attempts.length })
-          const decision = decideProgramAuthorContinuation({ mode: options.programMode, terminal: "completed", continuations: authorContinuations, remainingMs: (options.sessionTimeoutMs ?? 1200000) - (Date.now() - startedAt), previousProgress: previousAuthorProgress, context: { ...projectProgramTaskContext({ report: domain?.executableContractReport(), draftReport: domain?.programDraftReport(), questions: program.questions, operationQuestions: program.operationQuestions, programMode: options.programMode, programContext: options.programContext, local: localContext, evidence: tools.evidence, remainingActions: remainingExploration(), resourceInputs: options.resourceInputs, externalAssumptions: options.externalAssumptions }), toolBudget: { ...submissionBudget(), explorationRemaining: remainingExploration(), formatBudgetExhausted: sourceFormatRejections >= 3 } } })
+          const decision = decideProgramAuthorContinuation({ maxContinuations: options.maxAuthorContinuations, mode: options.programMode, terminal: "completed", continuations: authorContinuations, remainingMs: (options.sessionTimeoutMs ?? 1200000) - (Date.now() - startedAt), previousProgress: previousAuthorProgress, context: { ...projectProgramTaskContext({ report: domain?.executableContractReport(), draftReport: domain?.programDraftReport(), questions: program.questions, operationQuestions: program.operationQuestions, programMode: options.programMode, programContext: options.programContext, local: localContext, evidence: tools.evidence, remainingActions: remainingExploration(), resourceInputs: options.resourceInputs, externalAssumptions: options.externalAssumptions }), toolBudget: { ...submissionBudget(), explorationRemaining: remainingExploration(), formatBudgetExhausted: sourceFormatRejections >= 3 } } })
           authorDecisions.push(decision)
           if (decision.continue && telemetry.attempts.length + deliveryDispatchThreshold < (options.maxDispatches ?? 12)) {
             authorContinuations++; previousAuthorProgress = decision.progress

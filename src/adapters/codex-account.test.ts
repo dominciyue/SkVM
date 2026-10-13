@@ -40,6 +40,25 @@ function fullChain(explanation = "Test-authored shown False return", malformed =
   return () => transport
 }
 test("account adapter registry owns no LLM provider", () => { expect(createAdapter("codex-account" as any, () => { throw new Error("provider-must-not-be-used") }).name).toBe("codex-account") })
+test("top account adapter preserves explicit consume controls at the actual tool boundary", async () => {
+  const f = await fixture(); let receive = (_m: any) => {}, names: string[] = []
+  const transport: any = { isolation: { kind: "test-transport", reason: "Consume boundary" }, onMessage(fn: any) { receive = fn }, onExit() {}, close() {}, send(m: any) {
+    if (m.method === "initialize") receive({ id: m.id, result: {} })
+    if (m.method === "thread/start") { names = m.params.dynamicTools.map((t: any) => t.name); receive({ id: m.id, result: { thread: { id: "t" }, model: "gpt-5.6-sol" } }) }
+    if (m.method === "turn/start") { receive({ id: m.id, result: { turn: { id: "turn" } } }); receive({ method: "turn/completed", params: { threadId: "t", turn: { id: "turn", status: "completed", items: [{ type: "agentMessage", text: "Source remains partially understood." }] } } }) }
+  } }
+  const adapter = new api.CodexAccountAdapter(() => transport)
+  await adapter.setup({ model: "gpt-5.6-sol", providerOptions: { authorizationScope: f.inputFile, authorizationDomainTools: true, authorizationStrategy: "question-checked-v1", authorizationProgramMode: "consume", authorizationExecutionPolicy: "progressive", authorizationProgramContext: "full" } })
+  const result = await adapter.run({ prompt: "Inspect entry", workDir: f.root })
+  expect(result.runStatus).toBe("ok")
+  expect(names).toContain("source_read")
+  expect(names).not.toContain("authorization_program")
+  expect(names).not.toContain("authorization_program_patch")
+})
+test("top account adapter rejects misspelled program controls before dispatch", async () => {
+  const f = await fixture()
+  for (const key of ["authorizationProgramMode", "authorizationExecutionPolicy", "authorizationProgramContext"]) await expect(new api.CodexAccountAdapter().setup({ model: "gpt-5.6-sol", providerOptions: { authorizationScope: f.inputFile, [key]: "misspelled" } })).rejects.toThrow(key)
+})
 for (const strategy of ["operation-evidence-v3", "operation-evidence-v4", "operation-evidence-v5", "operation-evidence-v6"] as const) test(`${strategy} account adapter and inquiry use the same source core through accepted material, check and natural final`, async () => {
   const f = await fixture(), adapter = new api.CodexAccountAdapter(fullChain())
   await adapter.setup({ model: "gpt-5.6-sol", maxSteps: 12, timeoutMs: 5000, providerOptions: { authorizationScope: f.inputFile, authorizationDomainTools: true, authorizationMethod: "M", authorizationStrategy: strategy } })

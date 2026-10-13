@@ -15,6 +15,7 @@ export { readCodexAccountThread } from "./codex-account-session.ts"
 export interface AccountInquiryOptions {
   purpose?: string; attempt?: string
   authorResumeAfter?: import("./codex-account-session.ts").AccountSessionResult
+  maxAuthorContinuations?: 0 | 1 | 2
   programContext?: import("../task-dsl/authorization/program-consumption-context.ts").ProgramContext; executionPolicy?: import("../task-dsl/authorization/executable-contract.ts").ExecutionPolicy; programMode?: import("../task-dsl/authorization/executable-contract.ts").ProgramMode
   inputFile: string; workDir: string; model: string; method?: "M" | "D0" | "D1"; strategy?: InquiryStrategy; skillContent?: string
   domainTools?: boolean; maxToolCalls?: number; maxDisplayBytes?: number; maxReadBytes?: number; timeoutMs?: number; traceDir?: string
@@ -74,7 +75,7 @@ export async function runCodexAccountInquiry(options: AccountInquiryOptions) {
         rejectArguments: async (call, diagnostics) => respond(await runtime.rejectArguments(call, diagnostics), false),
         onEvent: async (event: any) => { identity = { purpose, attempt: event.identity?.attempt, threadId: event.params?.threadId ?? event.identity?.threadId, turnId: event.params?.turnId ?? event.params?.turn?.id ?? event.identity?.turnId }; await runtime.onEvent(event) } })
       turns.push(account); await save(`account-turn-${turns.length}.json`, account)
-      const decision = decideProgramAuthorContinuation({ mode: options.programMode, terminal: account.status === "completed" || account.status === "undelivered" ? account.terminalStatus : account.status, continuations: turns.length - 1, remainingMs: timeoutMs - (Date.now() - started), context: await runtime.accountContext(false), previousProgress })
+      const decision = decideProgramAuthorContinuation({ maxContinuations: options.maxAuthorContinuations, mode: options.programMode, terminal: account.status === "completed" || account.status === "undelivered" ? account.terminalStatus : account.status, continuations: turns.length - 1, remainingMs: timeoutMs - (Date.now() - started), context: await runtime.accountContext(false), previousProgress })
       decisions.push(decision)
       if (!decision.continue) break
       previousProgress = decision.progress
@@ -104,11 +105,15 @@ export class CodexAccountAdapter implements AgentAdapter {
     parseInquiryStrategy(config.providerOptions.authorizationStrategy)
     if (config.providerOptions.authorizationMethod === "D0") throw new Error("codex-account-method-D0-unsupported: use M or D1")
     parseNativeInquiryMethod(config.providerOptions.authorizationMethod)
+    for (const [key, values] of Object.entries({ authorizationProgramMode: ["consume", "edit"], authorizationExecutionPolicy: ["strict", "progressive"], authorizationProgramContext: ["full", "compact"] })) {
+      const value = config.providerOptions[key]
+      if (value !== undefined && !values.includes(value as string)) throw new Error(`${key} requires ${values.join(" or ")}`)
+    }
     this.config = config
   }
   async run(task: Parameters<AgentAdapter["run"]>[0]): Promise<RunResult> {
     const p = this.config.providerOptions ?? {}, numeric = (key: string) => typeof p[key] === "number" ? p[key] as number : undefined
-    const { account, native } = await runCodexAccountInquiry({ purpose: typeof p.authorizationPurpose === "string" ? p.authorizationPurpose : undefined, attempt: typeof p.authorizationAttempt === "string" ? p.authorizationAttempt : undefined, inputFile: p.authorizationScope as string, workDir: task.workDir, model: this.config.model, method: parseNativeInquiryMethod(p.authorizationMethod), strategy: parseInquiryStrategy(p.authorizationStrategy), domainTools: p.authorizationDomainTools === true, skillContent: task.skill?.content, maxToolCalls: numeric("authorizationMaxToolCalls"), maxDisplayBytes: numeric("authorizationMaxDisplayBytes"), maxReadBytes: numeric("authorizationMaxReadBytes"), timeoutMs: numeric("authorizationSessionTimeoutMs") ?? task.timeoutMs ?? this.config.timeoutMs, traceDir: typeof p.authorizationTraceDir === "string" ? p.authorizationTraceDir : undefined, domainProgramFile: typeof p.authorizationDomainProgram === "string" ? p.authorizationDomainProgram : undefined, accountBoundaryFile: typeof p.authorizationAccountBoundary === "string" ? p.authorizationAccountBoundary : undefined, transportFactory: this.transportFactory, preparation: p.authorizationPreparation as SourcePreparationOptions | undefined })
+    const { account, native } = await runCodexAccountInquiry({ programMode: p.authorizationProgramMode as AccountInquiryOptions["programMode"], executionPolicy: p.authorizationExecutionPolicy as AccountInquiryOptions["executionPolicy"], programContext: p.authorizationProgramContext as AccountInquiryOptions["programContext"], purpose: typeof p.authorizationPurpose === "string" ? p.authorizationPurpose : undefined, attempt: typeof p.authorizationAttempt === "string" ? p.authorizationAttempt : undefined, inputFile: p.authorizationScope as string, workDir: task.workDir, model: this.config.model, method: parseNativeInquiryMethod(p.authorizationMethod), strategy: parseInquiryStrategy(p.authorizationStrategy), domainTools: p.authorizationDomainTools === true, skillContent: task.skill?.content, maxToolCalls: numeric("authorizationMaxToolCalls"), maxDisplayBytes: numeric("authorizationMaxDisplayBytes"), maxReadBytes: numeric("authorizationMaxReadBytes"), timeoutMs: numeric("authorizationSessionTimeoutMs") ?? task.timeoutMs ?? this.config.timeoutMs, traceDir: typeof p.authorizationTraceDir === "string" ? p.authorizationTraceDir : undefined, domainProgramFile: typeof p.authorizationDomainProgram === "string" ? p.authorizationDomainProgram : undefined, accountBoundaryFile: typeof p.authorizationAccountBoundary === "string" ? p.authorizationAccountBoundary : undefined, transportFactory: this.transportFactory, preparation: p.authorizationPreparation as SourcePreparationOptions | undefined })
     const runStatus = account.status === "completed" ? "ok" : account.status === "timeout-unknown" ? "timeout" : account.status === "undelivered" ? "parse-failed" : "adapter-crashed"
     // Legacy RunResult requires numeric slots; availability=false prevents them
     // from becoming a zero-cost claim. Visible account tokens live in account.usage.

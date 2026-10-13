@@ -106,7 +106,7 @@ export function projectProgramAuthoring(report: any, questions: readonly Origina
 
 /** Same decision for both transports; no semantic answers or fresh budgets. */
 export function decideProgramAuthorContinuation(options: {
-  mode?: ProgramMode; terminal: string; continuations: number; remainingMs: number
+  mode?: ProgramMode; terminal: string; continuations: number; remainingMs: number; maxContinuations?: 0 | 1 | 2
   context: any; previousProgress?: string
 }) {
   const a = options.context?.authoring, budget = options.context?.toolBudget
@@ -114,7 +114,7 @@ export function decideProgramAuthorContinuation(options: {
   const stop = (reason: string) => ({ continue: false, reason, progress })
   if (options.mode !== "edit") return stop("not-an-author")
   if (options.terminal !== "completed") return stop("known-completed-terminal-required")
-  if (options.continuations >= 2) return stop("author-continuation-limit")
+  if (options.continuations >= (options.maxContinuations ?? 2)) return stop("author-continuation-limit")
   if (options.remainingMs <= 0 || !(budget?.explorationRemaining > 0) || !(budget?.totalRemaining > 0) || budget?.formatBudgetExhausted || budget?.deliveryClosed) return stop("author-budget-exhausted")
   if (!a) return stop("author-context-unavailable")
   if (options.previousProgress === progress) return stop("no-new-author-progress")

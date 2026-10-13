@@ -45,6 +45,14 @@ test("official session initializes, supplies isolated dynamic tools, returns fin
   expect(f.sent.find(m => m.method === "thread/start").params.dynamicTools[0].type).toBe("function")
   expect(f.sent.find(m => m.method === "turn/start").params).toMatchObject({ effort: "high", environments: [] })
 })
+test("tool execution waits for its asynchronous identity event before creating a checkpoint", async () => {
+  const f = mock(); let persisted = false, observed = false
+  const r = await f.run({ timeoutMs: 1000, onEvent: async (event: any) => {
+    if (event.direction === "server" && event.method === "item/tool/call") { await new Promise(resolve => setTimeout(resolve, 15)); persisted = true }
+  }, execute: async () => { observed = persisted; return { output: "source", exitCode: 0, durationMs: 0 } } })
+  expect(r.status).toBe("completed")
+  expect(observed).toBe(true)
+})
 test("unregistered dynamic calls fail before execution; empty terminal is undelivered", async () => {
   const f = mock("forbidden"), r = await f.run()
   expect(f.executed()).toBe(0); expect(r.status).toBe("unavailable")
