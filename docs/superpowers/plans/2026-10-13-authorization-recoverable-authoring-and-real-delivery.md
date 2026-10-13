@@ -284,7 +284,7 @@ test("unreconciled and unauthorized unknowns do not pass", () => {
 
 ### BK19 — 发布与交付
 
-- [ ] 分目的提交，只推用户origin/skill-ir-aot，核对live SHA；不提交无关文件、不改旧保护证据。
+- [x] 分目的提交，只推用户origin/skill-ir-aot，核对live SHA；不提交无关文件、不改旧保护证据。实质成果及文档25aa59fd已核对origin同SHA，发布回执保存在本轮publication.json；后续回执提交仅补元数据。
 - [x] 首先给当前自动稿运行命令和实际输出，然后报告各验收轴。未达项列具体模块、失败记录、已试修复和剩余动作。
 - [x] 全部适用工作有实际处置才收束；工程完成、有限队列结束、自动主链完成、研究目标达成分别填。无收益时如实保留，不用“所有任务勾选”替代成果。
 

@@ -10,6 +10,8 @@
 
 本次明确调整后续恢复规则：BJ R0 原请求继续 unknown、不重发、不改费用；新独立 A0 在核查本地宿主关闭、做有界只读核查并记录隔离后可以执行，不再以找回旧 ephemeral 终态为永久前置。相同未知请求仍不得自动重发，额度/认证和重复通道故障仍暂停对应通道。实验沿用已授权官方账号 `gpt-5.6-sol/high`，第三方暂停。full默认、完整原skill/四问和保护证据保持。
 
+BK生产提交b5aed825、实质证据e80d8367及研究结论25aa59fd已推送用户origin/skill-ir-aot，并核对远端同SHA，见[发布回执](../../results/skill-ir/skill-dsl-research/development/authorization-recoverable-authoring-v1/publication.json)。后续回执提交只补发布元数据。
+
 ## BJ 已结束的实际结果
 
 **BJ以completed-with-unmet-criteria发布实质成果b43886c0，用户origin同SHA；实际自动主链与收益未达，R0原生命周期仍为completion-unknown。** [任务书](../superpowers/plans/2026-10-13-authorization-authoring-loop-and-program-completion.md)由`gpt-6.1-sol/max`线程实施，identity为`authorization-authoring-loop-v1`。同operation绑定、空稿详情、实际值/根因、首稿/patch计量、一次早期试写及源码变化的旧稿来源检查已接通；full默认。R0 child退出4，没有provider完成事件、模型工具或答案，后续外部派发暂停、不重发。14变体×2离线轨道保留原四问：BI原稿值匹配0/14，developer-assisted binding-only为6/14，两轨完整有限行为匹配均0/14。真实副本变化撤回旧返回、搬移后三场景fresh/previous一致，ShareLink绑定/撤销/恢复/拒绝和匿名双operation通过，均零provider。最新授权联合1950pass/1平台skip/12975断言及主/BJ类型通过。方法见[spec§14.49](skill-ir-aot-optimization-spec.md#1449-bj-authoring-loop-and-program-completion)、[研究§7.71](skill-dsl-research.md#771-bj-输入接线与自动编写运行闭环)；分轴、费用unknown和具名后续见[BJ summary](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-loop-v1/summary.json)与[status](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-loop-v1/status.json)。
