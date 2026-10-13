@@ -105,3 +105,42 @@ test("numeric ordering supports explicit nulls last including negative values", 
   const run = api.executeResourceWorkflow(raw, { rows: [{ id: 5, version: null }, { id: 2, version: -1 }, { id: 3, version: -1 }] })
   expect(run.values.newest.id).toBe(3)
 })
+test("external feedback identifies argument paths without borrowing grants", () => {
+  const raw = { inputs: [], steps: [{ id: "grant", op: "external", name: "access", arguments: { actor: { literal: { id: 7 } }, perms: { literal: "read" }, obj: { literal: 2 } }, source }] }
+  const fact = { name: "access", arguments: { actor: 7, permission: "read", resource: 2 }, value: true, reason: "Supplied fact" }
+  const run = api.executeResourceWorkflow(raw, {}, { externalAssumptions: [fact] })
+  expect(run.values.grant).toBeUndefined()
+  expect(run.events[0].inputs.externalMatch).toMatchObject({ status: "argument-mismatch", sameNameCount: 1, exactMatchCount: 0 })
+  expect(run.events[0].inputs.externalMatch.candidates[0].differences).toEqual(expect.arrayContaining([
+    expect.objectContaining({ path: "arguments.actor", kind: "type", actualType: "object", factType: "number" }),
+    expect.objectContaining({ path: "arguments.permission", kind: "missing-argument" }),
+    expect.objectContaining({ path: "arguments.obj", kind: "extra-argument" }),
+  ]))
+  raw.steps[0]!.arguments = { actor: { literal: 7 }, permission: { literal: "read" }, resource: { literal: 3 } } as any
+  const other = api.executeResourceWorkflow(raw, {}, { externalAssumptions: [fact] })
+  expect(other.events[0].inputs.externalMatch.candidates[0].differences).toContainEqual({ path: "arguments.resource", kind: "value", actual: 3, fact: 2 })
+  expect(other.values.grant).toBeUndefined()
+})
+test("external feedback separates absent, false and conflicting exact facts", () => {
+  const raw = { inputs: [], steps: [{ id: "grant", op: "external", name: "access", arguments: { object: { literal: 2 } }, source }] }
+  const fact = { name: "access", arguments: { object: 2 }, value: false, reason: "Explicit denial" }
+  expect(api.executeResourceWorkflow(raw, {}).events[0].inputs.externalMatch.status).toBe("no-fact")
+  const denied = api.executeResourceWorkflow(raw, {}, { externalAssumptions: [fact] })
+  expect(denied.values.grant).toBe(false)
+  expect(denied.events[0].inputs.externalMatch.status).toBe("matched")
+  const conflicting = api.executeResourceWorkflow(raw, {}, { externalAssumptions: [fact, { ...fact, value: true }] })
+  expect(conflicting.values.grant).toBeUndefined()
+  expect(conflicting.events[0].inputs.externalMatch.status).toBe("conflicting-facts")
+})
+test("selection feedback distinguishes unique lookup from ordered first with null and tie keys", () => {
+  const step = { id: "pick", op: "select", from: "rows", where: { op: "eq", left: { literal: 1 }, right: { literal: 1 } }, order: [{ field: "rank", direction: "desc", nulls: "last" }, { field: "id", direction: "desc" }], source }
+  const rows = [{ id: 90, rank: null }, { id: 18, rank: -2 }, { id: 17, rank: -2 }]
+  const unique = api.executeResourceWorkflow({ inputs: ["rows"], steps: [step] }, { rows })
+  expect(unique.gaps).toContain("selection-not-unique:pick")
+  expect(unique.events[0].inputs.selection).toMatchObject({ mode: "unique", matchedCount: 3, guidance: expect.stringContaining("unique:false") })
+  for (const population of [rows, [...rows].reverse()]) {
+    const first = api.executeResourceWorkflow({ inputs: ["rows"], steps: [{ ...step, unique: false }] }, { rows: population })
+    expect(first.values.pick.id).toBe(18)
+    expect(first.events[0].inputs.selection).toMatchObject({ mode: "ordered-first", matchedCount: 3, order: step.order })
+  }
+})

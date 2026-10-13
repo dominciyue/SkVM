@@ -68,6 +68,29 @@ interface Evaluated { known: boolean; value?: ResourceValue; gaps: string[] }
 const missing = (...gaps: string[]): Evaluated => ({ known: false, gaps })
 const known = (value: ResourceValue): Evaluated => ({ known: true, value, gaps: [] })
 
+/** Diagnostics never relax exact argument matching or print whole object values. */
+function argumentDifferences(actual: unknown, fact: unknown) {
+  const differences: Record<string, unknown>[] = []
+  const type = (v: unknown) => v === null ? "null" : Array.isArray(v) ? "array" : typeof v
+  const display = (v: unknown) => typeof v === "string" && v.length > 120 ? v.slice(0, 120) + "..." : v
+  let truncated = false
+  const visit = (a: unknown, f: unknown, path: string) => {
+    if (isDeepStrictEqual(a, f)) return
+    if (differences.length >= 12) { truncated = true; return }
+    if (type(a) !== type(f)) differences.push({ path, kind: "type", actualType: type(a), factType: type(f) })
+    else if (object(a) && object(f)) for (const key of new Set([...Object.keys(a), ...Object.keys(f)])) {
+      if (differences.length >= 12) { truncated = true; break }
+      if (!Object.hasOwn(a, key)) differences.push({ path: `${path}.${key}`, kind: "missing-argument" })
+      else if (!Object.hasOwn(f, key)) differences.push({ path: `${path}.${key}`, kind: "extra-argument" })
+      else visit(a[key], f[key], `${path}.${key}`)
+    }
+    else if (Array.isArray(a) && Array.isArray(f)) differences.push({ path, kind: "value", actualType: "array", factType: "array", actualLength: a.length, factLength: f.length })
+    else differences.push({ path, kind: "value", actual: display(a), fact: display(f) })
+  }
+  visit(actual, fact, "arguments")
+  return { differences, truncated }
+}
+
 /** Finite source-authored resource summaries, using the existing three-valued
  * predicate core. No target code, database, permission service or model runs. */
 export function executeResourceWorkflow(raw: unknown, supplied: unknown, options: { progressive?: boolean; invalidSteps?: Record<string, string[]>; externalAssumptions?: z.infer<typeof ExternalAssumptionsSchema> } = {}) {
@@ -145,6 +168,7 @@ export function executeResourceWorkflow(raw: unknown, supplied: unknown, options
           if (tested.some(t => t.predicate.truth === "unknown")) result = missing(...tested.flatMap(t => [...t.predicate.missingBindings, ...t.predicate.diagnostics]))
           else {
             const selected = tested.filter(t => t.predicate.truth === "true").map(t => t.row)
+            event.inputs.selection = { mode: step.unique ? "unique" : step.order?.length ? "ordered-first" : "first", matchedCount: selected.length, order: step.order ?? [], guidance: "unique defaults to true and rejects multiple matches. Use unique:false with explicit order for ordered first; numeric null keys need nulls:first|last or nullAs. Equal keys use the next order key; otherwise input order is retained." }
             const invalidOrder = step.order?.some(o => selected.some(r => !(r[o.field] === null && o.nulls) && typeof (r[o.field] ?? o.nullAs) !== "number"))
             if (invalidOrder) result = missing("selection-order-unknown")
             else {
@@ -167,6 +191,10 @@ export function executeResourceWorkflow(raw: unknown, supplied: unknown, options
         event.inputs.arguments = args; event.inputs.name = step.name
         const complete = Object.values(args).every(v => v.known), actual = Object.fromEntries(Object.entries(args).map(([k, v]) => [k, v.value]))
         const matches = complete ? external.filter(a => a.name === step.name && isDeepStrictEqual(a.arguments, actual)) : []
+        const sameName = external.filter(a => a.name === step.name)
+        event.inputs.externalMatch = { status: !complete ? "arguments-unresolved" : matches.length === 1 ? "matched" : matches.length > 1 ? matches.some(a => !isDeepStrictEqual(a.value, matches[0]!.value)) ? "conflicting-facts" : "ambiguous-facts" : sameName.length ? "argument-mismatch" : "no-fact", sameNameCount: sameName.length, exactMatchCount: matches.length,
+          candidates: complete && !matches.length ? sameName.slice(0, 4).map((fact, index) => ({ index, ...argumentDifferences(actual, fact.arguments) })) : [], candidatesTruncated: complete && !matches.length && sameName.length > 4,
+          instruction: "Only exact name and complete argument values bind a fact. Use source-supported explicit field projections to align supplied facts; never borrow another object or permission grant. Supplied facts remain unreviewed assumptions." }
         if (matches.length === 1) { result = known(matches[0]!.value); event.meaningOrigin = "external-assumption"; event.inputs.assumption = matches[0] }
         else result = missing(`external:${step.name}`, ...Object.values(args).flatMap(v => v.gaps))
       }
