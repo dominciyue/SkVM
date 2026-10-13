@@ -45,6 +45,7 @@ async function run(position: string, attempt = "first") {
   const repairs = (await readFile(path.join(base, "repairs.jsonl"), "utf8")).trim().split(/\r?\n/).filter(Boolean).map(s => JSON.parse(s))
   const repair = repairs.find((r: any) => r.position === position && r.attempt === attempt)
   if (attempt !== "first" && (!repair?.cause || !repair?.evidence || !repair?.uniqueConfirmation)) throw new Error("Named confirmation requires a diagnosed shared repair")
+  if (repair && ledger.some(e => e.repairCause === repair.cause)) throw new Error("This shared repair already has its unique confirmation")
   const selectionFile = path.join(base, "authoring/frozen-selection.json")
   const selected = await load(selectionFile).catch(() => undefined)
   if (!["A0"].includes(position) && !selected) throw new Error("A current automatic runnable A0 raw is required")
@@ -56,6 +57,7 @@ async function run(position: string, attempt = "first") {
   if (domainProgramFile && hash(await readFile(domainProgramFile)) !== selected.programSha256) throw new Error("Selected automatic bytes changed")
   const c0 = ledger.find(e => e.position === "C0" && e.status === "completed")
   const previous = repair?.previous ? path.resolve(repo, repair.previous) : ["C1", "S0"].includes(position) ? c0?.session && path.resolve(repo, c0.session) : undefined
+  if (repair?.resumeAuthorThread && (!author || !ledger.some(e => e.position === position && e.status === "completed" && e.session === repair.previous))) throw new Error("Named author resume requires that author's own completed session")
   if (["C1", "S0"].includes(position) && !previous) throw new Error("Eligible C0 session required")
   const git = (...args: string[]) => execFileSync("git", args, { cwd: repo, encoding: "utf8" }).trim()
   const output = path.join(base, "runs", `${position}-${attempt}`)
@@ -63,9 +65,10 @@ async function run(position: string, attempt = "first") {
   const leasePath = path.join(output, "local-owner.json"), lease = await open(leasePath, "wx")
   const entry: any = { position, attempt, purpose: author ? "independent-author" : baseline ? "original-skill-baseline" : "fixed-automatic-program-consumer", status: "running", startedAt: new Date().toISOString(), pid: process.pid, model: "gpt-5.6-sol", effort: "high", variant, programMode: author ? "edit" : "consume", programContext: "full", input: relative(inputFile), inputSha256: hash(await readFile(inputFile)), previous: previous && relative(previous), program: domainProgramFile && relative(domainProgramFile), programSha256: selected?.programSha256, admission: decision, limits, codeEpoch: { commit: git("rev-parse", "HEAD"), sourceTree: git("rev-parse", "HEAD:src"), sourceDiffSha256: hash(git("diff", "HEAD", "--", "src")) }, actualUsd: null }
   await lease.writeFile(JSON.stringify({ pid: process.pid, position, attempt, output, startedAt: entry.startedAt })); await lease.close()
+  entry.repairCause = repair?.cause
   ledger.push(entry); await save(ledgerFile, ledger)
   try {
-    const report: any = await executeLocalInquiryRun({ purpose: position, attempt, inputFile, domainProgramFile, outDir: output, model: entry.model, method: "D1", strategy: baseline ? "legacy" : "question-checked-v1", harness: "codex-account", domainTools: !baseline, programMode: entry.programMode, executionPolicy: "progressive", programContext: "full", previous, accountBoundaryFile, skillFile, execution: limits })
+    const report: any = await executeLocalInquiryRun({ purpose: position, attempt, resumeAuthorThread: repair?.resumeAuthorThread === true, inputFile, domainProgramFile, outDir: output, model: entry.model, method: "D1", strategy: baseline ? "legacy" : "question-checked-v1", harness: "codex-account", domainTools: !baseline, programMode: entry.programMode, executionPolicy: "progressive", programContext: "full", previous, accountBoundaryFile, skillFile, execution: limits })
     const account = report.telemetry?.account, execution = report.domain?.executableContract?.resourceExecution
     Object.assign(entry, classifyTerminalReport(report), observedAccountCost(report), { endedAt: new Date().toISOString(), session: report.sessionPath && relative(report.sessionPath), terminalStatus: report.terminalStatus, answerDelivery: report.answerDelivery, durationMs: report.durationMs, lifecycle: account?.lifecycle, turns: account?.turns?.map((t: any) => ({ status: t.status, terminalStatus: t.terminalStatus, lifecycle: t.lifecycle, usage: t.usage, reason: t.reason, inferenceDispatched: t.inferenceDispatched })), authorContinuation: account?.authorContinuation, resourceSteps: report.domain?.executableContract?.program?.resourceWorkflow?.steps?.length ?? 0, returned: execution?.returned, termination: execution?.termination, transportFailure: /child-exit|send-failed|rpc-error|timeout|routing/i.test(account?.reason ?? "") })
     if (report.sessionPath) await save(path.join(base, `evaluation/timeline-${position}-${attempt}.json`), measureAuthorTimeline(await load(path.join(report.sessionPath, "run.json"))))

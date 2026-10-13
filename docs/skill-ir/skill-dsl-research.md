@@ -2724,6 +2724,8 @@ ShareLink第二离线开发程序使用同一select/guard/return核，六场景�
 
 **BK2–BK6阶段接线。** 本机schema支持durable thread、只读thread/read及thread/resume。公共账号入口已保存身份、每回合原答及program/patch即时检查点；已知自身终态可在同一native runtime与总预算内最多继续两回合，线程累计usage按差量处理。作者反馈将输入/结构、执行、证明、外部条件分组。最新定向89测试/585断言、研究2测试/9断言及主/研究类型通过；先前一次联合mock失败未复现，完整文件及联合复验通过。R0完整报告写在关闭路径之后，当前未发现旧runner，已有保存线程不可读观察按unavailable保留；新目录登记quarantine，R0终态与费用不改。A0尚未派发，真实持久恢复、structured入口和完整中断场景尚待确认。
 
+**BK7–BK8实际A0。** A0首轮在18bf28a1已知completed，53工具单位、1,358,758 input（含cache1,235,712）/12,689 output，577,322ms，USD未知。客户端10061重连后在同一调用交付，不另发通道探针。三次program：来源字段不合规、入口未确认各拒一次，第三次自动采用两步helper稿，实际返回requested_document_id=10，未计算文件。自身raw明确保留root/权限/版本/表示缺口，四问自然答案另存；只读thread/read实测读回同线程completed、ephemeral=false。作者停止判定遗漏整稿声明的未编码关系而返回no-actionable-author-gap，结束时尚余11总工具/8探索单位。匿名反例后将这些声明投影为待源码复核的authoredScope；不据文字补入含义、不将unreviewed本身当成继续理由，未变化进展仍停止。已登记唯一scope-feedback具名确认，首件保留。structured共用决定、账号消费者无program/patch工具、坏patch后退出检查点和普通自身thread恢复已接通；定向94测试/608断言通过。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

@@ -30,6 +30,16 @@ test("author continuations require a known terminal, budget, actionable work and
   expect(decide({ ...base, context: { ...context, authoring: { ...context.authoring, feedbackGroups: { inputStructure: [], execution: [], proof: [], external: [{ code: "external-assumption" }] } } } }).continue).toBe(false)
   expect(decide({ ...base, context: { ...context, toolBudget: { totalRemaining: 2, explorationRemaining: 0 } } }).continue).toBe(false)
 })
+test("a computed partial identifier still exposes authored scope gaps for bounded source review", () => {
+  const raw = { scope: { questionId: "meaning", upstream: ["Caller relations remain unencoded"] }, resourceWorkflow: { inputs: [], steps: [], gaps: ["Selection and response relations remain unencoded"] } }
+  const report = { currentDraft: { revision: "r", raw }, candidate: { revision: "r", diagnostics: [], resourceExecution: { returned: { id: 7 }, events: [], gaps: raw.resourceWorkflow.gaps } } }
+  const feedback: any = author.projectProgramAuthoring(report, questions, 6, { resourceInputs: { meaning: {} } })
+  const context = { authoring: feedback, sourceIndex: [{ path: "app.py" }], toolBudget: { explorationRemaining: 6, totalRemaining: 8 } }
+  const decision = author.decideProgramAuthorContinuation({ mode: "edit", terminal: "completed", continuations: 0, remainingMs: 1000, context })
+  expect(feedback.feedbackGroups.authoredScope.map((g: any) => g.message)).toEqual([...raw.scope.upstream, ...raw.resourceWorkflow.gaps])
+  expect(decision.continue).toBe(true)
+  expect(author.decideProgramAuthorContinuation({ mode: "edit", terminal: "completed", continuations: 1, remainingMs: 1000, context, previousProgress: decision.progress }).reason).toBe("no-new-author-progress")
+})
 test("author feedback shows selected facts shapes and exact external calls without moving duties", () => {
   const raw = { scope: { questionId: "meaning" }, inputBinding: { questionId: "data" }, resourceWorkflow: { inputs: ["actor", "rows", "missing"], steps: [] } }
   const context: any = author.projectProgramTaskContext({ report: { currentDraft: { revision: "draft", raw } }, questions, operationQuestions, programMode: "edit", resourceInputs: { data: { actor: { id: 17 }, rows: [{ key: 2 }, { key: 3 }, { key: 4 }, { key: 5 }] } }, externalAssumptions: { data: [{ name: "service", arguments: { actor: 17 }, value: true, reason: "Supplied scenario fact" }] } } as any)

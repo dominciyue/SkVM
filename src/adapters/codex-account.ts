@@ -14,6 +14,7 @@ export { readCodexAccountThread } from "./codex-account-session.ts"
 
 export interface AccountInquiryOptions {
   purpose?: string; attempt?: string
+  authorResumeAfter?: import("./codex-account-session.ts").AccountSessionResult
   programContext?: import("../task-dsl/authorization/program-consumption-context.ts").ProgramContext; executionPolicy?: import("../task-dsl/authorization/executable-contract.ts").ExecutionPolicy; programMode?: import("../task-dsl/authorization/executable-contract.ts").ProgramMode
   inputFile: string; workDir: string; model: string; method?: "M" | "D0" | "D1"; strategy?: InquiryStrategy; skillContent?: string
   domainTools?: boolean; maxToolCalls?: number; maxDisplayBytes?: number; maxReadBytes?: number; timeoutMs?: number; traceDir?: string
@@ -25,9 +26,11 @@ export interface AccountInquiryOptions {
  * CLI controls generation and history; no provider adapter or second agent loop. */
 export async function runCodexAccountInquiry(options: AccountInquiryOptions) {
   const started = Date.now(), timeoutMs = options.timeoutMs ?? 1200000
+  if (options.authorResumeAfter && (options.programMode !== "edit" || !options.reuse)) throw new Error("account-author-resume-requires-own-restored-edit-state")
   if (options.method === "D0") throw new Error("codex-account-method-D0-unsupported: account runtime supports M or D1; it cannot substitute a different method")
   const instructionSources = await loadCodexAccountBoundary(options.accountBoundaryFile)
   const runtime = await createNativeInquiryRuntime({ ...options, method: options.method, domainTools: options.domainTools ?? true, traceRedactor: redactCodexEvent })
+  const definitions = options.programMode === "consume" ? runtime.definitions.filter(t => !["authorization_program", "authorization_program_patch"].includes(t.name)) : runtime.definitions
   const encode = isPropertyDirectedInquiryStrategy(options.strategy) ? createInquiryContextEncoder() : undefined
   const transmission = createInquiryTransmissionMeter()
   const contextPayloads: Array<{ sequence: number; references: number; originalBytes: number; sentBytes: number }> = []
@@ -56,17 +59,17 @@ export async function runCodexAccountInquiry(options: AccountInquiryOptions) {
   }
   try {
     const system = `${options.skillContent ?? ""}\n${runtime.system}${encode ? "\n" + INCREMENTAL_INQUIRY_CONTEXT_GUIDE : ""}`
-    transmission.record("static-tools", runtime.definitions.map(t => ({ type: "function", name: t.name, description: t.description, inputSchema: t.inputSchema })), undefined, "schemaProtocol")
+    transmission.record("static-tools", definitions.map(t => ({ type: "function", name: t.name, description: t.description, inputSchema: t.inputSchema })), undefined, "schemaProtocol")
     transmission.recordSystem(system, options.skillContent ?? "")
     await save("account-purpose.json", { purpose, attempt, workDir: options.workDir, traceDir: options.traceDir, startedAt: new Date(started).toISOString(), timeoutMs, maxToolCalls: options.maxToolCalls })
     while (true) {
       const context = await contextView(turns.length === 0)
       const prompt = `${turns.length ? `Continue your own source authoring after the recorded completed answer. Purpose: ${decisions.at(-1)!.reason}. Inspect and repair your current draft using the actual grouped feedback; retain all original questions. The remaining budget below is shared with prior turns. Do not repeat unchanged proposals or invent missing external facts.` : "Current original task and full skill are declared in the system."}\nCurrent local explanation context: ${JSON.stringify(context)}`
       transmission.record("initial-context", context, prompt); runtime.accountSent(prompt)
-      const prior = turns.at(-1)
+      const prior = turns.at(-1) ?? options.authorResumeAfter
       const remaining = runtime.report().toolBudget.totalRemaining
-      const account = await runCodexAccountSession({ model: options.model, effort: "high", cwd: options.workDir, system, prompt, tools: runtime.definitions, maxToolCalls: Math.max(1, remaining), timeoutMs: Math.max(1, timeoutMs - (Date.now() - started)), transportFactory: options.transportFactory, instructionSources, purpose, attempt: turns.length ? `${attempt}-continuation-${turns.length}` : attempt,
-        ...(prior ? { resumeAfter: { ...prior, tools: turns.flatMap(t => t.tools), toolRejections: turns.flatMap(t => t.toolRejections) } } : {}),
+      const account = await runCodexAccountSession({ model: options.model, effort: "high", cwd: options.workDir, system, prompt, tools: definitions, maxToolCalls: Math.max(1, remaining), timeoutMs: Math.max(1, timeoutMs - (Date.now() - started)), transportFactory: options.transportFactory, instructionSources, purpose, attempt: turns.length ? `${attempt}-continuation-${turns.length}` : attempt,
+        ...(prior ? { resumeAfter: { ...prior, tools: [...(options.authorResumeAfter?.tools ?? []), ...turns.flatMap(t => t.tools)], toolRejections: [...(options.authorResumeAfter?.toolRejections ?? []), ...turns.flatMap(t => t.toolRejections)] } } : {}),
         execute, argumentDiagnostics: runtime.argumentDiagnostics,
         rejectArguments: async (call, diagnostics) => respond(await runtime.rejectArguments(call, diagnostics), false),
         onEvent: async (event: any) => { identity = { purpose, attempt: event.identity?.attempt, threadId: event.params?.threadId ?? event.identity?.threadId, turnId: event.params?.turnId ?? event.params?.turn?.id ?? event.identity?.turnId }; await runtime.onEvent(event) } })

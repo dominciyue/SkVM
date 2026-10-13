@@ -74,10 +74,15 @@ export function projectProgramAuthoring(report: any, questions: readonly Origina
   const proofDiagnostic = (d: any) => /property|properties/.test(d.code ?? "") || /(?:^|\.)properties(?:\.|\[|$)/.test(d.path ?? "")
   const sourceVisible = (report?.externalBoundaries ?? []).filter((b: any) => b.kind === "source-visible-unwritten")
   const external = rootBlockers.filter(b => b.code === "external-assumption" && !sourceVisible.some((s: any) => s.stepId === b.stepId))
+  // A successful local return does not discharge relations the author explicitly
+  // left outside this root. Review these claims against the original source;
+  // they are not host-supplied meanings or evidence of a correct repair.
+  const unresolvedSemantics: string[] = [...(raw?.scope?.upstream ?? []), ...(raw?.resourceWorkflow?.gaps ?? [])]
   const feedbackGroups = {
     inputStructure: [...resolution.diagnostics, ...diagnostics.filter((d: any) => !proofDiagnostic(d))],
     execution: [...rootBlockers.filter(b => !external.includes(b)), ...sourceVisible],
     proof: diagnostics.filter(proofDiagnostic), external,
+    authoredScope: [...new Set(unresolvedSemantics)].filter(message => !external.some(b => b.dependencies.includes(message))).map(message => ({ code: "authored-scope-review", message, instruction: "Review your own named gap against available original source. Extend source-supported relations where possible; keep genuinely external facts conditional. Do not repeat an unchanged proposal." })),
   }
   const firstError = feedbackGroups.inputStructure.find((d: any) => d.severity === "error")
   const proofError = feedbackGroups.proof.find((d: any) => d.severity === "error")
@@ -93,7 +98,7 @@ export function projectProgramAuthoring(report: any, questions: readonly Origina
     computed: execution && { returned, termination: execution.termination, conditions: execution.conditions },
     gaps: execution?.gaps ?? [], diagnostics, feedbackGroups,
     inputBindings: { questionId, inputQuestionId: resolution.inputQuestionId, origin: resolution.origin, datasetPresent: resolution.datasetPresent, diagnostics: resolution.diagnostics, declaredNames, inputNames, missingDeclaredNames: declaredNames.filter(n => !inputNames.includes(n)), values: Object.fromEntries(Object.entries(resolution.resourceInputs).map(([name, value]) => [name, shownValue(value)])), externalAssumptions: resolution.externalAssumptions, suppliedScopes, instruction: "scope.questionId retains the semantic duty. Resource inputs and external assumptions default to that exact question. Optional inputBinding:{questionId} explicitly selects one supplied dataset from the same current operationQuestions mapping; it never transfers policy, premises or property inputs. Empty datasets are meaningful; no candidate is auto-selected. Current bound values and exact external calls are shown here, with bounded collection samples; authorization_program_details or the original scenario recovers full values. Author only source-supported relations." },
-    unresolvedSemantics: [...(raw?.scope?.upstream ?? []), ...(raw?.resourceWorkflow?.gaps ?? [])], semanticSupport: "unreviewed",
+    unresolvedSemantics, semanticSupport: "unreviewed",
     questions: questions.map(q => ({ questionId: q.id, request: q.request, computedFields: q.id === scopeQuestion ? fields : [], coverage: "unreviewed", remaining: q.id === scopeQuestion ? "Only the listed fields were computed; express the remaining requested source relations or retain named gaps." : "This resource program does not compute this original question; investigate and author relevant relations or retain the duty for natural explanation." })),
     remainingActions, tools: ["authorization_program", "authorization_program_patch", "authorization_program_details", "source_read", "source_symbol"],
   }
@@ -115,7 +120,7 @@ export function decideProgramAuthorContinuation(options: {
   if (options.previousProgress === progress) return stop("no-new-author-progress")
   const groups = a.feedbackGroups
   const actionable = !a.draftRevision || !a.candidatePreviewAvailable && a.phase === "draft" ||
-    groups?.inputStructure?.some((d: any) => d.severity === "error" || d.code === "program-input-dataset-missing") || groups?.execution?.length || groups?.proof?.some((d: any) => d.severity === "error")
+    groups?.inputStructure?.some((d: any) => d.severity === "error" || d.code === "program-input-dataset-missing") || groups?.execution?.length || groups?.proof?.some((d: any) => d.severity === "error") || groups?.authoredScope?.length
   if (!actionable) return stop("no-actionable-author-gap")
   return { continue: true, reason: a.draftRevision ? "repair-current-draft-feedback" : "author-first-source-supported-draft", progress }
 }

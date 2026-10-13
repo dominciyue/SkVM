@@ -231,6 +231,25 @@ test("structured author uses program then ordered patch then details and deliver
   expect(loop.authorLoop.firstDraftToolUnit).toBe(3)
   expect(loop.authorLoop.patchCount).toBe(2)
 })
+test("structured author continues after an answer using its actual draft and the original budget", async () => {
+  const f = await contractFiles(), input = JSON.parse(await readFile(f.inputFile, "utf8")); let count = 0
+  input.inquiry.questions[1].properties = [{ id: "remaining", kind: "effect-reachability", requirement: input.inquiry.questions[1].request }]
+  input.inquiry = { ...input.inquiry, schemaVersion: "authorization-inquiry/v2", operations: [{ id: "operation", request: "Inspect local" }], questions: input.inquiry.questions.map((q: any) => ({ ...q, operationId: "operation", intent: "behavior" })) }
+  input.resourceInputs = { q: { item: { id: 7 } } }
+  const raw = { ...f.contract, scope: { ...f.contract.scope, questionId: "other" }, queries: [], resourceWorkflow: { inputs: ["item"], steps: [{ id: "result", op: "return", value: { field: { of: { ref: "item" }, key: "id" } }, source: at(8) }] } }
+  const provider: any = { name: "continuing-author", async complete(params: any) {
+    const text = params.messages.map((m: any) => m.content).join("\n"), n = count++
+    const current = JSON.parse(text.split("Current local explanation context: ").at(-1)!.split("\n\nRemaining dispatches:")[0]!)
+    const action = n === 0 ? { kind: "tool", calls: [{ name: "source_read", arguments: { path: "app.py", startLine: 1, endLine: 8 } }] } : n === 1 ? { kind: "program", name: "authorization_program", arguments: raw } : n === 3 ? { kind: "program", name: "authorization_program_patch", arguments: { baseRevision: current.authoring.draftRevision, inputBinding: { questionId: "q" }, upsertSteps: [] } } : { kind: "final", schemaVersion: "authorization-focused-result/v1", focusId: current.focus.id, answers: ["q", "other"].map(id => ({ explanation: `${id} answer ${n}`, missing: [{ kind: "source-gap", detail: "Source meaning remains unreviewed" }] })), scope: "Local fixture" }
+    return { text: "", toolCalls: [{ id: `continue-${n}`, name: params.tools[0].name, arguments: action }], stopReason: "tool_use", tokens: emptyTokenUsage(), durationMs: 0 }
+  }, async completeWithToolResults() { throw new Error("unused") } }
+  const run: any = await runAuthorizationInquiry({ ...input, sourceRoot: path.join(f.root, "source"), provider, method: "D1", strategy: "question-checked-v1", programMode: "edit", executionPolicy: "progressive", maxDispatches: 16, maxToolCalls: 16 })
+  expect(run.domain.executableContract.resourceExecution.returned).toBe(7)
+  expect(run.authorAnswers.length).toBeGreaterThanOrEqual(2)
+  expect(run.authorContinuation.decisions[0]).toMatchObject({ continue: true, reason: "repair-current-draft-feedback" })
+  expect(run.recovery.totalToolLimit).toBe(16)
+  expect(run.authorContinuation.continuations).toBeLessThanOrEqual(2)
+})
 test("structured provider can patch a draft and request actual compact program details", async () => {
   const f = await contractFiles(), input = JSON.parse(await readFile(f.inputFile, "utf8")); let count = 0
   const program = { ...f.contract, resourceWorkflow: { inputs: [], steps: [{ id: "result", op: "return", value: { literal: 7 }, source: at(8) }] } }
@@ -294,6 +313,59 @@ test("public account author continues twice with one runtime budget and archives
   expect(run.account.authorContinuation.stopReason).toBe("author-continuation-limit")
 })
 const at = (startLine: number, endLine = startLine, text?: string) => ({ path: "app.py", startLine, endLine, ...(text ? { text } : {}) })
+test("public account consume exposes no program or patch writer", async () => {
+  const f = await contractFiles()
+  let names: string[] = []
+  const baseFactory = contractConsumer(() => {}, { tool: "authorization_program_details", arguments: { view: "draft" } })
+  const transportFactory = () => { const transport = baseFactory(); return { ...transport, send(packet: any) { if (packet.method === "thread/start") names = packet.params.dynamicTools.map((t: any) => t.name); transport.send(packet) } } }
+  const { runCodexAccountInquiry } = await import("../../adapters/codex-account.ts")
+  const result = await runCodexAccountInquiry({ inputFile: f.inputFile, domainProgramFile: f.domainProgramFile, workDir: f.root, model: "gpt-5.6-sol", strategy: "question-checked-v1", programMode: "consume", transportFactory })
+  expect(result.account.status).toBe("completed")
+  expect(names).not.toContain("authorization_program")
+  expect(names).not.toContain("authorization_program_patch")
+  expect(names).toContain("authorization_program_details")
+})
+test("named author repair resumes only its own known thread with reconstructed previous state", async () => {
+  const f = await contractFiles(); let turn = 0
+  const methods: string[] = []
+  const factory: any = () => { let receive = (_m: any) => {}; return { isolation: { kind: "test-transport", reason: "named author resume" }, onMessage(f: any) { receive = f }, onExit() {}, close() {}, send(m: any) {
+    if (m.method) methods.push(m.method)
+    if (m.method === "initialize") receive({ id: m.id, result: {} })
+    if (m.method === "thread/read") receive({ id: m.id, result: { thread: { id: "own", ephemeral: false, turns: [{ id: `t${turn}`, status: "completed" }] } } })
+    if (["thread/start", "thread/resume"].includes(m.method)) receive({ id: m.id, result: { thread: { id: "own", ephemeral: false }, model: "gpt-5.6-sol" } })
+    if (m.method === "turn/start") { turn++; receive({ id: m.id, result: { turn: { id: `t${turn}` } } }); queueMicrotask(() => receive({ method: "turn/completed", params: { threadId: "own", turn: { id: `t${turn}`, status: "completed", items: [{ type: "agentMessage", phase: "final_answer", text: `original-${turn}` }] } } })) }
+  } } }
+  const common = { inputFile: f.inputFile, outDir: path.join(f.root, "named"), model: "gpt-5.6-sol", harness: "codex-account" as const, strategy: "question-checked-v1" as const, programMode: "edit" as const, executionPolicy: "progressive" as const, accountTransportFactory: factory, execution: { maxToolCalls: 4, sessionTimeoutMs: 5000 } }
+  const first: any = await executeLocalInquiryRun({ ...common, purpose: "author", attempt: "first" })
+  const next: any = await executeLocalInquiryRun({ ...common, purpose: "author", attempt: "named-repair", previous: first.sessionPath, resumeAuthorThread: true })
+  expect(next.status).toBe("completed")
+  expect(next.telemetry.account.lifecycle).toMatchObject({ threadId: "own", turnId: "t2", resumedFromTurnId: "t1", attempt: "named-repair" })
+  expect(methods.filter(m => m === "thread/start")).toHaveLength(1)
+  expect(methods.filter(m => m === "thread/resume")).toHaveLength(1)
+  expect(next.reuse.answerReused).toBe(false)
+})
+test("account interruption preserves valid raw and a bad patch without claiming the old preview is current", async () => {
+  const f = await contractFiles(), traceDir = path.join(f.root, "interrupted-raw")
+  const raw = { ...f.contract, resourceWorkflow: { inputs: [], steps: [{ id: "result", op: "return", value: { literal: 7 }, source: at(8) }] } }
+  let receive = (_m: any) => {}, exited = (_reason: string) => {}, index = 0, revision: string | undefined
+  const actions: any[] = [{ tool: "authorization_prepare_properties", arguments: { schemaVersion: "authorization-property-intent/v1", questions: [{ questionId: "other", state: "residual", reason: "Keep duty" }] } }, { tool: "source_read", arguments: { path: "app.py", startLine: 1, endLine: 8 } }, { tool: "authorization_program", arguments: raw }]
+  const next = () => { const action = actions[index] ?? { tool: "authorization_program_patch", arguments: { baseRevision: revision, upsertSteps: [{ id: "result", op: "return", value: { ref: "absent" }, source: at(8) }] } }; receive({ id: `rpc-${index}`, method: "item/tool/call", params: { threadId: "t", turnId: "u", callId: `c-${index++}`, ...action } }) }
+  const factory: any = () => ({ isolation: { kind: "test-transport", reason: "interruption" }, onMessage(f: any) { receive = f }, onExit(f: any) { exited = f }, close() {}, send(m: any) {
+    if (m.method === "initialize") receive({ id: m.id, result: {} })
+    if (m.method === "thread/start") receive({ id: m.id, result: { thread: { id: "t", ephemeral: false }, model: "gpt-5.6-sol" } })
+    if (m.method === "turn/start") { receive({ id: m.id, result: { turn: { id: "u" } } }); queueMicrotask(next) }
+    if (m.result?.contentItems) { const reply = JSON.parse(m.result.contentItems[0].text); revision = reply.toolResult?.currentDraft?.revision ?? revision; if (index === 4) exited("mock-transport-exit"); else queueMicrotask(next) }
+  } })
+  const { runCodexAccountInquiry } = await import("../../adapters/codex-account.ts")
+  const run = await runCodexAccountInquiry({ inputFile: f.inputFile, workDir: f.root, model: "gpt-5.6-sol", strategy: "question-checked-v1", programMode: "edit", executionPolicy: "progressive", traceDir, timeoutMs: 5000, transportFactory: factory })
+  const first = JSON.parse(await readFile(path.join(traceDir, "program-checkpoint-1.json"), "utf8")), bad = JSON.parse(await readFile(path.join(traceDir, "program-checkpoint-2.json"), "utf8"))
+  expect(run.account.terminalStatus).toBe("unknown")
+  expect(run.account.turns).toHaveLength(1)
+  expect(first.draft.currentDraft.raw).toEqual(raw)
+  expect(bad.call.arguments.upsertSteps[0].value).toEqual({ ref: "absent" })
+  expect(bad.draft.candidate.resourceExecution?.returned).not.toBe(7)
+  expect(run.account.lifecycle?.localExecution).toBe("closed")
+})
 test("compact edit keeps authoring responsibility after computation and consume stays read-only", async () => {
   const f = await contractFiles()
   await writeFile(f.domainProgramFile, JSON.stringify({ ...f.contract, resourceWorkflow: { inputs: [], steps: [{ id: "result", op: "return", value: { record: { selected: { literal: 7 } } }, source: at(8) }], gaps: ["Related response not modeled"] } }))
