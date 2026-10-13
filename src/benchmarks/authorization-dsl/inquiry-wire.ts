@@ -196,7 +196,7 @@ function operationStepModelSchema(stage?: FocusStage, finalOnly = false, sourceA
     if (!parsed.success) for (const issue of parsed.error.issues) context.addIssue(issue)
   })
 }
-const ProgramActionSchema = z.object({ kind: z.literal("program"), name: z.enum(["authorization_program", "authorization_program_patch", "authorization_program_details"]), arguments: z.record(z.unknown()) }).strict()
+const ProgramActionSchema = z.object({ kind: z.literal("program"), name: z.enum(["authorization_program", "authorization_program_patch", "authorization_program_trial", "authorization_program_details"]), arguments: z.record(z.unknown()) }).strict()
 export type InquiryStep = InquiryControlStep | z.infer<typeof localParserSteps> | z.infer<typeof semanticParserSteps> | z.infer<ReturnType<typeof focusedSteps>> | z.infer<typeof ProgramActionSchema>
 const resultModelSchema = (mode?: "behavior" | "conformance") => mode ? AuthorizationInquiryResultSchema.extend({ questions: z.array(mode === "behavior" ? InquiryQuestionResultSchema.omit({ policyAssessment: true }) : InquiryQuestionResultSchema.extend({ policyAssessment: InquiryQuestionResultSchema.shape.policyAssessment.unwrap() })) }) : AuthorizationInquiryResultSchema
 export function inquiryStepSchemas(strategy: InquiryStrategy, finalOnly = false, mode?: "behavior" | "conformance", stage?: FocusStage) {

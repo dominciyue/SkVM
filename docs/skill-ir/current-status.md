@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-**BL0–BL21计划就绪，准备由新线程实施；尚无BL生产修改或模型结果。** 用户指定`gpt-6-astra/high`，继续现有主开发分支。[本轮任务书](../superpowers/plans/2026-10-14-authorization-reusable-program-semantics-and-delivery.md)以`02b79e4b`为已核对生产基线，identity为`authorization-reusable-program-v1`。先修精确外部参数/选择反馈、可复用作者目标、同核多输入trial及最终回答生命周期，再做自动编写、固定原稿变化消费与两对同期比较。相关设计见[spec§14.51](skill-ir-aot-optimization-spec.md#1451-bl-reusable-program-semantics-and-delivery)、[研究§7.73](skill-dsl-research.md#773-bk-复核与-bl-可复用程序开发决定)。
+**BL0–BL21正在实施：BL2诊断已提交，BL3–BL6目标、同核trial和回答生命周期已接线并进行回归；尚无本轮真实模型结果。** 用户指定`gpt-6-astra/high`，继续现有主开发分支。[本轮任务书](../superpowers/plans/2026-10-14-authorization-reusable-program-semantics-and-delivery.md)以`02b79e4b`为已核对生产基线，接管HEAD为b516e106，identity为`authorization-reusable-program-v1`。接下来进入薄研究入口和早期A0，再做固定原稿变化消费与两对同期比较。相关设计见[spec§14.51](skill-ir-aot-optimization-spec.md#1451-bl-reusable-program-semantics-and-delivery)、[研究§7.73](skill-dsl-research.md#773-bk-复核与-bl-可复用程序开发决定)。
 
 BK发布后复核105项定向测试/667断言及三次普通零模型运行通过执行；默认、空版本、拒绝均返回文件11且conditional，说明当前稿对变化输入仍有真实缺口。新轮不以手写语义回填模型稿，也不继续扩展通用语言语义。保留partial可执行与有界当场修复；八个首用途加最多三次具名共享修复确认，官方`gpt-5.6-sol/high`实验授权沿用，第三方暂停。接管时tracked工作区干净，原有未跟踪`.tmp/`保留。
 

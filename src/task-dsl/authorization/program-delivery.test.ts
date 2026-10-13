@@ -1,0 +1,31 @@
+import { expect, test } from "bun:test"
+const api = await import("./program-delivery.ts").catch(() => ({} as any))
+const basis = () => api.programDeliveryBasis({ task: { id: "task" }, sources: [{ path: "a", sha256: "s" }], inputs: { value: 7 }, program: { revision: "p" }, sourceCurrent: true })
+test("editing feedback never replaces a task answer on the same basis", () => {
+  const d = api.createProgramDelivery(), b = basis()
+  d.record({ sequence: 1, phase: "task-answer", answer: "Four original answers", basis: b, delivered: true })
+  d.record({ sequence: 2, phase: "author-edit", answer: "No changes; budget ended", basis: b, delivered: true })
+  expect(d.snapshot(b).answer).toBe("Four original answers")
+  expect(d.snapshot(b).rawLastAnswer).toBe("No changes; budget ended")
+  expect(d.snapshot(b).firstAnswer.answer).toBe("Four original answers")
+  expect(d.snapshot(b).status).toBe("current")
+  expect(api.decideFinalProgramDelivery({ delivery: d.snapshot(b), terminal: "completed", remainingMs: 20, budget: { totalRemaining: 8 }, finalPhaseUsed: false }).runFinal).toBe(false)
+})
+test("basis changes stale an answer and failed final delivery never fabricates a replacement", () => {
+  const d = api.createProgramDelivery(), b = basis()
+  d.record({ sequence: 1, phase: "task-answer", answer: "Old answer", basis: b, delivered: true })
+  for (const key of ["task", "sources", "inputs", "program", "sourceCurrent"]) {
+    const changed = api.programDeliveryBasis({ task: { id: "task" }, sources: [{ path: "a", sha256: "s" }], inputs: { value: 7 }, program: { revision: "p" }, sourceCurrent: true, [key]: "changed" })
+    expect(d.snapshot(changed).status).toBe("stale")
+  }
+  const changed = { ...b, revision: "changed" }, state = d.snapshot(changed)
+  expect(api.decideFinalProgramDelivery({ delivery: state, terminal: "completed", remainingMs: 20, budget: { totalRemaining: 8 }, finalPhaseUsed: false }).runFinal).toBe(true)
+  for (const extra of [{ finalPhaseUsed: true }, { terminal: "interrupted" }, { budget: { totalRemaining: 8, finalOnly: true } }, { budget: { totalRemaining: 0 } }]) expect(api.decideFinalProgramDelivery({ delivery: state, terminal: "completed", remainingMs: 20, budget: { totalRemaining: 8 }, finalPhaseUsed: false, ...extra }).runFinal).toBe(false)
+  d.record({ sequence: 2, phase: "final-answer", answer: "Partial transport text", basis: changed, delivered: false })
+  expect(d.snapshot(changed).answer).toBe("Old answer")
+  expect(d.snapshot(changed).status).toBe("stale")
+  expect(d.snapshot(changed).finalDelivered).toBe(false)
+  d.record({ sequence: 3, phase: "final-answer", answer: "New full answer", basis: changed, delivered: true })
+  expect(d.snapshot(changed).answer).toBe("New full answer")
+  expect(d.snapshot(changed).status).toBe("current")
+})

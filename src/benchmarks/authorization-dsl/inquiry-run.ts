@@ -1,6 +1,7 @@
 import type { LLMProvider, CompletionParams } from "../../providers/types.ts"
 import { projectProgramConsumption, projectProgramToolOutput, programConsumptionDetails } from "../../task-dsl/authorization/program-consumption-context.ts"
 import { decideProgramAuthorContinuation, projectProgramTaskContext } from "../../task-dsl/authorization/program-authoring-context.ts"
+import { createProgramDelivery, programDeliveryBasis, decideFinalProgramDelivery, FINAL_PROGRAM_ANSWER_INSTRUCTION, type ProgramDeliveryPhase } from "../../task-dsl/authorization/program-delivery.ts"
 import { questionWorkflowDefinitions, questionWorkflowSchemas } from "./question-workflow-wire.ts"
 import { extractStructured, StructuredExtractionError, type StructuredExtractionFailure } from "../../providers/structured.ts"
 import { acceptAuthoredInquiry } from "./authoring-assist.ts"
@@ -25,7 +26,7 @@ class SourceDisplayLimitError extends AuthorizationDispatchLimitError {
   constructor(limit: number, provider: string) { super(limit, provider); this.message = "Cumulative model source display budget exhausted; existing evidence preserved" }
 }
 export interface RunAuthorizationInquiryOptions extends InquiryToolsOptions {
-  programContext?: import("../../task-dsl/authorization/program-consumption-context.ts").ProgramContext; executionPolicy?: import("../../task-dsl/authorization/executable-contract.ts").ExecutionPolicy; programMode?: import("../../task-dsl/authorization/executable-contract.ts").ProgramMode;
+  authoringTargetMode?: "current-input" | "reusable"; programContext?: import("../../task-dsl/authorization/program-consumption-context.ts").ProgramContext; executionPolicy?: import("../../task-dsl/authorization/executable-contract.ts").ExecutionPolicy; programMode?: import("../../task-dsl/authorization/executable-contract.ts").ProgramMode;
   resourceInputs?: import("../../task-dsl/authorization/resource-relations.ts").ResourceProgramInputs["resourceInputs"]; externalAssumptions?: import("../../task-dsl/authorization/resource-relations.ts").ResourceProgramInputs["externalAssumptions"];
   provider: LLMProvider; method: InquiryMethod; inquiry?: unknown; brief?: string;
   mode?: "behavior" | "conformance"; policy?: AuthorizationInquiry["policy"];
@@ -98,6 +99,12 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
   let authorContinuations = 0, previousAuthorProgress: string | undefined, authorInstruction = ""
   const authorAnswers: Array<{ answer: unknown; validation: unknown; sequence: number }> = []
   const authorDecisions: ReturnType<typeof decideProgramAuthorContinuation>[] = []
+  const delivery = createProgramDelivery(), deliveryValidations = new Map<number, ReturnType<typeof validateAuthorizationInquiryResult>>()
+  let deliveryPhase: ProgramDeliveryPhase = "task-answer", finalPhaseUsed = false
+  const deliveryBasis = () => {
+    const state = domain?.report()
+    return programDeliveryBasis({ task: inquiry, sources: tools.files, inputs: { resourceInputs: options.resourceInputs, externalAssumptions: options.externalAssumptions, contractInputs: options.contractInputs }, program: { draft: state?.programDraft?.currentDraft?.revision, active: state?.executableContract?.revision, semantic: state?.slice?.revision }, sourceCurrent: tools.snapshotVerification?.valid !== false && state?.programDraft?.sourcesCurrent !== false })
+  }
   let sourceFormatRejections = 0, finalFormatRejections = 0
   let taskPreparation: TaskPropertyPreparation | undefined
   const taskPreparationAttempts: Array<{ proposal?: unknown; accepted: boolean; diagnostics?: unknown; durationMs: number }> = []
@@ -153,7 +160,7 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
       if (imported.diagnostics.length) throw new Error(JSON.stringify(imported.diagnostics))
       for (const id of imported.importedEvidenceIds) importedReferences.add(id)
     }
-    if (strategy !== "legacy") domain = createInquiryDomainRuntime({ program, tools, strategy, sourceAssisted, contractInputs: options.contractInputs, resourceInputs: options.resourceInputs, externalAssumptions: options.externalAssumptions, executionPolicy: options.executionPolicy, programMode: options.programMode, toolUnit: () => submissionBudget().totalUsed, explorationUnits: () => tools.toolCalls, ablation: options.domainAblation, shownEvidenceIds: availableEvidence, ...(separateFormats ? { remainingActions: remainingExploration } : {}), ...(options.reuse ? { initialDelta: options.reuse.seed.delta, initialSemanticUnits: options.reuse.seed.semanticUnits, initialSourceMaterials: options.reuse.seed.sourceMaterials } : {}), ...(options.brief ? { suppliedUserText: [options.brief], entryContext: options.brief } : {}) })
+    if (strategy !== "legacy") domain = createInquiryDomainRuntime({ program, tools, strategy, sourceAssisted, contractInputs: options.contractInputs, resourceInputs: options.resourceInputs, externalAssumptions: options.externalAssumptions, executionPolicy: options.executionPolicy, programMode: options.programMode, authoringTargetMode: options.authoringTargetMode, toolUnit: () => submissionBudget().totalUsed, explorationUnits: () => tools.toolCalls, ablation: options.domainAblation, shownEvidenceIds: availableEvidence, ...(separateFormats ? { remainingActions: remainingExploration } : {}), ...(options.reuse ? { initialDelta: options.reuse.seed.delta, initialSemanticUnits: options.reuse.seed.semanticUnits, initialSourceMaterials: options.reuse.seed.sourceMaterials } : {}), ...(options.brief ? { suppliedUserText: [options.brief], entryContext: options.brief } : {}) })
     if (options.domainProgram) {
       const imported = await domain!.importProgram(options.domainProgram, "authored-file", true)
       if (!domain!.executableContractReport()) throw new Error(`contract-import-invalid: ${JSON.stringify(imported.diagnostics)}`)
@@ -191,7 +198,7 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
       if (Date.now() - startedAt >= (options.sessionTimeoutMs ?? 1200000)) { status = "budget-exhausted"; break }
       const remainingDispatches = (options.maxDispatches ?? 12) - telemetry.attempts.length
       if (separateFormats && remainingTools() <= 0) { status = "budget-exhausted"; break }
-      let deliveryReserved: boolean = sourceLimitedDelivery || remainingDispatches <= deliveryDispatchThreshold || tools.toolCalls >= tools.maxToolCalls || separateFormats && submissionBudget().finalOnly
+      let deliveryReserved: boolean = deliveryPhase === "final-answer" || sourceLimitedDelivery || remainingDispatches <= deliveryDispatchThreshold || tools.toolCalls >= tools.maxToolCalls || separateFormats && submissionBudget().finalOnly
       if (isGuidedInquiryStrategy(strategy)) await domain!.sync(!deliveryReserved && remainingDispatches > 2)
       deliveryReserved ||= tools.toolCalls >= tools.maxToolCalls
       const feedback = options.method === "D1" && !focused ? `\nObservation feedback: ${JSON.stringify(inquiryObservationFeedback(program, observations))}` : ""
@@ -216,7 +223,7 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
         }
       }
       const shown = localContext ? localContext.evidenceCatalog.map(e => ({ ...e, shown: previouslyShown.has(e.id), ...(importedReferences.has(e.id) ? { previousVerified: true } : {}) })) : tools.evidence.map(({ quote: _q, ...e }) => e)
-      const taskContext = isQuestionCheckedStrategy(strategy) ? projectProgramTaskContext({ report: domain?.executableContractReport(), draftReport: domain?.programDraftReport(), questions: program.questions, operationQuestions: program.operationQuestions, programMode: options.programMode, programContext: options.programContext, local: localContext, evidence: tools.evidence, remainingActions: remainingExploration(), resourceInputs: options.resourceInputs, externalAssumptions: options.externalAssumptions }) : undefined
+      const taskContext = isQuestionCheckedStrategy(strategy) ? projectProgramTaskContext({ report: domain?.executableContractReport(), draftReport: domain?.programDraftReport(), questions: program.questions, operationQuestions: program.operationQuestions, programMode: options.programMode, programContext: options.programContext, authoringTargetMode: options.authoringTargetMode, local: localContext, evidence: tools.evidence, remainingActions: remainingExploration(), resourceInputs: options.resourceInputs, externalAssumptions: options.externalAssumptions }) : undefined
       const renderedContext = localContext ? { ...localContext, ...(focused && !sourceAssisted ? { instruction: undefined } : {}), ...(sourceAssisted ? { mode: undefined, policy: undefined } : {}), ...(taskContext ? { ...taskContext, executableContract: undefined } : {}), evidenceCatalog: shown, ...(separateFormats ? { toolBudget: submissionBudget() } : {}), ...(progressAdvice ? { progress: progressAdvice } : {}) } : undefined
       const sourceCatalog = localContext ? "Use evidenceCatalog in the current local explanation context; original source text is in sourceWindows." : limitedSourceCatalog ?? JSON.stringify(shown)
       const budgetNote = sourceLimitedDelivery ? "\n\nSource display budget requires bounded final delivery. Catalog metadata without text is not a fresh body display. Use only actually shown original evidence and preserve unresolved gaps; no further source actions are available." : tools.toolCalls >= tools.maxToolCalls ? "\n\nSource tool budget is exhausted. Deliver from the original windows already available and preserve precise gaps; no further source actions are available." : ""
@@ -258,6 +265,11 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
         const parsed = questionWorkflowSchemas(strategy)[step.name]!.safeParse(step.arguments)
         let output: unknown
         if (!parsed.success) output = { diagnostics: parsed.error.issues }
+        else if (step.name === "authorization_program_trial") {
+          const remaining = remainingExploration() + 1, count = (parsed.data as any).cases.length
+          if (count <= remaining) controlActions += count - 1
+          output = await domain.trialProgram(parsed.data, remaining)
+        }
         else if (step.name === "authorization_program_details") output = programConsumptionDetails(domain.executableContractReport() ?? domain.programDraftReport(), parsed.data)
         else {
           const proposal = step.name === "authorization_program_patch" ? await domain.patchProgram(parsed.data) : await domain.importProgram(parsed.data, "model")
@@ -288,19 +300,26 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
         const answer = { ...(assembled as Record<string, unknown>), observations: [...observations, ...((assembled as any).observations ?? [])] }
         const domainCheck = domain ? await domain.validate(answer) : undefined
         final = answer; validation = validateAuthorizationInquiryResult(program, answer, context(), domainCheck)
+        delivery.record({ sequence: telemetry.attempts.length, phase: deliveryPhase, answer, basis: deliveryBasis(), delivered: true })
+        deliveryValidations.set(telemetry.attempts.length, structuredClone(validation))
         if (separateFormats && !validation.valid) domain?.withdrawAnswer()
         if (initial === undefined) { initial = structuredClone(answer); initialValidation = structuredClone(validation) }
-        if (options.programMode === "edit" && isQuestionCheckedStrategy(strategy)) {
+        if (options.programMode === "edit" && isQuestionCheckedStrategy(strategy) && deliveryPhase !== "final-answer") {
           authorAnswers.push({ answer: structuredClone(answer), validation: structuredClone(validation), sequence: telemetry.attempts.length })
-          const decision = decideProgramAuthorContinuation({ maxContinuations: options.maxAuthorContinuations, mode: options.programMode, terminal: "completed", continuations: authorContinuations, remainingMs: (options.sessionTimeoutMs ?? 1200000) - (Date.now() - startedAt), previousProgress: previousAuthorProgress, context: { ...projectProgramTaskContext({ report: domain?.executableContractReport(), draftReport: domain?.programDraftReport(), questions: program.questions, operationQuestions: program.operationQuestions, programMode: options.programMode, programContext: options.programContext, local: localContext, evidence: tools.evidence, remainingActions: remainingExploration(), resourceInputs: options.resourceInputs, externalAssumptions: options.externalAssumptions }), toolBudget: { ...submissionBudget(), explorationRemaining: remainingExploration(), formatBudgetExhausted: sourceFormatRejections >= 3 } } })
+          const decision = decideProgramAuthorContinuation({ maxContinuations: options.maxAuthorContinuations, mode: options.programMode, terminal: "completed", continuations: authorContinuations, remainingMs: (options.sessionTimeoutMs ?? 1200000) - (Date.now() - startedAt), previousProgress: previousAuthorProgress, context: { ...projectProgramTaskContext({ report: domain?.executableContractReport(), draftReport: domain?.programDraftReport(), questions: program.questions, operationQuestions: program.operationQuestions, programMode: options.programMode, programContext: options.programContext, authoringTargetMode: options.authoringTargetMode, local: localContext, evidence: tools.evidence, remainingActions: remainingExploration(), resourceInputs: options.resourceInputs, externalAssumptions: options.externalAssumptions }), toolBudget: { ...submissionBudget(), explorationRemaining: remainingExploration(), formatBudgetExhausted: sourceFormatRejections >= 3 } } })
           authorDecisions.push(decision)
           if (decision.continue && telemetry.attempts.length + deliveryDispatchThreshold < (options.maxDispatches ?? 12)) {
-            authorContinuations++; previousAuthorProgress = decision.progress
-            authorInstruction = `Continue your own draft after the preserved answer: ${decision.reason}. Use current grouped feedback and original source. All limits are shared with earlier work.`
+            authorContinuations++; previousAuthorProgress = decision.progress; deliveryPhase = "author-edit"
+            authorInstruction = `Author-edit phase: continue your own draft after the preserved answer: ${decision.reason}. Use current grouped feedback and original source. All limits are shared with earlier work. Your final-form submission ends this editing phase; it does not replace the preserved task answer.`
             steps.push({ kind: "author-continuation", value: { ...decision, instruction: authorInstruction } })
             continue
           }
+          const finalDecision = decideFinalProgramDelivery({ delivery: delivery.snapshot(deliveryBasis()), terminal: "completed", remainingMs: (options.sessionTimeoutMs ?? 1200000) - (Date.now() - startedAt), budget: submissionBudget(), finalPhaseUsed })
+          steps.push({ kind: "final-delivery-decision", value: finalDecision })
+          if (finalDecision.runFinal && telemetry.attempts.length < (options.maxDispatches ?? 12)) { finalPhaseUsed = true; deliveryPhase = "final-answer"; authorInstruction = FINAL_PROGRAM_ANSWER_INSTRUCTION; continue }
+          if (deliveryPhase === "author-edit") { status = delivery.snapshot(deliveryBasis()).finalDelivered ? "completed" : "completed-with-diagnostics"; break }
         }
+        if (deliveryPhase === "final-answer") { status = validation.valid ? "completed" : "completed-with-diagnostics"; break }
         if (validation.valid) { status = "completed"; break }
         if (repaired) { status = "completed-with-diagnostics"; break }
         repaired = true; steps.push({ kind: "delivery-repair", value: { candidate: answer, diagnostics: validation.diagnostics, instruction: "One diagnostics-only repair; preserve source judgments unless a diagnosed contradiction requires correction." } })
@@ -314,6 +333,12 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
     status = cause instanceof AuthorizationCallTimeoutError || hasUnknownAuthorizationCompletion({ attempts: telemetry.attempts }) ? "timeout-unknown" : cause instanceof AuthorizationDispatchLimitError ? "budget-exhausted" : cause instanceof TaskPropertyIntentError ? "completed-with-diagnostics" : inquiry ? "transport-failed" : telemetry.attempts.length ? "completed-with-diagnostics" : "needs-input"
   } finally { await telemetry.close(`inquiry-${status}`); domain?.close() }
   const sourceVerification = await tools.verifySnapshot()
+  const finalDelivery = delivery.snapshot(deliveryBasis()), rawLastFinal = final
+  if (finalDelivery.selected) { final = finalDelivery.answer; validation = deliveryValidations.get(finalDelivery.selected.sequence) }
+  if (finalDelivery.status === "stale" && validation) {
+    validation = { ...validation, valid: false, diagnostics: [...validation.diagnostics, { code: "answer-basis-stale", path: "$", message: finalDelivery.instruction, severity: "error" }] }
+    if (status === "completed") status = "completed-with-diagnostics"
+  }
   if (!sourceVerification.valid && validation) {
     const diagnostic = { code: "source-invalidated", path: "$source", message: sourceVerification.message!, severity: "error" as const }
     validation = { ...validation, valid: false, diagnostics: [...validation.diagnostics, diagnostic] }
@@ -322,7 +347,7 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
   return { schemaVersion: "authorization-inquiry-run/v1" as const, status, method: options.method, strategy, inquiry,
     program: inquiry ? compileAuthorizationInquiry(inquiry, { allowMissingPolicy: sourceAssisted }) : undefined, result: validation?.valid ? validation.result : undefined,
     ...(isTaskBindingStrategy(strategy) ? { taskPreparation, taskPreparationAttempts } : {}), preparation: tools.preparation,
-    initial, initialValidation, final, validation, authorAnswers, authorContinuation: { continuations: authorContinuations, decisions: authorDecisions }, sourceVerification, observations, steps, requests, wireFailures, wireNormalizations, evidence: tools.evidence, toolHistory: tools.history, scopeGaps: tools.scopeGaps, sourceFiles: tools.files,
+    initial, initialValidation, final, rawLastFinal, delivery: finalDelivery, validation, authorAnswers, authorContinuation: { continuations: authorContinuations, decisions: authorDecisions }, sourceVerification, observations, steps, requests, wireFailures, wireNormalizations, evidence: tools.evidence, toolHistory: tools.history, scopeGaps: tools.scopeGaps, sourceFiles: tools.files,
     sourceAccounting: { indexBytes: tools.indexBytes, physicalReadBytes: tools.ioReadBytes, toolDisplayBytes: tools.displayBytes, importedEvidenceBytes: tools.importedEvidenceBytes, cumulativeModelSourceBytes, resentSourceBytes },
     ...(separateFormats ? { recovery: { ...submissionBudget(), formatRejections: wireFailures.length, semanticChecks, totalToolLimit: tools.maxToolCalls, totalToolsUsed: tools.maxToolCalls - remainingTools() } } : {}),
     ...(options.reuse ? { reuse: { ...options.reuse.info, ...(isFiniteControlInquiryStrategy(strategy) ? { materialsUsed: new Set(domain?.report().materialUses?.map(u => u.materialId)).size } : {}), importedEvidenceIds: [...importedReferences] } } : {}),

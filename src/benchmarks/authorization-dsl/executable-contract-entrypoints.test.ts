@@ -9,6 +9,64 @@ import { runAuthorizationInquiry } from "./inquiry-run.ts"
 import { emptyTokenUsage } from "../../core/types.ts"
 import { createProgramDraft } from "../../task-dsl/authorization/resource-program-draft.ts"
 import { questionWorkflowDefinitions, RESOURCE_PROGRAM_TEMPLATE } from "./question-workflow-wire.ts"
+test("account editing chatter preserves the current first answer without another final turn", async () => {
+  const f = await contractFiles(); let turn = 0
+  const input = JSON.parse(await readFile(f.inputFile, "utf8")); input.inquiry.questions[1].properties = [{ id: "remaining", kind: "effect-reachability", requirement: input.inquiry.questions[1].request }]; await writeFile(f.inputFile, JSON.stringify(input))
+  const factory: any = () => { let receive = (_m: any) => {}; return { isolation: { kind: "test-transport", reason: "unchanged author basis" }, onMessage(f: any) { receive = f }, onExit() {}, close() {}, send(m: any) {
+    if (m.method === "initialize") receive({ id: m.id, result: {} })
+    if (m.method === "thread/read") receive({ id: m.id, result: { thread: { id: "own", ephemeral: false, turns: [{ id: `t${turn}`, status: "completed" }] } } })
+    if (["thread/start", "thread/resume"].includes(m.method)) receive({ id: m.id, result: { thread: { id: "own", ephemeral: false }, model: "gpt-5.6-sol" } })
+    if (m.method === "turn/start") { turn++; receive({ id: m.id, result: { turn: { id: `t${turn}` } } }); queueMicrotask(() => receive({ method: "turn/completed", params: { threadId: "own", turn: { id: `t${turn}`, status: "completed", items: [{ type: "agentMessage", phase: "final_answer", text: turn === 1 ? "Original task answer, explicitly incomplete" : "No draft changes; editing notes only" }] } } })) }
+  } } }
+  const { runCodexAccountInquiry } = await import("../../adapters/codex-account.ts")
+  const run = await runCodexAccountInquiry({ inputFile: f.inputFile, workDir: f.root, model: "gpt-5.6-sol", strategy: "question-checked-v1", programMode: "edit", maxToolCalls: 16, timeoutMs: 5000, transportFactory: factory })
+  expect(turn).toBe(2)
+  expect(run.account.text).toBe("Original task answer, explicitly incomplete")
+  expect(run.account.rawLastText).toBe("No draft changes; editing notes only")
+  expect(run.account.delivery.status).toBe("current")
+  expect(run.account.delivery.decisions.at(-1)?.reason).toBe("task-answer-current")
+})
+test("native and structured author run the same isolated trial patch trial loop", async () => {
+  const f = await contractFiles(), input = JSON.parse(await readFile(f.inputFile, "utf8"))
+  input.resourceInputs = { q: { item: 7 } }
+  input.inquiry.questions[1].properties = [{ id: "remaining", kind: "effect-reachability", requirement: input.inquiry.questions[1].request }]
+  await writeFile(f.inputFile, JSON.stringify(input))
+  const raw = { ...f.contract, authoringTarget: { mode: "reusable", coverage: [] }, queries: [], resourceWorkflow: { inputs: ["item"], steps: [{ id: "result", op: "return", value: { ref: "item" }, source: at(8) }] } }
+  const actions = (revision?: string): any[] => [
+    { name: "source_read", arguments: { path: "app.py", startLine: 1, endLine: 8 } },
+    { name: "authorization_program", arguments: raw },
+    { name: "authorization_program_trial", arguments: { expectedRevision: revision, cases: [{ id: "a", resourceInputs: { item: 19 } }, { id: "b", resourceInputs: { item: 23 } }] } },
+    { name: "authorization_program_patch", arguments: { baseRevision: revision, upsertSteps: [{ id: "result", op: "return", value: { record: { chosen: { ref: "item" } } }, source: at(8) }] } },
+    { name: "authorization_program_trial", arguments: { expectedRevision: revision, cases: [{ id: "patched", resourceInputs: { item: 31 } }] } },
+  ]
+  const runtime = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, strategy: "question-checked-v1", programMode: "edit", executionPolicy: "progressive", authoringTargetMode: "reusable" } as any)
+  try {
+    expect(runtime.definitions.some(t => t.name === "authorization_program_trial")).toBe(true)
+    expect((await runtime.accountContext(false) as any).authoring.target.mode).toBe("reusable")
+    for (let i = 0; i < 5; i++) {
+      const a = actions((runtime.report().domain?.executableContract as any)?.currentDraft?.revision)[i]!
+      const result = JSON.parse((await runtime.execute({ id: `trial-${i}`, ...a })).output)
+      if (i === 2) expect(result.cases.map((c: any) => c.execution.returned)).toEqual([19, 23])
+      if (i === 4) expect(result.cases[0].execution.returned).toEqual({ chosen: 31 })
+    }
+    expect(runtime.report().toolBudget.totalUsed).toBe(6)
+    expect(runtime.report().domain!.executableContract!.resourceExecution!.returned).toEqual({ chosen: 7 })
+  } finally { await runtime.close() }
+  let count = 0
+  const provider: any = { name: "trial-loop", async complete(params: any) {
+    const text = params.messages.map((m: any) => m.content).join("\n"), n = count++
+    const current = JSON.parse(text.split("Current local explanation context: ").at(-1)!.split("\n\nRemaining dispatches:")[0]!)
+    const a = actions(current.authoring?.draftRevision)[n]
+    const action = a ? a.name === "source_read" ? { kind: "tool", calls: [a] } : { kind: "program", ...a } : { kind: "final", schemaVersion: "authorization-focused-result/v1", focusId: current.focus.id, answers: ["q", "other"].map(id => ({ explanation: `${id} remains source-limited`, missing: [{ kind: "source-gap", detail: "Unreviewed source meaning" }] })), scope: "Local fixture" }
+    return { text: "", toolCalls: [{ id: `trial-${n}`, name: params.tools[0].name, arguments: action }], stopReason: "tool_use", tokens: emptyTokenUsage(), durationMs: 0 }
+  }, async completeWithToolResults() { throw new Error("unused") } }
+  const run: any = await runAuthorizationInquiry({ ...input, sourceRoot: path.join(f.root, "source"), provider, method: "D1", strategy: "question-checked-v1", programMode: "edit", executionPolicy: "progressive", maxDispatches: 12, maxAuthorContinuations: 0 })
+  expect(run.wireFailures).toEqual([])
+  const trials = run.steps.filter((s: any) => s.kind === "program" && s.value.name === "authorization_program_trial")
+  expect(trials[0].value.output.cases.map((c: any) => c.execution.returned)).toEqual([19, 23])
+  expect(trials[1].value.output.cases[0].execution.returned).toEqual({ chosen: 31 })
+  expect(run.domain.executableContract.resourceExecution.returned).toEqual({ chosen: 7 })
+})
 test("native author inspects an empty draft then reads and submits its first program", async () => {
   const f = await contractFiles()
   const runtime = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, strategy: "question-checked-v1", programMode: "edit", executionPolicy: "progressive" })
@@ -249,6 +307,9 @@ test("structured author continues after an answer using its actual draft and the
   expect(run.authorContinuation.decisions[0]).toMatchObject({ continue: true, reason: "repair-current-draft-feedback" })
   expect(run.recovery.totalToolLimit).toBe(16)
   expect(run.authorContinuation.continuations).toBeLessThanOrEqual(2)
+  expect(run.delivery.status).toBe("current")
+  expect(run.delivery.firstAnswer.sequence).toBeLessThan(run.delivery.selected.sequence)
+  expect(run.delivery.selected.phase).toBe("final-answer")
 })
 test("structured provider can patch a draft and request actual compact program details", async () => {
   const f = await contractFiles(), input = JSON.parse(await readFile(f.inputFile, "utf8")); let count = 0
@@ -289,7 +350,8 @@ test("public account author continues twice with one runtime budget and archives
       if (["thread/start", "thread/resume"].includes(m.method)) receive({ id: m.id, result: { thread: { id: "thread", ephemeral: false }, model: "gpt-5.6-sol" } })
       if (m.method === "turn/start") {
         turn++; context = decode(JSON.parse(m.params.input[0].text.split("Current local explanation context: ")[1]))
-        actions = turn === 1 ? [{ tool: "authorization_prepare_properties", arguments: { schemaVersion: "authorization-property-intent/v1", questions: [{ questionId: "other", state: "residual", reason: "Keep duty" }] } }, { tool: "source_read", arguments: { path: "app.py", startLine: 1, endLine: 8 } }] : turn === 2 ? [{ tool: "authorization_program", arguments: raw }] : [{ tool: "authorization_program_patch", arguments: { baseRevision: context.authoring.draftRevision, inputBinding: { questionId: "q" }, upsertSteps: [] } }]
+        actions = turn === 1 ? [{ tool: "authorization_prepare_properties", arguments: { schemaVersion: "authorization-property-intent/v1", questions: [{ questionId: "other", state: "residual", reason: "Keep duty" }] } }, { tool: "source_read", arguments: { path: "app.py", startLine: 1, endLine: 8 } }] : turn === 2 ? [{ tool: "authorization_program", arguments: raw }] : turn === 3 ? [{ tool: "authorization_program_patch", arguments: { baseRevision: context.authoring.draftRevision, inputBinding: { questionId: "q" }, upsertSteps: [] } }] : []
+        if (turn === 4) expect(m.params.input[0].text).toContain("Deliver a complete standalone answer")
         receive({ id: m.id, result: { turn: { id: `turn-${turn}` } } }); queueMicrotask(next)
       }
       if (m.result?.contentItems) {
@@ -304,9 +366,12 @@ test("public account author continues twice with one runtime budget and archives
     } }
   }
   const run: any = await runCodexAccountInquiry({ inputFile: f.inputFile, workDir: f.root, model: "gpt-5.6-sol", strategy: "question-checked-v1", programMode: "edit", executionPolicy: "progressive", maxToolCalls: 16, timeoutMs: 5000, traceDir, transportFactory: factory })
-  expect(turn, JSON.stringify(run.account.authorContinuation)).toBe(3)
+  expect(turn, JSON.stringify(run.account.authorContinuation)).toBe(4)
   expect(checkpointSeen).toBe(true)
-  expect(run.account.turns.map((t: any) => t.text)).toEqual(["answer-1", "answer-2", "answer-3"])
+  expect(run.account.turns.map((t: any) => t.text)).toEqual(["answer-1", "answer-2", "answer-3", "answer-4"])
+  expect(run.account.text).toBe("answer-4")
+  expect(run.account.firstAnswer.answer).toBe("answer-1")
+  expect(run.account.delivery.records.map((r: any) => r.phase)).toEqual(["task-answer", "author-edit", "author-edit", "final-answer"])
   expect(run.native.toolBudget.totalUsed).toBe(4)
   expect(run.native.toolBudget.totalLimit).toBe(16)
   expect(run.native.domain.executableContract.candidate.resourceExecution.returned, JSON.stringify(run.native.domain.executableContract.candidate.diagnostics)).toBe(7)

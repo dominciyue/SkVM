@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有有限表达式/资源求值器、PowerShell 示例、官方 Codex account adapter；不引入另一套 CLI、语言分析器或展示系统。
 
-**状态：** 2026-10-14 已从 b516e106 接管，BL1–BL2 首组匿名诊断红绿已实施；BL3–BL21继续执行，尚无本轮真实模型结果。跟踪状态见本identity的status.json。
+**状态：** 2026-10-14 已从 b516e106 接管；BL2提交1c6a5072，BL3–BL6共享实现及131项定向回归/945断言通过，独立核验另修strict trial单场景异常（4项/39断言）。BL7–BL21继续执行，尚无本轮真实模型结果。跟踪状态见本identity的status.json。
 
 | 项目 | 本轮约定 |
 |---|---|
@@ -144,37 +144,37 @@ type AuthoringTarget = {
 
 ### BL1 — 建立共享失败测试
 
-- [ ] 按第二、三节将外部参数、排序、trial隔离和末答覆盖拆成匿名失败测试，确认真实红因。
+- [x] 外部参数/排序、trial隔离、目标保留、末答覆盖均先观察匿名红因后实现；严格trial额外字段异常由独立核验复现后修复。
 - [x] 保存BK原参数的零调用诊断映射（bk-parameter-diagnostic.json）；旧源码/原稿/答案不改写，不作为编译器验收或自动成功。
 
 ### BL2 — 修外部参数反馈和选择合同
 
 - [x] 实现字段/类型/身份不匹配诊断和准确的false/unknown区分，保留精确绑定。三项新增红测确认后12测试/65断言通过。
 - [x] 同步select广告与执行语义，验证排序/唯一性反例；已有算子足够，不新增操作。
-- [ ] 聚焦测试转绿后提交一份共享修复；不因测试数增加宣称自动稿已修好。
+- [x] 1c6a5072已提交共享诊断；不宣称自动稿已修好。
 
 ### BL3 — 接通可复用作者目标
 
-- [ ] 在现有配置/作者反馈中加入可复用意图，覆盖声明及source/step关系采用现有资料；缺内容可渐进补齐。
-- [ ] 分开当前执行、源内未编码、外部条件和证明缺口。不再以fixture没给某值作为可复用完成理由。
-- [ ] 原子patch、序列化、恢复和普通edit均保持目标；匿名旧接口兼容通过。
+- [x] authoringTarget与--authoring-target=reusable接入，覆盖source/step声明保持unreviewed。
+- [x] 当前执行、未编码coverage、external和proof分组；未走分支不污染当前确定值。
+- [x] 原子patch、序列化/恢复和普通edit保持目标，旧默认current-input兼容。
 
 ### BL4 — 实现同核trial
 
-- [ ] 实现第二节的有界试算、revision/来源检查、同operation和预算计量。
-- [ ] 复用当前编译环境，不重复索引全仓，不写活动输入。每项失败与实际执行都能通过details定位。
-- [ ] 无expected参数，研究脚本仅调用公共函数。
+- [x] 当前候选revision、同operation、1–4case、每case一单位及来源读预算已实现。
+- [x] 每批每引用文件只验证一次后复用compiler；活动输入不变，trialCaseId详情需精确draft revision，过期来源拒绝。
+- [x] strict schema不收expected，runProgramTrial为公共同核函数；研究入口在BL7调用生产链。
 
 ### BL5 — 接通account、structured和普通入口
 
-- [ ] 工具广告、解析、native dispatch、structured program action及本地入口共用trial和作者反馈。
-- [ ] 匿名双入口测试走 source-read → program → trial → patch → trial，而不是只直接调用求值器。
-- [ ] 证明试算不会隐式授权run目标代码，不会绕过源码失效；目标执行保持0。
+- [x] 工具广告、解析、native dispatch、structured action和普通入口共享实现；执行记录保留trial。
+- [x] 匿名双入口read→program→trial→patch→trial通过，2case计2单位，活动7与trial19/23/31隔离。
+- [x] 沿现有source-only compiler，来源变化拒绝并撤回当前资格；目标执行0。
 
 ### BL6 — 修最终交付生命周期
 
-- [ ] 按2.4实现修稿与任务回答分轨，保留原回合及依据；必要的最终回答阶段共享原预算。
-- [ ] 用A1实际快照派生复核加匿名红绿，证明反馈不再静默覆盖答复，同时不挑历史高分。
+- [x] 三阶段及task/source/input/program摘要接入双宿主；最多一次明确final-answer，保留firstAnswer/原始末消息。
+- [x] BK A1真实第二回合确有program变化；零调用派生复核保留首答为stale、finalOnly不再追加，未把历史首答升级为当前成功。见verification/bk-a1-delivery-replay.json。
 - [ ] account/structured、持久恢复、finalOnly和中断分别验证一次；不再做全历史账号审计。
 
 ### BL7 — 薄研究入口与早期A0准备

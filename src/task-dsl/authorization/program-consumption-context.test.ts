@@ -1,6 +1,12 @@
 import { expect, test } from "bun:test"
 const api = await import("./program-consumption-context.ts").catch(() => ({} as any))
 const author = await import("./program-authoring-context.ts")
+test("trial details require the exact current draft and never substitute active events", () => {
+  const report = { currentDraft: { revision: "d", raw: { resourceWorkflow: { steps: [{ id: "result" }] } } }, trials: [{ revision: "d", status: "completed", cases: [{ id: "alternate", execution: { returned: 19, events: [{ id: "result", outputs: { value: 19 } }] } }] }], resourceExecution: { returned: 7 } }
+  expect(api.programConsumptionDetails(report, { view: "draft", expectedRevision: "d", trialCaseId: "alternate" }).execution.returned).toBe(19)
+  expect(api.programConsumptionDetails(report, { view: "draft", trialCaseId: "alternate" }).status).toBe("trial-revision-required")
+  expect(api.programConsumptionDetails({ ...report, currentDraft: { ...report.currentDraft, revision: "new" } }, { view: "draft", expectedRevision: "new", trialCaseId: "alternate" }).status).toBe("trial-detail-not-found")
+})
 test("draft details without a candidate stays readable", () => {
   for (const report of [undefined, {}, { currentDraft: { raw: {} } }, { revision: "old", resourceExecution: { events: [{ id: "old" }] } }]) {
     expect(() => api.programConsumptionDetails(report, { view: "draft" })).not.toThrow()

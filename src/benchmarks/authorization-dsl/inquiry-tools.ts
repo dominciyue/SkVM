@@ -260,7 +260,23 @@ async function prepareInquiryTools(options: InquiryToolsOptions, preparation: Re
     }
     history.push({ name, arguments: structuredClone(args), result: structuredClone(result), ...origin }); return result
   }
-  return { definitions: structure ? [...INQUIRY_SOURCE_TOOLS, structureTool] : INQUIRY_SOURCE_TOOLS, execute, restoreEvidence, verifySnapshot, sourceSkeleton, get snapshotVerification() { return snapshotVerification }, evidence, history, scopeGaps, structure, identity: { repository: options.repository, sourceRef: options.sourceRef },
+  // A trial revalidates only its bound files once per batch. This shares the
+  // physical read budget and original-byte check without freezing source tools.
+  const verifyCurrentSources = async (paths: readonly string[]): Promise<InquirySourceVerification> => {
+    const started = ioReadBytes; let checkedFiles = 0
+    if (snapshotPromise) return { valid: false, code: "source-session-closed", checkedFiles, physicalReadBytes: 0 }
+    for (const relative of new Set(paths)) {
+      let file: SourceBundleFile | InquiryToolOutput
+      try { file = await current(relative) } catch (error) { file = blank("error", "source-changed", String(error)) }
+      if ("status" in file) {
+        history.push({ name: "program-trial-source-check", arguments: { path: relative }, result: file })
+        return { valid: false, code: file.code, message: file.message, checkedFiles, physicalReadBytes: ioReadBytes - started }
+      }
+      checkedFiles++
+    }
+    return { valid: true, checkedFiles, physicalReadBytes: ioReadBytes - started }
+  }
+  return { definitions: structure ? [...INQUIRY_SOURCE_TOOLS, structureTool] : INQUIRY_SOURCE_TOOLS, execute, restoreEvidence, verifySnapshot, verifyCurrentSources, sourceSkeleton, get snapshotVerification() { return snapshotVerification }, evidence, history, scopeGaps, structure, identity: { repository: options.repository, sourceRef: options.sourceRef },
     files: [...files].map(([p, f]) => ({ path: p, sha256: f.sha256, bytes: Buffer.byteLength(f.content) })),
     locateSymbols: (name: string) => structuredClone(symbols.filter(s => s.name === name)),
     symbolById: (id: string) => structuredClone(symbols.find(s => s.id === id)),

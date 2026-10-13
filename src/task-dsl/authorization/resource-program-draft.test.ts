@@ -1,6 +1,21 @@
 import { expect, test } from "bun:test"
 import { executeResourceWorkflow, inspectResourceDraft } from "./resource-relations.ts"
 const api = await import("./resource-program-draft.ts").catch(() => ({} as any))
+test("authoring target persists across root repairs and atomic metadata patches", () => {
+  const target = { mode: "reusable", coverage: [{ id: "branch", source: { path: "fixture.py", startLine: 1 }, stepIds: [], disposition: "unwritten" }] }
+  const first = api.createProgramDraft({ id: "p", scope: { questionId: "q" }, authoringTarget: target, resourceWorkflow: { inputs: [], steps: [{ id: "a" }] } })
+  expect(api.createProgramDraft({ id: "p", scope: { questionId: "q" } }, first).raw.authoringTarget).toEqual(target)
+  expect(api.patchProgramDraft(first, { baseRevision: first.revision, upsertSteps: [] }).draft.raw.authoringTarget).toEqual(target)
+  const changed = api.patchProgramDraft(JSON.parse(JSON.stringify(first)), { baseRevision: first.revision, upsertSteps: [], authoringTarget: { mode: "current-input", coverage: [] } })
+  expect(changed.diagnostics).toEqual([])
+  expect(changed.draft.raw.authoringTarget.mode).toBe("current-input")
+  const cleared = api.patchProgramDraft(changed.draft, { baseRevision: changed.draft.revision, upsertSteps: [], authoringTarget: null })
+  expect(cleared.diagnostics).toEqual([])
+  expect(cleared.draft.raw.authoringTarget).toBeUndefined()
+  const rejected = api.patchProgramDraft(first, { baseRevision: first.revision, upsertSteps: [], authoringTarget: null, stepOrder: [] })
+  expect(rejected.draft).toEqual(first)
+  expect(rejected.diagnostics.length).toBeGreaterThan(0)
+})
 test("input binding patch retains replaces and revokes the override atomically", () => {
   const first = api.createProgramDraft({ id: "p", scope: { questionId: "q" }, inputBinding: { questionId: "data" }, resourceWorkflow: { inputs: [], steps: [{ id: "a", op: "return", value: { literal: 7 } }] } })
   const unchanged = api.patchProgramDraft(first, { baseRevision: first.revision, upsertSteps: [] }).draft

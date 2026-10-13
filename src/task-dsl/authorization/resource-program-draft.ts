@@ -2,14 +2,16 @@ import { createHash } from "node:crypto"
 import { z } from "zod"
 import type { InquiryDiagnostic } from "./inquiry.ts"
 import { ProgramInputBindingSchema } from "./program-input-binding.ts"
+import { AuthoringTargetSchema } from "./program-coverage.ts"
 
 const id = z.string().min(1).max(256).refine(v => !["__proto__", "prototype", "constructor"].includes(v))
-export const ProgramStepPatchSchema = z.object({ baseRevision: z.string().min(1), upsertSteps: z.array(z.object({ id }).passthrough()).max(128), removeStepIds: z.array(id).max(128).optional(), inputNames: z.array(id).max(64).optional(), stepOrder: z.array(id).max(128).optional(), inputBinding: ProgramInputBindingSchema.nullable().optional() }).strict()
+export const ProgramStepPatchSchema = z.object({ baseRevision: z.string().min(1), upsertSteps: z.array(z.object({ id }).passthrough()).max(128), removeStepIds: z.array(id).max(128).optional(), inputNames: z.array(id).max(64).optional(), stepOrder: z.array(id).max(128).optional(), inputBinding: ProgramInputBindingSchema.nullable().optional(), authoringTarget: AuthoringTargetSchema.nullable().optional() }).strict()
 export interface ProgramDraft { revision: string; raw: any }
 const identity = (v: any) => JSON.stringify([v?.id, v?.scope?.questionId])
 export function createProgramDraft(raw: unknown, previous?: ProgramDraft): ProgramDraft {
   const value: any = structuredClone(raw)
   if (value && typeof value === "object" && !Array.isArray(value) && !Object.hasOwn(value, "resourceWorkflow") && previous && identity(value) === identity(previous.raw) && previous.raw?.resourceWorkflow) value.resourceWorkflow = structuredClone(previous.raw.resourceWorkflow)
+  if (value && typeof value === "object" && !Array.isArray(value) && !Object.hasOwn(value, "authoringTarget") && previous && identity(value) === identity(previous.raw) && previous.raw?.authoringTarget) value.authoringTarget = structuredClone(previous.raw.authoringTarget)
   return { revision: createHash("sha256").update(JSON.stringify(value) ?? "null").digest("hex"), raw: value }
 }
 /** Pure atomic merge. Omitted order preserves positions and appends new steps. */
@@ -47,6 +49,10 @@ export function patchProgramDraft(current: ProgramDraft | undefined, raw: unknow
     else value.inputBinding = patch.inputBinding
   }
   value.resourceWorkflow = workflow
+  if (Object.hasOwn(patch, "authoringTarget")) {
+    if (patch.authoringTarget === null) delete value.authoringTarget
+    else value.authoringTarget = patch.authoringTarget
+  }
   const moved = workflow.steps.flatMap((s: any, index: number) => ids.indexOf(s.id) !== index ? [s.id as string] : [])
   return { draft: createProgramDraft(value), diagnostics: [], changedStepIds: [...new Set([...upsertIds, ...remove, ...moved])] }
 }

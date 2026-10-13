@@ -2,6 +2,7 @@ import { z } from "zod"
 import { isDeepStrictEqual } from "node:util"
 import { finiteValue, partialEvaluate, predicateDiagnostics, scalar, type FiniteValue, type Predicate, type Scalar } from "./control-evaluation.ts"
 import { SourceCitationSchema } from "./question-workflow.ts"
+import type { AuthoringTargetMode } from "./program-coverage.ts"
 
 export type ResourceValue = FiniteValue | Record<string, Scalar>[]
 export type ResourceExpression = { literal: FiniteValue } | { ref: string } | { field: { of: ResourceExpression; key: string; default?: ResourceExpression } } | { test: Predicate } | { choose: { test: Predicate; then: ResourceExpression; else: ResourceExpression } } | { coalesce: ResourceExpression[] } | { integer: ResourceExpression } | { record: Record<string, ResourceExpression> }
@@ -57,7 +58,7 @@ export function inspectResourceDraft(raw: unknown) {
   return { workflow, steps, duplicateIds: [...counts].filter(([, count]) => count > 1).map(([id]) => id), unreachableSteps }
 }
 export const ExternalAssumptionsSchema = z.array(z.object({ name, arguments: z.record(name, z.custom<FiniteValue>(finiteValue)), value: z.custom<FiniteValue>(finiteValue), reason: z.string().min(1) }).strict()).max(64)
-export interface ResourceProgramInputs { resourceInputs?: Record<string, Record<string, ResourceValue>>; externalAssumptions?: Record<string, z.infer<typeof ExternalAssumptionsSchema>> }
+export interface ResourceProgramInputs { resourceInputs?: Record<string, Record<string, ResourceValue>>; externalAssumptions?: Record<string, z.infer<typeof ExternalAssumptionsSchema>>; authoringTargetMode?: AuthoringTargetMode }
 export type ResourceWorkflow = z.infer<typeof ResourceWorkflowSchema>
 export interface ResourceEvent {
   sequence: number; id: string; op: string; executor: "host"; meaningOrigin: "authored-program" | "external-assumption";

@@ -18,6 +18,7 @@ import { sourceRelationRevision } from "../../benchmarks/authorization-dsl/opera
 import { lowerIntoControlSlice } from "../../benchmarks/authorization-dsl/inquiry-semantic.ts"
 import { ResourceWorkflowSchema, ResourceWorkflowDraftSchema, inspectResourceDraft, executeResourceWorkflow, type ResourceValue, type ExternalAssumptionsSchema } from "./resource-relations.ts"
 import { ProgramInputBindingSchema, programInputBindingSummary, type ProgramInputResolution } from "./program-input-binding.ts"
+import { AuthoringTargetSchema } from "./program-coverage.ts"
 
 const scope = z.object({ kind: z.enum(["function-contract", "request-operation"]), questionId: InquiryText, operationId: InquiryText.optional(), root: SourceCitationSchema, upstream: z.array(InquiryText).max(32) }).strict()
 export const ExecutableContractSchema = z.object({ schemaVersion: z.literal("authorization-executable-contract/v1"), id: InquiryText, scope,
@@ -25,6 +26,7 @@ export const ExecutableContractSchema = z.object({ schemaVersion: z.literal("aut
   assumptions: z.array(z.object({ text: InquiryText, origin: z.enum(["user", "source", "development-premise"]), source: SourceCitationSchema.optional() }).strict()).max(32).default([]),
   resourceWorkflow: ResourceWorkflowSchema.optional(),
   inputBinding: ProgramInputBindingSchema.optional(),
+  authoringTarget: AuthoringTargetSchema.optional(),
 }).strict()
 const sourceInput = z.union([SourceCitationSchema, z.object({ symbol: InquiryText, path: InquiryText.optional(), receiverClass: InquiryText.optional(), sha256: InquiryText.optional() }).strict()])
 /** Author-facing mechanical omissions; normalization still resolves source identity in the live index. */
@@ -53,6 +55,7 @@ export function pinExecutableSourceSnapshot(snapshot: ExecutableSourceSnapshot) 
   for (const declaration of value?.sourceDeclarations ?? []) pin(declaration?.source)
   for (const step of value?.resourceWorkflow?.steps ?? []) { pin(step?.source); for (const at of step?.sources ?? []) pin(at) }
   for (const assumption of value?.assumptions ?? []) pin(assumption?.source)
+  for (const item of value?.authoringTarget?.coverage ?? []) pin(item?.source)
   return value
 }
 /** Mechanical omissions only; the raw proposal retains nonsemantic notes. */
@@ -203,6 +206,13 @@ export async function compileExecutableContract(raw: unknown, options: { tools: 
   if (diagnostics.length && !progressive) return empty()
   if (contract.resourceWorkflow) for (const step of inspectResourceDraft(contract.resourceWorkflow).unreachableSteps)
     diagnostics.push({ code: "contract-resource-unreachable", path: `resourceWorkflow.steps.${step.index}`, questionId: question.id, severity: "warning", message: `Step ${step.id} follows declared unconditional return ${step.after} and is unreachable when that return executes. Use an explicit complete stepOrder in authorization_program_patch to move it before the return if supported by source; no implicit reordering occurs.` })
+  for (const [i, item] of (contract.authoringTarget?.coverage ?? []).entries()) {
+    const at = item.source, file = options.tools.files.find(f => f.path === at.path)
+    const supported = file && (!at.sha256 || at.sha256 === file.sha256) && options.tools.evidence.some(e => e.path === at.path && e.sha256 === file.sha256 && e.startLine <= at.startLine && e.endLine >= (at.endLine ?? at.startLine))
+    const missingSteps = item.stepIds.filter(id => !contract.resourceWorkflow?.steps.some((s: any) => s?.id === id))
+    if (!supported || missingSteps.length || item.disposition === "implemented" && !item.stepIds.length) diagnostics.push({ code: "contract-coverage-reference", path: `authoringTarget.coverage.${i}`, questionId: question.id, severity: "warning", message: `Author coverage is unreviewed: current source reference=${!!supported}; missing steps=${JSON.stringify(missingSteps)}; implemented claims require explicit steps. Coverage metadata does not change current execution.` })
+    else if (file) at.sha256 = file.sha256
+  }
   const resourceInputs = { ...options.resourceInputs }
   if (contract.resourceWorkflow && options.inputResolution) diagnostics.push(...options.inputResolution.diagnostics)
   if (progressive && contract.resourceWorkflow) for (const key of Object.keys(resourceInputs)) if (!contract.resourceWorkflow.inputs.includes(key)) {

@@ -4,6 +4,21 @@ import * as author from "./program-authoring-context.ts"
 const at = { path: "app.py", startLine: 1, endLine: 8 }
 const questions = [{ id: "meaning", request: "Retain all requested meanings" }, { id: "data" }]
 const operationQuestions = questions.map(q => ({ questionId: q.id, operationId: "same" }))
+test("reusable coverage keeps untriggered source branches visible without poisoning current execution", () => {
+  const target = { mode: "reusable", coverage: [{ id: "alternative", source: at, stepIds: [], disposition: "unwritten", reason: "Current input does not take this branch" }] }
+  const raw = { scope: { questionId: "meaning" }, authoringTarget: target, resourceWorkflow: { inputs: [], steps: [] } }
+  const report = { currentDraft: { revision: "r", raw }, candidate: { revision: "r", resourceExecution: { returned: 4, events: [], conditions: [], gaps: [] } } }
+  const feedback: any = author.projectProgramAuthoring(report, questions, 4, { resourceInputs: { meaning: {} } })
+  expect(feedback.target.mode).toBe("reusable")
+  expect(feedback.feedbackGroups.coverage).toContainEqual(expect.objectContaining({ id: "alternative", disposition: "unwritten" }))
+  expect(feedback.computed.returned).toBe(4)
+  expect(feedback.computed.conditions).toEqual([])
+  expect(feedback.completion).toBe("unreviewed")
+  const empty: any = author.projectProgramAuthoring(undefined, questions, 4, { authoringTargetMode: "reusable" } as any)
+  expect(empty.target.mode).toBe("reusable")
+  expect(empty.target.coverageStatus).toBe("undeclared")
+  expect(author.projectProgramAuthoring(undefined, questions).target.mode).toBe("current-input")
+})
 test("proof locator errors do not hide executable missing inputs and external conditions are separate", () => {
   const raw = { scope: { questionId: "meaning" }, resourceWorkflow: { inputs: ["rows"], steps: [] } }
   const proof = { code: "question-property-source-unresolved", path: "properties", severity: "error", message: "ambiguous locator" }

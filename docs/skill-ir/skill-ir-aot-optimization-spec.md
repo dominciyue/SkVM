@@ -3092,7 +3092,7 @@ check/run/compare已接入`--execution-policy=progressive`，strict仍为默认�
 
 ### 14.51 BL reusable program semantics and delivery
 
-2026-10-14授权[BL0–BL21](../superpowers/plans/2026-10-14-authorization-reusable-program-semantics-and-delivery.md)，开发`gpt-6-astra/high`，已核对生产基线`02b79e4b`，identity为`authorization-reusable-program-v1`。当前是计划，尚无本轮实现或效果。复核确认BK自动稿有实际默认值，但变化输入、外部参数及最终交付仍存在共享接口/编写缺口；本轮复用现有DSL、求值器和CLI，先取得可复用自动程序，再验证消费。
+2026-10-14授权[BL0–BL21](../superpowers/plans/2026-10-14-authorization-reusable-program-semantics-and-delivery.md)，开发`gpt-6-astra/high`，已核对生产基线`02b79e4b`，identity为`authorization-reusable-program-v1`。BL2诊断已提交，BL3–BL6普通入口实现和回归正在推进，尚无本轮真实模型效果。复核确认BK自动稿有实际默认值，但变化输入、外部参数及最终交付仍存在共享接口/编写缺口；本轮复用现有DSL、求值器和CLI，先取得可复用自动程序，再验证消费。
 
 **可复用目标。** 编写目标与当前实例分开，显式reusable不因fixture缺某取值而缩成单例。覆盖摘要复用scope、源引用、steps和gaps，区分implemented/unwritten/external；宿主检查引用/版本，模型解释源内语义，独立评价判断完整性。作者自报覆盖不构成证明，不增加全anchor必填表。partial可保存、试算和修订，当前路径条件与未走分支覆盖缺口分列。
 

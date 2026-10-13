@@ -2,7 +2,7 @@ import { createHash } from "node:crypto"
 import { z } from "zod"
 
 export type ProgramContext = "full" | "compact"
-export const ProgramDetailsSchema = z.object({ stepId: z.string().min(1).max(256).optional(), questionId: z.string().min(1).max(256).optional(), view: z.enum(["active", "draft"]).default("active"), expectedRevision: z.string().min(1).max(256).optional() }).strict()
+export const ProgramDetailsSchema = z.object({ stepId: z.string().min(1).max(256).optional(), questionId: z.string().min(1).max(256).optional(), view: z.enum(["active", "draft"]).default("active"), expectedRevision: z.string().min(1).max(256).optional(), trialCaseId: z.string().min(1).max(256).optional() }).strict()
 const revision = (v: unknown) => createHash("sha256").update(JSON.stringify(v) ?? "null").digest("hex")
 const propertySummary = (evaluation: any) => evaluation && { revision: evaluation.revision, questions: evaluation.questions?.map((q: any) => ({ questionId: q.questionId, properties: q.properties?.map((p: any) => ({ id: p.id ?? p.propertyId, status: p.status, value: p.value, gaps: p.gaps })) })) }
 
@@ -24,6 +24,18 @@ export function projectProgramConsumption(report: any, questions: readonly { id:
 export function programConsumptionDetails(report: any, query: z.input<typeof ProgramDetailsSchema>) {
   const args = ProgramDetailsSchema.parse(query)
   if (!report) return { status: "no-active-program", steps: [], events: [] }
+  if (args.trialCaseId) {
+    const revision = report.currentDraft?.revision
+    if (report.sourcesCurrent === false) return { status: "trial-source-invalidated", revision, steps: [], events: [] }
+    if (args.view !== "draft" || !args.expectedRevision) return { status: "trial-revision-required", revision, steps: [], events: [] }
+    if (args.expectedRevision !== revision) return { status: "stale-program-reference", revision, steps: [], events: [] }
+    const batch = [...(report.trials ?? [])].reverse().find((t: any) => t.revision === revision && t.cases.some((c: any) => c.id === args.trialCaseId))
+    const item = batch?.cases.find((c: any) => c.id === args.trialCaseId)
+    if (!item) return { status: "trial-detail-not-found", revision, steps: [], events: [] }
+    const relevant = !args.questionId || report.currentDraft.raw?.scope?.questionId === args.questionId
+    const match = (s: any) => relevant && (!args.stepId || s.id === args.stepId)
+    return { status: "trial", revision, trialCaseId: item.id, execution: item.execution, diagnostics: item.diagnostics, steps: (report.currentDraft.raw?.resourceWorkflow?.steps ?? []).filter(match), events: (item.execution?.events ?? []).filter(match), inputOrigin: "unreviewed-trial-facts", semanticSupport: "unreviewed", requestOperationCertified: false }
+  }
   const program = args.view === "draft" ? report.currentDraft?.raw : report.program
   const currentRevision = args.view === "draft" ? report.currentDraft?.revision : report.revision
   if (args.expectedRevision && args.expectedRevision !== currentRevision) return { status: "stale-program-reference", view: args.view, expectedRevision: args.expectedRevision, revision: currentRevision, instruction: "Inspect the current view revision before requesting its details or patching the draft.", steps: [], events: [] }
