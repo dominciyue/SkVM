@@ -41,6 +41,20 @@ const digest = (v: unknown) => createHash("sha256").update(JSON.stringify(v)).di
 
 export type ExecutionPolicy = "strict" | "progressive"
 export type ProgramMode = "consume" | "edit"
+export interface ExecutableSourceSnapshot { program: unknown; files: readonly { path: string; sha256: string }[]; revision?: string }
+/** Bind omitted source identities to the verified previous canonical view.
+ * This changes only the check input, never archived raw proposal bytes. */
+export function pinExecutableSourceSnapshot(snapshot: ExecutableSourceSnapshot) {
+  const value: any = structuredClone(snapshot.program), files = new Map(snapshot.files.map(f => [f.path, f.sha256]))
+  const pin = (at: any) => {
+    if (at && typeof at === "object" && typeof at.path === "string" && at.sha256 === undefined) at.sha256 = files.get(at.path) ?? "previous-source-unavailable"
+  }
+  pin(value?.scope?.root)
+  for (const declaration of value?.sourceDeclarations ?? []) pin(declaration?.source)
+  for (const step of value?.resourceWorkflow?.steps ?? []) { pin(step?.source); for (const at of step?.sources ?? []) pin(at) }
+  for (const assumption of value?.assumptions ?? []) pin(assumption?.source)
+  return value
+}
 /** Mechanical omissions only; the raw proposal retains nonsemantic notes. */
 export function normalizeExecutableContract(raw: unknown, index: InquiryTools["structure"]) {
   const value: any = structuredClone(raw), normalizations: string[] = []

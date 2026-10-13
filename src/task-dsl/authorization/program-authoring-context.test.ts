@@ -78,6 +78,20 @@ test("a stale candidate cannot supply current draft diagnostics or preview avail
   expect(feedback.candidateAdopted).toBeUndefined()
 })
 
+test("one missing dataset lists each affected step once across multiple absent input roots", () => {
+  const workflow = { inputs: ["left", "right"], steps: [
+    { id: "first", op: "value", value: { ref: "left" }, source: at },
+    { id: "second", op: "value", value: { ref: "right" }, source: at },
+    { id: "guard", op: "guard", test: { op: "eq", left: { binding: "first" }, right: { binding: "second" } }, failure: "denied", source: at },
+    { id: "result", op: "return", value: { ref: "first" }, source: at },
+  ] }
+  const execution = executeResourceWorkflow(workflow, {})
+  const feedback: any = author.projectProgramAuthoring({ currentDraft: { revision: "current", raw: { scope: { questionId: "meaning" }, resourceWorkflow: workflow } }, candidate: { revision: "current", resourceExecution: execution } }, questions)
+  expect(feedback.firstBlocker.code).toBe("program-input-dataset-missing")
+  expect(feedback.firstBlocker.affectedStepIds).toHaveLength(4)
+  expect(feedback.firstBlocker.affectedStepIds).toEqual(expect.arrayContaining(["first", "second", "guard", "result"]))
+})
+
 for (const scenario of [
   { name: "missing object field", first: { id: "initial", op: "value", value: { field: { of: { ref: "item" }, key: "key" } }, source: at }, inputs: { item: {} }, declared: ["item"], code: "object-field", dependency: "field-missing:key" },
   { name: "non-unique selection", first: { id: "initial", op: "select", from: "rows", where: { op: "eq", left: { literal: true }, right: { literal: true } }, unique: true, source: at }, inputs: { rows: [{ key: 1 }, { key: 2 }] }, declared: ["rows"], code: "selection", dependency: "selection-not-unique:initial" },

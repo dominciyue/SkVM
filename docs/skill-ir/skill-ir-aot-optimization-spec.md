@@ -3054,7 +3054,7 @@ check/run/compare已接入`--execution-policy=progressive`，strict仍为默认�
 
 ### 14.49 BJ authoring loop and program completion
 
-2026-10-13用户授权[BJ0–BJ25](../superpowers/plans/2026-10-13-authorization-authoring-loop-and-program-completion.md)，实施基线ace945fa，identity为`authorization-authoring-loop-v1`。BJ0–BJ6共享接线已实现并通过离线验证，真实采用尚待确认。目标是自动作者在现有普通入口内完成“读源码、提交草稿、看实际执行、修稿、同稿变化消费”，按约12小时安排开发量。复用既有DSL、宿主及账号适配器，继续skill-ir-aot，只推用户origin。
+2026-10-13用户授权[BJ0–BJ25](../superpowers/plans/2026-10-13-authorization-authoring-loop-and-program-completion.md)，实施基线ace945fa，identity为`authorization-authoring-loop-v1`。共享接线、恢复和变化失效已离线验证；R0原生命周期completion-unknown，真实采用尚未确认，后续外部派发暂停而不重发。目标是自动作者在现有普通入口内完成“读源码、提交草稿、看实际执行、修稿、同稿变化消费”，约12小时表示任务量，不用等待或重复调用凑时长。复用既有DSL、宿主及账号适配器，继续skill-ir-aot，只推用户origin。
 
 **显式数据绑定。** executable contract增加可选顶层`inputBinding: { questionId: string }`；语义职责仍由`scope.questionId`承载。省略时保留原精确同题查找；显式绑定只能引用`program.operationQuestions`所确认的同一operation中的原题，仅选择该题的resourceInputs与externalAssumptions。contractInputs、政策和语义前提仍按原scope，不跨题合并、继承或补值。缺失、歧义、越operation引用均给具名诊断。空数据和仅外部事实的合法情况保留。canonical/input schema、编译、ordinary check、运行、恢复、摘要和报告使用同一解析器。有序patch中省略表示保留，对象表示替换，null表示撤销；旧合同保持兼容。
 
@@ -3064,7 +3064,11 @@ check/run/compare已接入`--execution-policy=progressive`，strict仍为默认�
 
 **使用与验证。** 原程序省略inputBinding即可保留同题规则；显式对象及patch的null撤销沿既有`authorization_program`/`authorization_program_patch`入口，`authorization_program_details({view:'draft'})`可在首稿前调用。普通命令继续为`authorization inquiry check/run/inspect`与`--previous`，full默认。聚焦验证用`bun test ./src/task-dsl/authorization/program-input-binding.test.ts ./src/task-dsl/authorization/resource-program-draft.test.ts ./src/task-dsl/authorization/program-authoring-context.test.ts ./src/task-dsl/authorization/program-consumption-context.test.ts ./src/benchmarks/authorization-dsl/executable-contract-entrypoints.test.ts`及主类型检查。新增/修改数据键、operation映射、报告投影或反馈时维护同一解析器和匿名公共路径测试；字段结构不支持时保留unknown，不能自动补值或扩张语义职责。BJ派生BI binding-only诊断只新增顶层绑定，原BI字节不变，该结果属于developer-assisted，不能计自动成功。
 
-恢复只做patch时，`firstProposalToolUnit`记录首个实际提案，`firstProgramToolUnit`仅记录program调用，首次有效草稿仍由`firstDraftToolUnit`承载。当前草稿诊断、candidate adopted与preview可用状态只来自同revision候选，过期候选不能提供当前阻断点。匿名测试分别沿缺对象字段、多候选select及独立缺external前提的实际事件核验一个根因和受影响步骤。
+恢复只做patch时，`firstProposalToolUnit`记录首个实际提案，`firstProgramToolUnit`仅记录program调用，首次有效草稿仍由`firstDraftToolUnit`承载。当前草稿诊断、candidate adopted与preview可用状态只来自同revision候选，过期候选不能提供当前阻断点。匿名测试分别沿缺对象字段、多候选select及独立缺external前提的实际事件核验一个根因和受影响步骤；缺整个数据集的多输入根因汇总去重受影响step ID，原详细事件保留。
+
+**源码变化的原稿身份。** BJ离线反例发现compare及显式同稿previous消费会把缺SHA的旧raw重新绑到新源码，再产生旧值。现改用已验证报告中与该raw匹配的canonical程序及原文件SHA，复用既有compiler stale检查；不会改变冻结raw、输入事实或节点含义。若活动稿已经替换了原输入文件或原canonical覆盖不足，返回`contract-source-basis-missing`而不猜测。源码变化后的edit/previous不导入旧文件，可保留原稿与独立材料继续修复，旧执行预览/答案不恢复。只有输入变化时仍按当前事实重算。独立文件的失效/保留及公开compare/run派发前撤回均有匿名反例验证。
+
+渐进precheck可能同时保留无关checked性质和stale资源来源。冻结文件消费遇到这项已有stale诊断仍在派发前返回invalid，顶层复用compiler具名原因；不能因为部分有效就把旧raw再次导入并擦掉pin。检查结果中的独立性质仍保留。此处只阻止来源已变化的冻结文件重解释，不给普通可逆编辑新增等价检查或模型调用。
 
 **语义责任。** 模型从源码表达请求对象、root与缺失回退、版本选择、owner/非owner分流、权限拒绝、文件及表示选择。源码可见的分支应成为程序；真正的外部grant、检查器构造和部署事实分别保留条件。条件候选文件与获准返回区分，整体conditional可以伴随已计算的局部步骤。原skill和四问继续保留，程序执行、源码质量、自然补答分轴评价。
 

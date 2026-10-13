@@ -12,7 +12,7 @@ import { parseInquiryStrategy, isOperationInquiryStrategy, isSourceAssistedInqui
 import { planInquiryReuse } from "./inquiry-reuse.ts"
 import { hasUnknownAuthorizationCompletion } from "./telemetry.ts"
 import { acceptAuthoredInquiry } from "./authoring-assist.ts"
-import { compileExecutableContract, readExecutableContractSources, type ExecutionPolicy, type ProgramMode } from "../../task-dsl/authorization/executable-contract.ts"
+import { compileExecutableContract, readExecutableContractSources, pinExecutableSourceSnapshot, type ExecutableSourceSnapshot, type ExecutionPolicy, type ProgramMode } from "../../task-dsl/authorization/executable-contract.ts"
 import { ResourceInputsSchema, ExternalAssumptionsSchema } from "../../task-dsl/authorization/resource-relations.ts"
 import { isQuestionCheckedStrategy, FiniteValueSchema } from "../../task-dsl/authorization/control-slice.ts"
 import { resolveProgramInputBinding } from "../../task-dsl/authorization/program-input-binding.ts"
@@ -78,7 +78,16 @@ export async function loadInquiryInput(inputFile: string, options: { allowMissin
   const context = { repository: value.repository, sourceRef: value.sourceRef, sourceRoot: path.resolve(path.dirname(inputPath), value.sourceRoot), allowedPaths: value.allowedPaths }
   return { value, inputPath, original, inputSha256: sha(original), context }
 }
-export async function checkAuthorizationInquiry(inputFile: string, method: InquiryMethod = "D1", requestedStrategy: InquiryStrategy = "legacy", domainProgramFile?: string, options: { programContext?: import("../../task-dsl/authorization/program-consumption-context.ts").ProgramContext; executionPolicy?: ExecutionPolicy; programMode?: ProgramMode } = {}) {
+async function previousExecutableSourceSnapshot(report: any, programFile: string): Promise<ExecutableSourceSnapshot | undefined> {
+  const old = report.domain?.executableContract, raw = JSON.parse(await readFile(programFile, "utf8"))
+  const sameRaw = old?.adoptedDraft ? isDeepStrictEqual(raw, old.adoptedDraft.raw) : report.model === "none" && old?.drafts?.length === 0
+  return old?.program && sameRaw && Array.isArray(report.sourceFiles) ? { program: old.program, files: report.sourceFiles, revision: old.revision } : undefined
+}
+function missingExecutableSourceBasis() {
+  const diagnostics = [{ code: "contract-source-basis-missing", path: "$", message: "Changed source requires the verified previous canonical program and its source snapshot; the archived raw file cannot be rebound to new bytes.", severity: "error" as const }]
+  return { schemaVersion: "authorization-inquiry-check/v1", status: "invalid" as const, providerCalls: 0, diagnostics, executableContract: { diagnostics, normalizations: [], units: [], materialUses: [], requestOperationCertified: false as const } }
+}
+export async function checkAuthorizationInquiry(inputFile: string, method: InquiryMethod = "D1", requestedStrategy: InquiryStrategy = "legacy", domainProgramFile?: string, options: { programContext?: import("../../task-dsl/authorization/program-consumption-context.ts").ProgramContext; executionPolicy?: ExecutionPolicy; programMode?: ProgramMode; sourceSnapshot?: ExecutableSourceSnapshot } = {}) {
   try {
     const strategy = parseInquiryStrategy(requestedStrategy)
     if (!["M", "D0", "D1"].includes(method)) throw new Error("Method must be M, D0 or D1")
@@ -87,9 +96,10 @@ export async function checkAuthorizationInquiry(inputFile: string, method: Inqui
     if (domainProgramFile) {
       if (!isQuestionCheckedStrategy(strategy) || !loaded.value.inquiry) throw new Error("contract-input: check needs a complete inquiry and question-checked-v1")
       const original = await readFile(path.resolve(domainProgramFile), "utf8"), raw = JSON.parse(original)
-      const normalized = await readExecutableContractSources(raw, tools), questionId = normalized.value?.scope?.questionId
+      const compilationInput = options.sourceSnapshot ? pinExecutableSourceSnapshot(options.sourceSnapshot) : raw
+      const normalized = await readExecutableContractSources(compilationInput, tools), questionId = normalized.value?.scope?.questionId
       const program = compileAuthorizationInquiry(loaded.value.inquiry, { allowMissingPolicy: sourceAssisted }), inputResolution = resolveProgramInputBinding(normalized.value, program, loaded.value)
-      executableContract = await compileExecutableContract(raw, { tools, program, inputs: loaded.value.contractInputs?.[questionId], resourceInputs: inputResolution.resourceInputs, externalAssumptions: inputResolution.externalAssumptions, inputResolution, executionPolicy: options.executionPolicy, interpretationSource: "authored-file" })
+      executableContract = await compileExecutableContract(compilationInput, { tools, program, inputs: loaded.value.contractInputs?.[questionId], resourceInputs: inputResolution.resourceInputs, externalAssumptions: inputResolution.externalAssumptions, inputResolution, executionPolicy: options.executionPolicy, interpretationSource: "authored-file" })
       domainProgram = { path: path.resolve(domainProgramFile), sha256: sha(original), bytes: Buffer.byteLength(original), archive: "domain-program.json" }
       if (!("evaluation" in executableContract) || executableContract.diagnostics.some(d => d.severity === "error") && options.executionPolicy !== "progressive") return { schemaVersion: "authorization-inquiry-check/v1", status: "invalid" as const, providerCalls: 0, diagnostics: executableContract.diagnostics, executableContract, domainProgram }
     }
@@ -177,8 +187,14 @@ export async function executeLocalInquiryRun(options: { programContext?: import(
   }
   const retainedProgram = !options.domainProgramFile && prior?.report.domainProgram && prior.plan.status === "reusable" && isDeepStrictEqual(prior.currentFiles, prior.report.sourceFiles) ? path.join(prior.report.sessionPath, "domain-program.json") : undefined
   const programFile = options.domainProgramFile ?? retainedProgram
-  const check = await checkAuthorizationInquiry(options.inputFile, method, strategy, programFile, options)
+  const oldSourceFile = programFile && prior && !isDeepStrictEqual(prior.currentFiles, prior.report.sourceFiles) && sha(await readFile(programFile, "utf8")) === prior.report.domainProgram?.sha256
+  const sourceSnapshot = oldSourceFile ? await previousExecutableSourceSnapshot(prior!.report, programFile!) : undefined
+  if (oldSourceFile && !sourceSnapshot) return missingExecutableSourceBasis()
+  const check = await checkAuthorizationInquiry(options.inputFile, method, strategy, programFile, { ...options, ...(sourceSnapshot ? { sourceSnapshot } : {}) })
   if (check.status !== "valid") return check
+  // A progressive check can retain unrelated valid owners alongside a stale
+  // resource source. Reimporting the frozen raw file would erase those pins.
+  if (sourceSnapshot && check.executableContract?.diagnostics.some(d => d.code === "contract-source-stale" || d.code === "contract-resource-source" && d.message.startsWith("resource-source-stale:"))) return { ...check, status: "invalid" as const, diagnostics: check.executableContract.diagnostics }
   const reuse = prior?.plan.status === "reusable" ? { info: prior.plan.info, seed: prior.plan.seed } : undefined
   const reuseOrigin = prior && reuse ? { previousSessionId: prior.report.sessionId, previousSessionPath: prior.report.sessionPath, previousInputSha256: prior.report.inputSha256 } : undefined
   const loaded = await loadInquiryInput(options.inputFile, { allowMissingPolicy: isSourceAssistedInquiryStrategy(strategy) }), out = path.resolve(options.outDir), id = `${new Date().toISOString().replace(/[:.]/g, "")}-${randomUUID().slice(0, 8)}`
@@ -288,10 +304,13 @@ export async function compareLocalInquiry(inputFile: string, previous: string, r
   const strategyChanged = strategy !== (report.strategy ?? "legacy")
   const currentProgramSha = domainProgramFile ? createHash("sha256").update(await readFile(path.resolve(domainProgramFile))).digest("hex") : report.domainProgram?.sha256
   const domainProgramChanged = currentProgramSha !== report.domainProgram?.sha256
-  const contractCheck = domainProgramFile || report.domainProgram ? await checkAuthorizationInquiry(inputFile, report.method, strategy, domainProgramFile ?? path.join(report.sessionPath, "domain-program.json"), { executionPolicy: options.executionPolicy ?? report.domain?.executableContract?.executionPolicy, programMode: options.programMode }) : undefined
+  const previousSourceBasis = sourceChanged && !domainProgramChanged
+  const snapshot = previousSourceBasis && (domainProgramFile || report.domainProgram) ? await previousExecutableSourceSnapshot(report, domainProgramFile ?? path.join(report.sessionPath, "domain-program.json")) : undefined
+  const missingBasis = previousSourceBasis && !snapshot
+  const contractCheck = domainProgramFile || report.domainProgram ? missingBasis ? missingExecutableSourceBasis() : await checkAuthorizationInquiry(inputFile, report.method, strategy, domainProgramFile ?? path.join(report.sessionPath, "domain-program.json"), { executionPolicy: options.executionPolicy ?? report.domain?.executableContract?.executionPolicy, programMode: options.programMode, ...(snapshot ? { sourceSnapshot: snapshot } : {}) }) : undefined
   const { seed: _seed, ...reuseEligibility } = reuse.plan
   return { schemaVersion: "authorization-inquiry-compare/v1", status: taskChanged || sourceChanged || strategyChanged || domainProgramChanged || contractCheck?.status === "invalid" ? "needs-review" : "current", taskChanged, sourceChanged, strategy, strategyChanged, policyOnly, premiseOnly, contractInputsChanged, contractInputsOnly, resourceInputsChanged, resourceInputsOnly, domainProgramChanged,
-    ...(contractCheck ? { executableContract: contractCheck.executableContract, contractDiagnostics: contractCheck.diagnostics } : {}),
+    ...(contractCheck ? { executableContract: contractCheck.executableContract, contractDiagnostics: contractCheck.diagnostics, programSourceBasis: previousSourceBasis ? snapshot ? "previous-canonical-source-snapshot" : "missing-previous-source-basis" : "current-authored-file" } : {}),
     reuseEligibility, providerCalls: 0,
     affectedComputation: sourceChanged ? ["source-index", "control-extraction", "path-evaluation", "policy-comparison"] : domainProgramChanged ? ["source-declarations", "material-projection", "path-evaluation", "policy-comparison"] : resourceInputsOnly ? ["resource-input-values", "resource-workflow-evaluation"] : contractInputsOnly ? ["function-entry-values", "path-evaluation", "policy-comparison"] : policyOnly ? ["policy-mapping", "policy-comparison"] : premiseOnly ? ["premise-mapping", "path-evaluation", "policy-comparison"] : taskChanged || strategyChanged ? ["current-task-analysis"] : [],
     mechanicalIndexReusable: !sourceChanged && isDeepStrictEqual(old.allowedPaths, current.allowedPaths), controlRulesReused: false,

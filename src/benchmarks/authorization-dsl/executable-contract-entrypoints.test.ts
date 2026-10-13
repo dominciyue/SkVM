@@ -4,7 +4,7 @@ import os from "node:os"
 import path from "node:path"
 import { runAuthorizationInquiryCli } from "../../cli/authorization-inquiry.ts"
 import { createNativeInquiryRuntime } from "./inquiry-native.ts"
-import { checkAuthorizationInquiry, executeLocalInquiryRun, inspectLocalInquiry, compareLocalInquiry } from "./inquiry-local.ts"
+import { checkAuthorizationInquiry, executeLocalInquiryRun, inspectLocalInquiry, compareLocalInquiry, saveLocalInquiryCheck } from "./inquiry-local.ts"
 import { runAuthorizationInquiry } from "./inquiry-run.ts"
 import { emptyTokenUsage } from "../../core/types.ts"
 import { createProgramDraft } from "../../task-dsl/authorization/resource-program-draft.ts"
@@ -693,4 +693,144 @@ test("compare exposes condition-only recomputation on the same archived program 
   expect(compared.executableContract.evaluation.questions[0].properties[0].value).toBe("unreachable")
   expect(compared.providerCalls).toBe(0)
   expect(compared.answerReused).toBe(false)
+})
+
+test("a successful patch then rejected patch serializes and resumes from the last accepted draft", async () => {
+  const f = await contractFiles()
+  await writeFile(f.domainProgramFile, JSON.stringify({ ...f.contract, resourceWorkflow: { inputs: [], steps: [{ id: "result", op: "return", value: { literal: 7 }, source: at(8) }] } }))
+  const first = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainProgramFile: f.domainProgramFile, domainTools: true, strategy: "question-checked-v1", programMode: "edit", executionPolicy: "progressive" })
+  let retained: any
+  try {
+    await first.execute({ id: "prepare", name: "authorization_prepare_properties", arguments: { schemaVersion: "authorization-property-intent/v1", questions: [{ questionId: "other", state: "residual", reason: "Original duty retained" }] } })
+    const revision = first.report().domain!.programDraft.currentDraft!.revision
+    await first.execute({ id: "accepted", name: "authorization_program_patch", arguments: { baseRevision: revision, upsertSteps: [{ id: "result", op: "return", value: { literal: 19 }, source: at(8) }] } })
+    const accepted = first.report().domain!.programDraft.currentDraft!
+    const rejected = JSON.parse((await first.execute({ id: "rejected", name: "authorization_program_patch", arguments: { baseRevision: accepted.revision, upsertSteps: [], stepOrder: ["missing"] } })).output)
+    expect(rejected.controlDiagnostics.some((d: any) => d.code === "program-patch-order")).toBe(true)
+    expect(first.report().domain!.programDraft.currentDraft).toEqual(accepted)
+    retained = JSON.parse(JSON.stringify(first.report().domain!.programDraft.currentDraft))
+  } finally { await first.close() }
+  const resumed = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, strategy: "question-checked-v1", programMode: "edit", executionPolicy: "progressive", reuse: { info: {} as any, seed: { delta: { schemaVersion: "authorization-control-slice/v1", rules: [], dependencies: [], bindings: [], policyRules: [] }, evidence: [], programDraft: retained } } })
+  try {
+    await resumed.execute({ id: "prepare", name: "authorization_prepare_properties", arguments: { schemaVersion: "authorization-property-intent/v1", questions: [{ questionId: "other", state: "residual", reason: "Original duty retained" }] } })
+    const before: any = await resumed.accountContext(false)
+    expect(before.authoring.draftRevision).toBe(retained.revision)
+    expect(before.authoring.computed).toBeUndefined()
+    await resumed.execute({ id: "read", name: "source_read", arguments: { path: "app.py", startLine: 1, endLine: 8 } })
+    await resumed.execute({ id: "repair", name: "authorization_program_patch", arguments: { baseRevision: retained.revision, upsertSteps: [{ id: "result", op: "return", value: { literal: 23 }, source: at(8) }] } })
+    expect(resumed.report().domain!.executableContract!.resourceExecution!.returned).toBe(23)
+    expect(resumed.report().domain!.programDraft.authorLoop!.firstProgramToolUnit).toBeUndefined()
+    expect(resumed.report().program!.questions.map(q => q.id)).toEqual(["q", "other"])
+  } finally { await resumed.close() }
+})
+
+test("two operations with same-name facts support explicit same-operation binding and diagnose cross-operation patches", async () => {
+  const f = await contractFiles(), input = JSON.parse(await readFile(f.inputFile, "utf8"))
+  input.inquiry = { ...input.inquiry, schemaVersion: "authorization-inquiry/v2", operations: [{ id: "first", request: "Inspect the first operation" }, { id: "second", request: "Inspect the independent operation" }], questions: [...input.inquiry.questions.map((q: any) => ({ ...q, operationId: "first", intent: "behavior" })), { id: "decoy", operationId: "second", intent: "behavior", request: "Retain independent duty", premises: [] }] }
+  input.resourceInputs = { other: { item: { id: 37 } }, decoy: { item: { id: 99 } } }
+  const contract = { ...f.contract, inputBinding: { questionId: "other" }, resourceWorkflow: { inputs: ["item"], steps: [{ id: "result", op: "return", value: { field: { of: { ref: "item" }, key: "id" } }, source: at(8) }] } }
+  await writeFile(f.inputFile, JSON.stringify(input)); await writeFile(f.domainProgramFile, JSON.stringify(contract))
+  const checked: any = await checkAuthorizationInquiry(f.inputFile, "D1", "question-checked-v1", f.domainProgramFile, { executionPolicy: "progressive" })
+  expect(checked.providerCalls).toBe(0)
+  expect(checked.executableContract.resourceExecution.returned).toBe(37)
+  const runtime = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainProgramFile: f.domainProgramFile, domainTools: true, strategy: "question-checked-v1", programMode: "edit", executionPolicy: "progressive" })
+  try {
+    await runtime.execute({ id: "prepare", name: "authorization_prepare_properties", arguments: { schemaVersion: "authorization-property-intent/v1", questions: ["other", "decoy"].map(questionId => ({ questionId, state: "residual", reason: "Original duty retained" })) } })
+    await runtime.execute({ id: "wrong-operation", name: "authorization_program_patch", arguments: { baseRevision: runtime.report().domain!.programDraft.currentDraft!.revision, upsertSteps: [], inputBinding: { questionId: "decoy" } } })
+    const wrong: any = await runtime.accountContext(false)
+    expect(wrong.authoring.firstBlocker.code).toBe("program-input-operation-mismatch")
+    expect(wrong.authoring.inputBindings.inputNames).toEqual([])
+    expect(wrong.authoring.computed.returned).toBeUndefined()
+    expect(JSON.stringify(wrong.authoring.inputBindings.values)).not.toContain("99")
+    await runtime.execute({ id: "same-operation", name: "authorization_program_patch", arguments: { baseRevision: runtime.report().domain!.programDraft.currentDraft!.revision, upsertSteps: [], inputBinding: { questionId: "other" } } })
+    expect(runtime.report().domain!.executableContract!.resourceExecution!.returned).toBe(37)
+    expect(runtime.report().program!.questions.map(q => q.id)).toEqual(["q", "other", "decoy"])
+  } finally { await runtime.close() }
+})
+
+test("ordinary compare cannot rebind an archived unpinned raw program to changed source bytes", async () => {
+  const f = await contractFiles()
+  await writeFile(f.domainProgramFile, JSON.stringify({ ...f.contract, resourceWorkflow: { inputs: [], steps: [{ id: "result", op: "return", value: { literal: 17 }, source: at(7) }] } }))
+  const checked = await checkAuthorizationInquiry(f.inputFile, "D1", "question-checked-v1", f.domainProgramFile, { executionPolicy: "progressive" })
+  const archived = await saveLocalInquiryCheck(f.inputFile, f.domainProgramFile, path.join(f.root, "offline-archive"), checked, { executionPolicy: "progressive" })
+  expect(checked.executableContract && "resourceExecution" in checked.executableContract && checked.executableContract.resourceExecution!.returned).toBe(17)
+  await writeFile(path.join(f.root, "source/app.py"), source.replace("item.sent = True", "item.sent = False"))
+  const compared: any = await compareLocalInquiry(f.inputFile, archived.sessionPath, "question-checked-v1", undefined, { executionPolicy: "progressive" })
+  expect(compared.sourceChanged).toBe(true)
+  expect(compared.providerCalls).toBe(0)
+  expect(compared.executableContract?.resourceExecution?.returned).toBeUndefined()
+  expect(compared.executableContract?.diagnostics.some((d: any) => /source-stale|resource-source/.test(d.code))).toBe(true)
+  expect(compared.programSourceBasis).toBe("previous-canonical-source-snapshot")
+  expect(JSON.parse(await readFile(f.domainProgramFile, "utf8")).resourceWorkflow.steps[0].source.sha256).toBeUndefined()
+  expect(compared.answerReused).toBe(false)
+})
+
+test("changed-source compare cannot substitute a later adopted program for the original archived file", async () => {
+  const f = await contractFiles(), raw = { ...f.contract, resourceWorkflow: { inputs: [], steps: [{ id: "result", op: "return", value: { literal: 17 }, source: at(7) }] } }
+  await writeFile(f.domainProgramFile, JSON.stringify(raw))
+  const previous: any = await executeLocalInquiryRun({ inputFile: f.inputFile, domainProgramFile: f.domainProgramFile, outDir: path.join(f.root, "edited-session"), model: "gpt-5.6-sol", method: "D1", strategy: "question-checked-v1", harness: "codex-account", programMode: "edit", executionPolicy: "progressive", accountTransportFactory: contractConsumer(reply => {
+    expect(reply.toolResult.executableContract.resourceExecution.returned).toBe(19)
+  }, { tool: "authorization_program_patch", arguments: { baseRevision: createProgramDraft(raw).revision, upsertSteps: [{ id: "result", op: "return", value: { literal: 19 }, source: at(7) }] } }), execution: { sessionTimeoutMs: 5000 } })
+  expect(previous.domain.executableContract.adoptedDraft.raw.resourceWorkflow.steps[0].value.literal).toBe(19)
+  await writeFile(path.join(f.root, "source/app.py"), source.replace("item.sent = True", "item.sent = False"))
+  const compared: any = await compareLocalInquiry(f.inputFile, previous.sessionPath, "question-checked-v1", undefined, { executionPolicy: "progressive" })
+  expect(compared.programSourceBasis).toBe("missing-previous-source-basis")
+  expect(compared.executableContract.resourceExecution).toBeUndefined()
+  expect(compared.contractDiagnostics[0].code).toBe("contract-source-basis-missing")
+})
+
+test("previous consumption of the same frozen raw file stops on changed source before account dispatch", async () => {
+  const f = await contractFiles()
+  await writeFile(f.domainProgramFile, JSON.stringify({ ...f.contract, resourceWorkflow: { inputs: [], steps: [{ id: "result", op: "return", value: { literal: 17 }, source: at(7) }] } }))
+  const options = { inputFile: f.inputFile, domainProgramFile: f.domainProgramFile, outDir: path.join(f.root, "source-change-run"), model: "gpt-5.6-sol", method: "D1" as const, strategy: "question-checked-v1" as const, harness: "codex-account" as const, executionPolicy: "progressive" as const, accountTransportFactory: contractConsumer(() => {}), execution: { sessionTimeoutMs: 5000 } }
+  const first: any = await executeLocalInquiryRun(options)
+  expect(first.status).toBe("completed")
+  await writeFile(path.join(f.root, "source/app.py"), source.replace("item.sent = True", "item.sent = False"))
+  let dispatched = false
+  const next: any = await executeLocalInquiryRun({ ...options, previous: first.sessionPath, accountTransportFactory: () => { dispatched = true; return contractConsumer(() => {})() } })
+  expect(next.status).toBe("invalid")
+  expect(next.providerCalls).toBe(0)
+  expect(next.executableContract?.resourceExecution?.returned).toBeUndefined()
+  expect(next.diagnostics.some((d: any) => /source-stale/.test(d.code))).toBe(true)
+  expect(dispatched).toBe(false)
+})
+
+test("source-changed previous edit without importing the old file restores only a repairable raw draft", async () => {
+  const f = await contractFiles(), raw = { ...f.contract, resourceWorkflow: { inputs: [], steps: [{ id: "result", op: "return", value: { literal: 17 }, source: at(7) }] } }
+  await writeFile(f.domainProgramFile, JSON.stringify(raw))
+  const first: any = await executeLocalInquiryRun({ inputFile: f.inputFile, domainProgramFile: f.domainProgramFile, outDir: path.join(f.root, "initial"), model: "gpt-5.6-sol", strategy: "question-checked-v1", harness: "codex-account", executionPolicy: "progressive", accountTransportFactory: contractConsumer(() => {}), execution: { sessionTimeoutMs: 5000 } })
+  await writeFile(path.join(f.root, "source/app.py"), source.replace("item.sent = True", "item.sent = False"))
+  const next: any = await executeLocalInquiryRun({ inputFile: f.inputFile, previous: first.sessionPath, outDir: path.join(f.root, "repair"), model: "gpt-5.6-sol", strategy: "question-checked-v1", harness: "codex-account", programMode: "edit", executionPolicy: "progressive", accountTransportFactory: contractConsumer(reply => {
+    expect(reply.currentContext.authoring.draftRevision).toBe(first.domain.programDraft.currentDraft.revision)
+    expect(reply.currentContext.authoring.computed).toBeUndefined()
+    expect(reply.currentContext.remainingDuties.map((q: any) => q.questionId)).toEqual(["q", "other"])
+  }, { tool: "authorization_prepare_properties", arguments: { schemaVersion: "authorization-property-intent/v1", questions: [{ questionId: "other", state: "residual", reason: "Original duty retained" }] } }), execution: { sessionTimeoutMs: 5000 } })
+  expect(next.status).toBe("completed")
+  expect(next.reuse.change).toBe("source-changed")
+  expect(next.reuse.answerReused).toBe(false)
+  expect(next.domain.executableContract).toBeUndefined()
+  expect(next.domain.programDraft.currentDraft.raw).toEqual(raw)
+})
+
+test("a partial progressive precheck cannot reimport stale frozen resource sources for account consumption", async () => {
+  const f = await contractFiles(), input = JSON.parse(await readFile(f.inputFile, "utf8"))
+  input.allowedPaths.push("helper.py")
+  await writeFile(f.inputFile, JSON.stringify(input))
+  await writeFile(path.join(f.root, "source/helper.py"), "# Independent selection\n\ndef select_version():\n    return 17\n")
+  const raw = { ...f.contract, resourceWorkflow: { inputs: [], steps: [{ id: "result", op: "return", value: { literal: 17 }, source: { path: "helper.py", startLine: 3, endLine: 4 } }] } }
+  await writeFile(f.domainProgramFile, JSON.stringify(raw))
+  const options = { inputFile: f.inputFile, domainProgramFile: f.domainProgramFile, outDir: path.join(f.root, "partial-source-change"), model: "gpt-5.6-sol", strategy: "question-checked-v1" as const, harness: "codex-account" as const, executionPolicy: "progressive" as const, execution: { sessionTimeoutMs: 5000 } }
+  const first: any = await executeLocalInquiryRun({ ...options, accountTransportFactory: contractConsumer(() => {}) })
+  expect(first.status).toBe("completed")
+  expect(first.domain.executableContract.resourceExecution.returned).toBe(17)
+  await writeFile(path.join(f.root, "source/helper.py"), "# Independent selection\n\ndef select_version():\n    return 19\n")
+  let dispatched = false
+  const next: any = await executeLocalInquiryRun({ ...options, previous: first.sessionPath, accountTransportFactory: () => { dispatched = true; return contractConsumer(() => {})() } })
+  expect(next.status).toBe("invalid")
+  expect(next.providerCalls).toBe(0)
+  expect(next.executableContract.resourceExecution.returned).toBeUndefined()
+  expect(next.executableContract.evaluation.questions.find((q: any) => q.questionId === "q").properties[0].status).toBe("checked")
+  expect(next.diagnostics.some((d: any) => d.code === "contract-resource-source" && d.message.startsWith("resource-source-stale:"))).toBe(true)
+  expect(dispatched).toBe(false)
+  expect(JSON.parse(await readFile(f.domainProgramFile, "utf8"))).toEqual(raw)
 })

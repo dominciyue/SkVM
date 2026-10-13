@@ -47,3 +47,42 @@ test("editing one persisted program retains independently compiled source meanin
   expect(planned.info.invalidatedMaterials).toHaveLength(2)
   expect(planned.info.layers.R2.available).toBe(false)
 })
+
+test("changed source bytes retain an unrelated file's material and withdraw pinned resource values", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "bj-source-reuse-"))
+  // Keep the complete function owner distinct from the whole-module span.
+  await writeFile(path.join(sourceRoot, "changed.py"), "marker = True\n\ndef local(actor):\n    return True\n")
+  await writeFile(path.join(sourceRoot, "independent.py"), "marker = True\n\ndef other(actor):\n    return False\n")
+  const context = { sourceRoot, repository: "anonymous", sourceRef: "r", allowedPaths: ["changed.py", "independent.py"], structure: true, controlSemantics: "finite-control/v1" as const, propertyDirected: true, questionDirected: true }
+  const tools = await createInquiryTools(context)
+  for (const file of context.allowedPaths) await tools.execute("source_read", { path: file, startLine: 1, endLine: 4 })
+  const input: any = { schemaVersion: "authorization-inquiry-input/v1", taskId: "t", repository: "anonymous", sourceRef: "r", sourceRoot: ".", allowedPaths: context.allowedPaths, inquiry: { schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Inspect the first helper", premises: [] }, { id: "other", request: "Retain independent helper", premises: [] }] } }
+  const at = (file: string) => ({ path: file, startLine: 3, endLine: 4 })
+  const contract = (questionId: string, file: string, resourceWorkflow?: any) => ({ schemaVersion: "authorization-executable-contract/v1", id: questionId, scope: { kind: "function-contract", questionId, root: at(file), upstream: [] }, sourceDeclarations: [{ schemaVersion: "authorization-question-declaration/v1", source: at(file), statements: [{ kind: "object", expression: "actor", as: "principal", because: "Actual parameter" }] }], queries: [], assumptions: [], ...(resourceWorkflow ? { resourceWorkflow } : {}) })
+  const program = compileAuthorizationInquiry(input.inquiry)
+  const raw = contract("q", "changed.py", { inputs: [], steps: [
+    { id: "independent", op: "value", value: { literal: 31 }, source: at("independent.py") },
+    { id: "decisive", op: "value", value: { literal: true }, source: at("changed.py") },
+    { id: "result", op: "return", value: { ref: "decisive" }, source: at("changed.py") },
+  ] })
+  const first = await compileExecutableContract(raw, { tools, program, executionPolicy: "progressive" })
+  const independent = await compileExecutableContract(contract("other", "independent.py"), { tools, program })
+  if (!("sourceMaterials" in first) || !("sourceMaterials" in independent)) throw new Error(JSON.stringify({ first: first.diagnostics, independent: independent.diagnostics }))
+  expect(first.resourceExecution!.returned).toBe(true)
+  const prior: any = { status: "completed", sourceFiles: tools.files, evidence: tools.evidence, sourceVerification: { valid: true }, domain: { closed: true, executableContract: { program: first.contract }, sourceMaterials: { ...first.sourceMaterials, materials: [...first.sourceMaterials.materials, ...independent.sourceMaterials.materials] }, slice: { bindings: [], policyRules: [] } } }
+  await writeFile(path.join(sourceRoot, "changed.py"), "marker = True\n\ndef local(actor):\n    return False\n")
+  const current = await createInquiryTools(context)
+  const planned: any = planInquiryReuse({ currentInput: input, previousInput: input, previousRun: prior, previousSessionId: "previous", currentFiles: current.files, currentStructure: current.structure, currentMethod: "D1", previousMethod: "D1", currentStrategy: "question-checked-v1", previousStrategy: "question-checked-v1", currentModel: "gpt-5.6-sol", previousModel: "gpt-5.6-sol" })
+  expect(planned.info.change).toBe("source-changed")
+  expect(planned.seed.semanticUnits.map((u: any) => u.questionId)).toEqual(["other"])
+  expect(planned.info.invalidatedMaterials).toHaveLength(1)
+  expect(planned.info.invalidatedMaterials[0].reasons.join(" ")).toContain("changed-or-unavailable")
+  expect(planned.info.layers.R2.available).toBe(false)
+  current.restoreEvidence(planned.seed.evidence)
+  await current.execute("source_read", { path: "changed.py", startLine: 1, endLine: 4 })
+  const stale = await compileExecutableContract(first.contract, { tools: current, program, executionPolicy: "progressive" })
+  if (!("resourceExecution" in stale)) throw new Error("Missing stale resource diagnostic")
+  expect(stale.resourceExecution!.returned).toBeUndefined()
+  expect(stale.resourceExecution!.values.independent).toBe(31)
+  expect(stale.resourceExecution!.gaps).toContain("resource-source-stale:changed.py")
+})

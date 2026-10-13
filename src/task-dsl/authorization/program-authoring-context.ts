@@ -72,7 +72,7 @@ export function projectProgramAuthoring(report: any, questions: readonly Origina
   const rootBlockers = executionBlockers(execution, declaredNames)
   const inputError = resolution.diagnostics.find(d => d.severity === "error" || d.code === "program-input-dataset-missing")
   const firstError = diagnostics.find((d: any) => d.severity === "error")
-  const firstBlocker = inputError ? { code: inputError.code, dependencies: declaredNames, affectedStepIds: rootBlockers.flatMap((b: any) => b.affectedStepIds), message: inputError.message } : firstError ? { code: firstError.code, dependencies: [firstError.path], message: firstError.message } : rootBlockers[0]
+  const firstBlocker = inputError ? { code: inputError.code, dependencies: declaredNames, affectedStepIds: [...new Set(rootBlockers.flatMap((b: any) => b.affectedStepIds))], message: inputError.message } : firstError ? { code: firstError.code, dependencies: [firstError.path], message: firstError.message } : rootBlockers[0]
   return {
     goal: PROGRAM_AUTHORING_GOAL, completion: "unreviewed", activeRevision: report?.program ? report.revision : undefined,
     draftRevision: report?.currentDraft?.revision, candidateRevision: report?.candidate?.revision,

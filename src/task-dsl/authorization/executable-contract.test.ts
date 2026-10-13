@@ -5,6 +5,18 @@ import path from "node:path"
 import { createInquiryTools } from "../../benchmarks/authorization-dsl/inquiry-tools.ts"
 import { compileAuthorizationInquiry } from "./inquiry-program.ts"
 const api = await import("./executable-contract.ts").catch(() => ({} as any))
+test("previous source pins preserve existing citations and author meanings without mutating the canonical snapshot", () => {
+  const source = { path: "app.py", startLine: 1, endLine: 2 }
+  const raw = { scope: { root: source }, sourceDeclarations: [{ source }], resourceWorkflow: { steps: [{ id: "kept", op: "return", value: { literal: 23 }, source: { ...source, sha256: "explicit-old" }, sources: [{ path: "other.py", startLine: 1, endLine: 2 }] }] }, assumptions: [] }
+  const bytes = JSON.stringify(raw)
+  const pinned = api.pinExecutableSourceSnapshot({ program: raw, files: [{ path: "app.py", sha256: "previous" }] })
+  expect(pinned.scope.root.sha256).toBe("previous")
+  expect(pinned.sourceDeclarations[0].source.sha256).toBe("previous")
+  expect(pinned.resourceWorkflow.steps[0].source.sha256).toBe("explicit-old")
+  expect(pinned.resourceWorkflow.steps[0].sources[0].sha256).toBe("previous-source-unavailable")
+  expect(pinned.resourceWorkflow.steps[0].value).toEqual({ literal: 23 })
+  expect(JSON.stringify(raw)).toBe(bytes)
+})
 test("a root rejection still reports local resource defects for the same repair pass", async () => {
   const f = await fixture(), raw: any = contract()
   raw.scope.root.startLine = 99
