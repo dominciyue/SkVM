@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有 SkVM CLI、PowerShell 示例；开发 `gpt-6.1-sol/max`，实验沿用已授权官方账号 `gpt-5.6-sol/high`。
 
-**状态：** completed-with-unmet-criteria，适用离线工程已验证，BJ25发布进行中。规划基线 `ace945fa6cb20662a416c45d70777fdf945e95ec`，接管HEAD `3f1b7991`，分支 `skill-ir-aot`。identity为 `authorization-authoring-loop-v1`；结果见该目录的summary/status，原BI稿、原件和结果不变。R0已派发但completion-unknown，无模型工具/答案，后续真实确认具名not-run而不重发；下方未勾选项表示实际未达，不表示仍在盲等或重新派发。
+**状态：** completed-with-unmet-criteria，适用离线工程已验证并发布实质成果`b43886c0`，用户origin同SHA，见[回执](../../../results/skill-ir/skill-dsl-research/development/authorization-authoring-loop-v1/publication.json)。生产源码为`d811309d`。规划基线 `ace945fa6cb20662a416c45d70777fdf945e95ec`，接管HEAD `3f1b7991`，分支 `skill-ir-aot`。identity为 `authorization-authoring-loop-v1`；结果见该目录的summary/status，原BI稿、原件和结果不变。R0已派发但completion-unknown，无模型工具/答案，后续真实确认具名not-run而不重发；下方未勾选项表示实际未达，不表示仍在盲等或重新派发。
 
 ## 一、已核实的起点与这次的改变
 
@@ -350,10 +350,10 @@ summary按实际R0一次inference dispatched与离线零provider分账；usage/p
 
 ### BJ25 — 提交发布和清楚交付
 
-- [ ] 分目的提交生产实现/测试与研究证据/文档，只推用户origin，核对远端同SHA；不纳入他人文件。
-- [ ] 最终第一项交付自动稿运行命令、实际逐步输出、返回/拒绝/条件结果；随后报告自动编写、变化行为、自然四问、复用和成本。
-- [ ] 每个未达项有当前模块、具体错误、已试修复及剩余下一动作；“工程完成”与“研究目标完成”分别写。
-- [ ] 所有适用任务和具名修复已处置后才能关闭队列；用户叫停则立即保存恢复点并停，不以研究未达无限循环。
+- [x] 分目的提交生产实现/测试与研究证据/文档，只推用户origin，核对远端同SHA；不纳入他人文件。
+- [x] 最终第一项交付自动稿运行命令、实际逐步输出、返回/拒绝/条件结果；随后报告自动编写、变化行为、自然四问、复用和成本。
+- [x] 每个未达项有当前模块、具体错误、已试修复及剩余下一动作；“工程完成”与“研究目标完成”分别写。
+- [x] 所有适用任务和具名修复已处置后才能关闭队列；用户叫停则立即保存恢复点并停，不以研究未达无限循环。
 
 ## 六、真实运行队列、输入隔离与恢复
 
@@ -447,7 +447,7 @@ bunx tsc --noEmit -p ./results/skill-ir/skill-dsl-research/development/authoriza
 | BJ8–11/13–15 | R0派发与原生命周期只读核验；源码含义缺口定位，generic反馈及离线反例 | R0实际采用/修后确认、F0/F1、冻结BJraw及C全not-run/unknown |
 | BJ12/16/18 | 14×2诊断、同稿当前重算、普通目录搬移、组合恢复与BI公开命令 | 轨道为保留BI raw/developer-assisted；不是BJ新自动稿或C1实际收益 |
 | BJ17/19/21 | 决定性源副本失效、独立材料保留、ShareLink与匿名双operation；共同缺陷继续修 | S0真实修稿条件不满足；传输收益缺BJ回合，未另加面板 |
-| BJ20/22–25 | 预定比较次序、原四问未交付/成本unknown归纳、使用说明与新鲜联合验证；发布继续 | B0/B1/消费收益not-run，自动主链/研究false，R0原未知不解除 |
+| BJ20/22–25 | 预定比较次序、原四问未交付/成本unknown归纳、使用说明与新鲜联合验证；实质成果b43886c0已发布用户origin同SHA | B0/B1/消费收益not-run，自动主链/研究false，R0原未知不解除 |
 
 | 共享差异 | 当前验证 | 受影响实际位置与责任 |
 |---|---|---|

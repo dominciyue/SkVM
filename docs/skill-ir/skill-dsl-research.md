@@ -4,7 +4,7 @@
 
 ## 1. 当前结论
 
-**BJ适用离线工程已验证，实际自动主链和收益未达，正在发布。** [BJ0–BJ25](../superpowers/plans/2026-10-13-authorization-authoring-loop-and-program-completion.md)接通同operation输入、早期试稿/实际根因、版本恢复和旧稿来源检查。R0首段已派发，但child退出4且没有provider终态、工具或答案；原生命周期保持completion-unknown，不重发或另开身份。14变体中BI原稿值匹配0/14，developer-assisted binding-only为6/14，完整有限行为两轨均0/14。源码副本变化撤回旧返回，搬移及ShareLink共享接口离线通过；1950授权测试/1平台skip/12975断言及主/BJ类型通过。四问无新交付，真实fresh/固定稿消费/比较均not-run，费用和用量unknown。分轴结论见[BJ summary](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-loop-v1/summary.json)与[§7.71](#771-bj-输入接线与自动编写运行闭环)；full默认。
+**BJ以completed-with-unmet-criteria发布实质成果b43886c0，用户origin同SHA；适用离线工程已验证，实际自动主链和收益未达。** [BJ0–BJ25](../superpowers/plans/2026-10-13-authorization-authoring-loop-and-program-completion.md)接通同operation输入、早期试稿/实际根因、版本恢复和旧稿来源检查。R0首段已派发，但child退出4且没有provider终态、工具或答案；原生命周期保持completion-unknown，不重发或另开身份。14变体中BI原稿值匹配0/14，developer-assisted binding-only为6/14，完整有限行为两轨均0/14。源码副本变化撤回旧返回，搬移及ShareLink共享接口离线通过；1950授权测试/1平台skip/12975断言及主/BJ类型通过。四问无新交付，真实fresh/固定稿消费/比较均not-run，费用和用量unknown。分轴结论见[BJ summary](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-loop-v1/summary.json)与[§7.71](#771-bj-输入接线与自动编写运行闭环)；full默认。
 
 **BI以`completed-with-unmet-criteria`发布，工程和八个有限真实位置完成，自动主链未达。** [BI0–BI23](../superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md)已接通持续作者目标、原子stepOrder、revision详情、原稿/候选/活动归档及完整任务消费。A2恢复修稿采用12步，冻结原稿在C1/C2仍因question/input绑定和版本、权限、root回退缺口无文件返回；自然答案不能替代计算。原四问整题5/8 full是不同轨道的描述计数：A1 partial、A2恢复full，自动原稿C1 partial/C2 full，开发者材料P0两臂full/P1 compact partial/full full。
 

@@ -2,7 +2,7 @@
 
 更新于2026-10-13。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BJ0–BJ25](../superpowers/plans/2026-10-13-authorization-authoring-loop-and-program-completion.md)的适用离线责任已处理，正在完成文档与发布；工程验证通过，自动主链与比较收益未达。R0原生命周期completion-unknown，无模型工具或答案，后续外部派发暂停、不重发。实际分轴见[BJ summary](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-loop-v1/summary.json)。
+- 当前任务书：[BJ0–BJ25](../superpowers/plans/2026-10-13-authorization-authoring-loop-and-program-completion.md)的适用离线责任已处理，实质成果b43886c0已发布用户origin并核对同SHA；工程验证通过，自动主链与比较收益未达。R0原生命周期completion-unknown，无模型工具或答案，后续外部派发暂停、不重发。实际分轴见[BJ summary](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-loop-v1/summary.json)。
 - 方法合同：[spec§14.49](skill-ir-aot-optimization-spec.md#1449-bj-authoring-loop-and-program-completion)；复核和后续开发过程统一在[研究§7.71](skill-dsl-research.md#771-bj-输入接线与自动编写运行闭环)。BI实际结果保留在§7.70。
 - identity：`authorization-authoring-loop-v1`，实施基线`ace945fa`，接管规划HEAD`3f1b7991`。继续`skill-ir-aot`，只推用户origin，不建分支/worktree；开发线程独占代码、共享方法文档与Git写入。
 - 开发`gpt-6.1-sol/max`，按用户指定；实验沿已授权官方账号`gpt-5.6-sol/high`。第三方暂停，OWUI/历史未知ShareLink仅离线，旧未知和保护证据保持。
