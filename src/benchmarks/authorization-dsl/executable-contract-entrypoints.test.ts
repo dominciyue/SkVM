@@ -38,6 +38,7 @@ test.each([786432, 250])("BM consume reserves a genuine no-tool child with origi
     if (m.method === "thread/start") { own = ++threads; receive({ id: m.id, result: { thread: { id: `t${own}`, ephemeral: false }, model: "gpt-5.6-sol" } }) }
     if (m.method === "turn/start") { receive({ id: m.id, result: { turn: { id: `u${own}` } } }); queueMicrotask(() => {
       if (own === 2) { expect(m.params.input[0].text).toContain("app.py"); receive({ method: "turn/completed", params: { threadId: "t2", turn: { id: "u2", status: "completed", items: [{ type: "agentMessage", phase: "final_answer", text: "Current answer for every original duty" }] } } }); return }
+      receive({ method: "error", params: { threadId: "t1", turnId: "u1", willRetry: true, error: { message: "Reconnecting...", codexErrorInfo: { responseStreamDisconnected: { httpStatusCode: null } } } } })
       receive({ id: "read", method: "item/tool/call", params: { threadId: "t1", turnId: "u1", callId: "source", tool: "source_read", arguments: { path: "app.py", startLine: 1, endLine: 8 } } })
     }) }
     if (m.id === "read" && m.result) calls++

@@ -3108,6 +3108,8 @@ check/run/compare已接入`--execution-policy=progressive`，strict仍为默认�
 
 ### 14.52 BM branch completion and directed consumption
 
+BM首件实测补修：A0-first用60探索单位而无patch/trial；暂态重连willRetry=true曾残留为terminalError，阻断已确认预算中断后的收尾。只将非重试/真实终态错误记为terminalError，quota与unknown限制不变；现有一次12单位作者提醒覆盖未修订的已有草稿，提示inspect/trial/patch但不供应答案。A0/recovered-author为具名共享修复确认，首件成本与未交付保留。
+
 2026-10-14授权[BM0–BM20](../superpowers/plans/2026-10-14-authorization-branch-completion-and-directed-consumption.md)，规划基线cb8a721a，identity为`authorization-branch-verified-consumption-v1`。开发gpt-6-astra/high、实验已授权官方gpt-5.6-sol/high；登记时仅计划，未发生BM工程或实验调用。BL两作者15/18和两对negative保持，BM不补写旧分母。
 
 **源码义务与作者责任。** 从当前已读取的skeleton/flow提取分支、错误、return与外部调用完成的候选位置，与作者声明分别保存。位置不是授权答案，候选也不证明完整控制流；模型解释并映射已有程序步骤，宿主检查当前来源、引用与版本。局部可执行部分继续试算，未映射项保留具名缺口，不增加整批必填角色门。A0自动修订BL原稿、A1从零独立编写，首稿/patch/最终稿分别保存，开发者不得回填。

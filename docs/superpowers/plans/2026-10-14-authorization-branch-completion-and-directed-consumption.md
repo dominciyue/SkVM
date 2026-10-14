@@ -12,7 +12,7 @@
 
 ## 一、接管与阅读顺序
 
-实施记录：BM0从30773a53接管，登录与本地进程已核验，六例普通零模型基线与BL一致；共享工程进行中，尚无BM模型调用。身份、评价轴与预算预登记在新结果目录manifest.json。
+实施记录：BM0从30773a53接管，登录与本地进程已核验，六例普通零模型基线与BL一致；共享工程提交7c935ffe，身份、评价轴与预算已预登记；A0现已派发，其他用途待观察。185项定向回归、收尾补修90项回归、主/研究类型、15文档测试及ShareLink离线检查通过。
 
 BM8协议细化：本机TurnStartParams没有dynamicTools覆盖，thread/resume不能改变工具哈希。预算预留阶段用宿主主动turn/interrupt结束工具阶段，必须观察服务器真实interrupted及本地closed，才允许同用途tools=[]子会话；原工具回合仍记录interrupted/undelivered，不伪称completed。普通中断、未知、错误或quota/auth不满足此条件。服务器自然completed沿原合同处理。该调整是实现真正工具隔离所必需的生命周期细节，匿名fake transport已分别验证确认和丢失确认；总预算、一次最终回合及B/C对称保持。
 
@@ -24,6 +24,8 @@ BM8协议细化：本机TurnStartParams没有dynamicTools覆盖，thread/resume�
 开发线程是生产代码、研究方法、当前状态与 Git 的唯一写者。只读探子限于明确独立核验，按 AGENTS 的角色和等待规则运行。记录阶段日志到外层 conversation_log；跨线程决定同步 repo 文档。
 
 ## 二、已经核实的出发点
+
+BM首件处置：A0-first在60探索单位/49工具调用后由宿主确认中断，原14步未修改、0trial、无自然交付。真实日志中的willRetry=true重连提示被terminalError残留，错误地阻止已确认闭合后的final child；按服务器重试语义分离暂态与终态错误，原事件仍保留。现有12单位作者提醒原先跳过任何已有草稿，现扩展为提醒其inspect/trial/patch，仍只出现一次、不关闭工具、不提供语义答案。两处均有红绿复现，具名确认A0/recovered-author计入四额外用途额度，首件及费用不改写。
 
 | BL 事实 | 本轮处理的责任 |
 |---|---|
@@ -90,15 +92,15 @@ type ProgramObligation = {
 
 ### BM0 接管、身份和实际基线
 
-- [ ] 核对 Git/运行进程/账号本地状态，登记新 identity、实际实施 SHA 和现有未知请求隔离；不做额外模型健康探针。
-- [ ] 登记八用途、源码 allowlist、原四问、输入/预算/评价规则、实现 epoch；区分 required acceptance 与 observed result。
-- [ ] 仅复跑普通入口的 default、empty-version、invalid-version、other-root、denied、no-external 六个零调用案例，确认与 BL 原件一致。
+- [x] 核对 Git/运行进程/账号本地状态，登记新 identity、实际实施 SHA 和现有未知请求隔离；不做额外模型健康探针。
+- [x] 登记八用途、源码 allowlist、原四问、输入/预算/评价规则、实现 epoch；区分 required acceptance 与 observed result。
+- [x] 仅复跑普通入口的 default、empty-version、invalid-version、other-root、denied、no-external 六个零调用案例，确认与 BL 原件一致。
 
 ### BM1 先写失败测试
 
-- [ ] 为三个已知缺口写来源明确的失败测试；使用匿名输入/源码结构，测试不能按 skill 名称分支。
-- [ ] 覆盖 owner 已放行时不调用 object grant、初始化未知仍保留前提、拒绝后没有文件步骤、旧正确版本选择保持。
-- [ ] 写 full 默认兼容、directed 规则可取回/引用失效、consume final-only 仍能回答、unknown 不重发的失败测试并确认失败原因。
+- [x] 为三个已知缺口写来源明确的失败测试；使用匿名输入/源码结构，测试不能按 skill 名称分支。
+- [x] 覆盖 owner 已放行时不调用 object grant、初始化未知仍保留前提、拒绝后没有文件步骤、旧正确版本选择保持。
+- [x] 写 full 默认兼容、directed 规则可取回/引用失效、consume final-only 仍能回答、unknown 不重发的失败测试并确认失败原因。
 
 测试表达的行为示例（以现有 fixture 构造器实现，不复制成生产特殊判断；下面的invalid-resource是测试guard显式声明的failure值，并非执行器推断的固定枚举）：
 
@@ -117,56 +119,56 @@ expect(totalChargedTools).toBeLessThanOrEqual(64);
 
 ### BM2 源码候选接入作者循环
 
-- [ ] 修改 `src/task-dsl/authorization/program-coverage.ts`、`program-authoring-context.ts`，必要时新增 `program-obligations.ts` 及测试；从当前已读 skeleton/flow 接线，禁止新建第二套 parser。
-- [ ] 同时显示作者声明和源码候选；对删掉声明、重复映射、过时引用、未知外部含义给定点诊断。
-- [ ] 匿名分支/错误/return/外部调用及既有 ShareLink 离线结构验证同核；候选只辅助发现遗漏，不宣称完整控制流覆盖。
+- [x] 修改 `src/task-dsl/authorization/program-coverage.ts`、`program-authoring-context.ts`，必要时新增 `program-obligations.ts` 及测试；从当前已读 skeleton/flow 接线，禁止新建第二套 parser。
+- [x] 同时显示作者声明和源码候选；对删掉声明、重复映射、过时引用、未知外部含义给定点诊断。
+- [x] 匿名分支/错误/return/外部调用及既有 ShareLink 离线结构验证同核；候选只辅助发现遗漏，不宣称完整控制流覆盖。
 
 ### BM3 trial 与针对性修复
 
-- [ ] 在既有 `program-trial.ts`、`resource-program-draft.ts` 和 context 接线中，让作者看到自己试算的实际输入、路径、返回/拒绝、未映射候选与执行缺口。
-- [ ] 允许作者根据源码选择变化输入；宿主可提供机械可复现的变异方式，不提供 oracle 返回值、正确程序或标准答案。
+- [x] 在既有 `program-trial.ts`、`resource-program-draft.ts` 和 context 接线中，让作者看到自己试算的实际输入、路径、返回/拒绝、未映射候选与执行缺口。
+- [x] 允许作者根据源码选择变化输入；宿主可提供机械可复现的变异方式，不提供 oracle 返回值、正确程序或标准答案。
 - [ ] 一个缺口修好后重跑该反例和相邻已正确路径；patch 保留输入绑定、作者目标和无关步骤。只修回显而未变更程序不得记录为修稿成功。
 
 ### BM4 当前结果分层
 
-- [ ] 在 `resource-relations.ts` 的既有结果上增加纯投影，必要时新增 `program-outcome.ts` 与测试，不平行重写执行器。
-- [ ] 验证 computed value/拒绝/缺前提与 coverage gaps 可同时表达；旧 conditional 不由新标签静默提升为完整授权证明。
-- [ ] 从普通入口保存相同分层字段和可读步骤，不能只存在于研究 runner。
+- [x] 在 `resource-relations.ts` 的既有结果上增加纯投影，必要时新增 `program-outcome.ts` 与测试，不平行重写执行器。
+- [x] 验证 computed value/拒绝/缺前提与 coverage gaps 可同时表达；旧 conditional 不由新标签静默提升为完整授权证明。
+- [x] 从普通入口保存相同分层字段和可读步骤，不能只存在于研究 runner。
 
 ### BM5 输出含义与字段映射
 
-- [ ] 复用或补充轻量输出字段含义声明，使作者选择的 key 能和实际值/依据一起展示；不能靠 result/archive 等特定拼写评分。
-- [ ] 映射由作者提交或已有类型机械推导，保持 source-supported/unreviewed 区别；歧义和缺映射可诊断。
-- [ ] 对照 literal-shape、值匹配、有限行为匹配分别计数。不要用宽松字段匹配掩盖错误文档或错误分支。
+- [x] 复用或补充轻量输出字段含义声明，使作者选择的 key 能和实际值/依据一起展示；不能靠 result/archive 等特定拼写评分。
+- [x] 映射由作者提交或已有类型机械推导，保持 source-supported/unreviewed 区别；歧义和缺映射可诊断。
+- [x] 对照 literal-shape、值匹配、有限行为匹配分别计数。不要用宽松字段匹配掩盖错误文档或错误分支。
 
 ### BM6 directed 按职责消费
 
-- [ ] 修改 `program-consumption-context.ts`、现有 inquiry/native/CLI context 解析，完整保留 full 和 compact。
-- [ ] 当前可计算部分给结构化结果、条件、规则与引用；其余四问职责保持可见。不得预写最终安全结论或强制模型信任未经语义核实的程序。
-- [ ] 验证默认/空版本/显式版本/拒绝/未知前提的规则取回，避免只在当前值上省上下文。
+- [x] 修改 `program-consumption-context.ts`、现有 inquiry/native/CLI context 解析，完整保留 full 和 compact。
+- [x] 当前可计算部分给结构化结果、条件、规则与引用；其余四问职责保持可见。不得预写最终安全结论或强制模型信任未经语义核实的程序。
+- [x] 验证默认/空版本/显式版本/拒绝/未知前提的规则取回，避免只在当前值上省上下文。
 
 ### BM7 跨回合增量与观测
 
-- [ ] 在真实账号工具响应装配处接线增量视图；BL 的同回包去重保留。必须核对最终发给模型的包，不能只量测未发送的中间对象。
-- [ ] 记录每回合源码读区间、重复读字节、规则/状态重复字节、按需详情次数、模型已知 input/cache/output 和 wall time。
-- [ ] 断线恢复/新会话无旧引用时发送必要基底；input/source/program 改变只失效受影响材料，不能返回旧结论。
+- [x] 在真实账号工具响应装配处接线增量视图；BL 的同回包去重保留。必须核对最终发给模型的包，不能只量测未发送的中间对象。
+- [x] 记录每回合源码读区间、重复读字节、规则/状态重复字节、按需详情次数、模型已知 input/cache/output 和 wall time。
+- [x] 断线恢复/新会话无旧引用时发送必要基底；input/source/program 改变只失效受影响材料，不能返回旧结论。
 
 ### BM8 消费与编辑共同可靠收尾
 
-- [ ] 修 `program-delivery.ts` 及现有 `src/benchmarks/authorization-dsl` 账号接线、`src/adapters/codex-account-session.ts` 对应职责；先用 fake transport/已归档生命周期验证。
-- [ ] consume 在工具上限、修稿后、当前答案 stale 时均能进入至多一次无工具回答；保持原总时限和终态约束。
-- [ ] unknown/interrupted/额度拒绝不伪造完成；能留的自然文本照存，交付与程序正确性分别评价。
+- [x] 修 `program-delivery.ts` 及现有 `src/benchmarks/authorization-dsl` 账号接线、`src/adapters/codex-account-session.ts` 对应职责；先用 fake transport/已归档生命周期验证。
+- [x] consume 在工具上限、修稿后、当前答案 stale 时均能进入至多一次无工具回答；保持原总时限和终态约束。
+- [x] unknown/interrupted/额度拒绝不伪造完成；能留的自然文本照存，交付与程序正确性分别评价。
 
 ### BM9 普通入口集成与兼容
 
-- [ ] 零调用走通 prepare/check/run 的相关既有路径、draft/trial/details/restore 和显式 directed 参数，研究脚本不另写执行器。
-- [ ] 运行受影响回归、主类型和匿名多 operation 用例；修复与方法说明同步后提交共享实现，形成首个实验 epoch。
+- [x] 零调用走通 prepare/check/run 的相关既有路径、draft/trial/details/restore 和显式 directed 参数，研究脚本不另写执行器。
+- [x] 运行受影响回归、主类型和匿名多 operation 用例；修复与方法说明同步后提交共享实现，形成首个实验 epoch。
 
 ### BM10 最薄实验接线
 
-- [ ] 在 `results/skill-ir/skill-dsl-research/development/authorization-branch-verified-consumption-v1/` 建立 manifest、status、attempts、评价及费用入口；复用既有研究库，只加必要编排。
-- [ ] `prepare/preflight/run/evaluate/replay/status` 需可恢复，具体脚本命令写进该目录 README。preflight 零模型，模型输入不包含 evaluator、正确 patch 或历史自然答案。
-- [ ] 检查 B/C 信息与预算可比、作者产物来源、当前程序固定规则、外部副作用隔离。禁止将评价器观察自动返回给仍在运行的同一实验臂。
+- [x] 在 `results/skill-ir/skill-dsl-research/development/authorization-branch-verified-consumption-v1/` 建立 manifest、status、attempts、评价及费用入口；复用既有研究库，只加必要编排。
+- [x] `prepare/preflight/run/evaluate/replay/status` 需可恢复，具体脚本命令写进该目录 README。preflight 零模型，模型输入不包含 evaluator、正确 patch 或历史自然答案。
+- [x] 检查 B/C 信息与预算可比、作者产物来源、当前程序固定规则、外部副作用隔离。禁止将评价器观察自动返回给仍在运行的同一实验臂。
 
 ### BM11 A0 自动修订并固定消费稿
 

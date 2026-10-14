@@ -100,7 +100,7 @@ async function run(position: string, attempt = "first") {
       if (author && proposals?.length) await save(path.join(base, `authoring/first-program-${position}-${attempt}.json`), proposals[0].output.executableContract.adoptedDraft.raw)
     }
     if (author && report.domain) { await save(path.join(base, `authoring/${position}-${attempt}-process.json`), report.domain); const adopted = report.domain.executableContract?.adoptedDraft; if (adopted?.raw?.resourceWorkflow?.steps?.length) await save(path.join(base, `authoring/automatic-program-${position}-${attempt}.json`), adopted.raw) }
-    console.log(JSON.stringify(entry))
+    console.log(JSON.stringify({ position, attempt, status: entry.status, session: entry.session, terminalStatus: entry.terminalStatus, answerDelivery: entry.answerDelivery, durationMs: entry.durationMs, usage: entry.usage, trialBatches: entry.trialBatches, resourceSteps: entry.resourceSteps, returned: entry.returned, termination: entry.termination }))
   } catch (error) { Object.assign(entry, { status: "unknown", error: String(error), endedAt: new Date().toISOString(), localExecution: "closed", noAutomaticResend: true }); throw error }
   finally { await save(ledgerFile, ledger); await unlink(leasePath) }
 }

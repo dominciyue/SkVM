@@ -2766,6 +2766,8 @@ ShareLink第二离线开发程序使用同一select/guard/return核，六场景�
 
 ### 7.74 BL 复核与 BM 分支补齐和按职责消费
 
+BM首件实测补修：A0-first用60探索单位而无patch/trial；暂态重连willRetry=true曾残留为terminalError，阻断已确认预算中断后的收尾。只将非重试/真实终态错误记为terminalError，quota与unknown限制不变；现有一次12单位作者提醒覆盖未修订的已有草稿，提示inspect/trial/patch但不供应答案。A0/recovered-author为具名共享修复确认，首件成本与未交付保留。
+
 2026-10-14，用户要求书写下一轮任务书并派发gpt-6-astra/high。核对基线cb8a721a，形成[BM0–BM20](../superpowers/plans/2026-10-14-authorization-branch-completion-and-directed-consumption.md)与spec§14.52，新identity为`authorization-branch-verified-consumption-v1`。本段是开发前复核与决定，没有BM工程或效果结果。
 
 **复核纠正了什么。** BL固定A0已有14步可执行程序，18场景15项有限行为匹配；这与早期“程序建立不起来”已有实质差别。非法/跨根版本目前没有错误返回其它文件，而是未显式拒绝、conditional且无返回。no-external遗漏初始化前提；owner分支还无条件执行has_perm。当前数据值、有限分支行为和完整源码授权证明须分别理解。局部普通复验覆盖六个输入，53项定向测试/395断言和主类型检查通过，未修改BL原稿或原评价。

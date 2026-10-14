@@ -343,7 +343,9 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
       if (message.method === "error" || message.method === "turn/completed") {
         const error = params.error ?? params.turn?.error
         if (error) {
-          terminalError = error
+          // A reconnect notice is retained in events, but is not a terminal
+          // failure after the provider continues and confirms a later terminal.
+          if (message.method === "turn/completed" || params.willRetry !== true) terminalError = error
           const code = error.codexErrorInfo
           quotaRefused ||= typeof code === "string" ? code.toLowerCase() === "usagelimitexceeded" : Object.keys(object(code)).some(k => k.toLowerCase() === "usagelimitexceeded")
         }

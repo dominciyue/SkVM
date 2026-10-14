@@ -110,7 +110,10 @@ test("author loop records actual first valid draft repairs and new values and tr
   expect(feedback.changes.at(-1).newValues).toEqual({ selected: 9 })
   expect(feedback.changes.at(-1).returned).toBe(9)
   const restored = (author as any).createProgramAuthorLoop()
-  expect(restored.snapshot({ toolUnit: 20, explorationUnits: 18, completeSources: [source], hasDraft: true }).checkpoint).toBeUndefined()
+  const repairCheckpoint = restored.snapshot({ toolUnit: 20, explorationUnits: 18, completeSources: [source], hasDraft: true }).checkpoint
+  expect(repairCheckpoint.instruction).toContain("authorization_program_trial")
+  expect(repairCheckpoint.instruction).toContain("existing draft")
+  expect(restored.snapshot({ toolUnit: 23, explorationUnits: 21, completeSources: [source], hasDraft: true }).checkpoint).toEqual(repairCheckpoint)
 })
 
 test("a patch-only restored author records the first proposal without inventing a program call", () => {
