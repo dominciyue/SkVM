@@ -4,6 +4,10 @@
 
 ## 当前工作
 
+**BM0–BM20 已获授权并登记，待新开发线程接管；当前只完成任务书，没有 BM 工程或实验结果。** [任务书](../superpowers/plans/2026-10-14-authorization-branch-completion-and-directed-consumption.md)承接 BL 的三个程序缺口、重复消费成本和预算末尾缺交付。先补源码义务候选与渐进修稿，再做显式 directed 消费、真实无工具收尾及八用途有限验证。新 identity 为 `authorization-branch-verified-consumption-v1`，开发 `gpt-6-astra/high`，方法见 [spec§14.52](skill-ir-aot-optimization-spec.md#1452-bm-branch-completion-and-directed-consumption) 与 [研究§7.74](skill-dsl-research.md#774-bl-复核与-bm-分支补齐和按职责消费)。实施前基线为 `cb8a721a`，full 默认、原四问和历史证据保持。
+
+## BL 已结束的实际结果
+
 **BL以completed-with-unmet-criteria收束适用工程与八用途：自动编写和当前依据交付成立，完整可复用范围与净收益未达。** A0/A1首稿均0/18、最终均15/18；默认11/archive、空版本12/original、明确false拒绝。非法/跨根版本拒绝及constructor条件仍遗漏。两对C/B四问均full，C输入分别为B的4.63/5.23倍，输出和耗时也更高；两对negative。C2预算耗尽无自然答，只读确认interrupted，原unavailable/部分费用保留。S0一次模型维护及四case trial后，三个保留输入的源码变化重放符合反转条件；不替换固定稿。见[执行过程](../../results/skill-ir/skill-dsl-research/development/authorization-reusable-program-v1/execution.md)、[summary](../../results/skill-ir/skill-dsl-research/development/authorization-reusable-program-v1/summary.json)、[任务书](../superpowers/plans/2026-10-14-authorization-reusable-program-semantics-and-delivery.md)、[spec§14.51](skill-ir-aot-optimization-spec.md#1451-bl-reusable-program-semantics-and-delivery)及[研究§7.73](skill-dsl-research.md#773-bk-复核与-bl-可复用程序开发决定)。
 
 BL共享实现至34ae933e，169定向测试/1136断言、主/研究类型、3研究测试/58断言及15文档测试通过；八归档本地关闭，14观察turn、7用途自然交付。已知input21,097,032（含cache19,419,008）、output106,101，C2最终usage及全部实际USD/开发探子/真人成本unknown。无损响应引用反事实少333568字节，不称因果token收益。full默认，普通示例使用固定14步A0；实质成果fe9abe21已推用户origin并核对同SHA，见[发布回执](../../results/skill-ir/skill-dsl-research/development/authorization-reusable-program-v1/publication.json)，原有`.tmp/`和原件保留。开发gpt-6-astra/high、实验官方gpt-5.6-sol/high，第三方暂停，无额外修复抽样。
@@ -101,11 +105,11 @@ BB先保留effect/context标注下的源码调用，沿真实调用实例连接�
 - 两作者包已按原字节实际消费。Download消费者源码评阅full但机器partial；OWUI消费者仍有决定性helper未读。变化中policy-fresh、premise-fresh/previous已有运行；policy-previous路由失败、source-fresh额度拒绝，source-previous及质量位置保留未运行。
 - 原件、计量及验收以 [最终收束](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/final-closure-v35.json)、[manifest](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/manifest.json)、[状态](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/status.json) 为准。历史 `acceptance` 字段表达要求，不代表实际通过。
 
-AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有有界修复，形成过程保留在研究§7.61。当前新增责任以§7.73和BL任务书为准；既有严格路径保留，渐进执行继续按实际结果标注。
+AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有有界修复，形成过程保留在研究§7.61。当前新增责任以§7.74和BM任务书为准；既有严格路径保留，渐进执行继续按实际结果标注。
 
 ## 账号、运行和继承边界
 
-- BL开发 `gpt-6-astra/high`，按用户指定派发；实验沿用已授权的当前官方账号 `gpt-5.6-sol/high`，无需再次确认。第三方API和AV旧位置继续暂停。BL在新identity登记独立作者、消费、基线与具名修订；BK及更早旧队列保持结束，不向旧结果补行。
+- BM开发 `gpt-6-astra/high`，按用户指定派发；实验沿用已授权的当前官方账号 `gpt-5.6-sol/high`，无需再次确认。第三方API和AV旧位置继续暂停。BM在新identity登记修订作者、独立作者、消费、基线、维护与具名确认；BL及更早旧队列保持结束，不向旧结果补行。
 - BG有限执行已收束，无活动或未知请求；自动编写与重复上下文成本为未达项，不自动增加样本。后续新任务继续遵守具名恢复、账号未知和成本记录边界。
 - BF六首位置及三具名修订已处置，可选反序第二对因自动R1未达未运行。自动编写、作者给定程序消费及变化复用各自分母；不会自动追加模型。新范围不升级旧readiness或改变项目默认。
 - BE六质量首位置和六变化逻辑位置已完成，保持完整原skill/四问及失败分母。source-previous两件确定未派发，仅一个同输入/epoch的登记恢复交付；原件和79,770ms本地开销保留。R0/R1资格、恢复和实际使用分列，旧答案/评阅/verdict不进入previous；R2缺失使实际R2撤回实验未执行。旧BD六未运行不补行，OWUI继续仅离线。
@@ -128,7 +132,8 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 
 | 阶段 | 保留记录 |
 |---|---|
-| 当前BL | [任务书](../superpowers/plans/2026-10-14-authorization-reusable-program-semantics-and-delivery.md)、spec§14.51、研究§7.73；适用工程/八用途收束，自动范围15/18、两对negative、C2缺交付，完整研究目标未达 |
+| 当前BM | [任务书](../superpowers/plans/2026-10-14-authorization-branch-completion-and-directed-consumption.md)、spec§14.52、研究§7.74；已登记待接管，尚无工程/实验结果 |
+| BL | [任务书](../superpowers/plans/2026-10-14-authorization-reusable-program-semantics-and-delivery.md)、spec§14.51、研究§7.73；适用工程/八用途收束，自动范围15/18、两对negative、C2缺交付，完整研究目标未达 |
 | BK | [任务书](../superpowers/plans/2026-10-13-authorization-recoverable-authoring-and-real-delivery.md)、spec§14.50、研究§7.72；适用工程/有限队列结束，自动主链和净收益未达 |
 | BJ | [任务书](../superpowers/plans/2026-10-13-authorization-authoring-loop-and-program-completion.md)、spec§14.49、研究§7.71；离线工程已验证，R0原生命周期unknown且不重发，自动主链/四问交付/收益未达 |
 | BI | [任务书](../superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md)、spec§14.48、研究§7.70；已发布，工程与有限队列完成，自动主链及稳定收益未达 |
