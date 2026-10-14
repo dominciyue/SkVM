@@ -118,6 +118,7 @@ test("native and structured author run the same isolated trial patch trial loop"
   let count = 0
   const provider: any = { name: "trial-loop", async complete(params: any) {
     const text = params.messages.map((m: any) => m.content).join("\n"), n = count++
+    if (n === 0) expect(text).toContain("Program-authoring task:")
     const current = JSON.parse(text.split("Current local explanation context: ").at(-1)!.split("\n\nRemaining dispatches:")[0]!)
     const a = actions(current.authoring?.draftRevision)[n]
     const action = a ? a.name === "source_read" ? { kind: "tool", calls: [a] } : { kind: "program", ...a } : { kind: "final", schemaVersion: "authorization-focused-result/v1", focusId: current.focus.id, answers: ["q", "other"].map(id => ({ explanation: `${id} remains source-limited`, missing: [{ kind: "source-gap", detail: "Unreviewed source meaning" }] })), scope: "Local fixture" }
@@ -413,6 +414,7 @@ test("public account author continues twice with one runtime budget and archives
       if (["thread/start", "thread/resume"].includes(m.method)) receive({ id: m.id, result: { thread: { id: "thread", ephemeral: false }, model: "gpt-5.6-sol" } })
       if (m.method === "turn/start") {
         turn++; context = decode(JSON.parse(m.params.input[0].text.split("Current local explanation context: ")[1]))
+        if (turn === 1) expect(m.params.input[0].text.startsWith("Program-authoring task:")).toBe(true)
         actions = turn === 1 ? [{ tool: "authorization_prepare_properties", arguments: { schemaVersion: "authorization-property-intent/v1", questions: [{ questionId: "other", state: "residual", reason: "Keep duty" }] } }, { tool: "source_read", arguments: { path: "app.py", startLine: 1, endLine: 8 } }] : turn === 2 ? [{ tool: "authorization_program", arguments: raw }] : turn === 3 ? [{ tool: "authorization_program_patch", arguments: { baseRevision: context.authoring.draftRevision, inputBinding: { questionId: "q" }, upsertSteps: [] } }] : []
         if (turn === 4) expect(m.params.input[0].text).toContain("Deliver a complete standalone answer")
         receive({ id: m.id, result: { turn: { id: `turn-${turn}` } } }); queueMicrotask(next)

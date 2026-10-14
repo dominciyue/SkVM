@@ -1,6 +1,6 @@
 import type { LLMProvider, CompletionParams } from "../../providers/types.ts"
 import { projectProgramConsumption, projectProgramToolOutput, programConsumptionDetails } from "../../task-dsl/authorization/program-consumption-context.ts"
-import { decideProgramAuthorContinuation, projectProgramTaskContext } from "../../task-dsl/authorization/program-authoring-context.ts"
+import { decideProgramAuthorContinuation, projectProgramTaskContext, INITIAL_PROGRAM_AUTHORING_INSTRUCTION } from "../../task-dsl/authorization/program-authoring-context.ts"
 import { collectProgramObligations } from "../../task-dsl/authorization/program-obligations.ts"
 import { createProgramDelivery, programDeliveryBasis, decideFinalProgramDelivery, FINAL_PROGRAM_ANSWER_INSTRUCTION, type ProgramDeliveryPhase } from "../../task-dsl/authorization/program-delivery.ts"
 import { questionWorkflowDefinitions, questionWorkflowSchemas } from "./question-workflow-wire.ts"
@@ -97,7 +97,7 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
   let domain: ReturnType<typeof createInquiryDomainRuntime> | undefined
   const progress = createInquiryProgress(); let progressAdvice: unknown
   let semanticChecks = 0, controlActions = 0, deliveryClosed = false
-  let authorContinuations = 0, previousAuthorProgress: string | undefined, authorInstruction = ""
+  let authorContinuations = 0, previousAuthorProgress: string | undefined, authorInstruction = options.programMode === "edit" ? INITIAL_PROGRAM_AUTHORING_INSTRUCTION : ""
   const authorAnswers: Array<{ answer: unknown; validation: unknown; sequence: number }> = []
   const authorDecisions: ReturnType<typeof decideProgramAuthorContinuation>[] = []
   const delivery = createProgramDelivery(), deliveryValidations = new Map<number, ReturnType<typeof validateAuthorizationInquiryResult>>()

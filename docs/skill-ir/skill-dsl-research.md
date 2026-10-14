@@ -2766,6 +2766,8 @@ ShareLink第二离线开发程序使用同一select/guard/return核，六场景�
 
 ### 7.74 BL 复核与 BM 分支补齐和按职责消费
 
+BM作者职责补修：A1-first在60工具后仍0程序/0trial，最终自然答已交付。离线实际首派发显示账号首指令仍是普通Task-answer，structured初始authorInstruction为空；两入口的编辑职责首轮缺位。新增共享INITIAL_PROGRAM_AUTHORING_INSTRUCTION，使edit首轮明确先编写/修订与试算，再交付全部原问题；不注入源码答案或额外预算。两入口红绿及7定向测试/79断言、研究类型通过。A1/initial-author-contract为第二个具名额外用途，固定A0不再改选。
+
 BM首件实测补修：A0-first用60探索单位而无patch/trial；暂态重连willRetry=true曾残留为terminalError，阻断已确认预算中断后的收尾。只将非重试/真实终态错误记为terminalError，quota与unknown限制不变；现有一次12单位作者提醒覆盖未修订的已有草稿，提示inspect/trial/patch但不供应答案。A0/recovered-author为具名共享修复确认，首件成本与未交付保留。
 
 2026-10-14，用户要求书写下一轮任务书并派发gpt-6-astra/high。核对基线cb8a721a，形成[BM0–BM20](../superpowers/plans/2026-10-14-authorization-branch-completion-and-directed-consumption.md)与spec§14.52，新identity为`authorization-branch-verified-consumption-v1`。本段是开发前复核与决定，没有BM工程或效果结果。

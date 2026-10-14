@@ -25,6 +25,8 @@ BM8协议细化：本机TurnStartParams没有dynamicTools覆盖，thread/resume�
 
 ## 二、已经核实的出发点
 
+BM作者职责补修：A1-first在60工具后仍0程序/0trial，最终自然答已交付。离线实际首派发显示账号首指令仍是普通Task-answer，structured初始authorInstruction为空；两入口的编辑职责首轮缺位。新增共享INITIAL_PROGRAM_AUTHORING_INSTRUCTION，使edit首轮明确先编写/修订与试算，再交付全部原问题；不注入源码答案或额外预算。两入口红绿及7定向测试/79断言、研究类型通过。A1/initial-author-contract为第二个具名额外用途，固定A0不再改选。
+
 BM首件处置：A0-first在60探索单位/49工具调用后由宿主确认中断，原14步未修改、0trial、无自然交付。真实日志中的willRetry=true重连提示被terminalError残留，错误地阻止已确认闭合后的final child；按服务器重试语义分离暂态与终态错误，原事件仍保留。现有12单位作者提醒原先跳过任何已有草稿，现扩展为提醒其inspect/trial/patch，仍只出现一次、不关闭工具、不提供语义答案。两处均有红绿复现，具名确认A0/recovered-author计入四额外用途额度，首件及费用不改写。
 
 | BL 事实 | 本轮处理的责任 |

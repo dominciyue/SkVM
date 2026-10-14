@@ -10,7 +10,7 @@ import type { InquiryReuseInfo, InquiryReuseSeed } from "../benchmarks/authoriza
 import type { SourcePreparationOptions } from "../benchmarks/authorization-dsl/evidence-preparation/preparation.ts"
 import { writeFile } from "node:fs/promises"
 import path from "node:path"
-import { decideProgramAuthorContinuation } from "../task-dsl/authorization/program-authoring-context.ts"
+import { decideProgramAuthorContinuation, INITIAL_PROGRAM_AUTHORING_INSTRUCTION } from "../task-dsl/authorization/program-authoring-context.ts"
 import { createProgramDelivery, decideFinalProgramDelivery, FINAL_PROGRAM_ANSWER_INSTRUCTION, type ProgramDeliveryPhase } from "../task-dsl/authorization/program-delivery.ts"
 export { readCodexAccountThread } from "./codex-account-session.ts"
 
@@ -89,7 +89,7 @@ export async function runCodexAccountInquiry(options: AccountInquiryOptions) {
       if (final) packetEncode = directed ? createInquiryContextEncoder() : undefined
       const rawContext = final ? await finalContext() : await contextView(turns.length === 0)
       const context = !final && packetEncode ? packetEncode(rawContext).context : rawContext
-      const prompt = `${phase === "final-answer" ? FINAL_PROGRAM_ANSWER_INSTRUCTION : turns.length ? `Author-edit phase: continue your own source authoring after the preserved task answer. Purpose: ${decisions.at(-1)!.reason}. Inspect and repair your current draft using actual grouped feedback; retain all original questions. Your end-of-turn text records editing progress; it does not replace the task answer. The remaining budget is shared with prior turns. Do not repeat unchanged proposals or invent missing external facts.` : "Task-answer phase: current original task and full skill are declared in the system. Complete source work and deliver every original question."}\nCurrent local explanation context: ${JSON.stringify(context)}`
+      const prompt = `${phase === "final-answer" ? FINAL_PROGRAM_ANSWER_INSTRUCTION : turns.length ? `Author-edit phase: continue your own source authoring after the preserved task answer. Purpose: ${decisions.at(-1)!.reason}. Inspect and repair your current draft using actual grouped feedback; retain all original questions. Your end-of-turn text records editing progress; it does not replace the task answer. The remaining budget is shared with prior turns. Do not repeat unchanged proposals or invent missing external facts.` : options.programMode === "edit" ? INITIAL_PROGRAM_AUTHORING_INSTRUCTION : "Task-answer phase: current original task and full skill are declared in the system. Complete source work and deliver every original question."}\nCurrent local explanation context: ${JSON.stringify(context)}`
       transmission.record("initial-context", context, prompt); runtime.accountSent(prompt)
       const prior = turns.at(-1) ?? options.authorResumeAfter
       const remaining = runtime.report().toolBudget.totalRemaining
