@@ -1,0 +1,231 @@
+{
+  "rubric": "manifest.json and README fixed before inference; source meaning, condition precision, citations, current scenario, omissions, delivery separate. Natural prose never repairs a raw program.",
+  "reviews": [
+    {
+      "purpose": "A0",
+      "attempt": "first",
+      "delivery": "undelivered",
+      "questions": [
+        "undelivered",
+        "undelivered",
+        "undelivered",
+        "undelivered"
+      ],
+      "overall": "undelivered",
+      "programRepaired": false
+    },
+    {
+      "purpose": "A0",
+      "attempt": "recovered-author",
+      "delivery": "delivered",
+      "questions": [
+        "partial",
+        "full",
+        "full",
+        "full"
+      ],
+      "overall": "partial",
+      "currentScenario": "correct: root10, document11, archive",
+      "conditionPrecision": "distinguishes supplied constructor assumption and finite facts from real deployment unknowns; construction before owner shortcut explicit",
+      "citationIssue": "Answer line79 attributes (version_index or 0,id) to the queried latest version. Cited versioning.py120 is sort_versions_newest_first(list); actual get_latest_version_for_root165 calls versions_newest_first(QuerySet), whose line28 orders nulls last. Difference matters for null vs negative indices.",
+      "evidence": [
+        "evaluation/answers/A0-recovered-author.txt:79",
+        "source/src/documents/versioning.py:23-28",
+        "source/src/documents/versioning.py:114-122",
+        "source/src/documents/versioning.py:159-166"
+      ],
+      "programRepaired": false,
+      "modelRawUnchanged": true
+    },
+    {
+      "purpose": "A1",
+      "attempt": "first",
+      "delivery": "delivered",
+      "questions": [
+        "partial",
+        "full",
+        "full",
+        "full"
+      ],
+      "overall": "partial",
+      "currentScenario": "correct: empty version selects document12 original v2-original.txt",
+      "conditionPrecision": "Constructor before owner shortcut, grant only on non-owner branch, supplied initialization distinct from object grant. Main spot checked lines77,131-155,244-252,291 against authoritative source after independent read-only review.",
+      "evidence": [
+        "evaluation/answers/A1-first.txt:77",
+        "evaluation/answers/A1-first.txt:131",
+        "evaluation/answers/A1-first.txt:155",
+        "evaluation/answers/A1-first.txt:244",
+        "evaluation/answers/A1-first.txt:291"
+      ],
+      "programProduced": false,
+      "finiteProgramAssessment": "not-run-no-program",
+      "reviewCorrection": "Initial provisional Q1 full corrected consistently with repaired answer: ordering omits explicit NULLS LAST at answer77. Source versioning.py28 makes this material for null/negative-index cases. No rubric or denominator change."
+    },
+    {
+      "purpose": "A1",
+      "attempt": "initial-author-contract",
+      "delivery": "delivered",
+      "questions": [
+        "partial",
+        "partial",
+        "full",
+        "partial"
+      ],
+      "overall": "partial",
+      "currentScenario": "correct document12/original/v2-original.txt",
+      "issues": [
+        {
+          "question": 1,
+          "answerLine": 77,
+          "issue": "Descending version_index and id stated, explicit nulls-last omitted."
+        },
+        {
+          "question": 2,
+          "answerLine": 186,
+          "issue": "Owner short circuit and no grant correct, but initialization before every owner branch omitted."
+        },
+        {
+          "question": 4,
+          "answerLine": 263,
+          "issue": "Missing-facts table omits constructor completion and distinction from grants; supplied current fixture has that premise."
+        }
+      ],
+      "independentReviewAdjudication": "Accepted ordering/initialization omissions. Q3 remains full because it precisely identifies root vs file and missing-root fallback; unrelated ordering omission is scored in Q1. Denied fixture at line279 is supported by sourceNotes four-case input, so not an invented fact.",
+      "programProduced": true,
+      "resourceSteps": 12,
+      "trialBatches": 1,
+      "replacesA0": false
+    },
+    {
+      "purpose": "C0",
+      "attempt": "first",
+      "delivery": "delivered",
+      "questions": [
+        "partial",
+        "partial",
+        "full",
+        "partial"
+      ],
+      "overall": "partial",
+      "currentScenario": "correct default document11/archive/v1-archive.pdf",
+      "issues": [
+        {
+          "question": 1,
+          "answerLine": 54,
+          "issue": "Latest ordering omits nulls-last."
+        },
+        {
+          "question": 2,
+          "answerLine": 165,
+          "issue": "Owner/unowned/grant listed but initialization before short circuit omitted."
+        },
+        {
+          "question": 4,
+          "answerLine": 218,
+          "issue": "Supplied constructor assumption and general initialization prerequisite omitted."
+        }
+      ],
+      "review": "Independent reviewer plus main spot-check of answer150-239 against source permissions624-635 and supplied constructor fact; Q3 fully preserves resource identity/fallback.",
+      "programRepaired": false
+    },
+    {
+      "purpose": "B0",
+      "attempt": "first",
+      "delivery": "delivered",
+      "questions": [
+        "partial",
+        "partial",
+        "full",
+        "partial"
+      ],
+      "overall": "partial",
+      "currentScenario": "correct document11/archive/v1-archive.pdf",
+      "issues": [
+        {
+          "question": 1,
+          "answerLine": 51,
+          "issue": "States descending version_index then ID, but omits nulls-last."
+        },
+        {
+          "question": 2,
+          "answerLine": 94,
+          "issue": "Owner/grant branches omit constructor before every shortcut."
+        },
+        {
+          "question": 4,
+          "answerLine": 122,
+          "issue": "Correctly says constructor completion is not a grant, but does not identify initialization as a required condition even for owner path; final success conditions at127 omit it."
+        }
+      ],
+      "review": "Independent reviewer claimed explicit nulls-last, but main checked exact answer51: absent. Corrected Q1 to partial under the same rubric as A1/C0. Main checked84-127 for other findings.",
+      "programProduced": false
+    },
+    {
+      "purpose": "C2",
+      "attempt": "first",
+      "delivery": "delivered",
+      "questions": [
+        "partial",
+        "partial",
+        "full",
+        "partial"
+      ],
+      "overall": "partial",
+      "currentScenario": "correct conditional-on-upstream403; no file selected; hypothetical grant distinguishes11/archive",
+      "issues": [
+        {
+          "question": 1,
+          "answerLine": 29,
+          "issue": "Latest ordering omits nulls-last."
+        },
+        {
+          "question": 2,
+          "answerLine": 59,
+          "issue": "Constructor before owner/unowned/grant branches omitted."
+        },
+        {
+          "question": 4,
+          "answerLine": 100,
+          "issue": "Missing-facts table omits constructor prerequisite and supplied normal-initialization assumption."
+        }
+      ],
+      "review": "Main read full112-line answer, checked against already-verified exact source and denied input. No new evaluator input sent to model.",
+      "programRepaired": false,
+      "naturalTerminalWithoutFinalChild": true
+    },
+    {
+      "purpose": "S0",
+      "attempt": "first",
+      "delivery": "delivered",
+      "questions": [
+        "partial",
+        "partial",
+        "full",
+        "partial"
+      ],
+      "overall": "partial",
+      "currentScenario": "correct source-copy inversion: owner7 returns403 before selection; hypothetical false-grant continuation separate",
+      "issues": [
+        {
+          "question": 1,
+          "answerLine": 54,
+          "issue": "Newest ordering and nulls-last omitted."
+        },
+        {
+          "question": 2,
+          "answerLine": 95,
+          "issue": "Constructor before owner/unowned short circuit omitted."
+        },
+        {
+          "question": 4,
+          "answerLine": 124,
+          "issue": "Initialization premise and blocked conclusion omitted; program still has unconditional object_grant."
+        }
+      ],
+      "review": "Independent review followed by main reading all133 answer lines against current copied source. No false explicit-null claim adopted.",
+      "programMaintained": true,
+      "maintenanceScope": "three retained source-change cases and two extra checks for newly added file_doc_present; not a full18-case score",
+      "replacesA0": false
+    }
+  ]
+}

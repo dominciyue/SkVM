@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-**BM0–BM20正在实施：共享工程已接通，零调用预检通过，真实八用途尚未开始。** 已完成185项定向回归及15项文档测试；收尾源码重传计量补修另有红绿验证。模型质量及成本尚无BM结论。 [任务书](../superpowers/plans/2026-10-14-authorization-branch-completion-and-directed-consumption.md)承接 BL 的三个程序缺口、重复消费成本和预算末尾缺交付。先补源码义务候选与渐进修稿，再做显式 directed 消费、真实无工具收尾及八用途有限验证。新 identity 为 `authorization-branch-verified-consumption-v1`，开发 `gpt-6-astra/high`，方法见 [spec§14.52](skill-ir-aot-optimization-spec.md#1452-bm-branch-completion-and-directed-consumption) 与 [研究§7.74](skill-dsl-research.md#774-bl-复核与-bm-分支补齐和按职责消费)。实施前基线为 `cb8a721a`，full 默认、原四问和历史证据保持。
+**BM0–BM20以completed-with-unmet-criteria收束有限队列：工程与实际交付成立，完整自动程序和净收益未达。** 8次真实attempt（含2个具名修复）、B1/C1依首对negative规则未运行，12观察turn、7自然交付、0活动/未知。A0修复后仍原14步、15/18；A1独立确认12步、14/18，不替换A0。首对C0/B0均P/P/F/P，C输入3.82倍、输出更高；耗时更高但C0有离线检查并行负载，不能作隔离性能因果结论。C2自然完成拒绝交付；S0维护17步，副本三场景及两个新增拒绝检查通过，初始化/短路仍缺。[执行记录](../../results/skill-ir/skill-dsl-research/development/authorization-branch-verified-consumption-v1/execution.md)、[任务书](../superpowers/plans/2026-10-14-authorization-branch-completion-and-directed-consumption.md)、[普通示例](../../examples/authorization-assessment/download-workflow/README.md)。184生产定向测试/1229断言、4研究测试/29断言、主/研究类型及15文档测试通过；旧全src104失败不称修复。known input17189793（含cache15432192）/output97517，USD/开发探子/真人成本未知。生产至2c618b0f，发布核对待完成。
 
 ## BL 已结束的实际结果
 

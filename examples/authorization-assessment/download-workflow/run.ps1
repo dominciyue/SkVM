@@ -1,11 +1,12 @@
 param(
   [ValidateSet('zero', 'account', 'author')][string]$Mode = 'zero',
-  [ValidateSet('root-default', 'empty-version', 'denied', 'missing-owner', 'root-fallback')][string]$Variant = 'root-default',
+  [ValidateSet('root-default', 'empty-version', 'denied', 'missing-owner', 'root-fallback', 'invalid-version', 'other-root-version', 'no-external')][string]$Variant = 'root-default',
+  [string]$InputFile,
   [string]$Out,
   [string]$AccountBoundary,
   [string]$ProgramFile,
   [string]$Previous,
-  [ValidateSet('full', 'compact')][string]$ProgramContext = 'full'
+  [ValidateSet('full', 'compact', 'directed')][string]$ProgramContext = 'full'
 )
 $ErrorActionPreference = 'Stop'
 $repo = (Resolve-Path (Join-Path $PSScriptRoot '../../..')).Path
@@ -14,7 +15,9 @@ $Out = [IO.Path]::GetFullPath($Out)
 [IO.Directory]::CreateDirectory($Out) | Out-Null
 $command = @('src/index.ts', 'authorization', 'inquiry')
 if ($Mode -eq 'zero') { $command += 'check' } else { $command += 'run' }
-$command += @("--input=$PSScriptRoot/inputs/$Variant.json", '--strategy=question-checked-v1', '--execution-policy=progressive', "--program-context=$ProgramContext", "--out=$Out")
+if (-not $InputFile) { $InputFile = Join-Path $PSScriptRoot "inputs/$Variant.json" }
+$InputFile = (Resolve-Path -LiteralPath $InputFile).Path
+$command += @("--input=$InputFile", '--strategy=question-checked-v1', '--execution-policy=progressive', "--program-context=$ProgramContext", "--out=$Out")
 if ($Mode -eq 'author') {
   if ($ProgramFile) { throw 'Author mode starts without a supplied program; use -Previous for a saved author session.' }
   $command += @('--program-mode=edit', '--authoring-target=reusable')
@@ -44,6 +47,8 @@ try {
   if ($ProgramFile) { Write-Output "Program: $ProgramFile" }
   $execution = if ($Mode -eq 'zero') { $result.executableContract.resourceExecution } else { $result.domain.executableContract.resourceExecution }
   $execution | Select-Object status, returned, termination, gaps | ConvertTo-Json -Depth 8
+  $outcome = if ($Mode -eq 'zero') { $result.executableContract.outcome } else { $result.domain.executableContract.outcome }
+  $outcome | Select-Object execution, value, termination, requiredPremises, executionGaps, executedAssumptions, semanticSupport, requestOperationCertified | ConvertTo-Json -Depth 12
   if ($Mode -eq 'author' -and -not $execution) {
     Write-Output "No active resource execution. Raw draft and remaining original duties are retained in execution.json/md."
   }

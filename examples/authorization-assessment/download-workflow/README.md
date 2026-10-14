@@ -1,6 +1,17 @@
 # Download: input → source program → execution → result
 
+The script accepts `-ProgramContext directed` to send current results, premises, branch rules and all original duties with retrievable details and incremental account packets. `full` remains the default. Use `-InputFile <file>` for another explicit input, or the additional `invalid-version`, `other-root-version` and `no-external` variants. Printed output separates actual execution from coverage gaps; `execution.md` retains the complete current view. An exhausted tool phase can receive one tools-free final answer within its original time/display budget, only after a confirmed terminal. Unknown requests are not resent.
+
 ## Current BL model-authored original
+
+BM's repair attempt retained the exact same 14-step raw program; it did not improve the three known finite gaps, so the default stays BL. To run the separately fixed BM selection explicitly:
+
+```powershell
+./examples/authorization-assessment/download-workflow/run.ps1 -ProgramContext directed -ProgramFile ./results/skill-ir/skill-dsl-research/development/authorization-branch-verified-consumption-v1/authoring/automatic-program.json
+./examples/authorization-assessment/download-workflow/run.ps1 -Variant invalid-version -ProgramContext directed -ProgramFile ./results/skill-ir/skill-dsl-research/development/authorization-branch-verified-consumption-v1/authoring/automatic-program.json
+```
+
+The BM selection is model-repair-existing with no semantic edits observed, not a new independently authored solution. Its current 18-case evaluation remains 15/18 after reviewed output field mapping. Invalid and cross-root versions remain conditional with no file return; missing constructor facts are still not properly represented. A tools-free child delivered the repaired-lifecycle author's natural explanation, which does not repair those program omissions.
 
 The default script runs the [BL A0 automatic raw program](../../../results/skill-ir/skill-dsl-research/development/authorization-reusable-program-v1/authoring/automatic-program.json), fixed before consumption with no developer semantic edits:
 

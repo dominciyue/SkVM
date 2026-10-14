@@ -1,0 +1,133 @@
+## Program-authoring result
+
+A persistent executable draft was repaired and adopted:
+
+- **Program:** `document-download-selection`
+- **Draft revision:** `8c9acdcb76f98fe00899749c5d02958931d411150ec482b4188d85218fa9d878`
+- **Status:** current, no mechanical diagnostics
+- **Mode:** reusable
+- **Modeled steps:** request/root lookup, owner/object-grant helper, local authorization branch, version resolution, original/archive selection, and attachment response plan.
+
+Four branch variations were trialed, followed by a post-repair trial. The latter completed with:
+
+```text
+request document: 10
+authorization resource/root: 10
+selected version: 11
+representation: archive
+selected file: v1-archive.pdf
+disposition: attachment
+```
+
+That trial used an explicitly hypothetical `ObjectPermissionChecker.has_perm(...)=false` only to exercise the continuation branch; it is not an asserted real grant fact.
+
+The supplied development fixture itself stops at the local authorization branch because actor 7 owns root document 10. This follows the unusual inverted condition described below.
+
+## 1. Request, document, version, and returned file
+
+### Request entry
+
+The API router registers `UnifiedSearchViewSet` under `documents`; that class inherits `DocumentViewSet`. Router URLs are included beneath `^api/`. The `download` detail action accepts GET and delegates to `file_response(pk, request, "attachment")`【src/paperless/urls.py:74-77】【src/paperless/urls.py:97-100】【src/paperless/urls.py:297】【src/documents/views.py:1834-1839】.
+
+Consequently, the router-provided detail identifier becomes `pk`.
+
+### Requested document and root
+
+`file_response` invokes `_resolve_request_and_root_doc(pk, ..., include_deleted=True)`【src/documents/views.py:1429-1434】. That helper:
+
+1. Uses `Document.global_objects` because `include_deleted=True`.
+2. Looks up the exact document whose `id == pk`; absence raises `Http404`.
+3. Resolves its root:
+   - a root document remains itself;
+   - a version uses its loaded `root_document`;
+   - otherwise a manager lookup by `root_document_id` is attempted;
+   - if that lookup fails, the original document is the fallback【src/documents/views.py:1401-1420】【src/documents/versioning.py:146-156】.
+
+Thus `pk` may identify either the root or one of its versions, while the separate `root_doc` is used by the local permission branch.
+
+### Effective version
+
+After the local authorization branch:
+
+- If `pk` identified a version and the `version` query parameter is completely absent (`None`), that requested version itself is returned as `file_doc`【src/documents/views.py:1388-1399】.
+- Otherwise version resolution is performed against `root_doc`:
+  - No `version` parameter: choose the newest **non-deleted** version, falling back to the root.
+  - Empty `version=`: it is present but falsey, so the newest version is selected with deleted documents included.
+  - Nonempty `version`: convert it to an integer and look up that ID with deleted documents included.
+  - An explicit candidate is accepted only when it is the root itself or has `root_document_id == root_doc.id`.
+  - A non-integer value produces `NotFound("Invalid version parameter")`.
+  - A missing or unrelated candidate produces `Http404`【src/documents/views.py:1375-1386】【src/documents/versioning.py:159-195】.
+
+### Original versus archive
+
+`original=true` is recognized only when the parameter exists and is exactly the lowercase string `"true"`【src/documents/views.py:1368-1373】.
+
+The response uses the archive exactly when:
+
+```text
+original != "true" AND file_doc.has_archive_version
+```
+
+Otherwise it uses the source/original representation【src/documents/views.py:1442-1448】.
+
+`serve_file` then selects:
+
+- archive: `archive_file`, archive filename, and `application/pdf`;
+- original: `source_file`, original filename, and `doc.mime_type`.
+
+It creates a `FileResponse` and an attachment `Content-Disposition` header. `follow_formatting` changes filename selection, not the document or representation authorization resource【src/documents/views.py:4941-4995】. Missing-file exceptions caught by `download` become 404 responses【src/documents/views.py:1835-1839】.
+
+## 2. Authorization checks and ordering
+
+The order is:
+
+1. REST framework authenticates the request and performs view-level permissions before invoking the action【framework/rest_framework-3.18.1/rest_framework/views.py:404-421】.
+2. `DocumentViewSet` declares `IsAuthenticated` and `PaperlessObjectPermissions`【src/documents/views.py:1008-1027】.
+3. For GET, `PaperlessObjectPermissions` requires `view_document`; its inherited model-level check calls `request.user.has_perms(perms)` without an object【src/documents/permissions.py:30-44】【framework/rest_framework-3.18.1/rest_framework/permissions.py:233-246】.
+4. The action manually looks up `request_doc` and derives `root_doc`.
+5. The local owner-aware helper is evaluated against **`root_doc`**.
+6. Only afterward are the effective version and original/archive representation selected【src/documents/views.py:1401-1448】.
+
+The action does not use DRF’s normal `get_object()` path. Its direct manager lookup therefore does not itself invoke `PaperlessObjectPermissions.has_object_permission`; instead, the application-specific root helper is the object-related check on this path.
+
+### Important source-as-written behavior
+
+`has_perms_owner_aware` returns true when the root is:
+
+- unowned,
+- owned by the requesting user, or
+- covered by the user’s object grant【src/documents/permissions.py:624-635】.
+
+But `_resolve_request_and_root_doc` returns `HttpResponseForbidden` when that helper returns **true**【src/documents/views.py:1421-1427】.
+
+Therefore, at this revision, the condition appears inverted:
+
+- owner, unowned-document access, or object-granted access → local 403;
+- non-owner with no matching object grant → continues to version/file selection, provided the earlier authentication and model-level permission checks passed.
+
+For the supplied fixture, actor 7 owns root document 10, so the modeled execution terminates at this local 403 branch. No file is returned.
+
+## 3. Does alternate selection change the authorized resource?
+
+No, not in the source-visible local check:
+
+- The authorized/check resource is `root_doc`.
+- The `version` parameter subsequently chooses `file_doc`.
+- `original=true` versus archive subsequently chooses a file field on that `file_doc`.
+
+Neither an alternate version nor original/archive selection causes another authorization check on the selected version or file representation【src/documents/views.py:1417-1448】.
+
+A request whose `pk` is already a version is still checked against its resolved root. With no explicit `version` parameter, that version is then returned as `file_doc`; this changes the returned document but not the earlier authorization resource【src/documents/views.py:1388-1399】.
+
+## 4. Missing facts and blocked conclusions
+
+| Missing fact | Conclusion it blocks |
+|---|---|
+| Actual authentication result and configured authenticators | Whether the request reaches `download` at all. |
+| Actual result of `user.has_perms(["documents.view_document"])` and the configured Django permission backends | Whether the model-level GET check allows action dispatch. |
+| Actual root owner and Guardian/object-grant state | Whether the source-as-written local branch returns 403 or continues. |
+| Actual `pk`, document/version topology, deletion state, and query parameters | Which root/version is selected or whether the request returns 404. |
+| Actual storage contents and backend behavior | Whether the selected handle exists and which bytes can successfully be streamed. |
+| Deployment/proxy response handling | Final externally observed transport behavior; it does not change the source-level selection described above. |
+
+The supplied scenario and trial assumptions are development examples, not deployment facts. Machine property checking consequently remains **unreviewed/unknown** and does not certify the whole request operation. Remaining program work is principally representing framework/backend permission outcomes and storage/transport behavior as exact external facts; those facts cannot be invented from the allowed source.

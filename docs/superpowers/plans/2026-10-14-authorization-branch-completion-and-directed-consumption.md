@@ -129,7 +129,7 @@ expect(totalChargedTools).toBeLessThanOrEqual(64);
 
 - [x] 在既有 `program-trial.ts`、`resource-program-draft.ts` 和 context 接线中，让作者看到自己试算的实际输入、路径、返回/拒绝、未映射候选与执行缺口。
 - [x] 允许作者根据源码选择变化输入；宿主可提供机械可复现的变异方式，不提供 oracle 返回值、正确程序或标准答案。
-- [ ] 一个缺口修好后重跑该反例和相邻已正确路径；patch 保留输入绑定、作者目标和无关步骤。只修回显而未变更程序不得记录为修稿成功。
+- [x] 一个缺口修好后重跑该反例和相邻已正确路径；patch 保留输入绑定、作者目标和无关步骤。只修回显而未变更程序不得记录为修稿成功。
 
 ### BM4 当前结果分层
 
@@ -175,49 +175,49 @@ expect(totalChargedTools).toBeLessThanOrEqual(64);
 ### BM11 A0 自动修订并固定消费稿
 
 - [ ] 从 BL A0 原字节出发，模型根据完整原 skill、任务、允许源码、新公共反馈和自己的 trial 修订；主代理不得编辑其字段。
-- [ ] 保存首件及每次 patch，在结束后用独立 evaluator 检查 18 旧场景及机械变化。首失败即读实际调用定位：共享缺陷先红绿修复，再登记修订用途；不先把已知坏配置的后续队列全部跑完。
-- [ ] 固定 A0 最终程序用于主消费。A0 是 model-repair-existing，不能记为从零独立编写。即使 A1更好也不择优替换 A0。
+- [x] 保存首件及每次 patch，在结束后用独立 evaluator 检查 18 旧场景及机械变化。首失败即读实际调用定位：共享缺陷先红绿修复，再登记修订用途；不先把已知坏配置的后续队列全部跑完。
+- [x] 固定 A0 最终程序用于主消费。A0 是 model-repair-existing，不能记为从零独立编写。即使 A1更好也不择优替换 A0。
 
 ### BM12 A1 独立编写
 
-- [ ] 另一干净账号会话从空稿出发，信息和修订预算相同，不见 BL/A0 程序或评阅答案。
-- [ ] 独立评价，报告能否从零补齐相同分支。A1 成功/失败不改变 A0 消费分母。
+- [x] 另一干净账号会话从空稿出发，信息和修订预算相同，不见 BL/A0 程序或评阅答案。
+- [x] 独立评价，报告能否从零补齐相同分支。A1 成功/失败不改变 A0 消费分母。
 
 ### BM13 第一对 C0 → B0
 
-- [ ] C0 使用固定 A0 + directed，B0 使用完整原 skill、同输入/源码/四问、相同普通只读工具与总预算，不提供程序；相同实现 epoch。
-- [ ] 先看 C0 实际程序路径、自然答案、token 组成。若出现共享缺陷，当场修复，保留首件，后续对照使用清楚标记的 epoch；不能混成“同条件首对”。
-- [ ] 如 C0仍重复读/重做，先判断来源是缺规则、缺信任依据、传输重复或模型主动核实。不能用提高预算、删除原问题或隐藏条件取得节省。
+- [x] C0 使用固定 A0 + directed，B0 使用完整原 skill、同输入/源码/四问、相同普通只读工具与总预算，不提供程序；相同实现 epoch。
+- [x] 先看 C0 实际程序路径、自然答案、token 组成。若出现共享缺陷，当场修复，保留首件，后续对照使用清楚标记的 epoch；不能混成“同条件首对”。
+- [x] 如 C0仍重复读/重做，先判断来源是缺规则、缺信任依据、传输重复或模型主动核实。不能用提高预算、删除原问题或隐藏条件取得节省。
 
 ### BM14 第二对 B1 → C1 及 C2 拒绝消费
 
 - [ ] 第二对使用同固定稿和空版本输入，反转顺序；存在 BM13 共享修订时，两对分别报告实现版本，不能伪称同实现重复。
-- [ ] C2用明确拒绝输入测试程序停止和自然四问交付；这是交付验证，不拿无基线的位置宣称收益。
-- [ ] 首对已明确负向时，先完成有依据的共享修复，再跑第二对。没有可落实修改则第二对记 not-run-no-intervention，推进源码维护与工程交付，不重复已知负向方式凑数。
+- [x] C2用明确拒绝输入测试程序停止和自然四问交付；这是交付验证，不拿无基线的位置宣称收益。
+- [x] 首对已明确负向时，先完成有依据的共享修复，再跑第二对。没有可落实修改则第二对记 not-run-no-intervention，推进源码维护与工程交付，不重复已知负向方式凑数。
 
 ### BM15 S0 源码维护及离线第二结构
 
-- [ ] 在允许的源码副本上沿既有变化机制做一个预先登记的权限条件变化，旧结果失效，模型一次针对性修改后验证受影响场景及无关分支。
-- [ ] 同一共享逻辑在已有 ShareLink 离线材料检查绑定、拒绝、源码变化和 directed 详情；无需新增该任务真实模型位置。
-- [ ] 固定 A0原稿不被S0覆盖，源码副本不会执行目标业务。
+- [x] 在允许的源码副本上沿既有变化机制做一个预先登记的权限条件变化，旧结果失效，模型一次针对性修改后验证受影响场景及无关分支。
+- [x] 同一共享逻辑在已有 ShareLink 离线材料检查绑定、拒绝、源码变化和 directed 详情；无需新增该任务真实模型位置。
+- [x] 固定 A0原稿不被S0覆盖，源码副本不会执行目标业务。
 
 ### BM16 独立评价与总成本
 
-- [ ] 逐题评源码含义、条件精度、证据引用及遗漏；自然答案、可执行程序、有限场景行为、依赖失效各自评分。正确自然解释不能补上未改程序。
-- [ ] 评价“宣称没给外部事实”与输入实际是否给定一致，避免旧 rubric 对条件精度过宽。新增规则在首个 BM 模型调用前固定，不能按好坏改分母。
-- [ ] 输出 positive-observed / tradeoff / no-observed-difference / negative / inconclusive；两对有改善也只声称本轮 development 观察。
-- [ ] 计入作者、修订、维护、失败/未知、消费；cache只计一次。若每次消费成本仍不低于基线，摊销点记不存在或未建立。官方配额 tokens 不能换算成虚构 USD/真人分钟。
+- [x] 逐题评源码含义、条件精度、证据引用及遗漏；自然答案、可执行程序、有限场景行为、依赖失效各自评分。正确自然解释不能补上未改程序。
+- [x] 评价“宣称没给外部事实”与输入实际是否给定一致，避免旧 rubric 对条件精度过宽。新增规则在首个 BM 模型调用前固定，不能按好坏改分母。
+- [x] 输出 positive-observed / tradeoff / no-observed-difference / negative / inconclusive；两对有改善也只声称本轮 development 观察。
+- [x] 计入作者、修订、维护、失败/未知、消费；cache只计一次。若每次消费成本仍不低于基线，摊销点记不存在或未建立。官方配额 tokens 不能换算成虚构 USD/真人分钟。
 
 ### BM17 普通使用交付
 
-- [ ] 更新既有 Download 示例与 run.ps1，使用户能选择固定自动稿、输入、directed/full，并看到当前值、实际拒绝、前提及剩余职责；不增加 HTML。
-- [ ] 默认示例使用哪份程序写清来源。新稿未改善时保留旧默认，新稿作为显式示例；开发者校正稿只供定位，不替换自动成果。
-- [ ] 零调用实跑 default、empty、invalid、cross-root、denied、no-external；保存相应 execution.md。搬移仅需验证本轮示例依赖，避免再造全仓档案。
+- [x] 更新既有 Download 示例与 run.ps1，使用户能选择固定自动稿、输入、directed/full，并看到当前值、实际拒绝、前提及剩余职责；不增加 HTML。
+- [x] 默认示例使用哪份程序写清来源。新稿未改善时保留旧默认，新稿作为显式示例；开发者校正稿只供定位，不替换自动成果。
+- [x] 零调用实跑 default、empty、invalid、cross-root、denied、no-external；保存相应 execution.md。搬移仅需验证本轮示例依赖，避免再造全仓档案。
 
 ### BM18 有限最终验证
 
-- [ ] 按下列起始命令运行新模块及受影响测试，再补实改路径；如合并模块，更新本节命令，不创建空测试凑清单。
-- [ ] 主/研究类型、研究 replay、文档与 diff 检查各一次；新失败定位修复后只重跑相关集合。旧全 src 104 失败保留，不为本轮去修改冻结锁。
+- [x] 按下列起始命令运行新模块及受影响测试，再补实改路径；如合并模块，更新本节命令，不创建空测试凑清单。
+- [x] 主/研究类型、研究 replay、文档与 diff 检查各一次；新失败定位修复后只重跑相关集合。旧全 src 104 失败保留，不为本轮去修改冻结锁。
 
 ```powershell
 bun test ./src/task-dsl/authorization/program-obligations.test.ts ./src/task-dsl/authorization/program-outcome.test.ts ./src/task-dsl/authorization/resource-relations.test.ts ./src/task-dsl/authorization/resource-program-draft.test.ts ./src/task-dsl/authorization/program-authoring-context.test.ts ./src/task-dsl/authorization/program-trial.test.ts ./src/task-dsl/authorization/program-consumption-context.test.ts ./src/task-dsl/authorization/program-delivery.test.ts --timeout=15000
@@ -231,15 +231,15 @@ git diff --check
 
 ### BM19 文档与发布
 
-- [ ] 同步 current-status、当前 plan、spec §14.52、研究 §7.74、usage/开发指南相关段及示例；不新增长期研究正文。
-- [ ] 每个有意义阶段简记外层日志，保留方法修订的原因与首次证据；代码、工程、自动编写、实际使用、收益分轴结论。
+- [x] 同步 current-status、当前 plan、spec §14.52、研究 §7.74、usage/开发指南相关段及示例；不新增长期研究正文。
+- [x] 每个有意义阶段简记外层日志，保留方法修订的原因与首次证据；代码、工程、自动编写、实际使用、收益分轴结论。
 - [ ] 精确暂存本轮文件，检查凭据/绝对本机缓存引用和 diff，提交推送用户 origin/skill-ir-aot，并核对远端 SHA。原件及 `.tmp/` 保留。
 
 ### BM20 按实际结果收束
 
-- [ ] 汇总八用途及具名修订的已执行/未运行/未知、自动稿18场景和新增机械变化、逐题评价、两对成本、交付故障和剩余责任。
-- [ ] 交付普通运行命令和可读过程；若仍失败，明确卡在作者、程序表达、输入、消费还是账号生命周期，指出下一处最小共享修复。
-- [ ] finiteQueueComplete 与 researchGoalAchieved 分开；存在必要验收未达时不能标整体研究目标完成。队列处理完后停止新调用，不无限启动后继 identity。
+- [x] 汇总八用途及具名修订的已执行/未运行/未知、自动稿18场景和新增机械变化、逐题评价、两对成本、交付故障和剩余责任。
+- [x] 交付普通运行命令和可读过程；若仍失败，明确卡在作者、程序表达、输入、消费还是账号生命周期，指出下一处最小共享修复。
+- [x] finiteQueueComplete 与 researchGoalAchieved 分开；存在必要验收未达时不能标整体研究目标完成。队列处理完后停止新调用，不无限启动后继 identity。
 
 ## 六、真实用途、修复和预算
 
@@ -262,3 +262,15 @@ git diff --check
 5. 含作者及维护成本后，有无本轮可观察的收益，后续最值得修的共享原因是什么？
 
 这些答案比新增模块数、测试数、运行时长更重要。保持源码与评价证据，不通过放松语义、隐去失败或删题来得到正向结论。
+
+## 八、2026-10-14 实际收束
+
+有限队列为 completed-with-unmet-criteria，停止新增模型调用。8个真实attempt覆盖6个主用途及2个具名修复；B1/C1按首对negative且无具体共享修订的规则未运行。12观察turn、7自然交付、0活动/未知。BM11修稿成功项保持未勾选：A0虽交付但未patch/trial，仍为原14步；BM14第二对保持未勾选并按not-run-no-intervention处置。BM3由S0实际补入拒绝guard、三保留场景及两个新增反例验证，不能倒填成A0成功。
+
+1. A0首件暴露重试通知阻断交付，修复确认可交付但未修程序；A1首件无程序，修正初始edit职责后独立产出12步、3patch和1trialbatch。A0/A1字段映射后分别15/18、14/18，literal均2/18。初始化、grant短路等执行缺口独立保留。
+2. 固定A0默认返回11/archive，空版本12/original，明确false在授权guard停止；非法/跨根version无文件但缺显式源码拒绝，无外部事实仍缺初始化前提。S0副本维护17步、三保留场景和两个拒绝反例通过，不替换A0。
+3. C0比B0少源码检索/读取，但仍核实规则；两者四问均P/P/F/P。实际状态/缺口与协议字节增大，C输入3.82倍，fresh输入3.33倍，输出更高；没有净节省。C0耗时受并行离线检查负载影响，不作隔离性能因果结论。
+4. 7次自然交付，A0首次未交付保留。A0修复、A1首件、A1修复及C0均实际使用无工具最终子回合；C2/S0自然单turn完成，不能称强制预算恢复。8本地归档关闭且已核验。
+5. known input17,189,793（含cache15,432,192一次）/output97,517；USD、隐藏provider请求、开发/探子和真人成本unknown。首对negative，未建立摊销点。下一最小责任是作者根据已有源码候选表达初始化先于owner短路并针对该分支trial；S0证明拒绝guard已有表达能力，不据此扩大语言。
+
+证据与普通运行入口见[执行记录](../../../results/skill-ir/skill-dsl-research/development/authorization-branch-verified-consumption-v1/execution.md)、[最终检查](../../../results/skill-ir/skill-dsl-research/development/authorization-branch-verified-consumption-v1/verification/final-checks.json)及[Download示例](../../../examples/authorization-assessment/download-workflow/README.md)。184生产定向测试/1229断言、4研究测试/29断言及主/研究类型通过；旧全src104失败不称修复。15文档测试、当前变更链接/治理锚点及编辑文件diff检查通过。全量链接检查保留10处基线既存历史引用失败；原始模型答案行末空格保留，不伪称全量diff检查无警告。发布核对另记。

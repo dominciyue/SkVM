@@ -2,7 +2,7 @@
 
 更新于2026-10-14。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BM0–BM20](../superpowers/plans/2026-10-14-authorization-branch-completion-and-directed-consumption.md)，已授权登记、待开发线程接管；当前没有 BM 工程或实验结果。
+- 当前任务书：[BM0–BM20](../superpowers/plans/2026-10-14-authorization-branch-completion-and-directed-consumption.md)以completed-with-unmet-criteria收束有限执行。共享工程至2c618b0f；A0固定14步15/18，A1独立确认12步14/18。首对negative，第二对not-run-no-intervention；C2自然交付，S0副本三场景及两个新增guard检查通过。完整自动化、完整自然质量和净收益未达，停止追加模型用途。
 - 方法合同：[spec§14.52](skill-ir-aot-optimization-spec.md#1452-bm-branch-completion-and-directed-consumption)；复核和开发过程统一在[研究§7.74](skill-dsl-research.md#774-bl-复核与-bm-分支补齐和按职责消费)。BL实际结果保留在§7.73。
 - identity：`authorization-branch-verified-consumption-v1`，已核对规划基线`cb8a721a`。继续`skill-ir-aot`，只推用户origin，不建分支/worktree；开发线程独占代码、共享方法文档与Git写入。
 - 开发`gpt-6-astra/high`，按用户指定；实验沿已授权官方账号`gpt-5.6-sol/high`。第三方暂停，OWUI/历史未知ShareLink仅离线，旧未知和保护证据保持。接管时tracked干净，原有未跟踪`.tmp/`不清理。
@@ -20,7 +20,7 @@
 | 自动化与维护 | BL两作者15/18；S0局部源码变化成立 | A0自动修订、A1独立从零；固定A0两对消费与拒绝消费，S0单列 |
 | 效果判断 | BL两对四问质量持平、输入4.63/5.23倍 | 第一对出现共享原因当场修；不同epoch分开；无具体改变不重复负向方式 |
 
-普通入口当前使用[Download说明](../../examples/authorization-assessment/download-workflow/README.md)中的BL A0固定14步自动稿：默认文件11/archive，空版本12/original，明确false在授权处停止，仍为有限conditional。A0/A1首稿均0/18、最终均15/18；非法/跨根拒绝及constructor完成条件缺口保留。完整请求证明和稳定净收益未达；没有历史或开发者稿补位。
+普通入口当前使用[Download说明](../../examples/authorization-assessment/download-workflow/README.md)中的BL A0固定14步自动稿：默认文件11/archive，空版本12/original，明确false在授权处停止，仍为有限conditional。这些是BL原结果；BM固定A0仍15/18，A1新稿14/18。固定稿非法/跨根拒绝及constructor完成条件缺口保留，S0另存的副本维护稿不会改变它的评分。完整请求证明和稳定净收益未达；没有历史或开发者稿补位。
 
 ## 继承的真实结果
 

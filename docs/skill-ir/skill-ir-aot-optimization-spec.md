@@ -5,7 +5,7 @@
 
 **最后更新：** 2026-10-14
 
-**当前已确认路线：** 按skill/task范围设计领域表达并验证实际价值，复用既有授权DSL执行与SkVM入口。[BM分支补齐与按职责消费](../superpowers/plans/2026-10-14-authorization-branch-completion-and-directed-consumption.md)承接BL的有限程序遗漏和负向消费结果；新增方法见§14.52，尚未实施。旧协议和full默认继续兼容；完整原skill与四问保持，分开评价自动程序、实际使用和收益。研究与问题复盘见[研究总文档](skill-dsl-research.md)，当前顺序见[执行计划](skill-ir-aot-optimization-plan.md)。AS及其后各轮合同保留历史，I1保留后备。
+**当前已确认路线：** 按skill/task范围设计领域表达并验证实际价值，复用既有授权DSL执行与SkVM入口。[BM分支补齐与按职责消费](../superpowers/plans/2026-10-14-authorization-branch-completion-and-directed-consumption.md)承接BL的有限程序遗漏和负向消费结果；新增方法与已结束有限执行见§14.52，完整自动化和收益未达。旧协议和full默认继续兼容；完整原skill与四问保持，分开评价自动程序、实际使用和收益。研究与问题复盘见[研究总文档](skill-dsl-research.md)，当前顺序见[执行计划](skill-ir-aot-optimization-plan.md)。AS及其后各轮合同保留历史，I1保留后备。
 
 本文保留旧研究阶段的标题与章节定位。下文有关统一 IR、AOT 优先、“不新建 DSL”和旧队列先后关系的限定，适用于各自阶段；总体方向以第14.34节为准，当前增量合同以第14.52节及任务书为准。已有 IR、接口、冻结结果和版本化材料不因路线变化而删除或改写。
 
@@ -3107,6 +3107,8 @@ check/run/compare已接入`--execution-policy=progressive`，strict仍为默认�
 **实际验证。** 八首用途为A0/A1独立作者、C0/C1/C2固定A0原稿消费、B0/B1同期基线及S0源码变化。A0/A1各至多两次有据继续、共享总预算；新增共享缺陷每根因至多一次真实确认、全轮至多三次，首件与修后分列。当前局部产物可诊断消费，不用整题full作为所有观察的前置；无稿不拿历史参考填位。比较按C0→B0、B1→C1，同epoch/事实/来源/模型/预算；作者预处理差异和成本单列，不能归因为纯DSL表示。原四问完整评价，旧未知依BK规则隔离、不重发；第三方暂停，目标执行0，保护证据保持。研究统一§7.73，工程/有限队列/自动可复用主链/净收益分别验收。
 
 ### 14.52 BM branch completion and directed consumption
+
+**实际处置（有限队列已收束，研究未达）。** A0具名修复后交付但0patch/0trial，冻结为原14步，当前18场景字段映射匹配15/18；A1补首轮编写职责后实际产出12步/3patch/1批trial，匹配14/18，不能替换A0。两稿均缺初始化与错误拒绝，owner仍多执行grant查询；有限字段分数不代表真实调用路径完整。首对同epoch C0/B0均P/P/F/P，C输入2335871对611051、输出11070对8124、耗时606621对304485ms，negative；没有新共享故障的具体修订，第二对记not-run-no-intervention。C2自然单turn完成拒绝交付；S0形成17步维护稿，副本三场景及两个新增错误guard检查符合源码。初始化和短路仍缺，不替换固定A0。8次真实attempt/12观察turn/7自然交付，B1/C1未跑，0活动/未知。耗时比较存在C0并行离线检查负载，token/input/output负向结论独立于该时间差。当前评分逐字核对模型文本，不采纳评阅者误报的nulls-last；无外部答案回注。
 
 BM作者职责补修：A1-first在60工具后仍0程序/0trial，最终自然答已交付。离线实际首派发显示账号首指令仍是普通Task-answer，structured初始authorInstruction为空；两入口的编辑职责首轮缺位。新增共享INITIAL_PROGRAM_AUTHORING_INSTRUCTION，使edit首轮明确先编写/修订与试算，再交付全部原问题；不注入源码答案或额外预算。两入口红绿及7定向测试/79断言、研究类型通过。A1/initial-author-contract为第二个具名额外用途，固定A0不再改选。
 

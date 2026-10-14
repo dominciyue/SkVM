@@ -29,3 +29,12 @@ test("author facts contain no expected answers and retain all four original ques
 test("unknown raw cannot acquire semantic field credit from preferred key names", () => {
   expect(assessAutomaticCase({ kind: "computed", conditions: [] }, { returned: { document_id: 11 } }, "unreviewed").fieldMappingStatus).toBe("pending-independent-review")
 })
+test("reviewed A1 representation enum maps only its two exact authored literals", () => {
+  const sha = "7bb99c9261ec97dca5c788320a50f81e91372e567f541a7e47573e163ddfbaba"
+  for (const [representation, archive] of [["archive", true], ["original", false]] as const) {
+    const result = assessAutomaticCase({ kind: "computed", conditions: [], returned: { requested_document: 10, authorized_resource: 10, file_document: 12, archive_selected: archive, selected_file: "f" } }, { returned: { requested_document_id: 10, authorized_root_id: 10, returned_document_id: 12, representation, file: "f" } }, sha)
+    expect(result.semanticFields?.finiteMachineMatch).toBe(true)
+    expect(result.literalShape.finiteMachineMatch).toBe(false)
+  }
+  expect(assessAutomaticCase({ kind: "computed", conditions: [] }, { returned: { representation: "unknown" } }, sha).normalizedReturned).toEqual({})
+})
