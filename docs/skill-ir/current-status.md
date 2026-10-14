@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-**BM0–BM20以completed-with-unmet-criteria收束有限队列：工程与实际交付成立，完整自动程序和净收益未达。** 8次真实attempt（含2个具名修复）、B1/C1依首对negative规则未运行，12观察turn、7自然交付、0活动/未知。A0修复后仍原14步、15/18；A1独立确认12步、14/18，不替换A0。首对C0/B0均P/P/F/P，C输入3.82倍、输出更高；耗时更高但C0有离线检查并行负载，不能作隔离性能因果结论。C2自然完成拒绝交付；S0维护17步，副本三场景及两个新增拒绝检查通过，初始化/短路仍缺。[执行记录](../../results/skill-ir/skill-dsl-research/development/authorization-branch-verified-consumption-v1/execution.md)、[任务书](../superpowers/plans/2026-10-14-authorization-branch-completion-and-directed-consumption.md)、[普通示例](../../examples/authorization-assessment/download-workflow/README.md)。184生产定向测试/1229断言、4研究测试/29断言、主/研究类型及15文档测试通过；旧全src104失败不称修复。known input17189793（含cache15432192）/output97517，USD/开发探子/真人成本未知。生产至2c618b0f，发布核对待完成。
+**BM0–BM20以completed-with-unmet-criteria收束有限队列：工程与实际交付成立，完整自动程序和净收益未达。** 8次真实attempt（含2个具名修复）、B1/C1依首对negative规则未运行，12观察turn、7自然交付、0活动/未知。A0修复后仍原14步、15/18；A1独立确认12步、14/18，不替换A0。首对C0/B0均P/P/F/P，C输入3.82倍、输出更高；耗时更高但C0有离线检查并行负载，不能作隔离性能因果结论。C2自然完成拒绝交付；S0维护17步，副本三场景及两个新增拒绝检查通过，初始化/短路仍缺。[执行记录](../../results/skill-ir/skill-dsl-research/development/authorization-branch-verified-consumption-v1/execution.md)、[任务书](../superpowers/plans/2026-10-14-authorization-branch-completion-and-directed-consumption.md)、[普通示例](../../examples/authorization-assessment/download-workflow/README.md)。184生产定向测试/1229断言、4研究测试/29断言、主/研究类型及15文档测试通过；旧全src104失败不称修复。known input17189793（含cache15432192）/output97517，USD/开发探子/真人成本未知。生产至2c618b0f，实质成果a84993eb已推用户origin并核对同SHA，见[发布回执](../../results/skill-ir/skill-dsl-research/development/authorization-branch-verified-consumption-v1/publication.json)。
 
 ## BL 已结束的实际结果
 

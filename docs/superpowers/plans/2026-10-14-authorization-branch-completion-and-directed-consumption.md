@@ -233,7 +233,7 @@ git diff --check
 
 - [x] 同步 current-status、当前 plan、spec §14.52、研究 §7.74、usage/开发指南相关段及示例；不新增长期研究正文。
 - [x] 每个有意义阶段简记外层日志，保留方法修订的原因与首次证据；代码、工程、自动编写、实际使用、收益分轴结论。
-- [ ] 精确暂存本轮文件，检查凭据/绝对本机缓存引用和 diff，提交推送用户 origin/skill-ir-aot，并核对远端 SHA。原件及 `.tmp/` 保留。
+- [x] 精确暂存本轮文件，检查凭据/绝对本机缓存引用和 diff，提交推送用户 origin/skill-ir-aot，并核对远端 SHA。原件及 `.tmp/` 保留。
 
 ### BM20 按实际结果收束
 
@@ -273,4 +273,4 @@ git diff --check
 4. 7次自然交付，A0首次未交付保留。A0修复、A1首件、A1修复及C0均实际使用无工具最终子回合；C2/S0自然单turn完成，不能称强制预算恢复。8本地归档关闭且已核验。
 5. known input17,189,793（含cache15,432,192一次）/output97,517；USD、隐藏provider请求、开发/探子和真人成本unknown。首对negative，未建立摊销点。下一最小责任是作者根据已有源码候选表达初始化先于owner短路并针对该分支trial；S0证明拒绝guard已有表达能力，不据此扩大语言。
 
-证据与普通运行入口见[执行记录](../../../results/skill-ir/skill-dsl-research/development/authorization-branch-verified-consumption-v1/execution.md)、[最终检查](../../../results/skill-ir/skill-dsl-research/development/authorization-branch-verified-consumption-v1/verification/final-checks.json)及[Download示例](../../../examples/authorization-assessment/download-workflow/README.md)。184生产定向测试/1229断言、4研究测试/29断言及主/研究类型通过；旧全src104失败不称修复。15文档测试、当前变更链接/治理锚点及编辑文件diff检查通过。全量链接检查保留10处基线既存历史引用失败；原始模型答案行末空格保留，不伪称全量diff检查无警告。发布核对另记。
+证据与普通运行入口见[执行记录](../../../results/skill-ir/skill-dsl-research/development/authorization-branch-verified-consumption-v1/execution.md)、[最终检查](../../../results/skill-ir/skill-dsl-research/development/authorization-branch-verified-consumption-v1/verification/final-checks.json)及[Download示例](../../../examples/authorization-assessment/download-workflow/README.md)。184生产定向测试/1229断言、4研究测试/29断言及主/研究类型通过；旧全src104失败不称修复。15文档测试、当前变更链接/治理锚点及编辑文件diff检查通过。全量链接检查保留10处基线既存历史引用失败；原始模型答案行末空格保留，不伪称全量diff检查无警告。实质成果a84993eb已发布用户origin/skill-ir-aot并核对远端同SHA；回执提交仅补发布元数据。
