@@ -1,6 +1,18 @@
 import { expect, test } from "bun:test"
 const api = await import("./program-consumption-context.ts").catch(() => ({} as any))
 const author = await import("./program-authoring-context.ts")
+test("directed carries outcome, every duty and skipped rules with version-bound details", () => {
+  const rule = { id: "alternate", op: "guard", when: { op: "eq", left: { binding: "version" }, right: { literal: 7 } }, failure: "invalid-resource", source: { path: "a.py", startLine: 3 } }
+  const report = { revision: "p1", sourcesCurrent: true, program: { resourceWorkflow: { steps: [rule] } }, resourceExecution: { inputs: { version: 2 }, returned: 4, termination: "return", events: [{ id: "alternate", op: "guard", outcome: "skipped", inputs: {}, gaps: [] }] } }
+  const view = api.projectProgramConsumption(report, [{ id: "q", request: "All branches" }, { id: "other", request: "External limits" }], "directed")
+  expect(view.outcome.value).toBe(4)
+  expect(view.questions.map((q: any) => q.request)).toEqual(["All branches", "External limits"])
+  expect(view.rules[0].when).toEqual(rule.when)
+  expect(api.programConsumptionDetails(report, { expectedBasis: view.basis, stepId: "alternate" }).steps).toEqual([rule])
+  const changed = structuredClone(report); changed.resourceExecution.inputs.version = 7
+  expect(api.programConsumptionDetails(changed, { expectedBasis: view.basis }).status).toBe("stale-program-reference")
+  expect(api.projectProgramConsumption({ ...report, sourcesCurrent: false }, [], "directed").outcome.value).toBeUndefined()
+})
 test("full output leaves existing reference-shaped data and guide fields untouched", () => {
   const large = { text: "x".repeat(600) }
   for (const output of [

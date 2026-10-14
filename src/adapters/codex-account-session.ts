@@ -25,6 +25,8 @@ export interface CodexAccountSessionOptions {
   rejectArguments?(call: LLMToolCall, diagnostics: AccountArgumentDiagnostic[]): Promise<{ output: string; exitCode?: number; durationMs: number }>
   argumentDiagnostics?(call: LLMToolCall): AccountArgumentDiagnostic[] | undefined
   maxToolCalls?: number
+  shouldFinalize?(): boolean
+  finalizeAfterMs?: number
   timeoutMs?: number; signal?: AbortSignal; transportFactory?: () => AccountTransport
   instructionSources?: Array<{ path: string; sha256: string }>
   onEvent?(event: unknown): void | Promise<void>
@@ -47,6 +49,9 @@ export interface AccountSessionResult {
 export interface AccountSessionLifecycle {
   purpose?: string; attempt?: string; threadId?: string; turnId?: string
   resumedFromTurnId?: string
+  hostFinalization?: "budget-reserve"
+  finalizesThreadId?: string
+  finalizesTurnId?: string
   turnStartAttempted: boolean; turnStartAcknowledged: boolean; providerTerminalObserved: boolean
   localExecution: "active" | "closed" | "unconfirmed"
   persistence: "requested" | "confirmed"; toolsSha256: string
@@ -253,14 +258,21 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
   const reply = (id: unknown, response: Record<string, unknown>) => { record({ direction: "client", id, result: response }); transport!.send({ id, result: response }) }
   const rpc = createAccountRpc(message => transport!.send(message), record), request = rpc.request
   const result = (status: AccountSessionStatus): AccountSessionResult => lastResult = redactCodexEvent({ status, text, lifecycle: { ...lifecycle, threadId, turnId }, terminalStatus, answerDelivery: terminalStatus === "completed" && status === "completed" && text.trim() ? "delivered" : "undelivered", usageVisibility: usage ? "observed" : "unknown", quotaRefused, ...(terminalError ? { terminalError } : {}), ...(transportExit ? { transportExit } : {}), ...(failure ? { reason: failure } : {}), usage, ...(usageDetails ? { usageDetails } : {}), ...(usageSource ? { usageSource } : {}), actualUsd: null, providerRequests: null, durationMs: Date.now() - started, events, tools, toolRejections, model: options.model, effort: options.effort, inferenceDispatched, ...(capability ? { capability } : {}) })
-  let timer: ReturnType<typeof setTimeout> | undefined
+  let timer: ReturnType<typeof setTimeout> | undefined, reserveTimer: ReturnType<typeof setTimeout> | undefined
+  const finalize = () => {
+    if (finished || !active || !threadId || !turnId || lifecycle.hostFinalization) return
+    lifecycle.hostFinalization = "budget-reserve"
+    // Closing a tool phase is not a completed answer. Await the real terminal;
+    // a lost acknowledgement stays unknown and cannot authorize a child.
+    void request("turn/interrupt", { threadId, turnId }).catch(() => {})
+  }
   const abort = () => { failure = "account-session-interrupted-or-timeout"; finish(inferenceDispatched ? "timeout-unknown" : "unavailable"); rpc.close(failure) }
   try {
     if (previous && (!previous.lifecycle?.threadId || !previous.lifecycle.turnId || previous.lifecycle.localExecution !== "closed" || !["completed", "failed", "interrupted"].includes(previous.terminalStatus) || previous.quotaRefused)) { failure = "account-resume-known-closed-terminal-required"; return result("unavailable") }
     if (previous && previous.lifecycle?.toolsSha256 !== lifecycle.toolsSha256) { failure = "account-resume-tools-changed"; return result("unavailable") }
     if (options.model !== "gpt-5.6-sol" || options.effort !== "high") { failure = "account-model-or-effort-unauthorized"; return result("unavailable") }
     const maxToolCalls = options.maxToolCalls ?? 64
-    if (!Number.isSafeInteger(maxToolCalls) || maxToolCalls < 1) { failure = "account-tool-budget-invalid"; return result("unavailable") }
+    if (!Number.isSafeInteger(maxToolCalls) || maxToolCalls < 0 || maxToolCalls === 0 && options.tools.length) { failure = "account-tool-budget-invalid"; return result("unavailable") }
     const ajv = new Ajv({ strict: false, allErrors: true, ownProperties: true })
     for (const tool of options.tools) {
       if (validators.has(tool.name)) { failure = "duplicate-account-tool-name"; return result("unavailable") }
@@ -297,6 +309,7 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
       }
       if (message.method === "item/tool/call" && message.id !== undefined) {
         if (!active || params.threadId !== threadId || turnId && params.turnId !== turnId) { reply(message.id, { success: false, contentItems: [{ type: "inputText", text: "session-closed-or-foreign-turn" }] }); return }
+        if (lifecycle.hostFinalization) { reply(message.id, { success: false, contentItems: [{ type: "inputText", text: "tool-phase-closing" }] }); return }
         turnId ??= params.turnId
         if (params.namespace || !options.tools.some(t => t.name === params.tool)) { failure = "unregistered-account-tool"; finish("unavailable"); reply(message.id, { success: false, contentItems: [{ type: "inputText", text: failure }] }); return }
         const fingerprint = JSON.stringify([params.tool, params.arguments])
@@ -305,7 +318,7 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
         if (typeof params.callId !== "string" || !params.callId || executed.get(params.callId)?.fingerprint && executed.get(params.callId)!.fingerprint !== fingerprint) { failure = "account-tool-call-identity-conflict"; finish("unavailable"); return }
         let execution = executed.get(params.callId)?.output
         if (!execution) {
-          if (tools.length + toolRejections.length >= maxToolCalls) { failure = "account-tool-budget"; finish("unavailable"); reply(message.id, { success: false, contentItems: [{ type: "inputText", text: failure }] }); return }
+          if (tools.length + toolRejections.length >= maxToolCalls) { if (options.shouldFinalize) { finalize(); reply(message.id, { success: false, contentItems: [{ type: "inputText", text: "tool-phase-closing" }] }); return }; failure = "account-tool-budget"; finish("unavailable"); reply(message.id, { success: false, contentItems: [{ type: "inputText", text: failure }] }); return }
           const call: LLMToolCall = { id: params.callId, name: params.tool, arguments: params.arguments }, validator = validators.get(params.tool)!
           const valid = validator(params.arguments)
           const diagnostics = !valid && options.argumentDiagnostics?.(call) || (validator.errors ?? []).slice(0, 8).map(e => ({ path: e.instancePath, keyword: e.keyword, message: e.message ?? "Invalid field", expected: e.params }))
@@ -324,7 +337,7 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
           }).catch(() => ({ success: false, contentItems: [{ type: "inputText", text: "dynamic-tool-execution-failed" }] }))
           executed.set(params.callId, { fingerprint, output: execution })
         }
-        void execution.then(output => { if (active) reply(message.id, output) }); return
+        void execution.then(output => { if (active) { reply(message.id, output); if (options.shouldFinalize?.()) finalize() } }); return
       }
       if (!active || params.threadId !== threadId || turnId && (params.turnId ?? params.turn?.id) !== turnId) return
       if (message.method === "error" || message.method === "turn/completed") {
@@ -403,11 +416,12 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
     const turn = await request("turn/start", { threadId, input: [{ type: "text", text: options.prompt, text_elements: [] }], environments: [], model: options.model, effort: options.effort })
     turnId ??= turn.turn.id
     lifecycle.turnStartAcknowledged = true
+    if (options.finalizeAfterMs !== undefined) reserveTimer = setTimeout(finalize, Math.max(1, options.finalizeAfterMs - (Date.now() - started)))
     record({ method: "skvm/account/identity", lifecycle: { ...lifecycle, threadId, turnId } })
     return result(await terminal)
   } catch (error) { failure ??= String(error); return result(finished ? await terminal : inferenceDispatched ? "completion-unknown" : "unavailable") }
   finally {
-    finished = true; active = false; if (timer) clearTimeout(timer); options.signal?.removeEventListener("abort", abort)
+    finished = true; active = false; if (timer) clearTimeout(timer); if (reserveTimer) clearTimeout(reserveTimer); options.signal?.removeEventListener("abort", abort)
     if (inferenceDispatched && threadId && turnId && failure && terminalStatus === "unknown") { try { transport?.send({ id: "interrupt-on-close", method: "turn/interrupt", params: { threadId, turnId } }) } catch { /* Own child may already have exited. */ } }
     rpc.close("session-closed"); await transport?.close()
     await Promise.allSettled([...executed.values()].map(e => e.output))

@@ -1,16 +1,20 @@
 import { createHash } from "node:crypto"
 import { z } from "zod"
+import { projectProgramOutcome } from "./program-outcome.ts"
 
-export type ProgramContext = "full" | "compact"
-export const ProgramDetailsSchema = z.object({ stepId: z.string().min(1).max(256).optional(), questionId: z.string().min(1).max(256).optional(), view: z.enum(["active", "draft"]).default("active"), expectedRevision: z.string().min(1).max(256).optional(), trialCaseId: z.string().min(1).max(256).optional() }).strict()
+export type ProgramContext = "full" | "compact" | "directed"
+export const ProgramDetailsSchema = z.object({ stepId: z.string().min(1).max(256).optional(), questionId: z.string().min(1).max(256).optional(), view: z.enum(["active", "draft"]).default("active"), expectedRevision: z.string().min(1).max(256).optional(), expectedBasis: z.string().min(1).max(256).optional(), trialCaseId: z.string().min(1).max(256).optional() }).strict()
 const revision = (v: unknown) => createHash("sha256").update(JSON.stringify(v) ?? "null").digest("hex")
+const basis = (r: any) => revision([r?.revision, r?.sourcesCurrent, r?.resourceExecution?.inputs, r?.resourceExecution?.conditions, r?.resourceExecution?.returned, r?.program])
 const propertySummary = (evaluation: any) => evaluation && { revision: evaluation.revision, questions: evaluation.questions?.map((q: any) => ({ questionId: q.questionId, properties: q.properties?.map((p: any) => ({ id: p.id ?? p.propertyId, status: p.status, value: p.value, gaps: p.gaps })) })) }
 
 /** Pure presentation of existing host results; no evaluation or source inference. */
 export function projectProgramConsumption(report: any, questions: readonly { id: string; request?: string }[], mode: ProgramContext = "full") {
   if (!report || mode === "full") return report
+  if (report.sourcesCurrent === false) report = { ...report, resourceExecution: undefined }
   const execution = report.resourceExecution, events: any[] = execution?.events ?? []
   return { schemaVersion: "authorization-program-context/v1", programId: report.program?.id, revision: report.revision, inputRevision: revision(execution?.inputs), draftRevision: report.currentDraft?.revision, status: report.status, programMode: report.programMode, origin: report.origin, scope: report.scope,
+    ...(mode === "directed" ? { basis: basis(report), outcome: projectProgramOutcome(report), obligations: report.obligations, responsibility: "Use the current finite computation for the portion it actually covers. Review source meanings and all remaining original questions; do not redo the same calculation merely to restate it. Rules include untriggered branches and can be retrieved with authorization_program_details. Values and author coverage are unreviewed, not a request authorization certificate." } : {}),
     inputBinding: report.inputBinding, termination: execution?.termination, returned: execution?.returned, conditions: execution?.conditions, gaps: execution?.gaps ?? [],
     // Current values alone cannot explain a different input or an unexecuted branch.
     // Keep authored rules once, without copied input populations or candidate history.
@@ -24,6 +28,7 @@ export function projectProgramConsumption(report: any, questions: readonly { id:
 export function programConsumptionDetails(report: any, query: z.input<typeof ProgramDetailsSchema>) {
   const args = ProgramDetailsSchema.parse(query)
   if (!report) return { status: "no-active-program", steps: [], events: [] }
+  if (args.expectedBasis && (args.expectedBasis !== basis(report) || report.sourcesCurrent === false)) return { status: "stale-program-reference", basis: basis(report), steps: [], events: [] }
   if (args.trialCaseId) {
     const revision = report.currentDraft?.revision
     if (report.sourcesCurrent === false) return { status: "trial-source-invalidated", revision, steps: [], events: [] }
@@ -34,7 +39,7 @@ export function programConsumptionDetails(report: any, query: z.input<typeof Pro
     if (!item) return { status: "trial-detail-not-found", revision, steps: [], events: [] }
     const relevant = !args.questionId || report.currentDraft.raw?.scope?.questionId === args.questionId
     const match = (s: any) => relevant && (!args.stepId || s.id === args.stepId)
-    return { status: "trial", revision, trialCaseId: item.id, execution: item.execution, diagnostics: item.diagnostics, steps: (report.currentDraft.raw?.resourceWorkflow?.steps ?? []).filter(match), events: (item.execution?.events ?? []).filter(match), inputOrigin: "unreviewed-trial-facts", semanticSupport: "unreviewed", requestOperationCertified: false }
+    return { status: "trial", revision, trialCaseId: item.id, execution: item.execution, outcome: item.outcome, obligations: item.obligations, diagnostics: item.diagnostics, steps: (report.currentDraft.raw?.resourceWorkflow?.steps ?? []).filter(match), events: (item.execution?.events ?? []).filter(match), inputOrigin: "unreviewed-trial-facts", semanticSupport: "unreviewed", requestOperationCertified: false }
   }
   const program = args.view === "draft" ? report.currentDraft?.raw : report.program
   const currentRevision = args.view === "draft" ? report.currentDraft?.revision : report.revision

@@ -23,9 +23,9 @@ export async function runAuthorizationInquiryCli(argv: string[], dependencies: L
   const strategy = options.strategy ? parseInquiryStrategy(options.strategy) : undefined
   if (options["program-mode"] && !["consume", "edit"].includes(options["program-mode"])) throw new Error("--program-mode requires consume or edit")
   if (options["execution-policy"] && !["strict", "progressive"].includes(options["execution-policy"])) throw new Error("--execution-policy requires strict or progressive")
-  if (options["program-context"] && !["full", "compact"].includes(options["program-context"])) throw new Error("--program-context requires full or compact")
+  if (options["program-context"] && !["full", "compact", "directed"].includes(options["program-context"])) throw new Error("--program-context requires full, compact or directed")
   if (options["authoring-target"] && !["current-input", "reusable"].includes(options["authoring-target"])) throw new Error("--authoring-target requires current-input or reusable")
-  const programOptions = { authoringTargetMode: options["authoring-target"] as "current-input" | "reusable" | undefined, programContext: options["program-context"] as "full" | "compact" | undefined, programMode: options["program-mode"] as "consume" | "edit" | undefined, executionPolicy: options["execution-policy"] as "strict" | "progressive" | undefined }
+  const programOptions = { authoringTargetMode: options["authoring-target"] as "current-input" | "reusable" | undefined, programContext: options["program-context"] as "full" | "compact" | "directed" | undefined, programMode: options["program-mode"] as "consume" | "edit" | undefined, executionPolicy: options["execution-policy"] as "strict" | "progressive" | undefined }
   if (options.harness && !["provider", "codex-account"].includes(options.harness)) throw new Error("Inquiry harness must be provider or codex-account")
   if (options["account-boundary"] && options.harness !== "codex-account") throw new Error("--account-boundary requires --harness=codex-account")
   if (options["domain-tools"] !== undefined && options.harness !== "codex-account") throw new Error("--domain-tools requires --harness=codex-account")

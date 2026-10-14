@@ -3118,7 +3118,10 @@ check/run/compare已接入`--execution-policy=progressive`，strict仍为默认�
 
 **有限验证与当场修复。** 八用途A0/A1/C0/B0/B1/C1/C2/S0，最多四个具名额外修复用途，不凑满。共享缺陷一经发现，暂停受影响调用，修复、定向验证并登记epoch后继续。两对同源码/skill/四问/输入/模型/预算，C的作者预处理作为整体程序效果及成本评价，不主张纯DSL表示优势。不同修订epoch分列；首对负向且没有具体可落实修改，不原样扩跑第二对。源码评价与模型输入隔离，协议失败保留端到端分母，实际USD/真人时间无依据仍unknown。研究统一§7.74，工程/自动化/使用/质量/收益分别验收。
 
+BM8实施细节：当前协议只在thread/start注册dynamicTools。宿主预算预留触发的turn/interrupt若获得服务器interrupted终态并关闭本地执行，可作为已知结束的工具阶段进入同用途无工具子会话；其原状态仍是interrupted/undelivered。普通interrupted、unknown、错误或额度拒绝不得自动继续。丢失终态确认保持unknown；新子会话记录finalizesThreadId/TurnId，费用、时间及工具额度累计在原用途。
+
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
+
 
 
 AT在已有授权局部语义上引入显式 `focused-closure-v1`：宿主持久管理locate/interpret/link/review/answer阶段，绑定当前来源、单元身份与更新版本；模型解释原始源码中的条件、对象、参数、返回与实际相关效果。上下文渲染不改变活动任务，拒绝修复回到同一单元；多候选与语义关系仍须显式判定。旧默认及协议保持。

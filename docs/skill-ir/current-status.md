@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-**BM0–BM20 已获授权并登记，待新开发线程接管；当前只完成任务书，没有 BM 工程或实验结果。** [任务书](../superpowers/plans/2026-10-14-authorization-branch-completion-and-directed-consumption.md)承接 BL 的三个程序缺口、重复消费成本和预算末尾缺交付。先补源码义务候选与渐进修稿，再做显式 directed 消费、真实无工具收尾及八用途有限验证。新 identity 为 `authorization-branch-verified-consumption-v1`，开发 `gpt-6-astra/high`，方法见 [spec§14.52](skill-ir-aot-optimization-spec.md#1452-bm-branch-completion-and-directed-consumption) 与 [研究§7.74](skill-dsl-research.md#774-bl-复核与-bm-分支补齐和按职责消费)。实施前基线为 `cb8a721a`，full 默认、原四问和历史证据保持。
+**BM0–BM20正在实施：共享工程已接通，零调用预检通过，真实八用途尚未开始。** 已完成185项定向回归及15项文档测试；收尾源码重传计量补修另有红绿验证。模型质量及成本尚无BM结论。 [任务书](../superpowers/plans/2026-10-14-authorization-branch-completion-and-directed-consumption.md)承接 BL 的三个程序缺口、重复消费成本和预算末尾缺交付。先补源码义务候选与渐进修稿，再做显式 directed 消费、真实无工具收尾及八用途有限验证。新 identity 为 `authorization-branch-verified-consumption-v1`，开发 `gpt-6-astra/high`，方法见 [spec§14.52](skill-ir-aot-optimization-spec.md#1452-bm-branch-completion-and-directed-consumption) 与 [研究§7.74](skill-dsl-research.md#774-bl-复核与-bm-分支补齐和按职责消费)。实施前基线为 `cb8a721a`，full 默认、原四问和历史证据保持。
 
 ## BL 已结束的实际结果
 

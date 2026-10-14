@@ -27,6 +27,7 @@ import { isQuestionWorkflowStrategy, isQuestionCheckedStrategy } from "../../tas
 import { createQuestionGuidance, QuestionGuidanceSchema, QUESTION_WORKFLOW_GUIDE } from "./question-workflow-wire.ts"
 import type { ExecutionPolicy, ProgramMode } from "../../task-dsl/authorization/executable-contract.ts"
 import { projectProgramTaskContext, PROGRAM_AUTHORING_GOAL } from "../../task-dsl/authorization/program-authoring-context.ts"
+import { collectProgramObligations } from "../../task-dsl/authorization/program-obligations.ts"
 import { ProgramTrialSchema } from "../../task-dsl/authorization/program-trial.ts"
 import { programDeliveryBasis } from "../../task-dsl/authorization/program-delivery.ts"
 
@@ -322,7 +323,8 @@ export async function createNativeInquiryRuntime(options: { authoringTargetMode?
       const local: any = domain?.promptContext({ maxSourceBytes: Math.max(0, (options.maxDisplayBytes ?? 262144) - modelSourceBytes), finalOnly: questionChecked && finalOnly })
       const questionId = local?.focus?.stage === "answer" ? undefined : local?.focus?.questionId
       const propertyChecks = domain?.report().propertyAnalysis?.checks
-      const taskContext = projectProgramTaskContext({ report: domain?.executableContractReport(), draftReport: domain?.programDraftReport(), questions: program?.questions ?? [], operationQuestions: program?.operationQuestions, programMode: options.programMode, programContext: options.programContext, authoringTargetMode: options.authoringTargetMode, local, evidence: tools.evidence, remainingActions: budget.explorationRemaining, resourceInputs: loaded.value.resourceInputs, externalAssumptions: loaded.value.externalAssumptions })
+      const obligations = options.programMode === "edit" ? await collectProgramObligations(tools, domain?.programDraftReport()?.currentDraft?.raw) : undefined
+      const taskContext = projectProgramTaskContext({ obligations, report: domain?.executableContractReport(), draftReport: domain?.programDraftReport(), questions: program?.questions ?? [], operationQuestions: program?.operationQuestions, programMode: options.programMode, programContext: options.programContext, authoringTargetMode: options.authoringTargetMode, local, evidence: tools.evidence, remainingActions: budget.explorationRemaining, resourceInputs: loaded.value.resourceInputs, externalAssumptions: loaded.value.externalAssumptions })
       const authoring = options.programMode === "edit" ? " " + PROGRAM_AUTHORING_GOAL : domain?.executableContractReport() ? " The active program has run under current inputs. Use computed fields and read original sources for every remaining duty; request exact program details when needed." : ""
       return { guidance: guidance.context(undefined, questionId), toolBudget: budget, ...taskContext, ...(domain ? { ...(options.programContext === "compact" ? {} : { questionWorkflow: domain.questionContext() }), machine: { properties: propertyChecks && { ...propertyChecks, questions: propertyChecks.questions.filter(q => !questionId || q.questionId === questionId) }, gaps: local?.gaps, gapCount: local?.gapCount, wholeTaskCertified: false, semanticSupport: "unreviewed" }, diagnostics: local?.diagnostics } : {}), instruction: `${QUESTION_WORKFLOW_GUIDE}${authoring}${budget.explorationRemaining <= 0 || questionChecked && checks >= checkLimit ? " Exploration is exhausted. Deliver all original questions now in the original skill format; retain machine unknowns." : ""}` }
     }

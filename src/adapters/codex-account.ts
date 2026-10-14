@@ -1,6 +1,7 @@
 import type { AgentAdapter, AdapterConfig, RunResult } from "../core/types.ts"
 import { emptyTokenUsage } from "../core/types.ts"
 import { createNativeInquiryRuntime } from "../benchmarks/authorization-dsl/inquiry-native.ts"
+import { modelSourceDisplay } from "../benchmarks/authorization-dsl/inquiry-tools.ts"
 import { parseInquiryStrategy, isPropertyDirectedInquiryStrategy, type InquiryStrategy } from "../task-dsl/authorization/control-slice.ts"
 import { createInquiryContextEncoder, createInquiryTransmissionMeter, INCREMENTAL_INQUIRY_CONTEXT_GUIDE } from "../benchmarks/authorization-dsl/inquiry-context.ts"
 import { parseNativeInquiryMethod } from "../task-dsl/authorization/operation-program.ts"
@@ -33,7 +34,9 @@ export async function runCodexAccountInquiry(options: AccountInquiryOptions) {
   const instructionSources = await loadCodexAccountBoundary(options.accountBoundaryFile)
   const runtime = await createNativeInquiryRuntime({ ...options, method: options.method, domainTools: options.domainTools ?? true, traceRedactor: redactCodexEvent })
   const definitions = options.programMode === "consume" ? runtime.definitions.filter(t => !["authorization_program", "authorization_program_patch"].includes(t.name)) : runtime.definitions
-  const encode = isPropertyDirectedInquiryStrategy(options.strategy) ? createInquiryContextEncoder() : undefined
+  const directed = options.programContext === "directed"
+  const encode = !directed && isPropertyDirectedInquiryStrategy(options.strategy) ? createInquiryContextEncoder() : undefined
+  let packetEncode = directed ? createInquiryContextEncoder() : undefined
   const transmission = createInquiryTransmissionMeter()
   const contextPayloads: Array<{ sequence: number; references: number; originalBytes: number; sentBytes: number }> = []
   const contextView = async (automatic = true) => {
@@ -42,9 +45,23 @@ export async function runCodexAccountInquiry(options: AccountInquiryOptions) {
     const { context: encoded, ...metrics } = encode(context); contextPayloads.push(metrics); return encoded
   }
   const respond = async (result: Awaited<ReturnType<typeof runtime.execute>>, automatic = true) => {
-    const payload = { toolResult: JSON.parse(result.output), currentContext: await contextView(automatic) }, output = JSON.stringify(payload)
+    const raw = { toolResult: JSON.parse(result.output), currentContext: await contextView(automatic) }
+    const encoded = packetEncode?.(raw)
+    if (encoded) { const { context: _context, ...metrics } = encoded; contextPayloads.push(metrics) }
+    const payload = encoded?.context ?? raw, output = JSON.stringify(payload)
     transmission.record("tool-reply", payload, output)
     runtime.accountSent(output); return { ...result, output }
+  }
+  const finalContext = async () => {
+    const context = await runtime.accountContext(false), report = runtime.report()
+    const remaining = Math.max(0, (options.maxDisplayBytes ?? 262144) - report.sourceAccounting.cumulativeModelSourceBytes)
+    const alreadyReadSource: typeof report.evidence = [], omittedSource: Array<{ path: string; startLine: number; endLine: number }> = []
+    for (const evidence of [...report.evidence].reverse()) {
+      const candidate = { ...context, alreadyReadSource: [...alreadyReadSource, evidence] }
+      if (modelSourceDisplay(report.evidence, JSON.stringify(candidate), new Set()).bytes <= remaining) alreadyReadSource.push(evidence)
+      else omittedSource.push({ path: evidence.path, startLine: evidence.startLine, endLine: evidence.endLine })
+    }
+    return { ...context, alreadyReadSource, ...(omittedSource.length ? { omittedSource, sourceBudgetNotice: "These previously read source windows cannot be retransmitted within the original display budget. Do not claim fresh verification of their text; retain precise uncertainty." } : {}) }
   }
   type Turn = Awaited<ReturnType<typeof runCodexAccountSession>>
   const turns: Turn[] = [], decisions: ReturnType<typeof decideProgramAuthorContinuation>[] = []
@@ -63,21 +80,27 @@ export async function runCodexAccountInquiry(options: AccountInquiryOptions) {
     return respond(output)
   }
   try {
-    const system = `${options.skillContent ?? ""}\n${runtime.system}${encode ? "\n" + INCREMENTAL_INQUIRY_CONTEXT_GUIDE : ""}`
+    const system = `${options.skillContent ?? ""}\n${runtime.system}${encode || packetEncode ? "\n" + INCREMENTAL_INQUIRY_CONTEXT_GUIDE : ""}`
     transmission.record("static-tools", definitions.map(t => ({ type: "function", name: t.name, description: t.description, inputSchema: t.inputSchema })), undefined, "schemaProtocol")
     transmission.recordSystem(system, options.skillContent ?? "")
     await save("account-purpose.json", { purpose, attempt, workDir: options.workDir, traceDir: options.traceDir, startedAt: new Date(started).toISOString(), timeoutMs, maxToolCalls: options.maxToolCalls })
     while (true) {
-      const context = await contextView(turns.length === 0)
+      const final = phase === "final-answer"
+      if (final) packetEncode = directed ? createInquiryContextEncoder() : undefined
+      const rawContext = final ? await finalContext() : await contextView(turns.length === 0)
+      const context = !final && packetEncode ? packetEncode(rawContext).context : rawContext
       const prompt = `${phase === "final-answer" ? FINAL_PROGRAM_ANSWER_INSTRUCTION : turns.length ? `Author-edit phase: continue your own source authoring after the preserved task answer. Purpose: ${decisions.at(-1)!.reason}. Inspect and repair your current draft using actual grouped feedback; retain all original questions. Your end-of-turn text records editing progress; it does not replace the task answer. The remaining budget is shared with prior turns. Do not repeat unchanged proposals or invent missing external facts.` : "Task-answer phase: current original task and full skill are declared in the system. Complete source work and deliver every original question."}\nCurrent local explanation context: ${JSON.stringify(context)}`
       transmission.record("initial-context", context, prompt); runtime.accountSent(prompt)
       const prior = turns.at(-1) ?? options.authorResumeAfter
       const remaining = runtime.report().toolBudget.totalRemaining
-      const account = await runCodexAccountSession({ model: options.model, effort: "high", cwd: options.workDir, system, prompt, tools: definitions, maxToolCalls: Math.max(1, remaining), timeoutMs: Math.max(1, timeoutMs - (Date.now() - started)), transportFactory: options.transportFactory, instructionSources, purpose, attempt: turns.length ? `${attempt}-continuation-${turns.length}` : attempt,
-        ...(prior ? { resumeAfter: { ...prior, tools: [...(options.authorResumeAfter?.tools ?? []), ...turns.flatMap(t => t.tools)], toolRejections: [...(options.authorResumeAfter?.toolRejections ?? []), ...turns.flatMap(t => t.toolRejections)] } } : {}),
+      const remainingMs = timeoutMs - (Date.now() - started)
+      const account = await runCodexAccountSession({ model: options.model, effort: "high", cwd: options.workDir, system, prompt, tools: final ? [] : definitions, maxToolCalls: final ? 0 : Math.max(1, remaining), timeoutMs: Math.max(1, remainingMs), transportFactory: options.transportFactory, instructionSources, purpose, attempt: final ? `${attempt}-final-child` : turns.length ? `${attempt}-continuation-${turns.length}` : attempt,
+        ...(!final ? { shouldFinalize: () => { const b = runtime.report().toolBudget; return b.totalRemaining <= 0 || !!b.finalOnly }, finalizeAfterMs: Math.max(1, remainingMs - Math.min(120000, remainingMs / 2)) } : {}),
+        ...(prior && !final ? { resumeAfter: { ...prior, tools: [...(options.authorResumeAfter?.tools ?? []), ...turns.flatMap(t => t.tools)], toolRejections: [...(options.authorResumeAfter?.toolRejections ?? []), ...turns.flatMap(t => t.toolRejections)] } } : {}),
         execute, argumentDiagnostics: runtime.argumentDiagnostics,
         rejectArguments: async (call, diagnostics) => respond(await runtime.rejectArguments(call, diagnostics), false),
         onEvent: async (event: any) => { identity = { purpose, attempt: event.identity?.attempt, threadId: event.params?.threadId ?? event.identity?.threadId, turnId: event.params?.turnId ?? event.params?.turn?.id ?? event.identity?.turnId }; await runtime.onEvent(event) } })
+      if (final && account.lifecycle) { account.lifecycle.finalizesThreadId = prior?.lifecycle?.threadId; account.lifecycle.finalizesTurnId = prior?.lifecycle?.turnId }
       turns.push(account); await save(`account-turn-${turns.length}.json`, account)
       delivery.record({ sequence: turns.length, phase, answer: account.text, basis: runtime.deliveryBasis(), delivered: account.answerDelivery === "delivered" })
       await save(`delivery-turn-${turns.length}.json`, delivery.snapshot(runtime.deliveryBasis()))
@@ -86,9 +109,9 @@ export async function runCodexAccountInquiry(options: AccountInquiryOptions) {
       const decision = decideProgramAuthorContinuation({ maxContinuations: options.maxAuthorContinuations, mode: options.programMode, terminal, continuations: turns.length - 1, remainingMs: timeoutMs - (Date.now() - started), context: currentContext, previousProgress })
       decisions.push(decision)
       if (!decision.continue) {
-        const finalDecision = decideFinalProgramDelivery({ delivery: delivery.snapshot(runtime.deliveryBasis()), terminal, remainingMs: timeoutMs - (Date.now() - started), budget: (currentContext as any).toolBudget, finalPhaseUsed })
+        const finalDecision = decideFinalProgramDelivery({ delivery: delivery.snapshot(runtime.deliveryBasis()), terminal, controlledToolPhaseClosed: account.lifecycle?.hostFinalization === "budget-reserve" && account.lifecycle.providerTerminalObserved && account.lifecycle.localExecution === "closed" && !account.quotaRefused && !account.terminalError, remainingMs: timeoutMs - (Date.now() - started), budget: (currentContext as any).toolBudget, finalPhaseUsed })
         deliveryDecisions.push(finalDecision)
-        if (options.programMode === "edit" && finalDecision.runFinal) { finalPhaseUsed = true; phase = "final-answer"; continue }
+        if (finalDecision.runFinal) { finalPhaseUsed = true; phase = "final-answer"; continue }
         break
       }
       phase = "author-edit"
@@ -98,7 +121,7 @@ export async function runCodexAccountInquiry(options: AccountInquiryOptions) {
   // Returned reports can be persisted by either entrance. Masking is applied to
   // that archive copy, never the live domain state; altered material hashes will
   // be rejected by normal restore validation instead of silently rebinding.
-  const report = { ...runtime.report(), transmissionAccounting: transmission.report(), ...(encode ? { contextPayloads } : {}) }, native = redactCodexEvent(report) as typeof report
+  const report = { ...runtime.report(), transmissionAccounting: transmission.report(), ...(encode || directed ? { contextPayloads } : {}) }, native = redactCodexEvent(report) as typeof report
   // A read/resume failure before dispatch cannot erase an already delivered
   // answer or turn it into an unknown inference. Its own attempt remains below.
   const last = [...turns].reverse().find(t => t.inferenceDispatched) ?? turns.at(-1)!
@@ -120,7 +143,7 @@ export class CodexAccountAdapter implements AgentAdapter {
     parseInquiryStrategy(config.providerOptions.authorizationStrategy)
     if (config.providerOptions.authorizationMethod === "D0") throw new Error("codex-account-method-D0-unsupported: use M or D1")
     parseNativeInquiryMethod(config.providerOptions.authorizationMethod)
-    for (const [key, values] of Object.entries({ authorizationProgramMode: ["consume", "edit"], authorizationExecutionPolicy: ["strict", "progressive"], authorizationProgramContext: ["full", "compact"], authorizationAuthoringTarget: ["current-input", "reusable"] })) {
+    for (const [key, values] of Object.entries({ authorizationProgramMode: ["consume", "edit"], authorizationExecutionPolicy: ["strict", "progressive"], authorizationProgramContext: ["full", "compact", "directed"], authorizationAuthoringTarget: ["current-input", "reusable"] })) {
       const value = config.providerOptions[key]
       if (value !== undefined && !values.includes(value as string)) throw new Error(`${key} requires ${values.join(" or ")}`)
     }

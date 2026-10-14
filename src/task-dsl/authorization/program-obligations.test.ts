@@ -1,0 +1,26 @@
+import { expect, test } from "bun:test"
+const api: any = await import("./program-obligations.ts").catch(() => ({}))
+const source = { id: "unit", path: "anonymous.py", sha256: "current", startLine: 1, endLine: 20 }
+const skeleton: any = { sourceId: "unit", source, revision: "r", modelCovered: true, anchors: [
+  ["condition", 2], ["raise", 3], ["return", 4], ["call", 5],
+].map(([kind, line]) => ({ id: `${kind}`, kind, sourceSha256: "current", selector: { path: source.path, startLine: line, endLine: line }, text: `anonymous ${kind}` })), flow: [] }
+test("source candidates survive absent and deleted author declarations without implying meanings", () => {
+  expect(typeof api.projectProgramObligations).toBe("function")
+  const result = api.projectProgramObligations([skeleton], {})
+  expect(result.map((o: any) => o.kind)).toEqual(["branch-exit", "error-exit", "return-exit", "call-completion"])
+  expect(result.every((o: any) => o.state === "unmapped" && o.origin === "source-structure")).toBe(true)
+  expect(api.projectProgramObligations([{ ...skeleton, modelCovered: false }], {})).toEqual([])
+})
+test("only exact current candidate citations map; broad self reports and stale or missing steps do not prove coverage", () => {
+  expect(typeof api.projectProgramObligations).toBe("function")
+  const declaration = { id: "error", source: { path: source.path, startLine: 3, endLine: 3, sha256: "current" }, stepIds: ["stop"], disposition: "implemented" }
+  const raw = { resourceWorkflow: { steps: [{ id: "stop" }] }, authoringTarget: { coverage: [declaration] } }
+  expect(api.projectProgramObligations([skeleton], raw)[1]).toMatchObject({ state: "mapped-unreviewed", stepIds: ["stop"] })
+  for (const source of [{ ...declaration.source, startLine: 1, endLine: 20 }, { ...declaration.source, sha256: "old" }]) expect(api.projectProgramObligations([skeleton], { ...raw, authoringTarget: { coverage: [{ ...declaration, source }] } })[1].state).toBe("unmapped")
+  expect(api.projectProgramObligations([skeleton], { ...raw, resourceWorkflow: { steps: [] } })[1].state).toBe("unmapped")
+  expect(api.projectProgramObligations([skeleton], { ...raw, authoringTarget: { coverage: [declaration, declaration] } })[1].diagnostics).toContain("duplicate-author-mapping")
+})
+test("split read windows use the existing skeleton coverage rather than requiring a single giant read", async () => {
+  const tools = { structure: { symbols: [{ id: "unit", kind: "function", path: source.path, sha256: "current", startLine: 1, endLine: 20 }] }, evidence: [{ path: source.path, sha256: "current", startLine: 1, endLine: 10 }, { path: source.path, sha256: "current", startLine: 11, endLine: 20 }], sourceSkeleton: async () => skeleton }
+  expect((await api.collectProgramObligations(tools)).length).toBe(4)
+})

@@ -1,5 +1,11 @@
 # Skill IR 开发指南
 
+BM adds source candidates and outcome projections without another parser or executor. `program-obligations.ts` consumes already-shown current function skeletons; condition/raise/return/call anchors become review candidates. Exact current author coverage spans may map step IDs; broad claims, stale references and missing steps do not discharge candidates. Before a draft exists, native and structured author contexts collect the same candidates from read evidence. Keep this discovery independent of author declarations; it is not complete control-flow proof.
+
+`program-outcome.ts` separates current execution, actual conditions/event gaps and unreviewed scope gaps. Output fields expose the author's return expression and source rather than guessing roles from names. Ordinary check/run archives carry the same view. Explicit `--program-context=directed` retains every question, branch rules (including skipped paths), current outcome and exact details; `expectedBasis` invalidates detail references when source/input/program changes. Full remains the default. The account wire uses the existing lossless encoder over actual sent packets; new final sessions receive a fresh basis with no references into an absent history.
+
+BM account finalization reserves up to the final 120 seconds within the original wall budget. A host budget stop requests interruption and awaits the provider terminal; only a confirmed host-requested stop or natural completion can lead to one new thread with `dynamicTools: []`. It retains original skill/questions, current context and already-read source, records parent thread/turn lineage, and charges all usage to the original purpose. Unknown, arbitrary interruptions, errors and quota refusals cannot trigger it. Focused tests: program-obligations, program-outcome, program-consumption-context, program-delivery, account-session and executable-contract-entrypoints. These engineering checks do not establish research benefit.
+
 本指南说明开发入口、组件分工和常用检查。项目进度见 [current-status.md](current-status.md)，历史阶段见 [history.md](history.md)。
 
 ## 1. 先建立项目视图

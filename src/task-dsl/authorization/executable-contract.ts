@@ -19,6 +19,8 @@ import { lowerIntoControlSlice } from "../../benchmarks/authorization-dsl/inquir
 import { ResourceWorkflowSchema, ResourceWorkflowDraftSchema, inspectResourceDraft, executeResourceWorkflow, type ResourceValue, type ExternalAssumptionsSchema } from "./resource-relations.ts"
 import { ProgramInputBindingSchema, programInputBindingSummary, type ProgramInputResolution } from "./program-input-binding.ts"
 import { AuthoringTargetSchema } from "./program-coverage.ts"
+import { collectProgramObligations } from "./program-obligations.ts"
+import { projectProgramOutcome } from "./program-outcome.ts"
 
 const scope = z.object({ kind: z.enum(["function-contract", "request-operation"]), questionId: InquiryText, operationId: InquiryText.optional(), root: SourceCitationSchema, upstream: z.array(InquiryText).max(32) }).strict()
 export const ExecutableContractSchema = z.object({ schemaVersion: z.literal("authorization-executable-contract/v1"), id: InquiryText, scope,
@@ -230,5 +232,7 @@ export async function compileExecutableContract(raw: unknown, options: { tools: 
   // Lowering gaps remain source rules. They are not rejected source transactions:
   // a later return/exception gap cannot invalidate an already covered prefix.
   const evaluation = checkPropertyQueries(options.program, lowered.state, demands, projected.units, [], progressive ? [] : diagnostics, true, "semantic-completion/v1")
-  return { diagnostics, normalizations: normalized.normalizations, resourceExecution, inputBinding: options.inputResolution && programInputBindingSummary(options.inputResolution), contract, revision: digest([contract, options.program, conditions, options.resourceInputs, options.externalAssumptions, options.inputResolution && programInputBindingSummary(options.inputResolution), owners.map(o => o.skeleton.revision)]), scope: contract.scope, assumptions: contract.assumptions, conditions: structuredClone(conditions), units, projectedUnits: projected.units, functionRoots, sourceMaterials: materials.snapshot(), materialUses: projected.uses, materialProjection: { diagnostics: projected.diagnostics, stages: projected.stages }, demands, slice: lowered.state, loweringDiagnostics: lowered.diagnostics, evaluation, requestOperationCertified: false as const, semanticReview: "unreviewed" as const }
+  const obligations = await collectProgramObligations(options.tools, contract)
+  const outcome = projectProgramOutcome({ program: contract, resourceExecution, obligations })
+  return { obligations, outcome, diagnostics, normalizations: normalized.normalizations, resourceExecution, inputBinding: options.inputResolution && programInputBindingSummary(options.inputResolution), contract, revision: digest([contract, options.program, conditions, options.resourceInputs, options.externalAssumptions, options.inputResolution && programInputBindingSummary(options.inputResolution), owners.map(o => o.skeleton.revision)]), scope: contract.scope, assumptions: contract.assumptions, conditions: structuredClone(conditions), units, projectedUnits: projected.units, functionRoots, sourceMaterials: materials.snapshot(), materialUses: projected.uses, materialProjection: { diagnostics: projected.diagnostics, stages: projected.stages }, demands, slice: lowered.state, loweringDiagnostics: lowered.diagnostics, evaluation, requestOperationCertified: false as const, semanticReview: "unreviewed" as const }
 }

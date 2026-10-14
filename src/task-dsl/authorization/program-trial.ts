@@ -31,7 +31,7 @@ export async function runProgramTrial(raw: unknown, options: ProgramTrialOptions
     const inputResolution = resolveProgramInputBinding(draft.raw, compileOptions.program, { resourceInputs: { [dataQuestion]: item.resourceInputs }, externalAssumptions: { [dataQuestion]: item.externalAssumptions } })
     try {
       const compiled = await compileExecutableContract(draft.raw, { ...compileOptions, resourceInputs: inputResolution.resourceInputs, externalAssumptions: inputResolution.externalAssumptions, inputResolution })
-      cases.push({ id: item.id, operationId, inputOrigin: "unreviewed-trial-facts", status: "resourceExecution" in compiled && compiled.resourceExecution ? "executed" : "unavailable", diagnostics: compiled.diagnostics, execution: "resourceExecution" in compiled ? compiled.resourceExecution : undefined, requestOperationCertified: false })
+      cases.push({ id: item.id, operationId, inputOrigin: "unreviewed-trial-facts", status: "resourceExecution" in compiled && compiled.resourceExecution ? "executed" : "unavailable", diagnostics: compiled.diagnostics, execution: "resourceExecution" in compiled ? compiled.resourceExecution : undefined, outcome: "outcome" in compiled ? compiled.outcome : undefined, obligations: "obligations" in compiled ? compiled.obligations : [], requestOperationCertified: false })
     } catch (error) {
       cases.push({ id: item.id, operationId, inputOrigin: "unreviewed-trial-facts", status: "unavailable", diagnostics: [{ code: "program-trial-case-failed", path: `cases.${item.id}`, severity: "error", message: String(error).slice(0, 2000) }], execution: undefined, requestOperationCertified: false })
     }

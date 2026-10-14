@@ -1,6 +1,10 @@
 import { expect, test } from "bun:test"
 const api = await import("./program-delivery.ts").catch(() => ({} as any))
 const basis = () => api.programDeliveryBasis({ task: { id: "task" }, sources: [{ path: "a", sha256: "s" }], inputs: { value: 7 }, program: { revision: "p" }, sourceCurrent: true })
+test("reserved no-tool delivery survives exhausted action budget after known completion", () => {
+  const d = api.createProgramDelivery()
+  expect(api.decideFinalProgramDelivery({ delivery: d.snapshot(basis()), terminal: "completed", remainingMs: 1000, budget: { totalRemaining: 0, finalOnly: true, deliveryClosed: true }, finalPhaseUsed: false }).runFinal).toBe(true)
+})
 test("editing feedback never replaces a task answer on the same basis", () => {
   const d = api.createProgramDelivery(), b = basis()
   d.record({ sequence: 1, phase: "task-answer", answer: "Four original answers", basis: b, delivered: true })
@@ -20,7 +24,7 @@ test("basis changes stale an answer and failed final delivery never fabricates a
   }
   const changed = { ...b, revision: "changed" }, state = d.snapshot(changed)
   expect(api.decideFinalProgramDelivery({ delivery: state, terminal: "completed", remainingMs: 20, budget: { totalRemaining: 8 }, finalPhaseUsed: false }).runFinal).toBe(true)
-  for (const extra of [{ finalPhaseUsed: true }, { terminal: "interrupted" }, { budget: { totalRemaining: 8, finalOnly: true } }, { budget: { totalRemaining: 0 } }]) expect(api.decideFinalProgramDelivery({ delivery: state, terminal: "completed", remainingMs: 20, budget: { totalRemaining: 8 }, finalPhaseUsed: false, ...extra }).runFinal).toBe(false)
+  for (const extra of [{ finalPhaseUsed: true }, { terminal: "interrupted" }, { terminal: "unknown" }, { remainingMs: 0 }]) expect(api.decideFinalProgramDelivery({ delivery: state, terminal: "completed", remainingMs: 20, budget: { totalRemaining: 8 }, finalPhaseUsed: false, ...extra }).runFinal).toBe(false)
   d.record({ sequence: 2, phase: "final-answer", answer: "Partial transport text", basis: changed, delivered: false })
   expect(d.snapshot(changed).answer).toBe("Old answer")
   expect(d.snapshot(changed).status).toBe("stale")

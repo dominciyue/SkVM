@@ -12,6 +12,10 @@
 
 ## 一、接管与阅读顺序
 
+实施记录：BM0从30773a53接管，登录与本地进程已核验，六例普通零模型基线与BL一致；共享工程进行中，尚无BM模型调用。身份、评价轴与预算预登记在新结果目录manifest.json。
+
+BM8协议细化：本机TurnStartParams没有dynamicTools覆盖，thread/resume不能改变工具哈希。预算预留阶段用宿主主动turn/interrupt结束工具阶段，必须观察服务器真实interrupted及本地closed，才允许同用途tools=[]子会话；原工具回合仍记录interrupted/undelivered，不伪称completed。普通中断、未知、错误或quota/auth不满足此条件。服务器自然completed沿原合同处理。该调整是实现真正工具隔离所必需的生命周期细节，匿名fake transport已分别验证确认和丢失确认；总预算、一次最终回合及B/C对称保持。
+
 1. 阅读外层及仓库 AGENTS、[当前状态](../../skill-ir/current-status.md)，核对分支、工作树和最近提交。继续 `skill-ir-aot`，只推用户 origin，不建分支或 worktree，不处理原有 `.tmp/`。
 2. 完整阅读本任务书、[spec §14.52](../../skill-ir/skill-ir-aot-optimization-spec.md#1452-bm-branch-completion-and-directed-consumption)、[研究 §7.74](../../skill-ir/skill-dsl-research.md#774-bl-复核与-bm-分支补齐和按职责消费)。BL §14.51/§7.73用于理解形成过程，当前方法以 BM 为准。
 3. 阅读 [Download 普通示例](../../../examples/authorization-assessment/download-workflow/README.md) 与 BL 的 [summary](../../../results/skill-ir/skill-dsl-research/development/authorization-reusable-program-v1/summary.json)、[execution](../../../results/skill-ir/skill-dsl-research/development/authorization-reusable-program-v1/execution.md)、[固定自动稿](../../../results/skill-ir/skill-dsl-research/development/authorization-reusable-program-v1/authoring/automatic-program.json)。按需读取 BL 逐用途原件、场景和成本，不重跑历史全量审计。

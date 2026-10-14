@@ -1,5 +1,31 @@
 import { expect, test } from "bun:test"
 const api = await import("./codex-account-session.ts").catch(() => ({} as any))
+test("BM no-tool session admits zero tool budget and registers an empty table", async () => {
+  const f = mock("completed-no-usage"), r = await f.run({ tools: [], maxToolCalls: 0 })
+  expect(r.status).toBe("completed")
+  expect(f.sent.find(m => m.method === "thread/start").params.dynamicTools).toEqual([])
+  expect(f.executed()).toBe(0)
+})
+test("BM host budget handoff waits for the actual terminal and never fabricates completion", async () => {
+  for (const acknowledge of [true, false]) {
+    let receive = (_m: any) => {}, calls = 0
+    const sent: any[] = []
+    const transport: any = { isolation: { kind: "test-transport" }, onMessage(f: any) { receive = f }, onExit() {}, close() {}, send(m: any) {
+      sent.push(m)
+      if (m.method === "initialize") receive({ id: m.id, result: {} })
+      if (m.method === "thread/start") receive({ id: m.id, result: { thread: { id: "t", ephemeral: false }, model: "gpt-5.6-sol" } })
+      if (m.method === "turn/start") { receive({ id: m.id, result: { turn: { id: "u" } } }); queueMicrotask(() => receive({ id: "call", method: "item/tool/call", params: { threadId: "t", turnId: "u", callId: "a", tool: "read", arguments: {} } })) }
+      if (m.method === "turn/interrupt" && acknowledge) { receive({ id: m.id, result: {} }); receive({ method: "turn/completed", params: { threadId: "t", turn: { id: "u", status: "interrupted", items: [] } } }) }
+    } }
+    const r = await api.runCodexAccountSession({ model: "gpt-5.6-sol", effort: "high", cwd: ".", system: "s", prompt: "p", tools: [{ name: "read", description: "r", inputSchema: { type: "object" } }], maxToolCalls: 1, timeoutMs: 100, shouldFinalize: () => calls === 1, execute: async () => { calls++; return { output: "read source", durationMs: 0 } }, transportFactory: () => transport })
+    expect(sent.some(m => m.method === "turn/interrupt")).toBe(true)
+    expect(r.lifecycle.hostFinalization).toBe("budget-reserve")
+    expect(r.terminalStatus).toBe(acknowledge ? "interrupted" : "unknown")
+    expect(r.lifecycle.providerTerminalObserved).toBe(acknowledge)
+    expect(r.answerDelivery).toBe("undelivered")
+    expect(calls).toBe(1)
+  }
+})
 function mock(mode = "normal") {
   let receive = (_message: any) => {}, exited = (_error: string) => {}, executed = 0
   const sent: any[] = []

@@ -9,6 +9,68 @@ import { runAuthorizationInquiry } from "./inquiry-run.ts"
 import { emptyTokenUsage } from "../../core/types.ts"
 import { createProgramDraft } from "../../task-dsl/authorization/resource-program-draft.ts"
 import { questionWorkflowDefinitions, RESOURCE_PROGRAM_TEMPLATE } from "./question-workflow-wire.ts"
+test("BM directed deduplicates the actual sent packet and a fresh session starts with a full basis", async () => {
+  const f = await contractFiles(), packets: any[] = []
+  const sourceFile = path.join(f.root, "source/app.py")
+  await writeFile(sourceFile, (await readFile(sourceFile, "utf8")).replace("\n\n", "\n# " + "readable source context ".repeat(40) + "\n"))
+  const factory: any = () => { let receive = (_m: any) => {}, n = 0; const call = () => receive({ id: `c${++n}`, method: "item/tool/call", params: { threadId: "t", turnId: "u", callId: `r${n}`, tool: "source_read", arguments: { path: "app.py", startLine: 1, endLine: 8 } } }); return { isolation: { kind: "test-transport" }, onMessage(f: any) { receive = f }, onExit() {}, close() {}, send(m: any) {
+    if (m.method === "initialize") receive({ id: m.id, result: {} })
+    if (m.method === "thread/start") receive({ id: m.id, result: { thread: { id: "t" }, model: "gpt-5.6-sol" } })
+    if (m.method === "turn/start") { packets.push(JSON.parse(m.params.input[0].text.split("Current local explanation context: ")[1])); receive({ id: m.id, result: { turn: { id: "u" } } }); queueMicrotask(call) }
+    if (typeof m.id === "string" && m.id.startsWith("c") && m.result) { packets.push(JSON.parse(m.result.contentItems[0].text)); if (n === 1) queueMicrotask(call); else receive({ method: "turn/completed", params: { threadId: "t", turn: { id: "u", status: "completed", items: [{ type: "agentMessage", text: "All original duties with conditions", phase: "final_answer" }] } } }) }
+  } } }
+  const { runCodexAccountInquiry } = await import("../../adapters/codex-account.ts")
+  const { resolveInquiryContext } = await import("./inquiry-context.ts")
+  const run = await runCodexAccountInquiry({ inputFile: f.inputFile, workDir: f.root, model: "gpt-5.6-sol", domainTools: false, strategy: "legacy", programContext: "directed", timeoutMs: 5000, transportFactory: factory })
+  expect(run.account.status).toBe("completed")
+  expect(JSON.stringify(packets[0])).not.toContain("contextReference")
+  expect(JSON.stringify(packets[2])).toContain("contextReference")
+  const restored = resolveInquiryContext(packets[2], packets.slice(0, 2))
+  expect(restored.toolResult.evidence[0].path).toBe("app.py")
+  expect(run.native.transmissionAccounting.samples.filter(s => s.kind === "tool-reply").at(-1)?.bytes).toBe(Buffer.byteLength(JSON.stringify(packets[2])))
+})
+test.each([786432, 250])("BM consume reserves a genuine no-tool child with original questions, source and cumulative display budget %d", async (maxDisplayBytes) => {
+  const f = await contractFiles(); let threads = 0, calls = 0
+  const sent: any[] = []
+  const factory: any = () => { let receive = (_m: any) => {}, own = 0; return { isolation: { kind: "test-transport" }, onMessage(f: any) { receive = f }, onExit() {}, close() {}, send(m: any) {
+    sent.push(m)
+    if (m.method === "initialize") receive({ id: m.id, result: {} })
+    if (m.method === "thread/start") { own = ++threads; receive({ id: m.id, result: { thread: { id: `t${own}`, ephemeral: false }, model: "gpt-5.6-sol" } }) }
+    if (m.method === "turn/start") { receive({ id: m.id, result: { turn: { id: `u${own}` } } }); queueMicrotask(() => {
+      if (own === 2) { expect(m.params.input[0].text).toContain("app.py"); receive({ method: "turn/completed", params: { threadId: "t2", turn: { id: "u2", status: "completed", items: [{ type: "agentMessage", phase: "final_answer", text: "Current answer for every original duty" }] } } }); return }
+      receive({ id: "read", method: "item/tool/call", params: { threadId: "t1", turnId: "u1", callId: "source", tool: "source_read", arguments: { path: "app.py", startLine: 1, endLine: 8 } } })
+    }) }
+    if (m.id === "read" && m.result) calls++
+    if (m.method === "turn/interrupt") { receive({ id: m.id, result: {} }); receive({ method: "turn/completed", params: { threadId: `t${own}`, turn: { id: `u${own}`, status: "interrupted", items: [] } } }) }
+  } } }
+  const { runCodexAccountInquiry } = await import("../../adapters/codex-account.ts")
+  const run = await runCodexAccountInquiry({ inputFile: f.inputFile, workDir: f.root, model: "gpt-5.6-sol", strategy: "legacy", domainTools: false, programMode: "consume", maxToolCalls: 1, maxDisplayBytes, timeoutMs: 5000, transportFactory: factory })
+  expect(threads).toBe(2)
+  expect(calls).toBe(1)
+  expect(sent.filter(m => m.method === "thread/start")[1].params.dynamicTools).toEqual([])
+  expect(run.account.delivery.status).toBe("current")
+  expect(run.account.turns[0]!.terminalStatus).toBe("interrupted")
+  expect(run.account.turns[1]!.lifecycle).toMatchObject({ finalizesThreadId: "t1", finalizesTurnId: "u1" })
+  expect(run.account.tools.length).toBe(1)
+  expect(run.native.sourceAccounting.cumulativeModelSourceBytes).toBeLessThanOrEqual(maxDisplayBytes)
+  expect(run.native.sourceAccounting.cumulativeModelSourceBytes).toBe(run.native.evidence[0]!.bytes * (maxDisplayBytes > 250 ? 2 : 1))
+  expect(run.native.sourceAccounting.resentSourceBytes).toBe(maxDisplayBytes > 250 ? run.native.evidence[0]!.bytes : 0)
+  expect(run.account.text).toBe("Current answer for every original duty")
+})
+test("BM read-only source candidates reach author feedback before any declaration and ordinary check archives outcome", async () => {
+  const f = await contractFiles()
+  const runtime = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, strategy: "question-checked-v1", programMode: "edit", executionPolicy: "progressive" })
+  try {
+    await runtime.execute({ id: "prepare", name: "authorization_prepare_properties", arguments: { schemaVersion: "authorization-property-intent/v1", questions: [{ questionId: "other", state: "residual", reason: "Retain duty" }] } })
+    await runtime.execute({ id: "read", name: "source_read", arguments: { path: "app.py", startLine: 1, endLine: 8 } })
+    const context: any = await runtime.accountContext(false)
+    expect(context.authoring.sourceObligations?.some((o: any) => o.kind === "return-exit" && o.state === "unmapped")).toBe(true)
+    expect(context.authoring.feedbackGroups.sourceCandidates.length).toBeGreaterThan(0)
+  } finally { await runtime.close() }
+  const checked: any = await checkAuthorizationInquiry(f.inputFile, "D1", "question-checked-v1", f.domainProgramFile, { executionPolicy: "progressive" })
+  expect(checked.executableContract.outcome.requestOperationCertified).toBe(false)
+  expect(checked.executableContract.obligations.length).toBeGreaterThan(0)
+})
 test("account editing chatter preserves the current first answer without another final turn", async () => {
   const f = await contractFiles(); let turn = 0
   const input = JSON.parse(await readFile(f.inputFile, "utf8")); input.inquiry.questions[1].properties = [{ id: "remaining", kind: "effect-reachability", requirement: input.inquiry.questions[1].request }]; await writeFile(f.inputFile, JSON.stringify(input))
