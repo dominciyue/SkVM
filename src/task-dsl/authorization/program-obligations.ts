@@ -1,6 +1,77 @@
 import { createHash } from "node:crypto"
 import type { SourceSkeleton } from "../../benchmarks/authorization-dsl/evidence-preparation/source-skeleton.ts"
 import type { InquiryTools } from "../../benchmarks/authorization-dsl/inquiry-tools.ts"
+import { partialEvaluate, finiteValue, scalar, type FiniteValue } from "./control-evaluation.ts"
+import { ProgramCallRelationSchema } from "./program-coverage.ts"
+
+/** References in executable expressions only; prose and source locations never
+ * create a dependency. Paths preserve the distinction between activation and value. */
+function references(value: any, path = ""): Array<{ name: string; path: string }> {
+  if (!value || typeof value !== "object") return []
+  if (Object.keys(value).length === 1 && typeof (value.ref ?? value.binding) === "string") return [{ name: value.ref ?? value.binding, path }]
+  return Object.entries(value).flatMap(([key, child]) => key === "literal" ? [] : references(child, path ? `${path}.${key}` : key))
+}
+const executable = (s: any) => ({ when: s.when, value: s.value, test: s.test, arguments: s.arguments, where: s.where, principal: s.principal, resource: s.resource, ...(s.from ? { from: { ref: s.from } } : {}) })
+const uses = (value: any, id: string) => references(value).some(r => r.name === id || r.name.startsWith(id + "."))
+
+/** Review only calls already adopted by this draft or explicitly declared. No
+ * function-name rules, source-inferred predicates or default authorization guard. */
+export function projectProgramCallRelations(raw: any, execution?: any, trials: readonly any[] = []) {
+  const steps: any[] = Array.isArray(raw?.resourceWorkflow?.steps) ? raw.resourceWorkflow.steps.filter((s: any) => s && typeof s === "object") : []
+  const claims: any[] = (Array.isArray(raw?.authoringTarget?.coverage) ? raw.authoringTarget.coverage : []).filter((c: any) => c?.call && typeof c.call.stepId === "string")
+  const ids = new Set([...steps.filter(s => s.op === "external").map(s => s.id), ...claims.map(c => c.call.stepId)])
+  return [...ids].map(id => {
+    const step = steps.find(s => s.id === id), index = steps.indexOf(step), declarations = claims.filter(c => c.call.stepId === id), claim = declarations.length === 1 ? declarations[0] : undefined, parsed = ProgramCallRelationSchema.safeParse(claim?.call), relation = parsed.success ? parsed.data : undefined
+    const diagnostics: string[] = [], after = steps.slice(index + 1)
+    const consumers = after.filter(s => uses(executable(s), id)), valueConsumers = consumers.filter(s => uses({ value: s.value, arguments: s.arguments, principal: s.principal, resource: s.resource }, id)).map(s => s.id)
+    const descendants = new Set<string>([id]), dependencyPaths: Array<{ from: string; to: string; path: string }> = []
+    for (const s of after) for (const ref of references(executable(s))) {
+      const from = [...descendants].find(d => ref.name === d || ref.name.startsWith(d + "."))
+      if (from) { descendants.add(s.id); dependencyPaths.push({ from, to: s.id, path: ref.path }) }
+    }
+    const controlConsumers = after.filter(s => (s.op === "guard" || s.when) && descendants.has(s.id)).map(s => s.id)
+    const event = execution?.events?.find((e: any) => e.id === id)
+    if (!step || step.op !== "external") diagnostics.push("call-step-missing-or-not-external")
+    if (!relation) diagnostics.push(declarations.length > 1 ? "duplicate-call-relation" : "call-semantics-undeclared")
+    if (!relation && !consumers.length) diagnostics.push("call-result-unused-completion-unreviewed")
+    if (!step?.when && consumers.some(s => references(s.value).some(r => (r.name === id || r.name.startsWith(id + ".")) && /choose\.(then|else)/.test(r.path)))) diagnostics.push("selection-after-call-does-not-control-activation")
+    const source = claim?.source, target = step?.source
+    if (relation) {
+      if (!source || !target || source.path !== target.path || source.startLine < target.startLine || (source.endLine ?? source.startLine) > (target.endLine ?? target.startLine) || source.sha256 && target.sha256 && source.sha256 !== target.sha256 || !claim.stepIds?.includes(id)) diagnostics.push("call-relation-source-mismatch")
+      if (relation.activation === "unreviewed") diagnostics.push("call-activation-unreviewed")
+      else if ((relation.activation === "conditional") !== !!step?.when) diagnostics.push("call-activation-not-connected")
+      if (relation.resultUse === "used" && !valueConsumers.length) diagnostics.push("declared-call-result-unused")
+      if (relation.completion === "unreviewed") diagnostics.push("call-completion-unreviewed")
+    }
+    const guard = relation?.completionGuardId && steps.find(s => s.id === relation.completionGuardId), guardIndex = steps.indexOf(guard)
+    const guardEvent = guard && execution?.events?.find((e: any) => e.id === guard.id)
+    if (relation?.completion === "required") {
+      if (!guard || guard.op !== "guard" || guardIndex <= index) diagnostics.push("completion-guard-missing-or-out-of-order")
+      else {
+        if (!descendants.has(guard.id)) diagnostics.push("completion-guard-not-dependent")
+        if (!relation.successorStepIds?.length || relation.successorStepIds.some((next: string) => steps.findIndex(s => s.id === next) <= guardIndex)) diagnostics.push("completion-successor-missing-or-out-of-order")
+        if (guardEvent?.outcome === "skipped" && event?.outcome !== "skipped") diagnostics.push("completion-guard-skipped-after-call")
+        if (!relation.completionMeaning) diagnostics.push("completion-meaning-unreviewed")
+        if (relation.completionMeaning === "normal-return" && guard.test?.op === "truthy" && uses(guard.test, id)) diagnostics.push("normal-completion-tested-as-truthiness")
+        // Remove the call and its value descendants from actual bindings. A guard
+        // still true then does not require this call on this observed path.
+        if (execution && event && event.outcome !== "skipped") {
+          const bindings: Record<string, FiniteValue> = {}
+          for (const [key, value] of Object.entries({ ...execution.inputs, ...execution.values })) if (!descendants.has(key) && finiteValue(value)) {
+            bindings[key] = value
+            if (value && typeof value === "object" && !Array.isArray(value)) for (const [field, v] of Object.entries(value)) if (scalar(v)) bindings[`${key}.${field}`] = v
+          }
+          if (partialEvaluate(guard.test, bindings).truth === "true") diagnostics.push("completion-not-required-on-observed-path")
+        }
+      }
+    }
+    return { stepId: id, source: step?.source, declarationId: claim?.id, relation, activation: step?.when ?? "unconditional", valueConsumers, controlConsumers, dependencyPaths,
+      event: event && { outcome: event.outcome, value: event.outputs?.value, arguments: event.inputs?.arguments, gaps: event.gaps },
+      completionGuard: guard && { id: guard.id, test: guard.test, outcome: guardEvent?.outcome },
+      trials: trials.map(t => { const e = t.execution?.events?.find((e: any) => e.id === id); return { id: t.id, outcome: e?.outcome ?? "not-reached", gaps: e?.gaps ?? [] } }), diagnostics, semanticSupport: "unreviewed" as const,
+      instruction: "Review this call's exact source: activation (when), normal completion (a dependent guard after the call and before its successors), and returned value are different. A later choose cannot undo a call. False/None can return normally; truthy is only a declared finite completion marker or source Boolean test. Declare coverage.call with your source explanation, completion guard/successors or caught exception, then patch/trial; no source meaning is inferred here." }
+  })
+}
 
 export type ProgramObligation = {
   id: string; source: { path: string; startLine: number; endLine: number; sha256: string }; text: string

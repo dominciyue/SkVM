@@ -4,6 +4,23 @@ import * as author from "./program-authoring-context.ts"
 const at = { path: "app.py", startLine: 1, endLine: 8 }
 const questions = [{ id: "meaning", request: "Retain all requested meanings" }, { id: "data" }]
 const operationQuestions = questions.map(q => ({ questionId: q.id, operationId: "same" }))
+test("current author frontier reports known unused calls and removes repaired relations after patch", () => {
+  const call = { id: "init", op: "external", name: "prepare", arguments: {}, source: at }
+  const output = { id: "result", op: "return", value: { literal: 7 }, source: at }
+  const workflow = { inputs: [], steps: [call, output] }, raw: any = { scope: { questionId: "meaning" }, resourceWorkflow: workflow }
+  const run = (raw: any) => executeResourceWorkflow(raw.resourceWorkflow, {}, { externalAssumptions: [{ name: "prepare", arguments: {}, value: true, reason: "Finite completion marker" }] })
+  const report = (raw: any, revision: string) => ({ currentDraft: { revision, raw }, candidate: { revision, resourceExecution: run(raw) } })
+  const first: any = author.projectProgramAuthoring(report(raw, "first"), questions, undefined, { resourceInputs: { meaning: {} } })
+  expect(first.feedbackGroups.callRelations?.[0]?.diagnostics).toContain("call-result-unused-completion-unreviewed")
+  expect(first.firstBlocker.code).toBe("call-relation-review")
+  const fixed = structuredClone(raw)
+  fixed.resourceWorkflow.steps.splice(1, 0, { id: "complete", op: "guard", test: { op: "truthy", language: "python", value: { binding: "init" } }, failure: "incomplete", source: at })
+  fixed.authoringTarget = { mode: "reusable", coverage: [{ id: "initialization", source: at, stepIds: ["init", "complete"], disposition: "implemented", call: { stepId: "init", activation: "always", completion: "required", completionMeaning: "finite-marker", completionGuardId: "complete", successorStepIds: ["result"], resultUse: "ignored", reason: "Supplied marker explicitly means normal completion." } }] }
+  const next: any = author.projectProgramAuthoring(report(fixed, "second"), questions)
+  expect(next.feedbackGroups.callRelations).toEqual([])
+  expect(next.callRelations[0].completionGuard.id).toBe("complete")
+  expect(next.computed.returned).toBe(7)
+})
 test("source-only growth is not author progress and trials persist in the loop", () => {
   const context = { authoring: { draftRevision: "r", phase: "repair", feedbackGroups: { sourceCandidates: [{ id: "a" }] } }, toolBudget: { explorationRemaining: 8, totalRemaining: 10 }, sourceIndex: [] }
   const base = { mode: "edit" as const, terminal: "completed", continuations: 0, remainingMs: 1000, context }

@@ -3146,7 +3146,7 @@ BM8实施细节：当前协议只在thread/start注册dynamicTools。宿主预�
 
 ### 14.54 BO source call semantics and program repair
 
-2026-10-16根据用户预先授权的BN夜间接续，登记[BO0–BO17](../superpowers/plans/2026-10-16-authorization-call-semantics-and-program-repair.md)，基线21100431，identity `authorization-call-semantics-v1`。本节是待实施合同，BN历史原件和结果不变。开发gpt-6-astra/high，实验官方gpt-5.6-sol/high，第三方暂停。
+2026-10-16根据用户预先授权的BN夜间接续，登记[BO0–BO17](../superpowers/plans/2026-10-16-authorization-call-semantics-and-program-repair.md)，基线21100431，identity `authorization-call-semantics-v1`。BO0–BO8已实现，正在联合验证，尚无BO研究模型请求；BN历史原件和结果不变。开发gpt-6-astra/high，实验官方gpt-5.6-sol/high，第三方暂停。
 
 **调用语义。** 当前executor已有when/guard，A0多做权限调用不是缺短路能力；调用结果随后被choose忽略也不能撤销事件。区分激活、正常完成与返回值使用；作者从原源码判定关系，宿主检查当前来源、步骤、依赖和事件。复用program-obligations/authoringTarget，不再要求全部已读调用填写新表。值False/None可以是正常返回，不能默认当失败；只有匿名反例证明既有表达不足才加可选完成表示，保持旧协议行为，不按函数或仓库名称自动补guard。
 
@@ -3155,6 +3155,8 @@ BM8实施细节：当前协议只在thread/start注册dynamicTools。宿主预�
 **消费与实证。** 先查BN实际client包，再消除details等可证实的重复；复用exact references/sourceIndexDelta，不增加另一层摘要。新child自包含，所有原问题和当前必需条件可取回。A0修BN原稿、A1从空稿独立写、固定A0消费、S0源码维护分列。五正常用途、最多两条件确认及两个具名修复；发现共享错误当场修复，不跑完坏协议面板再处理。研究收益按同epoch串行配对及全部observed input/output/缓存/耗时评价，作者成本另计，不用字节代替token或把unknown美元算零。
 
 **交付边界。** 完整有限语义、四问质量与净收益分别验收；未达仍交付普通运行轨迹和具名责任。full默认不改、BN不重开、不扩语言/skill/held-out/prospective。研究过程统一§7.76，文档当前问题表随实施结果更新。仅执行这轮有限队列，不自动追加下一任务书。
+
+**工程落点。** 可选coverage.call记录作者的activation/completion/resultUse、完成guard及后继；当前来源/真实引用/事件/trial投影进入同一修稿前沿。现有自等表达式区分已知False/None与未知，故不扩external语法。宿主检查依赖一致性，源码意义仍unreviewed。directed未指定步骤active details复用紧凑事件，显式format:raw及basis取回原文；full及strict保持。独立评价固定原18/8分母，以明确源码范围分列上游事件及条件，原strict分数完整保留；范围定位本身不证明上游语义。
 
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 

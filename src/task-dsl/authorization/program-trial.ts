@@ -3,6 +3,7 @@ import { compileExecutableContract, type ExecutableContractCompilation } from ".
 import { createProgramDraft, type ProgramDraft } from "./resource-program-draft.ts"
 import { ExternalAssumptionsSchema, ResourceInputsSchema } from "./resource-relations.ts"
 import { resolveProgramInputBinding } from "./program-input-binding.ts"
+import { projectProgramCallRelations } from "./program-obligations.ts"
 
 const id = z.string().min(1).max(256)
 export const ProgramTrialSchema = z.object({ expectedRevision: id, cases: z.array(z.object({ id, operationId: id.optional(), resourceInputs: ResourceInputsSchema, externalAssumptions: ExternalAssumptionsSchema.default([]) }).strict()).min(1).max(4) }).strict().refine(v => new Set(v.cases.map(c => c.id)).size === v.cases.length, "Trial case IDs must be unique")
@@ -31,7 +32,7 @@ export async function runProgramTrial(raw: unknown, options: ProgramTrialOptions
     const inputResolution = resolveProgramInputBinding(draft.raw, compileOptions.program, { resourceInputs: { [dataQuestion]: item.resourceInputs }, externalAssumptions: { [dataQuestion]: item.externalAssumptions } })
     try {
       const compiled = await compileExecutableContract(draft.raw, { ...compileOptions, resourceInputs: inputResolution.resourceInputs, externalAssumptions: inputResolution.externalAssumptions, inputResolution })
-      cases.push({ id: item.id, operationId, inputOrigin: "unreviewed-trial-facts", status: "resourceExecution" in compiled && compiled.resourceExecution ? "executed" : "unavailable", diagnostics: compiled.diagnostics, execution: "resourceExecution" in compiled ? compiled.resourceExecution : undefined, outcome: "outcome" in compiled ? compiled.outcome : undefined, obligations: "obligations" in compiled ? compiled.obligations : [], requestOperationCertified: false })
+      cases.push({ id: item.id, operationId, inputOrigin: "unreviewed-trial-facts", status: "resourceExecution" in compiled && compiled.resourceExecution ? "executed" : "unavailable", diagnostics: compiled.diagnostics, execution: "resourceExecution" in compiled ? compiled.resourceExecution : undefined, callRelations: projectProgramCallRelations(draft.raw, "resourceExecution" in compiled ? compiled.resourceExecution : undefined), outcome: "outcome" in compiled ? compiled.outcome : undefined, obligations: "obligations" in compiled ? compiled.obligations : [], requestOperationCertified: false })
     } catch (error) {
       cases.push({ id: item.id, operationId, inputOrigin: "unreviewed-trial-facts", status: "unavailable", diagnostics: [{ code: "program-trial-case-failed", path: `cases.${item.id}`, severity: "error", message: String(error).slice(0, 2000) }], execution: undefined, requestOperationCertified: false })
     }

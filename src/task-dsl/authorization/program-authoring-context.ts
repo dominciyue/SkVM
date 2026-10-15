@@ -4,7 +4,7 @@ import { projectProgramConsumption, type ProgramContext } from "./program-consum
 import type { ResourceProgramInputs } from "./resource-relations.ts"
 import { resolveProgramInputBinding } from "./program-input-binding.ts"
 import { projectAuthoringTarget } from "./program-coverage.ts"
-import { projectProgramCandidateFrontier } from "./program-obligations.ts"
+import { projectProgramCandidateFrontier, projectProgramCallRelations } from "./program-obligations.ts"
 
 type OriginalQuestion = { id: string; request?: string }
 export type ProgramPurpose = "author" | "consume"
@@ -106,8 +106,10 @@ export function projectProgramAuthoring(report: any, questions: readonly Origina
   const target = projectAuthoringTarget(raw, inputs.authoringTargetMode ?? report?.authoringTargetMode)
   const sourceObligations = inputs.obligations ?? report?.obligations ?? []
   const frontier = projectProgramCandidateFrontier(sourceObligations, raw, sourceVisible.flatMap((b: any) => b.candidates ?? []))
+  const callRelations = projectProgramCallRelations(raw, execution, (report?.trials ?? []).filter((batch: any) => batch.revision === report?.currentDraft?.revision).flatMap((batch: any) => batch.cases ?? []))
   const loop = report?.authorLoop && inputs.programContext === "directed" ? { ...report.authorLoop, changes: report.authorLoop.changes?.slice(-1) } : report?.authorLoop
   const feedbackGroups = {
+    callRelations: callRelations.filter(row => row.diagnostics.length),
     sourceCandidates: inputs.programContext === "directed" ? frontier.items : sourceObligations.filter((o: any) => o.state === "unmapped" || o.diagnostics?.length),
     inputStructure: [...resolution.diagnostics, ...diagnostics.filter((d: any) => !proofDiagnostic(d))],
     execution: [...rootBlockers.filter(b => !external.includes(b)), ...sourceVisible],
@@ -117,7 +119,7 @@ export function projectProgramAuthoring(report: any, questions: readonly Origina
   }
   const firstError = feedbackGroups.inputStructure.find((d: any) => d.severity === "error")
   const proofError = feedbackGroups.proof.find((d: any) => d.severity === "error")
-  const firstBlocker = inputError ? { code: inputError.code, dependencies: declaredNames, affectedStepIds: [...new Set(rootBlockers.flatMap((b: any) => b.affectedStepIds))], message: inputError.message } : firstError ? { code: firstError.code, dependencies: [firstError.path], message: firstError.message } : feedbackGroups.execution[0] ?? (inputs.programContext === "directed" && frontier.items.length ? { code: "related-source-candidates", candidateIds: frontier.items.map(o => o.id), function: frontier.function } : undefined) ?? (proofError ? { code: proofError.code, dependencies: [proofError.path], message: proofError.message } : external[0])
+  const firstBlocker = inputError ? { code: inputError.code, dependencies: declaredNames, affectedStepIds: [...new Set(rootBlockers.flatMap((b: any) => b.affectedStepIds))], message: inputError.message } : firstError ? { code: firstError.code, dependencies: [firstError.path], message: firstError.message } : feedbackGroups.execution[0] ?? external[0] ?? (feedbackGroups.callRelations.length ? { code: "call-relation-review", stepId: feedbackGroups.callRelations[0]!.stepId, diagnostics: feedbackGroups.callRelations[0]!.diagnostics } : undefined) ?? (inputs.programContext === "directed" && frontier.items.length ? { code: "related-source-candidates", candidateIds: frontier.items.map(o => o.id), function: frontier.function } : undefined) ?? (proofError ? { code: proofError.code, dependencies: [proofError.path], message: proofError.message } : external[0])
   return {
     goal: PROGRAM_AUTHORING_GOAL, target, ...(inputs.programContext === "directed" ? { candidateFrontier: { ...frontier, items: undefined } } : { sourceObligations }), candidateInstruction: "These are locations from already-read source structure, independently of author coverage. Interpret each relevant exit and call completion, including short-circuit execution conditions. Map an exact candidate source span to your own stepIds with authoringTarget.coverage or retain an explicit external/unwritten reason. A mapped span is not a semantic proof; broad claims do not discharge individual candidates. Trial your own varying inputs without inventing external facts.", completion: "unreviewed", activeRevision: report?.program ? report.revision : undefined,
     draftRevision: report?.currentDraft?.revision, candidateRevision: report?.candidate?.revision,
@@ -127,7 +129,7 @@ export function projectProgramAuthoring(report: any, questions: readonly Origina
     adoptedStepIds: report?.program?.resourceWorkflow?.steps?.map((s: any) => s.id) ?? [], firstBlocker, rootBlockers,
     externalBoundaries: report?.externalBoundaries ?? [],
     computed: execution && { returned, termination: execution.termination, conditions: execution.conditions },
-    gaps: execution?.gaps ?? [], diagnostics, feedbackGroups,
+    gaps: execution?.gaps ?? [], diagnostics, feedbackGroups, callRelations,
     inputBindings: { questionId, inputQuestionId: resolution.inputQuestionId, origin: resolution.origin, datasetPresent: resolution.datasetPresent, diagnostics: resolution.diagnostics, declaredNames, inputNames, missingDeclaredNames: declaredNames.filter(n => !inputNames.includes(n)), values: Object.fromEntries(Object.entries(resolution.resourceInputs).map(([name, value]) => [name, shownValue(value)])), externalAssumptions: resolution.externalAssumptions, suppliedScopes, instruction: "scope.questionId retains the semantic duty. Resource inputs and external assumptions default to that exact question. Optional inputBinding:{questionId} explicitly selects one supplied dataset from the same current operationQuestions mapping; it never transfers policy, premises or property inputs. Empty datasets are meaningful; no candidate is auto-selected. Current bound values and exact external calls are shown here, with bounded collection samples; authorization_program_details or the original scenario recovers full values. Author only source-supported relations." },
     unresolvedSemantics, semanticSupport: "unreviewed",
     questions: questions.map(q => ({ questionId: q.id, request: q.request, computedFields: q.id === scopeQuestion ? fields : [], coverage: "unreviewed", remaining: q.id === scopeQuestion ? "Only the listed fields were computed; express the remaining requested source relations or retain named gaps." : "This resource program does not compute this original question; investigate and author relevant relations or retain the duty for natural explanation." })),
@@ -152,7 +154,7 @@ export function decideProgramAuthorContinuation(options: {
   if (options.previousProgress === progress) return stop("no-new-author-progress")
   const groups = a.feedbackGroups
   const actionable = !a.draftRevision || !a.candidatePreviewAvailable && a.phase === "draft" ||
-    groups?.inputStructure?.some((d: any) => d.severity === "error" || d.code === "program-input-dataset-missing") || groups?.execution?.length || groups?.proof?.some((d: any) => d.severity === "error") || groups?.authoredScope?.length || groups?.coverage?.length || groups?.sourceCandidates?.length || a.target?.mode === "reusable" && a.target?.coverageStatus === "undeclared"
+    groups?.inputStructure?.some((d: any) => d.severity === "error" || d.code === "program-input-dataset-missing") || groups?.execution?.length || groups?.callRelations?.length || groups?.proof?.some((d: any) => d.severity === "error") || groups?.authoredScope?.length || groups?.coverage?.length || groups?.sourceCandidates?.length || a.target?.mode === "reusable" && a.target?.coverageStatus === "undeclared"
   if (!actionable) return stop("no-actionable-author-gap")
   return { continue: true, reason: a.draftRevision ? "repair-current-draft-feedback" : "author-first-source-supported-draft", progress }
 }

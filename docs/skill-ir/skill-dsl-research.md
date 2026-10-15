@@ -4,7 +4,7 @@
 
 ## 1. 当前结论
 
-**BN已复核，用户授权接续的BO进入任务书阶段，尚未新增生产修改或模型实验。** [BO0–BO17](../superpowers/plans/2026-10-16-authorization-call-semantics-and-program-repair.md)聚焦调用激活、正常完成和后继依赖；现有when已能短路，缺口在模型稿实际接线与针对性反馈。评价另分局部语义和上游条件，从实际发送包处理details重复；保留原skill/四问和full默认。见[§7.76](#776-bn-复核与-bo-源码调用语义修稿决定)。
+**BO已实现通用调用关系反馈、分层评价及directed按需详情，正在联合验证；研究模型实验尚未开始。** [BO0–BO17](../superpowers/plans/2026-10-16-authorization-call-semantics-and-program-repair.md)聚焦调用激活、正常完成和后继依赖；现有when已能短路，缺口在模型稿实际接线与针对性反馈。评价另分局部语义和上游条件，从实际发送包处理details重复；保留原skill/四问和full默认。见[§7.76](#776-bn-复核与-bo-源码调用语义修稿决定)。
 
 **BN有限队列已收束，完整自动程序、整题质量和净收益未达，实质成果bd613fc2已发布用户origin并核对。** [BN0–BN19](../superpowers/plans/2026-10-15-authorization-purpose-scoped-authoring-and-consumption.md)完成用途工具、修稿前沿和实际增量；8用途/14观察turn均交付，A0为21步、字段17/18及严格4/18，A1为17步、字段1/18（有上游范围差异）及严格0/18。两对消费者部分问题改善，但总token1.409/1.731倍；S0维护28步仅确认三场景有条件的局部反转。保留显式需审阅辅助，默认不变，不自动追加同范围实验。详见[§7.75](#775-bm-复核与-bn-聚焦修稿和消费线路调整)；BM及更早原实验保持，见[§7.74](#774-bl-复核与-bm-分支补齐和按职责消费)。
 
@@ -2837,6 +2837,8 @@ BM首件实测补修：A0-first用60探索单位而无patch/trial；暂态重连
 **BN发布回执。** 2026-10-16实质成果bd613fc217af8435a219053e2a3ea4eff07e2475已推用户origin/skill-ir-aot并核对远端同SHA。15文档测试及9份修改文档链接/锚点检查通过，study verify确认8归档/0活动，冻结A0不变。原始模型答案的Markdown双空格换行保留，常规diff检查对此报尾空格；排除这些原文后的本轮差异检查通过，不为格式清理改原证据。后续提交仅同步回执和完成标记。
 
 ### 7.76 BN 复核与 BO 源码调用语义修稿决定
+
+**BO0–BO8工程（2026-10-16）。** 新identity隔离历史证据。匿名红绿验证后增加可选coverage.call与当前callRelations投影，区分调用激活、完成guard、值使用和后继路径；保留语义unreviewed。已知False/None可用既有表达式确认完成，故没有加executor语法。fake-account实际source→program→patch→trial→details→answer链成立；独立核验发现trialCase详情遗漏新诊断并已修复。另一个探子的“BN没有delta”推断源于只读details对象，主线程按实际client完整包点验后否决：C0/C1分别45/42个delta和245/234次引用。一个默认全量details仍可削减；复用紧凑事件和原encoder的整流反事实分别节省29145/29137字节，未换算token。显式directed默认overview、format:raw按basis取回，full默认保持。范围评价先固定匿名正反例及源码边界，BN原稿18+8的局部轨迹A0为6/26、A1为0/26；保留旧strict、上游未知和来源范围未审查，不是BO自动稿结果。ShareLink离线兼容完成，研究模型调用仍为零。
 
 2026-10-16父监控线程确认BN已收束：final turn completed、本地与origin均21100431、tracked干净、仅既有.tmp/；八用途均交付且无活动/未知。任务书、原稿、机器评价、实际源码和共享代码分别核对，未重跑研究调用。新鲜定向复验49pass/287断言，覆盖resource-relations、authoring/consumption/delivery、增量上下文和BN轨迹评价；这仅核实已有工程，不增加BN效果样本。
 

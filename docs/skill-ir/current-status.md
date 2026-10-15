@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-**BO0–BO17已获用户夜间接续授权，任务书待新开发线程执行。** [源码调用保真、自动程序修稿与按需消费](../superpowers/plans/2026-10-16-authorization-call-semantics-and-program-repair.md)以BN最终`21100431`为复核基线，identity为`authorization-call-semantics-v1`，开发`gpt-6-astra/high`、实验官方`gpt-5.6-sol/high`，第三方暂停。重点是调用激活/完成/取值关系、基于实际事件的修稿反馈、范围分层评价及有证据的details减负；复用既有when/guard和增量传输。修订A0、独立A1、固定稿消费和源码变化维护分别验证，不承诺正向收益。见[spec§14.54](skill-ir-aot-optimization-spec.md#1454-bo-source-call-semantics-and-program-repair)、[研究§7.76](skill-dsl-research.md#776-bn-复核与-bo-源码调用语义修稿决定)。父线程仅复核和规划，尚无BO生产修改或研究模型请求。
+**BO0–BO17正在执行：调用关系反馈、分层评价与按需详情已实现，正在联合验证，尚无BO研究模型请求。** [源码调用保真、自动程序修稿与按需消费](../superpowers/plans/2026-10-16-authorization-call-semantics-and-program-repair.md)以BN最终`21100431`为复核基线，identity为`authorization-call-semantics-v1`，开发`gpt-6-astra/high`、实验官方`gpt-5.6-sol/high`，第三方暂停。重点是调用激活/完成/取值关系、基于实际事件的修稿反馈、范围分层评价及有证据的details减负；复用既有when/guard和增量传输。修订A0、独立A1、固定稿消费和源码变化维护分别验证，不承诺正向收益。见[spec§14.54](skill-ir-aot-optimization-spec.md#1454-bo-source-call-semantics-and-program-repair)、[研究§7.76](skill-dsl-research.md#776-bn-复核与-bo-源码调用语义修稿决定)。从任务书提交89ef2864接管；父线程停止仓库写入，工程与真实实验按五轴分别登记，当前尚无BO研究模型请求。
 
 ## BN 已结束的实际结果
 

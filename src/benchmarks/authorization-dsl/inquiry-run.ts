@@ -272,7 +272,7 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
           if (count <= remaining) controlActions += count - 1
           output = await domain.trialProgram(parsed.data, remaining)
         }
-        else if (step.name === "authorization_program_details") output = programConsumptionDetails(domain.executableContractReport() ?? domain.programDraftReport(), parsed.data, { sourceIndex: tools.evidence.map(({ id, path, startLine, endLine, sha256 }) => ({ id, path, startLine, endLine, sha256 })), sourceCandidates: step.arguments.catalog === "source-candidates" ? await collectProgramObligations(tools, domain.programDraftReport()?.currentDraft?.raw) : undefined })
+        else if (step.name === "authorization_program_details") output = programConsumptionDetails(domain.executableContractReport() ?? domain.programDraftReport(), parsed.data, { programContext: options.programContext, sourceIndex: tools.evidence.map(({ id, path, startLine, endLine, sha256 }) => ({ id, path, startLine, endLine, sha256 })), sourceCandidates: step.arguments.catalog === "source-candidates" ? await collectProgramObligations(tools, domain.programDraftReport()?.currentDraft?.raw) : undefined })
         else {
           const proposal = step.name === "authorization_program_patch" ? await domain.patchProgram(parsed.data) : await domain.importProgram(parsed.data, "model")
           output = { ...proposal, ...domain.programDraftReport(), executableContract: domain.executableContractReport() }

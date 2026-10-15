@@ -3,9 +3,17 @@ import { SourceCitationSchema } from "./question-workflow.ts"
 
 export const AuthoringTargetModeSchema = z.enum(["current-input", "reusable"])
 export type AuthoringTargetMode = z.infer<typeof AuthoringTargetModeSchema>
+/** Source-authored relationships, not execution syntax or a coverage certificate. */
+export const ProgramCallRelationSchema = z.object({
+  stepId: z.string().min(1).max(256), activation: z.enum(["always", "conditional", "unreviewed"]),
+  completion: z.enum(["required", "caught", "unreviewed"]), completionGuardId: z.string().min(1).max(256).optional(),
+  completionMeaning: z.enum(["normal-return", "finite-marker"]).optional(),
+  successorStepIds: z.array(z.string().min(1).max(256)).max(128).default([]),
+  resultUse: z.enum(["used", "ignored", "unreviewed"]), reason: z.string().min(1).max(4000),
+}).strict()
 export const AuthoringTargetSchema = z.object({
   mode: AuthoringTargetModeSchema,
-  coverage: z.array(z.object({ id: z.string().min(1).max(256), source: SourceCitationSchema, stepIds: z.array(z.string().min(1).max(256)).max(128), disposition: z.enum(["implemented", "unwritten", "external"]), reason: z.string().max(4000).optional() }).strict()).max(64).default([]),
+  coverage: z.array(z.object({ id: z.string().min(1).max(256), source: SourceCitationSchema, stepIds: z.array(z.string().min(1).max(256)).max(128), disposition: z.enum(["implemented", "unwritten", "external"]), reason: z.string().max(4000).optional(), call: ProgramCallRelationSchema.optional() }).strict()).max(64).default([]),
 }).strict()
 
 /** Author declarations only; reference validity is never semantic coverage proof. */

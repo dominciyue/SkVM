@@ -1,0 +1,7 @@
+# BO execution
+
+2026-10-16 (Asia/Shanghai): BO0 takeover at 89ef2864 on skill-ir-aot; origin checked at identical SHA. Only pre-existing .tmp/ untracked. BN eight purposes/14 observed turns closed, no active/unknown. No BO model call yet. Main thread owns writes; two narrow read-only evidence probes returned, and their claims require targeted verification (wire probe incorrectly inferred no delta from a details-only payload; actual-wire records 45/42 C0/C1 deltas).
+
+Working sequence: source/raw/event diagnosis; anonymous failing tests; shared relation feedback and actual author loop; fixed scope evaluator; actual-wire evidence and one simplification; engineering commit; A0/A1, frozen A0 ordinary use, B0/C0, conditional C1/B1, S0; joint verification and publication. No new branch, worktree or successor queue.
+
+2026-10-16 BO0–BO9 engineering: optional coverage.call and actual dependency/event/trial feedback; directed overview/raw detail retrieval; independent scope evaluator fixed before automatic results. No executor syntax added. 127 affected tests covered passing (five existing 5-second mock waits rerun with 20-second test timeout); main/study types, 15 document unit tests, changed-document targets and diff whitespace passed. Review found and fixed missing trialCase diagnostics; rejected unsupported wire/freeze/event-format claims. No BO model calls yet. Next: commit epoch, then bounded A0/A1 and frozen-A0 consumer/maintenance queue.

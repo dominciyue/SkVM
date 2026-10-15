@@ -1,6 +1,27 @@
 import { expect, test } from "bun:test"
 const api = await import("./program-consumption-context.ts").catch(() => ({} as any))
 const author = await import("./program-authoring-context.ts")
+test("directed default details reuse the compact event view and raw retrieval preserves exact evidence", () => {
+  const event = { id: "pick", op: "select", outcome: "computed", source: { path: "a.py", startLine: 1 }, inputs: { candidates: Array(20).fill({ row: { id: 3 }, predicate: { truth: "true" } }), rows: { known: true, value: Array(20).fill({ id: 3 }) } }, outputs: { known: true, value: { id: 3 } }, gaps: [], because: "Selection" }
+  const report = { revision: "r", sourcesCurrent: true, status: "current", program: { scope: { questionId: "q" }, resourceWorkflow: { steps: [{ id: "pick", op: "select", source: event.source }] } }, currentDraft: { revision: "d", raw: { privateAuthorHistory: true } }, resourceExecution: { events: [event], returned: { id: 3 }, conditions: [], gaps: [] } }
+  const overview = api.programConsumptionDetails(report, { questionId: "q" }, { programContext: "directed" })
+  expect(overview.format).toBe("overview")
+  expect(overview.events[0].value).toEqual({ id: 3 })
+  expect(overview.events[0].inputs).toBeUndefined()
+  expect(overview.currentDraft).toBeUndefined()
+  expect(overview.rawDetails.format).toBe("raw")
+  const raw = api.programConsumptionDetails(report, { ...overview.rawDetails, questionId: "q" }, { programContext: "directed" })
+  expect(raw.events).toEqual([event])
+  expect(api.programConsumptionDetails(report, {}).events).toEqual([event])
+  const changed = { ...report, revision: "new" }
+  expect(api.programConsumptionDetails(changed, overview.rawDetails, { programContext: "directed" }).status).toBe("stale-program-reference")
+  const { createInquiryContextEncoder, resolveInquiryContext } = require("../../benchmarks/authorization-dsl/inquiry-context.ts")
+  const encode = createInquiryContextEncoder({ sourceIndexDelta: true }), first = encode({ toolResult: overview }).context, second = encode({ toolResult: overview }).context
+  expect(resolveInquiryContext(second, [first]).toolResult.events).toEqual(overview.events)
+  expect(() => resolveInquiryContext(second, [])).toThrow("context-reference-missing")
+  const child = createInquiryContextEncoder()({ toolResult: overview }).context
+  expect(resolveInquiryContext(child, []).toolResult.events).toEqual(overview.events)
+})
 test("details distinguish absent questions and never expose stale computation", () => {
   const report = { status: "current", sourcesCurrent: false, revision: "r", program: { scope: { questionId: "q" }, resourceWorkflow: { steps: [{ id: "result", op: "return" }] } }, resourceExecution: { returned: 9, events: [{ id: "result" }] } }
   expect(api.programConsumptionDetails(report, { questionId: "missing" }).status).toBe("program-detail-not-found")
@@ -46,6 +67,9 @@ test("trial details require the exact current draft and never substitute active 
   expect(api.programConsumptionDetails(report, { view: "draft", expectedRevision: "d", trialCaseId: "alternate" }).execution.returned).toBe(19)
   expect(api.programConsumptionDetails(report, { view: "draft", trialCaseId: "alternate" }).status).toBe("trial-revision-required")
   expect(api.programConsumptionDetails({ ...report, currentDraft: { ...report.currentDraft, revision: "new" } }, { view: "draft", expectedRevision: "new", trialCaseId: "alternate" }).status).toBe("trial-detail-not-found")
+  const callRelations = [{ stepId: "call", diagnostics: ["call-completion-unreviewed"] }]
+  Object.assign(report.trials[0]!.cases[0]!, { callRelations })
+  expect(api.programConsumptionDetails(report, { view: "draft", expectedRevision: "d", trialCaseId: "alternate" }).callRelations).toEqual(callRelations)
 })
 test("draft details without a candidate stays readable", () => {
   for (const report of [undefined, {}, { currentDraft: { raw: {} } }, { revision: "old", resourceExecution: { events: [{ id: "old" }] } }]) {

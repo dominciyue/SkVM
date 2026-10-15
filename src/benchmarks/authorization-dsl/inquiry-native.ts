@@ -195,7 +195,7 @@ export async function createNativeInquiryRuntime(options: { authoringTargetMode?
         output = await domain.trialProgram(call.arguments, remaining.explorationRemaining); ensureActive()
       } else if (call.name === "authorization_program_details" && questionChecked && domain) {
         domainCalls++
-        output = programConsumptionDetails(domain.executableContractReport() ?? { ...domain.programDraftReport(), status: "draft-only" }, call.arguments, { sourceIndex: tools.evidence.map(({ id, path, startLine, endLine, sha256 }) => ({ id, path, startLine, endLine, sha256 })), sourceCandidates: call.arguments.catalog === "source-candidates" ? await collectProgramObligations(tools, domain.programDraftReport()?.currentDraft?.raw) : undefined })
+        output = programConsumptionDetails(domain.executableContractReport() ?? { ...domain.programDraftReport(), status: "draft-only" }, call.arguments, { programContext: options.programContext, sourceIndex: tools.evidence.map(({ id, path, startLine, endLine, sha256 }) => ({ id, path, startLine, endLine, sha256 })), sourceCandidates: call.arguments.catalog === "source-candidates" ? await collectProgramObligations(tools, domain.programDraftReport()?.currentDraft?.raw) : undefined })
       } else if (call.name === "authorization_check_properties" && questionChecked && domain) {
         domainCalls++; checks++; await domain.sync(false); ensureActive()
         output = { propertyChecks: domain.report().propertyAnalysis?.checks, executableContract: domain.executableContractReport(), wholeTaskCertified: false, semanticSupport: "unreviewed", instruction: "Render the original task naturally; preserve all unresolved properties and source limits." }
