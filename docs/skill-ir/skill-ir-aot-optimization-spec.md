@@ -3128,7 +3128,7 @@ BM8实施细节：当前协议只在thread/start注册dynamicTools。宿主预�
 
 ### 14.53 BN purpose scoped authoring and consumption
 
-2026-10-15用户授权[BN0–BN19](../superpowers/plans/2026-10-15-authorization-purpose-scoped-authoring-and-consumption.md)，规划基线a1ea1f3c，实际工程起点1b95fa96，identity为`authorization-purpose-scoped-program-v1`。开发gpt-6-astra/high，实验为已授权官方gpt-5.6-sol/high。BN工程及八用途有限执行已完成，以completed-with-unmet-criteria收束；完整语义和净收益未达，发布核验中。BM及更早结果保持原分母。
+2026-10-15用户授权[BN0–BN19](../superpowers/plans/2026-10-15-authorization-purpose-scoped-authoring-and-consumption.md)，规划基线a1ea1f3c，实际工程起点1b95fa96，identity为`authorization-purpose-scoped-program-v1`。开发gpt-6-astra/high，实验为已授权官方gpt-5.6-sol/high。BN工程及八用途有限执行已完成，以completed-with-unmet-criteria收束；完整语义和净收益未达，实质成果bd613fc2已发布用户origin并核对。BM及更早结果保持原分母。
 
 **作者分工。** 在已有directed模式按programMode选择author/consume用途，复用原运行时。源码候选按当前程序引用、明确问题范围和已读依赖分组，完整目录留宿主可取回；当前修稿前沿不随全部已读无关函数增长。宽区间仅帮助定位，精确映射/语义审查分别保留。候选、草稿、patch、trial事实形成持续locate/edit/trial/review/answer进展，模型判断源码意义并写表达式。宿主不给正确guard、返回对象或oracle，不把候选数量增长当修稿进展。
 
