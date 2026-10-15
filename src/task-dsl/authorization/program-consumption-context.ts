@@ -3,7 +3,7 @@ import { z } from "zod"
 import { projectProgramOutcome } from "./program-outcome.ts"
 
 export type ProgramContext = "full" | "compact" | "directed"
-export const ProgramDetailsSchema = z.object({ stepId: z.string().min(1).max(256).optional(), questionId: z.string().min(1).max(256).optional(), view: z.enum(["active", "draft"]).default("active"), expectedRevision: z.string().min(1).max(256).optional(), expectedBasis: z.string().min(1).max(256).optional(), trialCaseId: z.string().min(1).max(256).optional() }).strict()
+export const ProgramDetailsSchema = z.object({ catalog: z.enum(["source-index", "source-candidates"]).optional(), offset: z.number().int().min(0).default(0), limit: z.number().int().min(1).max(100).default(40), stepId: z.string().min(1).max(256).optional(), questionId: z.string().min(1).max(256).optional(), view: z.enum(["active", "draft"]).default("active"), expectedRevision: z.string().min(1).max(256).optional(), expectedBasis: z.string().min(1).max(256).optional(), trialCaseId: z.string().min(1).max(256).optional() }).strict()
 const revision = (v: unknown) => createHash("sha256").update(JSON.stringify(v) ?? "null").digest("hex")
 const basis = (r: any) => revision([r?.revision, r?.sourcesCurrent, r?.resourceExecution?.inputs, r?.resourceExecution?.conditions, r?.resourceExecution?.returned, r?.program])
 const propertySummary = (evaluation: any) => evaluation && { revision: evaluation.revision, questions: evaluation.questions?.map((q: any) => ({ questionId: q.questionId, properties: q.properties?.map((p: any) => ({ id: p.id ?? p.propertyId, status: p.status, value: p.value, gaps: p.gaps })) })) }
@@ -13,20 +13,30 @@ export function projectProgramConsumption(report: any, questions: readonly { id:
   if (!report || mode === "full") return report
   if (report.sourcesCurrent === false) report = { ...report, resourceExecution: undefined }
   const execution = report.resourceExecution, events: any[] = execution?.events ?? []
+  const outcome = projectProgramOutcome(report)
+  const candidateCount = (report.obligations ?? []).filter((o: any) => o.state !== "mapped-unreviewed").length
+  if (mode === "directed") outcome.coverageGaps = [...outcome.coverageGaps.filter((g: any) => typeof g === "string"), ...(candidateCount ? [{ sourceCandidateCount: candidateCount, status: "unreviewed", details: "authorization_program_details({catalog:'source-candidates'})" }] : [])]
   return { schemaVersion: "authorization-program-context/v1", programId: report.program?.id, revision: report.revision, inputRevision: revision(execution?.inputs), draftRevision: report.currentDraft?.revision, status: report.status, programMode: report.programMode, origin: report.origin, scope: report.scope,
-    ...(mode === "directed" ? { basis: basis(report), outcome: projectProgramOutcome(report), obligations: report.obligations, responsibility: "Use the current finite computation for the portion it actually covers. Review source meanings and all remaining original questions; do not redo the same calculation merely to restate it. Rules include untriggered branches and can be retrieved with authorization_program_details. Values and author coverage are unreviewed, not a request authorization certificate." } : {}),
+    ...(mode === "directed" ? { basis: basis(report), outcome, responsibility: "Use the current finite computation for the portion it actually covers. Review source meanings and all remaining original questions; do not redo the same calculation merely to restate it. Rules include untriggered branches and can be retrieved with authorization_program_details. Values and author coverage are unreviewed, not a request authorization certificate." } : {}),
     inputBinding: report.inputBinding, termination: execution?.termination, returned: execution?.returned, conditions: execution?.conditions, gaps: execution?.gaps ?? [],
     // Current values alone cannot explain a different input or an unexecuted branch.
     // Keep authored rules once, without copied input populations or candidate history.
     rules: (report.program?.resourceWorkflow?.steps ?? []).map((s: any) => s && typeof s === "object" ? Object.fromEntries(["id", "op", "when", "value", "from", "where", "order", "unique", "test", "failure", "principal", "resource", "permission", "name", "arguments", "source", "sources", "because"].filter(k => s[k] !== undefined).map(k => [k, s[k]])) : { invalidStep: s }),
     steps: events.map(e => ({ id: e.id, op: e.op, outcome: e.outcome, value: e.outputs?.value, known: e.outputs?.known, source: e.source, sources: e.sources, gaps: e.gaps, meaningOrigin: e.meaningOrigin, ...(e.op === "guard" ? { guard: { principal: e.inputs.principal, resource: e.inputs.resource, permission: e.inputs.permission, test: e.inputs.test } } : {}), ...(e.op === "external" ? { external: { name: e.inputs.name, arguments: e.inputs.arguments, assumption: e.inputs.assumption } } : {}) })),
     questions: questions.map(q => ({ questionId: q.id, request: q.request, resourceStepIds: q.id === report.scope?.questionId ? events.map(e => e.id) : [], responsibility: q.id === report.scope?.questionId ? "Authored finite summary; retain upstream and remaining gaps." : "Not computed by this resource workflow; original source investigation remains." })),
-    diagnostics: report.diagnostics, propertyChecks: propertySummary(report.evaluation), candidate: report.candidate && { revision: report.candidate.revision, adopted: report.candidate.adopted, diagnostics: report.candidate.diagnostics, returned: report.candidate.resourceExecution?.returned, gaps: report.candidate.resourceExecution?.gaps },
+    diagnostics: report.diagnostics, ...(mode === "directed" ? {} : { propertyChecks: propertySummary(report.evaluation) }), candidate: report.candidate && { revision: report.candidate.revision, adopted: report.candidate.adopted, diagnostics: report.candidate.diagnostics, returned: report.candidate.resourceExecution?.returned, gaps: report.candidate.resourceExecution?.gaps },
     semanticSupport: "unreviewed", requestOperationCertified: false, details: "authorization_program_details({stepId?,questionId?,view:'active'|'draft'}); omit IDs for the complete current program/trace. Source tools remain available." }
 }
 
-export function programConsumptionDetails(report: any, query: z.input<typeof ProgramDetailsSchema>) {
+export function programConsumptionDetails(report: any, query: z.input<typeof ProgramDetailsSchema>, catalogs?: { sourceIndex?: readonly any[]; sourceCandidates?: readonly any[] }) {
   const args = ProgramDetailsSchema.parse(query)
+  if (args.catalog) {
+    const currentRevision = args.view === "draft" ? report?.currentDraft?.revision : report?.revision
+    if (args.expectedRevision && args.expectedRevision !== currentRevision || args.expectedBasis && args.expectedBasis !== basis(report)) return { status: "stale-program-reference", revision: currentRevision, items: [] }
+    const all = args.catalog === "source-index" ? catalogs?.sourceIndex : catalogs?.sourceCandidates
+    if (!all) return { status: "catalog-unavailable", items: [] }
+    return { status: "catalog", catalog: args.catalog, revision: currentRevision, sourcesCurrent: report?.sourcesCurrent, items: all.slice(args.offset, args.offset + args.limit), total: all.length, nextOffset: args.offset + args.limit < all.length ? args.offset + args.limit : undefined, semanticSupport: "unreviewed" }
+  }
   if (!report) return { status: "no-active-program", steps: [], events: [] }
   if (args.expectedBasis && (args.expectedBasis !== basis(report) || report.sourcesCurrent === false)) return { status: "stale-program-reference", basis: basis(report), steps: [], events: [] }
   if (args.trialCaseId) {
@@ -45,11 +55,11 @@ export function programConsumptionDetails(report: any, query: z.input<typeof Pro
   const currentRevision = args.view === "draft" ? report.currentDraft?.revision : report.revision
   if (args.expectedRevision && args.expectedRevision !== currentRevision) return { status: "stale-program-reference", view: args.view, expectedRevision: args.expectedRevision, revision: currentRevision, instruction: "Inspect the current view revision before requesting its details or patching the draft.", steps: [], events: [] }
   const candidate = report.candidate
-  const execution = args.view === "draft" ? candidate && currentRevision !== undefined && candidate.revision === currentRevision ? candidate.resourceExecution : undefined : report.resourceExecution
+  const execution = report.sourcesCurrent === false ? undefined : args.view === "draft" ? candidate && currentRevision !== undefined && candidate.revision === currentRevision ? candidate.resourceExecution : undefined : report.resourceExecution
   const relevant = !args.questionId || program?.scope?.questionId === args.questionId
   const match = (s: any) => relevant && (!args.stepId || s?.id === args.stepId)
   const steps = (Array.isArray(program?.resourceWorkflow?.steps) ? program.resourceWorkflow.steps : []).filter(match), events = (execution?.events ?? []).filter(match)
-  return { view: args.view, revision: currentRevision, activeRevision: report.revision, draftRevision: report.currentDraft?.revision, status: args.stepId && !steps.length ? "program-detail-not-found" : report.status, ...(args.stepId || args.questionId ? {} : { program, execution, currentDraft: report.currentDraft }), steps, events, diagnostics: args.view === "draft" ? report.candidate?.diagnostics ?? report.currentDraftDiagnostics : report.diagnostics, semanticSupport: "unreviewed" }
+  return { view: args.view, revision: currentRevision, activeRevision: report.revision, draftRevision: report.currentDraft?.revision, status: !relevant || args.stepId && !steps.length ? "program-detail-not-found" : report.sourcesCurrent === false ? "source-invalidated" : report.status, ...(args.stepId || args.questionId ? {} : { program, execution, currentDraft: report.currentDraft }), steps, events, diagnostics: args.view === "draft" ? report.candidate?.diagnostics ?? report.currentDraftDiagnostics : report.diagnostics, semanticSupport: "unreviewed" }
 }
 
 const TOOL_OUTPUT_REFERENCE_GUIDE = "Each executableContract toolOutputReference is the EXACT value at the named top-level field of this SAME tool output. Substitute that full value; sha256 and bytes verify its JSON. This removes duplicate transmission only; full program, draft, trial, source and execution information remain present."

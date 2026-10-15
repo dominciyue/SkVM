@@ -1,6 +1,12 @@
 import { expect, test } from "bun:test"
 const api = await import("./program-consumption-context.ts").catch(() => ({} as any))
 const author = await import("./program-authoring-context.ts")
+test("details distinguish absent questions and never expose stale computation", () => {
+  const report = { status: "current", sourcesCurrent: false, revision: "r", program: { scope: { questionId: "q" }, resourceWorkflow: { steps: [{ id: "result", op: "return" }] } }, resourceExecution: { returned: 9, events: [{ id: "result" }] } }
+  expect(api.programConsumptionDetails(report, { questionId: "missing" }).status).toBe("program-detail-not-found")
+  expect(api.programConsumptionDetails(report, {}).execution).toBeUndefined()
+  expect(api.programConsumptionDetails(report, {}).events).toEqual([])
+})
 test("directed carries outcome, every duty and skipped rules with version-bound details", () => {
   const rule = { id: "alternate", op: "guard", when: { op: "eq", left: { binding: "version" }, right: { literal: 7 } }, failure: "invalid-resource", source: { path: "a.py", startLine: 3 } }
   const report = { revision: "p1", sourcesCurrent: true, program: { resourceWorkflow: { steps: [rule] } }, resourceExecution: { inputs: { version: 2 }, returned: 4, termination: "return", events: [{ id: "alternate", op: "guard", outcome: "skipped", inputs: {}, gaps: [] }] } }

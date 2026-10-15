@@ -8,7 +8,7 @@
 
 **Tech Stack：** TypeScript、Bun、Zod、现有源码索引与官方 Codex account adapter；开发 `gpt-6-astra/high`，实验沿用已授权官方 `gpt-5.6-sol/high`。第三方 API 暂停。
 
-日期：2026-10-15。规划基线：`a1ea1f3ca26b8f5ee4b088c359eefbbb442d7beb`。新 identity：`authorization-purpose-scoped-program-v1`。状态：`planned-not-started`。本任务书登记时未改生产代码、未发起 BN 模型实验。约 8–12 小时为实质工作窗口，提前完成可交付，不等待、重复审计或重复抽样凑时长。
+日期：2026-10-15。规划基线：`a1ea1f3ca26b8f5ee4b088c359eefbbb442d7beb`。新 identity：`authorization-purpose-scoped-program-v1`。状态：`in-progress`。BN0–BN9 工程已通过离线验证，正在提交；BN10 起真实用途尚未派发。实际接管 HEAD 为 `1b95fa964647b5b41572c7ce0e5b5a883c595aae`。约 8–12 小时为实质工作窗口，提前完成可交付，不等待、重复审计或重复抽样凑时长。
 
 ## 一、接管上下文
 
@@ -84,21 +84,21 @@ type EvidenceDelta = {
 
 ### BN0 接管与有限基线
 
-- [ ] 核对分支、HEAD、工作树及本机是否有活动模型用途。保留 BM 原件、`.tmp/` 和旧未知。
-- [ ] 在新结果目录登记当前 epoch、假设、用途、评价分母与原件位置。没有模型调用就不填写真实效果。
-- [ ] 直接复用本轮复核已确认的 BM 事实；只对影响修改的代码做定点检查，不再全量重放历史。
+- [x] 核对分支、HEAD、工作树及本机是否有活动模型用途。保留 BM 原件、`.tmp/` 和旧未知。
+- [x] 在新结果目录登记当前 epoch、假设、用途、评价分母与原件位置。没有模型调用就不填写真实效果。
+- [x] 直接复用本轮复核已确认的 BM 事实；只对影响修改的代码做定点检查，不再全量重放历史。
 
 ### BN1 还原实际成本链
 
-- [ ] 从 BM C0/B0 的 `raw/account-turn-1.json` 中读取真正发出的 client contentItems，分别统计工具表、提示、回包、最终交接及按字段字节。输出小型 `baseline-wire.json`，不复制一份巨型原件。
-- [ ] 将 sourceIndex 全量增长、窗口变化、重复引用与 legacy 属性调用逐项定位到代码。当前 guidance 分支与普通 state 分支分开；不要把通用分支的行为套到 C0。
-- [ ] 给出本轮具体修改预期及可失败判据：实际 currentContext 的增长应与本次新增材料相关，而非每读一段便重发历史目录；效果由后续真实 pair 决定。
+- [x] 从 BM C0/B0 的 `raw/account-turn-1.json` 中读取真正发出的 client contentItems，分别统计工具表、提示、回包、最终交接及按字段字节。输出小型 `baseline-wire.json`，不复制一份巨型原件。
+- [x] 将 sourceIndex 全量增长、窗口变化、重复引用与 legacy 属性调用逐项定位到代码。当前 guidance 分支与普通 state 分支分开；不要把通用分支的行为套到 C0。
+- [x] 给出本轮具体修改预期及可失败判据：实际 currentContext 的增长应与本次新增材料相关，而非每读一段便重发历史目录；效果由后续真实 pair 决定。
 
 ### BN2 先把行为评价补到执行轨迹
 
-- [ ] 新建 evaluation-only `behavior-assessment.ts` 与 `study.test.ts`，保留 BM 的 literal/semantic-field 两种旧口径，另加 strict trace 轴。
-- [ ] 写匿名正反测试：initializer 在 owner 短路前被执行；owner/null-owner 不调用 permission query；non-owner 精确调用；false 停止；缺 initializer 留条件；非法/错误父资源有明确拒绝；拒绝后无文件选择/return；root fallback 与 nulls-last 排序保持。
-- [ ] 对错误程序也要断言失败，不能只检验参考程序自身。例如：
+- [x] 新建 evaluation-only `behavior-assessment.ts` 与 `study.test.ts`，保留 BM 的 literal/semantic-field 两种旧口径，另加 strict trace 轴。
+- [x] 写匿名正反测试：initializer 在 owner 短路前被执行；owner/null-owner 不调用 permission query；non-owner 精确调用；false 停止；缺 initializer 留条件；非法/错误父资源有明确拒绝；拒绝后无文件选择/return；root fallback 与 nulls-last 排序保持。
+- [x] 对错误程序也要断言失败，不能只检验参考程序自身。例如：
 
 ```ts
 const executed = (events: Array<{ op: string; outcome: string; inputs?: any }>) =>
@@ -109,35 +109,35 @@ expect(executed(nonOwnerTrace).map(e => e.inputs.name)).toEqual(["init", "check"
 expect(deniedTrace.some(e => e.op === "return" && e.outcome === "computed")).toBe(false);
 ```
 
-- [ ] 先确认红测失败原因，再修必要的通用执行缺陷；如果执行器已有能力，就只补评价和作者接线，不编造新语法。评价器的具体期望不发送给作者。
+- [x] 先确认红测失败原因，再修必要的通用执行缺陷；如果执行器已有能力，就只补评价和作者接线，不编造新语法。评价器的具体期望不发送给作者。
 
 ### BN3 按用途接通真实工具表和初始提示
 
-- [ ] 为现有 `directed + edit/consume` 路径确定一个共享用途函数，两入口都调用。作者使用 source、program、patch、trial、details；消费者使用 source、程序当前结果/详情与正常交付。
-- [ ] 对只要求消费有限程序的用途，去掉强制重新 `prepare_properties → declare → check_properties` 的隐式任务；严格性质功能留在现有显式研究/严格入口。若内部仍需任务 ID/operation 元数据，从原声明机械保留，不生成授权结论。
-- [ ] 给程序路径使用专门的传输说明，移除不适用的 `propertyDemand.frontier` 提示。源码、原 skill 和全部问题都在，原严格路径的工具与行为仍兼容。
-- [ ] 红测检查**实际 thread/start 工具表及实际首 prompt**，不是只检查一个配置对象：consume 无草稿写工具/隐式性质构造，edit 首轮明确交付程序，普通 full 不变。fake transport 与 structured 入口均覆盖。
+- [x] 为现有 `directed + edit/consume` 路径确定一个共享用途函数，两入口都调用。作者使用 source、program、patch、trial、details；消费者使用 source、程序当前结果/详情与正常交付。
+- [x] 对只要求消费有限程序的用途，去掉强制重新 `prepare_properties → declare → check_properties` 的隐式任务；严格性质功能留在现有显式研究/严格入口。若内部仍需任务 ID/operation 元数据，从原声明机械保留，不生成授权结论。
+- [x] 给程序路径使用专门的传输说明，移除不适用的 `propertyDemand.frontier` 提示。源码、原 skill 和全部问题都在，原严格路径的工具与行为仍兼容。
+- [x] 红测检查**实际 thread/start 工具表及实际首 prompt**，不是只检查一个配置对象：consume 无草稿写工具/隐式性质构造，edit 首轮明确交付程序，普通 full 不变。fake transport 与 structured 入口均覆盖。
 
 ### BN4 来源候选变成相关、可读回的工作前沿
 
-- [ ] 已读函数候选按当前程序引用及已知依赖、原任务范围分组；无证据相关的已读函数留目录可取回，不自动塞进当前修稿项。空稿先让模型选择实际相关函数，不能按 Paperless/函数名白名单判相关。
-- [ ] sourceObligations 保存一份，回包只显示当前小组、数量和可读回目录。宽 source 区间显示“包含哪些候选”，exact span 映射继续独立、unreviewed；不以区间包含关系自动消除缺口。
-- [ ] 选择当前责任的顺序为输入/编译根因、当前执行缺口、当前函数候选、其余声明。无法确定语义时允许模型说明待查来源，不能把未处理候选标成完成。
-- [ ] 测试加入大量已读无关函数，当前反馈大小不随之线性增长；真实相关外部调用和错误出口仍可进入工作前沿。删除 coverage 不会让候选消失，旧来源不继续映射。
+- [x] 已读函数候选按当前程序引用及已知依赖、原任务范围分组；无证据相关的已读函数留目录可取回，不自动塞进当前修稿项。空稿先让模型选择实际相关函数，不能按 Paperless/函数名白名单判相关。
+- [x] sourceObligations 保存一份，回包只显示当前小组、数量和可读回目录。宽 source 区间显示“包含哪些候选”，exact span 映射继续独立、unreviewed；不以区间包含关系自动消除缺口。
+- [x] 选择当前责任的顺序为输入/编译根因、当前执行缺口、当前函数候选、其余声明。无法确定语义时允许模型说明待查来源，不能把未处理候选标成完成。
+- [x] 测试加入大量已读无关函数，当前反馈大小不随之线性增长；真实相关外部调用和错误出口仍可进入工作前沿。删除 coverage 不会让候选消失，旧来源不继续映射。
 
 ### BN5 持久的 edit→trial→review 循环
 
-- [ ] 复用 createProgramAuthorLoop，保存当前函数/责任、依据 revision、proposal/patch/trial 事实和最近一次明确进展。新增 sourceCandidates 本身不算修稿进展。
-- [ ] 已有稿先 inspect/试算当前稿，空稿在读到当前完整相关函数后提交局部稿。把早期提醒改成可观察阶段：有稿未修→edit，修改后未试算→trial，有实际 trial→review。未读必要源码时仍能读取；禁止通过要求填未知语义来凑 patch。
-- [ ] 在既有总预算内为 patch/trial 和最终交付保留动作；若连续读取已读无关内容而无编辑进展，明确交接到当前责任。必须利用已有已知终态续作机制，不能在未知/活动请求上开新回合；不要仅增加一段“请尽快修改”的提示就宣布完成。
-- [ ] 先用 fake model 行为测试模拟：宽读取→检查点→patch→trial→修订→任务答案；另测一直不提交、合法 no-change、缺源码、未知终态及预算耗尽。无实质进展最多一次纠偏，保留失败而不无限继续。
+- [x] 复用 createProgramAuthorLoop，保存当前函数/责任、依据 revision、proposal/patch/trial 事实和最近一次明确进展。新增 sourceCandidates 本身不算修稿进展。
+- [x] 已有稿先 inspect/试算当前稿，空稿在读到当前完整相关函数后提交局部稿。把早期提醒改成可观察阶段：有稿未修→edit，修改后未试算→trial，有实际 trial→review。未读必要源码时仍能读取；禁止通过要求填未知语义来凑 patch。
+- [x] 在既有总预算内为 patch/trial 和最终交付保留动作；若连续读取已读无关内容而无编辑进展，明确交接到当前责任。必须利用已有已知终态续作机制，不能在未知/活动请求上开新回合；不要仅增加一段“请尽快修改”的提示就宣布完成。
+- [x] 先用 fake model 行为测试模拟：宽读取→检查点→patch→trial→修订→任务答案；另测一直不提交、合法 no-change、缺源码、未知终态及预算耗尽。无实质进展最多一次纠偏，保留失败而不无限继续。
 
 ### BN6 源码目录和窗口的真正增量
 
-- [ ] 在当前 encoder/投影内实现按稳定 evidence ID 与 basis 的增量目录；初始发送当前所需来源，后续只发新增/撤回项，数量及详情入口始终可见。
-- [ ] 源码工具已返回的窗口不再自动附赠整份增长中的 sourceWindows；新相关窗口可以显式发送，旧内容按 ID 从当前宿主读回。先测回包“源文本”和“源索引”各自大小，不只压缩 archive。
-- [ ] 同一依据重复序列化后，sourceIndex 的新增集必须为空；添加一个 evidence 只增一个；来源变更撤回旧项；新账户子会话必须重新给自包含当前材料，不能引用前一线程未见的 contextSequence。
-- [ ] 可实现确定性差分核心并在调用处复用：
+- [x] 在当前 encoder/投影内实现按稳定 evidence ID 与 basis 的增量目录；初始发送当前所需来源，后续只发新增/撤回项，数量及详情入口始终可见。
+- [x] 源码工具已返回的窗口不再自动附赠整份增长中的 sourceWindows；新相关窗口可以显式发送，旧内容按 ID 从当前宿主读回。先测回包“源文本”和“源索引”各自大小，不只压缩 archive。
+- [x] 同一依据重复序列化后，sourceIndex 的新增集必须为空；添加一个 evidence 只增一个；来源变更撤回旧项；新账户子会话必须重新给自包含当前材料，不能引用前一线程未见的 contextSequence。
+- [x] 可实现确定性差分核心并在调用处复用：
 
 ```ts
 function changedById<T extends { id: string }>(before: readonly T[], after: readonly T[]) {
@@ -151,26 +151,29 @@ function changedById<T extends { id: string }>(before: readonly T[], after: read
 }
 ```
 
-- [ ] 将实际发送包还原成与全量相同的目录/当前依据；保留 full/compact 兼容测试。只有离线字节下降时仍标工程量测，模型 token 尚待真实调用。
+- [x] 将实际发送包还原成与全量相同的目录/当前依据；保留 full/compact 兼容测试。只有离线字节下降时仍标工程量测，模型 token 尚待真实调用。
 
 ### BN7 消费内容：计算结果、规则和剩余工作各司其职
 
-- [ ] 默认给当前值/拒绝/条件、采用的来源及局部范围、关键分支摘要和原四问。当前程序未覆盖的上游权限与外部完成事实仍明确展示。
-- [ ] 原四问不必每轮整段复制；首 prompt 和最终交接完整出现，中间用当前问题 ID/原文可取回。未触发分支在详情中可见，空版本、错误版本和源码变化不能被单一当前返回值遮住。
-- [ ] 不允许用“请信任程序”掩盖错稿。源码仍可读取；模型发现程序不符时报告冲突，consume 不静默修稿，产生单列修稿请求。
-- [ ] 测试值正确但前提缺失、旧程序 basis、不存在的 details ID、改变输入而沿用旧结果及未覆盖问题。任何一种都不能升级认证。
+- [x] 默认给当前值/拒绝/条件、采用的来源及局部范围、关键分支摘要和原四问。当前程序未覆盖的上游权限与外部完成事实仍明确展示。
+- [x] 原四问不必每轮整段复制；首 prompt 和最终交接完整出现，中间用当前问题 ID/原文可取回。未触发分支在详情中可见，空版本、错误版本和源码变化不能被单一当前返回值遮住。
+- [x] 不允许用“请信任程序”掩盖错稿。源码仍可读取；模型发现程序不符时报告冲突，consume 不静默修稿，产生单列修稿请求。
+- [x] 测试值正确但前提缺失、旧程序 basis、不存在的 details ID、改变输入而沿用旧结果及未覆盖问题。任何一种都不能升级认证。
 
 ### BN8 最终交接保真
 
-- [ ] 检查实际 tools=[] 子回合的输入，不假设它继承历史。保存本用途已读来源索引、当前程序与输入、实际依赖/条件、模型已有问题结论及其出处、剩余缺口；每项区分模型观点与宿主计算。
-- [ ] 用四问 task ID 管理交付，最终包不得在截断时静默丢掉一问的唯一出处；预算不足时列出未交接材料并允许如实未完成。不得从 evaluation/旧答案补内容。
-- [ ] 测试两个传输入口、工具中断确认、无确认、暂态 retry notice、输入变化令旧答 stale。保留 BM 的 known terminal 与同用途预算规则，无新增恢复风暴。
+- [x] 检查实际 tools=[] 子回合的输入，不假设它继承历史。保存本用途已读来源索引、当前程序与输入、实际依赖/条件、模型已有问题结论及其出处、剩余缺口；每项区分模型观点与宿主计算。
+- [x] 用四问 task ID 管理交付，最终包不得在截断时静默丢掉一问的唯一出处；预算不足时列出未交接材料并允许如实未完成。不得从 evaluation/旧答案补内容。
+- [x] 测试两个传输入口、工具中断确认、无确认、暂态 retry notice、输入变化令旧答 stale。保留 BM 的 known terminal 与同用途预算规则，无新增恢复风暴。
 
 ### BN9 两入口集成与离线迁移
 
-- [ ] 通过 ordinary inquiry 和 account adapter 的 fake transport 完整走 source→program/patch→trial→consume→final；检查实际 tools、prompt、回包和费用归属。
-- [ ] 用已有 ShareLink 材料做匿名接口迁移，证明用途投影、增量、拒绝及失效没有按 Download 名字特判。零模型、零目标执行。
-- [ ] 跑受影响生产测试和主类型检查，保存一次结果。通过后提交工程，再开始有限实验；不要求全仓旧冻结证据重新全绿。
+- [x] 通过 ordinary inquiry 和 account adapter 的 fake transport 完整走 source→program/patch→trial→consume→final；检查实际 tools、prompt、回包和费用归属。
+- [x] 用已有 ShareLink 材料做匿名接口迁移，证明用途投影、增量、拒绝及失效没有按 Download 名字特判。零模型、零目标执行。
+- [x] 跑受影响生产测试和主类型检查，保存一次结果。通过后提交工程，再开始有限实验；不要求全仓旧冻结证据重新全绿。
+
+
+工程记录：受影响生产回归 184 项/1613 断言通过；末次 sourceDeclarations 引用修正及实际发送包测试后，定向 13 项/125 断言通过。主/研究类型检查、文档 15 项及 ShareLink 零模型迁移通过。账户会话采用稳定 ID 增量；结构化入口是无历史的单次请求，保持自包含快照，不能据此宣称增量 token 收益。完整技能、原四问、候选目录、同用途预算及原始失败保留。
 
 ### BN10 A0 真实修订当前自动稿
 

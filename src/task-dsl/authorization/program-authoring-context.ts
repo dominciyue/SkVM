@@ -1,13 +1,23 @@
 import type { ProgramMode } from "./executable-contract.ts"
+import { createHash } from "node:crypto"
 import { projectProgramConsumption, type ProgramContext } from "./program-consumption-context.ts"
 import type { ResourceProgramInputs } from "./resource-relations.ts"
 import { resolveProgramInputBinding } from "./program-input-binding.ts"
 import { projectAuthoringTarget } from "./program-coverage.ts"
+import { projectProgramCandidateFrontier } from "./program-obligations.ts"
 
 type OriginalQuestion = { id: string; request?: string }
+export type ProgramPurpose = "author" | "consume"
+export const resolveProgramPurpose = (context?: ProgramContext, mode?: ProgramMode, enabled = true): ProgramPurpose | undefined => enabled && context === "directed" ? mode === "edit" ? "author" : "consume" : undefined
+export function programPurposeAllows(purpose: ProgramPurpose | undefined, name: string) {
+  return !purpose || name.startsWith("source_") || name === "skill_reference_read" || name === "authorization_program_details" || purpose === "author" && ["authorization_program", "authorization_program_patch", "authorization_program_trial"].includes(name)
+}
+export function programPurposeInstruction(purpose: ProgramPurpose) {
+  return purpose === "author" ? INITIAL_PROGRAM_AUTHORING_INSTRUCTION : "Use the current program's finite result, conditions, scope and rules for what it actually computes. Read original source and program details for every remaining original question. Report incorrect or incomplete rules and missing facts explicitly; consumption does not alter the program. Deliver all original questions in the original skill format. No property preparation or source declaration workflow is required."
+}
 export const PROGRAM_AUTHORING_GOAL = "Continue authoring the source-supported resource relations requested by every original question. A current or computed partial program is not authoring completion. Inspect the current raw draft with authorization_program_details({view:'draft'}); use authorization_program_patch with its draftRevision, upsertSteps and an explicit complete stepOrder to insert steps before return. Repair mechanical gaps and read original source for missing meanings. Keep unsupported facts as named gaps. You may end with a partial program and a natural answer, explaining the remaining authoring work."
 export const INITIAL_PROGRAM_AUTHORING_INSTRUCTION = `Program-authoring task: produce or repair a persistent executable source program, then deliver every original natural question. A prose-only investigation does not fulfill edit mode. ${PROGRAM_AUTHORING_GOAL} Start with the current draft or a small source-supported program, inspect its actual execution, and trial supplied or source-supported varying facts while budget remains. Do not postpone all program work until after broad source investigation. No expected answers or grants may be invented.`
-type AuthorInputs = ResourceProgramInputs & { operationQuestions?: readonly { questionId: string; operationId: string }[]; obligations?: readonly import("./program-obligations.ts").ProgramObligation[] }
+type AuthorInputs = ResourceProgramInputs & { programContext?: ProgramContext; operationQuestions?: readonly { questionId: string; operationId: string }[]; obligations?: readonly import("./program-obligations.ts").ProgramObligation[] }
 const shape = (value: any) => Array.isArray(value) ? { kind: "collection", rowCount: value.length, fields: [...new Set(value.flatMap(row => Object.keys(row ?? {})))] } : value && typeof value === "object" ? { kind: "object", fields: Object.keys(value) } : { kind: value === null ? "null" : typeof value }
 const shownValue = (value: any) => Array.isArray(value) ? { ...shape(value), sample: structuredClone(value.slice(0, 3)), truncated: value.length > 3 } : { ...shape(value), values: structuredClone(value) }
 
@@ -17,9 +27,13 @@ export function createProgramAuthorLoop() {
   let firstProgramToolUnit: number | undefined, firstProposalToolUnit: number | undefined, firstDraftToolUnit: number | undefined, patchCount = 0, programCount = 0
   let checkpoint: { toolUnit: number; explorationUnits: number; completeSources: readonly any[]; instruction: string } | undefined
   let previousValues: Record<string, unknown> = {}
+  let stage: "locate" | "edit" | "trial" | "review" | "answer" = "locate", trialCount = 0, lastProgressUnit = 0, lastRevision: string | undefined
+  const trials = new Set<string>()
   const changes: Array<{ kind: "program" | "patch"; toolUnit?: number; revision?: string; valid: boolean; newValues?: Record<string, unknown>; removedValues?: string[]; returned?: unknown; termination?: string; unresolvedGaps?: string[] }> = []
   return {
     record(record: { kind: "program" | "patch"; toolUnit?: number; revision?: string; valid: boolean; execution?: any }) {
+      stage = record.valid ? "trial" : "edit"
+      if (record.revision && record.revision !== lastRevision) { lastRevision = record.revision; lastProgressUnit = record.toolUnit ?? lastProgressUnit }
       firstProposalToolUnit ??= record.toolUnit
       if (record.kind === "program") firstProgramToolUnit ??= record.toolUnit
       if (record.kind === "patch") patchCount++; else programCount++
@@ -29,11 +43,18 @@ export function createProgramAuthorLoop() {
       changes.push({ kind: record.kind, toolUnit: record.toolUnit, revision: record.revision, valid: record.valid, ...(execution ? { newValues: structuredClone(newValues), removedValues: Object.keys(previousValues).filter(id => !Object.hasOwn(execution.values ?? {}, id)), returned: execution.returned, termination: execution.termination, unresolvedGaps: execution.gaps } : {}) })
       if (execution) previousValues = structuredClone(execution.values ?? {})
     },
+    recordTrial(result: any, toolUnit?: number) {
+      trialCount++; stage = result.status === "rejected" ? "edit" : "review"
+      const signature = createHash("sha256").update(JSON.stringify({ revision: result.revision, cases: result.cases })).digest("hex")
+      if (result.status !== "rejected" && !trials.has(signature)) { trials.add(signature); lastProgressUnit = toolUnit ?? lastProgressUnit }
+    },
+    markAnswer() { stage = "answer" },
     snapshot(progress?: { toolUnit: number; explorationUnits: number; completeSources: readonly any[]; hasDraft?: boolean }) {
       if (!checkpoint && firstDraftToolUnit === undefined && progress && progress.explorationUnits >= 12 && progress.completeSources.length) checkpoint = { toolUnit: progress.toolUnit, explorationUnits: progress.explorationUnits, completeSources: structuredClone(progress.completeSources.slice(0, 8)), instruction: progress.hasDraft
         ? "Early authoring checkpoint: the existing draft has not received a proposal in this author session. Inspect authorization_program_details({view:'draft'}) and use authorization_program_trial on source-supported varying facts before spending the remaining budget only on broader investigation. Repair actual gaps with authorization_program_patch; preserve every original question and necessary source reads. This reminder supplies neither semantic fixes nor expected answers and does not disable tools."
         : "Early authoring checkpoint: a complete current source function is available. Submit a small source-supported authorization_program now, inspect its actual preview, then patch its named gaps while continuing necessary source reads. Retain every original duty; this checkpoint neither supplies source meanings nor closes source tools." }
-      return structuredClone({ firstProgramToolUnit, firstProposalToolUnit, firstDraftToolUnit, patchCount, programCount, changes, checkpoint })
+      if (!checkpoint && lastRevision && progress && progress.explorationUnits >= 12 && progress.toolUnit - lastProgressUnit >= 8) checkpoint = { toolUnit: progress.toolUnit, explorationUnits: progress.explorationUnits, completeSources: [], instruction: "No new program revision or distinct trial has been recorded during recent exploration. Make one source-supported edit or trial against the current frontier, or finish with explicit remaining work. Further source candidates alone are not author progress." }
+      return structuredClone({ stage, progressKey: JSON.stringify([lastRevision, [...trials]]), lastProgressUnit, trialCount, firstProgramToolUnit, firstProposalToolUnit, firstDraftToolUnit, patchCount, programCount, changes, checkpoint })
     },
   }
 }
@@ -84,8 +105,10 @@ export function projectProgramAuthoring(report: any, questions: readonly Origina
   const unresolvedSemantics: string[] = [...(raw?.scope?.upstream ?? []), ...(raw?.resourceWorkflow?.gaps ?? [])]
   const target = projectAuthoringTarget(raw, inputs.authoringTargetMode ?? report?.authoringTargetMode)
   const sourceObligations = inputs.obligations ?? report?.obligations ?? []
+  const frontier = projectProgramCandidateFrontier(sourceObligations, raw, sourceVisible.flatMap((b: any) => b.candidates ?? []))
+  const loop = report?.authorLoop && inputs.programContext === "directed" ? { ...report.authorLoop, changes: report.authorLoop.changes?.slice(-1) } : report?.authorLoop
   const feedbackGroups = {
-    sourceCandidates: sourceObligations.filter((o: any) => o.state === "unmapped" || o.diagnostics?.length),
+    sourceCandidates: inputs.programContext === "directed" ? frontier.items : sourceObligations.filter((o: any) => o.state === "unmapped" || o.diagnostics?.length),
     inputStructure: [...resolution.diagnostics, ...diagnostics.filter((d: any) => !proofDiagnostic(d))],
     execution: [...rootBlockers.filter(b => !external.includes(b)), ...sourceVisible],
     proof: diagnostics.filter(proofDiagnostic), external,
@@ -94,13 +117,13 @@ export function projectProgramAuthoring(report: any, questions: readonly Origina
   }
   const firstError = feedbackGroups.inputStructure.find((d: any) => d.severity === "error")
   const proofError = feedbackGroups.proof.find((d: any) => d.severity === "error")
-  const firstBlocker = inputError ? { code: inputError.code, dependencies: declaredNames, affectedStepIds: [...new Set(rootBlockers.flatMap((b: any) => b.affectedStepIds))], message: inputError.message } : firstError ? { code: firstError.code, dependencies: [firstError.path], message: firstError.message } : feedbackGroups.execution[0] ?? (proofError ? { code: proofError.code, dependencies: [proofError.path], message: proofError.message } : external[0])
+  const firstBlocker = inputError ? { code: inputError.code, dependencies: declaredNames, affectedStepIds: [...new Set(rootBlockers.flatMap((b: any) => b.affectedStepIds))], message: inputError.message } : firstError ? { code: firstError.code, dependencies: [firstError.path], message: firstError.message } : feedbackGroups.execution[0] ?? (inputs.programContext === "directed" && frontier.items.length ? { code: "related-source-candidates", candidateIds: frontier.items.map(o => o.id), function: frontier.function } : undefined) ?? (proofError ? { code: proofError.code, dependencies: [proofError.path], message: proofError.message } : external[0])
   return {
-    goal: PROGRAM_AUTHORING_GOAL, target, sourceObligations, candidateInstruction: "These are locations from already-read source structure, independently of author coverage. Interpret each relevant exit and call completion, including short-circuit execution conditions. Map an exact candidate source span to your own stepIds with authoringTarget.coverage or retain an explicit external/unwritten reason. A mapped span is not a semantic proof; broad claims do not discharge individual candidates. Trial your own varying inputs without inventing external facts.", completion: "unreviewed", activeRevision: report?.program ? report.revision : undefined,
+    goal: PROGRAM_AUTHORING_GOAL, target, ...(inputs.programContext === "directed" ? { candidateFrontier: { ...frontier, items: undefined } } : { sourceObligations }), candidateInstruction: "These are locations from already-read source structure, independently of author coverage. Interpret each relevant exit and call completion, including short-circuit execution conditions. Map an exact candidate source span to your own stepIds with authoringTarget.coverage or retain an explicit external/unwritten reason. A mapped span is not a semantic proof; broad claims do not discharge individual candidates. Trial your own varying inputs without inventing external facts.", completion: "unreviewed", activeRevision: report?.program ? report.revision : undefined,
     draftRevision: report?.currentDraft?.revision, candidateRevision: report?.candidate?.revision,
     candidateAdopted: candidate?.adopted, candidatePreviewAvailable: !!candidate?.resourceExecution,
     draftStepOrder: Array.isArray(report?.currentDraft?.raw?.resourceWorkflow?.steps) ? report.currentDraft.raw.resourceWorkflow.steps.map((s: any) => ({ id: s?.id, op: s?.op })) : undefined,
-    phase: !raw ? "discover" : firstBlocker ? "repair" : execution ? "review" : "draft", ...report?.authorLoop,
+    phase: !raw ? "discover" : firstBlocker ? "repair" : execution ? "review" : "draft", ...loop,
     adoptedStepIds: report?.program?.resourceWorkflow?.steps?.map((s: any) => s.id) ?? [], firstBlocker, rootBlockers,
     externalBoundaries: report?.externalBoundaries ?? [],
     computed: execution && { returned, termination: execution.termination, conditions: execution.conditions },
@@ -119,7 +142,7 @@ export function decideProgramAuthorContinuation(options: {
   context: any; previousProgress?: string
 }) {
   const a = options.context?.authoring, budget = options.context?.toolBudget
-  const progress = JSON.stringify({ revision: a?.draftRevision, groups: a?.feedbackGroups, sources: options.context?.sourceIndex })
+  const progress = JSON.stringify({ revision: a?.draftRevision, progressKey: a?.progressKey })
   const stop = (reason: string) => ({ continue: false, reason, progress })
   if (options.mode !== "edit") return stop("not-an-author")
   if (options.terminal !== "completed") return stop("known-completed-terminal-required")
@@ -139,10 +162,10 @@ export function projectProgramTaskContext(options: AuthorInputs & { report?: any
   const mode = options.programMode ?? "consume", report = options.report ?? options.draftReport
   const local = options.local
   return {
-    programMode: mode, currentStage: local?.focus?.stage ?? "source-investigation",
+    programMode: mode, ...(options.programContext === "directed" ? { purpose: resolveProgramPurpose(options.programContext, mode) } : {}), currentStage: local?.focus?.stage ?? "source-investigation",
     executableContract: projectProgramConsumption(options.report, options.questions, options.programContext),
     ...(mode === "edit" ? { authoring: projectProgramAuthoring(report, options.questions, options.remainingActions, options) } : {}),
-    sourceWindows: local?.sourceWindows ?? [],
+    ...(options.programContext === "directed" ? {} : { sourceWindows: local?.sourceWindows ?? [] }),
     sourceIndex: (options.evidence ?? []).map(({ id, path, startLine, endLine, sha256 }) => ({ id, path, startLine, endLine, sha256 })),
     sourceCandidates: local?.pendingSourceWork ?? [],
     remainingDuties: options.questions.map(q => ({ questionId: q.id, request: q.request, semanticCoverage: "unreviewed" })),

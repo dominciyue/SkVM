@@ -38,3 +38,20 @@ test("transmission categories place original windows in source and host instruct
   expect(row.components.schemaProtocol).toBeGreaterThanOrEqual(Buffer.byteLength(JSON.stringify(instruction)))
   expect(Object.values(row.components).reduce((n: number, v) => n + (v as number), 0)).toBe(row.bytes)
 })
+test("source index transmits stable-id additions and removals, reconstructs exact wire and resets for a child", () => {
+  const encode = api.createInquiryContextEncoder({ sourceIndexDelta: true })
+  const rows = Array.from({ length: 50 }, (_, i) => ({ id: `e${i}`, path: "app.py", startLine: i + 1, endLine: i + 1, sha256: "current" }))
+  const packets = [encode({ sourceIndex: rows }).context]
+  const changed = [...rows.slice(1), { id: "new", path: "other.py", startLine: 1, endLine: 2, sha256: "new" }]
+  packets.push(encode({ sourceIndex: changed }).context)
+  expect(packets[1].sourceIndex.sourceIndexDelta).toBeDefined()
+  expect(packets[1].sourceIndex.sourceIndexDelta.removed).toEqual(["e0"])
+  expect(packets[1].sourceIndex.sourceIndexDelta.upsert).toHaveLength(1)
+  expect(packets[1].sourceIndex.sourceIndexDelta.order).toBeUndefined()
+  expect(packets[1].sourceIndex.sourceIndexDelta.totalCount).toBe(50)
+  expect(api.resolveInquiryContext(packets[1], packets).sourceIndex).toEqual(changed)
+  expect(JSON.stringify(packets[1]).length).toBeLessThan(JSON.stringify(changed).length / 2)
+  const child = api.createInquiryContextEncoder({ sourceIndexDelta: true })({ sourceIndex: changed }).context
+  expect(child.sourceIndex).toEqual(changed)
+  expect(() => api.resolveInquiryContext(packets[1], [])).toThrow()
+})

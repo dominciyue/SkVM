@@ -1,17 +1,31 @@
 import { createHash } from "node:crypto"
 
 export const INCREMENTAL_INQUIRY_CONTEXT_GUIDE = "Current local explanation contexts carry contextSequence. A contextReference {sequence,path,sha256,bytes} denotes the EXACT unchanged JSON value previously transmitted at that contextSequence and property/index path. Retain that value from the conversation; the reference is transport state, not source evidence or a semantic annotation. Current focus, toolBudget and diagnostics remain explicit. Full original source remains available with source_read/source_structure. Do not invent omitted source meaning. Submit current propertyDemand.frontier fields incrementally before expanding unrelated source work; correct one named field while retaining the accepted draft."
+export const PROGRAM_CONTEXT_TRANSPORT_GUIDE = "Packets carry contextSequence. contextReference {sequence,path,sha256,bytes} is the exact previously SENT value at that packet/path. sourceIndexDelta applies removed IDs, upsert entries, then order to its base contextReference; sha256 verifies the resulting full array. These are transport references, not evidence. Retain previously sent source and values; details catalog queries or source_read recover originals. A new child starts with a self-contained snapshot. Never infer omitted source meaning."
 
 /** Lossless references to previously SENT context values. No semantic filtering,
  * source reachability or host-only values enter this transport projection. */
-export function createInquiryContextEncoder() {
+export function createInquiryContextEncoder(options: { sourceIndexDelta?: boolean } = {}) {
   let sequence = 0
   const cache = new Map<string, { sequence: number; path: Array<string | number>; sha256: string; bytes: number }>()
+  const indexes = new Map<string, { rows: any[]; ref: { sequence: number; path: Array<string | number>; sha256: string; bytes: number } }>()
   return (input: unknown) => {
     const current = ++sequence; let references = 0
     const visit = (value: any, location: Array<string | number>): any => {
       const json = JSON.stringify(value)
       if (json === undefined) return value
+      if (options.sourceIndexDelta && location.at(-1) === "sourceIndex" && Array.isArray(value) && value.every(v => typeof v?.id === "string") && new Set(value.map(v => v.id)).size === value.length) {
+        const key = JSON.stringify(location), prior = indexes.get(key), sha256 = createHash("sha256").update(json).digest("hex")
+        indexes.set(key, { rows: structuredClone(value), ref: { sequence: current, path: location, sha256, bytes: Buffer.byteLength(json) } })
+        if (prior) {
+          const old = new Map(prior.rows.map(v => [v.id, v])), ids = new Set(value.map(v => v.id))
+          const removed = prior.rows.filter(v => !ids.has(v.id)).map(v => v.id), upsert = value.filter(v => JSON.stringify(old.get(v.id)) !== JSON.stringify(v))
+          const naturalOrder = [...prior.rows.filter(v => ids.has(v.id)).map(v => v.id), ...upsert.filter(v => !old.has(v.id)).map(v => v.id)], order = value.map(v => v.id)
+          references++
+          return { sourceIndexDelta: { base: { contextReference: prior.ref }, removed, upsert, totalCount: value.length, ...(JSON.stringify(naturalOrder) === JSON.stringify(order) ? {} : { order }), sha256 } }
+        }
+        return structuredClone(value)
+      }
       const bytes = Buffer.byteLength(json), explicit = location.length === 0 || location.length === 1 && ["focus", "toolBudget", "diagnostics", "state"].includes(String(location[0]))
       const digest = bytes >= 512 && !explicit ? createHash("sha256").update(json).digest("hex") : undefined
       if (digest) {
@@ -34,6 +48,18 @@ export function createInquiryContextEncoder() {
 export function resolveInquiryContext(context: Record<string, any>, previous: Array<Record<string, any>>) {
   const resolve = (value: any, depth = 0): any => {
     if (depth > 256) throw new Error("context-reference-depth")
+    if (value && typeof value === "object" && Object.keys(value).length === 1 && value.sourceIndexDelta) {
+      const delta = value.sourceIndexDelta, base = resolve(delta.base, depth + 1)
+      if (!Array.isArray(base) || !Array.isArray(delta.removed) || !Array.isArray(delta.upsert) || delta.order !== undefined && !Array.isArray(delta.order)) throw new Error("source-index-delta-invalid")
+      const rows = new Map(base.map(v => [v.id, v]))
+      for (const id of delta.removed) rows.delete(id)
+      for (const row of delta.upsert) rows.set(row.id, row)
+      const order = delta.order ?? [...rows.keys()]
+      if (rows.size !== delta.totalCount || rows.size !== order.length || new Set(order).size !== rows.size || order.some((id: string) => !rows.has(id))) throw new Error("source-index-delta-order")
+      const result = order.map((id: string) => rows.get(id))
+      if (createHash("sha256").update(JSON.stringify(result)).digest("hex") !== delta.sha256) throw new Error("source-index-delta-digest")
+      return result
+    }
     if (value && typeof value === "object" && Object.keys(value).length === 1 && value.contextReference) {
       const ref = value.contextReference
       if (!Number.isSafeInteger(ref.sequence) || ref.sequence < 1 || ref.sequence >= context.contextSequence || !Array.isArray(ref.path)) throw new Error("context-reference-invalid")

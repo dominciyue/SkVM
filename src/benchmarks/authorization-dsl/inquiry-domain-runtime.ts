@@ -284,6 +284,7 @@ export function createInquiryDomainRuntime(options: ResourceProgramInputs & { ex
     const questionId = (currentDraft?.raw as any)?.scope?.questionId
     const result = await runProgramTrial(raw, { draft: currentDraft, candidate: candidatePreview, candidateRevision: candidatePreview ? currentDraft?.revision : undefined, remainingUnits, compileOptions: { tools: options.tools, program: options.program, confirmedEntries: semanticUnits, inputs: options.contractInputs?.[questionId], executionPolicy: options.executionPolicy, interpretationSource: "model" } })
     trials.push(structuredClone(result))
+    authorLoop.recordTrial(result, options.toolUnit?.())
     if (result.status === "rejected") await sync(false)
     return result
   }
@@ -663,5 +664,5 @@ export function createInquiryDomainRuntime(options: ResourceProgramInputs & { ex
     if (options.sourceAssisted && options.tools.snapshotVerification?.valid === false) { result.check = undefined; result.delivery = deliverySnapshot(); if (semanticCompletion && result.propertyAnalysis) { result.propertyAnalysis.checks = undefined; result.propertyAnalysis.currentPropertyBasis = undefined; result.propertyAnalysis.propertyCheckStatus = "invalidated"; result.propertyAnalysis.finalDeliveryStatus = "unsubmitted-or-invalid" } }
     return result
   }
-  return { propose, sync, importProgram, patchProgram, trialProgram, restoreProgramDraft, programDraftReport, executableContractReport, validate, assembleResult, feedback, modelContext, promptContext, questionContext: () => focus?.questionContext(), modelFeedback, deliverySnapshot, rejectSource, withdrawAnswer: (invalidateChecks = false) => { if (!closed) { currentAnswer = undefined; if (invalidateChecks) invalidateDelivery() } }, beginStep: () => { if (closed) throw new Error("session-closed"); automaticActionsRemaining = 2 }, close: () => { if (closed) return; closed = true; closedDelivery = liveDeliverySnapshot(); closedReport = liveReport() }, report }
+  return { recordAuthorAnswer: () => authorLoop.markAnswer(), propose, sync, importProgram, patchProgram, trialProgram, restoreProgramDraft, programDraftReport, executableContractReport, validate, assembleResult, feedback, modelContext, promptContext, questionContext: () => focus?.questionContext(), modelFeedback, deliverySnapshot, rejectSource, withdrawAnswer: (invalidateChecks = false) => { if (!closed) { currentAnswer = undefined; if (invalidateChecks) invalidateDelivery() } }, beginStep: () => { if (closed) throw new Error("session-closed"); automaticActionsRemaining = 2 }, close: () => { if (closed) return; closed = true; closedDelivery = liveDeliverySnapshot(); closedReport = liveReport() }, report }
 }

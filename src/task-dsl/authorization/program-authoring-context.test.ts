@@ -4,6 +4,20 @@ import * as author from "./program-authoring-context.ts"
 const at = { path: "app.py", startLine: 1, endLine: 8 }
 const questions = [{ id: "meaning", request: "Retain all requested meanings" }, { id: "data" }]
 const operationQuestions = questions.map(q => ({ questionId: q.id, operationId: "same" }))
+test("source-only growth is not author progress and trials persist in the loop", () => {
+  const context = { authoring: { draftRevision: "r", phase: "repair", feedbackGroups: { sourceCandidates: [{ id: "a" }] } }, toolBudget: { explorationRemaining: 8, totalRemaining: 10 }, sourceIndex: [] }
+  const base = { mode: "edit" as const, terminal: "completed", continuations: 0, remainingMs: 1000, context }
+  const first = author.decideProgramAuthorContinuation(base)
+  expect(author.decideProgramAuthorContinuation({ ...base, continuations: 1, previousProgress: first.progress, context: { ...context, sourceIndex: [{ id: "new" }], authoring: { ...context.authoring, feedbackGroups: { sourceCandidates: [{ id: "a" }, { id: "b" }] } } } }).reason).toBe("no-new-author-progress")
+  const loop: any = author.createProgramAuthorLoop()
+  expect(typeof loop.recordTrial).toBe("function")
+  loop.recordTrial({ revision: "r", status: "completed", cases: [{ id: "vary", execution: { returned: 2 } }] }, 4)
+  const firstTrial = loop.snapshot()
+  expect(firstTrial.stage).toBe("review")
+  expect(firstTrial.trialCount).toBe(1)
+  loop.recordTrial({ revision: "r", status: "completed", cases: [{ id: "vary", execution: { returned: 2 } }] }, 5)
+  expect(loop.snapshot().progressKey).toBe(firstTrial.progressKey)
+})
 test("reusable coverage keeps untriggered source branches visible without poisoning current execution", () => {
   const target = { mode: "reusable", coverage: [{ id: "alternative", source: at, stepIds: [], disposition: "unwritten", reason: "Current input does not take this branch" }] }
   const raw = { scope: { questionId: "meaning" }, authoringTarget: target, resourceWorkflow: { inputs: [], steps: [] } }

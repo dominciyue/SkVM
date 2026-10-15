@@ -7,6 +7,20 @@ export function programDeliveryBasis(parts: { task: unknown; sources: unknown; i
 }
 export type ProgramDeliveryBasis = ReturnType<typeof programDeliveryBasis>
 export type ProgramDeliveryPhase = "task-answer" | "author-edit" | "final-answer"
+/** Same-purpose model statements are unreviewed data, never a reference answer. */
+export function projectPriorProgramViews(turns: readonly { text: string; events: readonly unknown[]; lifecycle?: { threadId?: string; turnId?: string } }[]) {
+  return turns.flatMap((turn, index) => {
+    const seen = new Set<string>(), rows: Array<{ text: string; origin: string; sequence: number; threadId?: string; turnId?: string; semanticSupport: string }> = []
+    const add = (text: unknown, origin: string) => { if (typeof text !== "string" || !text.trim() || seen.has(text)) return; seen.add(text); rows.push({ text, origin, sequence: index + 1, ...turn.lifecycle && { threadId: turn.lifecycle.threadId, turnId: turn.lifecycle.turnId }, semanticSupport: "unreviewed-prior-model-view" }) }
+    for (const event of turn.events as any[]) {
+      if (event.direction !== "server") continue
+      const items = event.method === "item/completed" ? [event.params?.item] : event.method === "turn/completed" ? event.params?.turn?.items ?? [] : []
+      for (const item of items) if (item?.type === "agentMessage") add(item.text, item.phase ?? "model-message")
+    }
+    add(turn.text, "retained-turn-text")
+    return rows
+  })
+}
 export interface ProgramAnswerRecord { sequence: number; phase: ProgramDeliveryPhase; answer: unknown; basis: ProgramDeliveryBasis; delivered: boolean }
 
 /** Phase and exact basis determine delivery. No text ranking or keyword tests. */

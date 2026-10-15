@@ -2,7 +2,7 @@
 
 更新于2026-10-15。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BN0–BN19](../superpowers/plans/2026-10-15-authorization-purpose-scoped-authoring-and-consumption.md)，planned-not-started。复核和计划已完成，生产实现及真实BN实验由新线程接管；不向已关闭BM补行。
+- 当前任务书：[BN0–BN19](../superpowers/plans/2026-10-15-authorization-purpose-scoped-authoring-and-consumption.md)，in-progress。BN0–BN9工程及零模型核验已落地，正在冻结工程epoch后进入有限真实用途；不向已关闭BM补行。
 - 方法合同：[spec§14.53](skill-ir-aot-optimization-spec.md#1453-bn-purpose-scoped-authoring-and-consumption)；复核和开发过程统一在[研究§7.75](skill-dsl-research.md#775-bm-复核与-bn-聚焦修稿和消费线路调整)。BM实际结果保留在§7.74。
 - identity：`authorization-purpose-scoped-program-v1`，已核对规划基线`a1ea1f3ca26b8f5ee4b088c359eefbbb442d7beb`。继续`skill-ir-aot`，只推用户origin，不建分支/worktree；开发线程独占代码、共享方法文档与Git写入。
 - 开发`gpt-6-astra/high`，按用户指定；实验沿已授权官方账号`gpt-5.6-sol/high`。第三方暂停，OWUI/历史未知ShareLink仅离线，旧未知和保护证据保持。接管时tracked干净，原有未跟踪`.tmp/`不清理。

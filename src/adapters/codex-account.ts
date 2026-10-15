@@ -3,7 +3,7 @@ import { emptyTokenUsage } from "../core/types.ts"
 import { createNativeInquiryRuntime } from "../benchmarks/authorization-dsl/inquiry-native.ts"
 import { modelSourceDisplay } from "../benchmarks/authorization-dsl/inquiry-tools.ts"
 import { parseInquiryStrategy, isPropertyDirectedInquiryStrategy, type InquiryStrategy } from "../task-dsl/authorization/control-slice.ts"
-import { createInquiryContextEncoder, createInquiryTransmissionMeter, INCREMENTAL_INQUIRY_CONTEXT_GUIDE } from "../benchmarks/authorization-dsl/inquiry-context.ts"
+import { createInquiryContextEncoder, createInquiryTransmissionMeter, INCREMENTAL_INQUIRY_CONTEXT_GUIDE, PROGRAM_CONTEXT_TRANSPORT_GUIDE } from "../benchmarks/authorization-dsl/inquiry-context.ts"
 import { parseNativeInquiryMethod } from "../task-dsl/authorization/operation-program.ts"
 import { runCodexAccountSession, redactCodexEvent, loadCodexAccountBoundary, type AccountTransport } from "./codex-account-session.ts"
 import type { InquiryReuseInfo, InquiryReuseSeed } from "../benchmarks/authorization-dsl/inquiry-reuse.ts"
@@ -11,7 +11,7 @@ import type { SourcePreparationOptions } from "../benchmarks/authorization-dsl/e
 import { writeFile } from "node:fs/promises"
 import path from "node:path"
 import { decideProgramAuthorContinuation, INITIAL_PROGRAM_AUTHORING_INSTRUCTION } from "../task-dsl/authorization/program-authoring-context.ts"
-import { createProgramDelivery, decideFinalProgramDelivery, FINAL_PROGRAM_ANSWER_INSTRUCTION, type ProgramDeliveryPhase } from "../task-dsl/authorization/program-delivery.ts"
+import { createProgramDelivery, decideFinalProgramDelivery, FINAL_PROGRAM_ANSWER_INSTRUCTION, projectPriorProgramViews, type ProgramDeliveryPhase } from "../task-dsl/authorization/program-delivery.ts"
 export { readCodexAccountThread } from "./codex-account-session.ts"
 
 export interface AccountInquiryOptions {
@@ -36,7 +36,7 @@ export async function runCodexAccountInquiry(options: AccountInquiryOptions) {
   const definitions = options.programMode === "consume" ? runtime.definitions.filter(t => !["authorization_program", "authorization_program_patch"].includes(t.name)) : runtime.definitions
   const directed = options.programContext === "directed"
   const encode = !directed && isPropertyDirectedInquiryStrategy(options.strategy) ? createInquiryContextEncoder() : undefined
-  let packetEncode = directed ? createInquiryContextEncoder() : undefined
+  let packetEncode = directed ? createInquiryContextEncoder({ sourceIndexDelta: true }) : undefined
   const transmission = createInquiryTransmissionMeter()
   const contextPayloads: Array<{ sequence: number; references: number; originalBytes: number; sentBytes: number }> = []
   const contextView = async (automatic = true) => {
@@ -53,8 +53,12 @@ export async function runCodexAccountInquiry(options: AccountInquiryOptions) {
     runtime.accountSent(output); return { ...result, output }
   }
   const finalContext = async () => {
-    const context = await runtime.accountContext(false), report = runtime.report()
+    const context = { ...await runtime.accountContext(false), priorModelViews: [] as ReturnType<typeof projectPriorProgramViews>, omittedModelViews: [] as Array<{ sequence: number; origin: string; reason: string }>, priorViewNotice: "These are this purpose's already-observed model statements, not checked source meanings or an external reference answer. Reconcile them with the current inputs/program/source; preserve uncertainty for missing material." }, report = runtime.report()
     const remaining = Math.max(0, (options.maxDisplayBytes ?? 262144) - report.sourceAccounting.cumulativeModelSourceBytes)
+    for (const view of projectPriorProgramViews(turns).toReversed()) {
+      if (modelSourceDisplay(report.evidence, JSON.stringify({ ...context, priorModelViews: [...context.priorModelViews, view] }), new Set()).bytes <= remaining) context.priorModelViews.push(view)
+      else context.omittedModelViews.push({ sequence: view.sequence, origin: view.origin, reason: "Quoted source in this model view exceeds the remaining original source display budget; its claims are unavailable here." })
+    }
     const alreadyReadSource: typeof report.evidence = [], omittedSource: Array<{ path: string; startLine: number; endLine: number }> = []
     for (const evidence of [...report.evidence].reverse()) {
       const candidate = { ...context, alreadyReadSource: [...alreadyReadSource, evidence] }
@@ -80,13 +84,13 @@ export async function runCodexAccountInquiry(options: AccountInquiryOptions) {
     return respond(output)
   }
   try {
-    const system = `${options.skillContent ?? ""}\n${runtime.system}${encode || packetEncode ? "\n" + INCREMENTAL_INQUIRY_CONTEXT_GUIDE : ""}`
+    const system = `${options.skillContent ?? ""}\n${runtime.system}${encode || packetEncode ? "\n" + (directed ? PROGRAM_CONTEXT_TRANSPORT_GUIDE : INCREMENTAL_INQUIRY_CONTEXT_GUIDE) : ""}`
     transmission.record("static-tools", definitions.map(t => ({ type: "function", name: t.name, description: t.description, inputSchema: t.inputSchema })), undefined, "schemaProtocol")
     transmission.recordSystem(system, options.skillContent ?? "")
     await save("account-purpose.json", { purpose, attempt, workDir: options.workDir, traceDir: options.traceDir, startedAt: new Date(started).toISOString(), timeoutMs, maxToolCalls: options.maxToolCalls })
     while (true) {
       const final = phase === "final-answer"
-      if (final) packetEncode = directed ? createInquiryContextEncoder() : undefined
+      if (final) packetEncode = directed ? createInquiryContextEncoder({ sourceIndexDelta: true }) : undefined
       const rawContext = final ? await finalContext() : await contextView(turns.length === 0)
       const context = !final && packetEncode ? packetEncode(rawContext).context : rawContext
       const prompt = `${phase === "final-answer" ? FINAL_PROGRAM_ANSWER_INSTRUCTION : turns.length ? `Author-edit phase: continue your own source authoring after the preserved task answer. Purpose: ${decisions.at(-1)!.reason}. Inspect and repair your current draft using actual grouped feedback; retain all original questions. Your end-of-turn text records editing progress; it does not replace the task answer. The remaining budget is shared with prior turns. Do not repeat unchanged proposals or invent missing external facts.` : options.programMode === "edit" ? INITIAL_PROGRAM_AUTHORING_INSTRUCTION : "Task-answer phase: current original task and full skill are declared in the system. Complete source work and deliver every original question."}\nCurrent local explanation context: ${JSON.stringify(context)}`
@@ -102,6 +106,7 @@ export async function runCodexAccountInquiry(options: AccountInquiryOptions) {
         onEvent: async (event: any) => { identity = { purpose, attempt: event.identity?.attempt, threadId: event.params?.threadId ?? event.identity?.threadId, turnId: event.params?.turnId ?? event.params?.turn?.id ?? event.identity?.turnId }; await runtime.onEvent(event) } })
       if (final && account.lifecycle) { account.lifecycle.finalizesThreadId = prior?.lifecycle?.threadId; account.lifecycle.finalizesTurnId = prior?.lifecycle?.turnId }
       turns.push(account); await save(`account-turn-${turns.length}.json`, account)
+      runtime.recordAuthorAnswer()
       delivery.record({ sequence: turns.length, phase, answer: account.text, basis: runtime.deliveryBasis(), delivered: account.answerDelivery === "delivered" })
       await save(`delivery-turn-${turns.length}.json`, delivery.snapshot(runtime.deliveryBasis()))
       if (phase === "final-answer") break

@@ -14,6 +14,7 @@ import { LocalControlDeltaSchema, LocalControlEnvelopeSchema } from "./inquiry-c
 import { SemanticUpdateSchema, SemanticUpdateEnvelopeSchema, SemanticResultSchema } from "./inquiry-semantic.ts"
 import { FocusedResultSchema, FocusedUpdateEnvelopeSchema, SourceUpdateEnvelopeSchema, focusedUpdateSchema, selectedFocusedUpdateSchema, type FocusStage } from "./inquiry-focus.ts"
 import { InquirySourceCallSchema, OperationSourceCallSchema } from "./inquiry-tools.ts"
+import type { ProgramPurpose } from "../../task-dsl/authorization/program-authoring-context.ts"
 
 const calls = z.array(z.object({ name: z.enum(["source_list", "source_search", "source_symbol", "source_read"]), arguments: z.record(z.unknown()) }).strict()).min(1).max(8)
 const observations = z.array(AuthorizationObservationSchema).min(1).max(32)
@@ -199,7 +200,13 @@ function operationStepModelSchema(stage?: FocusStage, finalOnly = false, sourceA
 const ProgramActionSchema = z.object({ kind: z.literal("program"), name: z.enum(["authorization_program", "authorization_program_patch", "authorization_program_trial", "authorization_program_details"]), arguments: z.record(z.unknown()) }).strict()
 export type InquiryStep = InquiryControlStep | z.infer<typeof localParserSteps> | z.infer<typeof semanticParserSteps> | z.infer<ReturnType<typeof focusedSteps>> | z.infer<typeof ProgramActionSchema>
 const resultModelSchema = (mode?: "behavior" | "conformance") => mode ? AuthorizationInquiryResultSchema.extend({ questions: z.array(mode === "behavior" ? InquiryQuestionResultSchema.omit({ policyAssessment: true }) : InquiryQuestionResultSchema.extend({ policyAssessment: InquiryQuestionResultSchema.shape.policyAssessment.unwrap() })) }) : AuthorizationInquiryResultSchema
-export function inquiryStepSchemas(strategy: InquiryStrategy, finalOnly = false, mode?: "behavior" | "conformance", stage?: FocusStage) {
+export function inquiryStepSchemas(strategy: InquiryStrategy, finalOnly = false, mode?: "behavior" | "conformance", stage?: FocusStage, purpose?: ProgramPurpose): { schema: z.ZodType<InquiryStep, any, any>; modelSchema: z.ZodTypeAny } {
+  if (purpose) {
+    const final = z.object({ kind: z.literal("final"), result: resultModelSchema(mode) }).strict()
+    const action = purpose === "author" ? ProgramActionSchema : ProgramActionSchema.extend({ name: z.literal("authorization_program_details") })
+    const schema = finalOnly ? final : z.union([z.object({ kind: z.literal("tool"), calls: z.array(OperationSourceCallSchema).min(1).max(8) }).strict(), action, final])
+    return { schema, modelSchema: schema }
+  }
   const schemas = baseInquiryStepSchemas(strategy, finalOnly, mode, stage)
   if (!isQuestionCheckedStrategy(strategy) || finalOnly) return schemas
   return { schema: z.union([ProgramActionSchema, schemas.schema]), modelSchema: z.union([ProgramActionSchema, schemas.modelSchema]) }

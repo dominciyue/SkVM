@@ -1,0 +1,9 @@
+# BN execution
+
+2026-10-15: acquired `skill-ir-aot` at `1b95fa964647b5b41572c7ce0e5b5a883c595aae`; tracked/index clean, original `.tmp/` retained. BM baseline is `a1ea1f3c`. No matching local study processes observed during bounded startup inspection. No new model calls have been made.
+
+Working sequence: BN0–2 register baseline and trace evaluation; BN3–8 implement purpose routing, relevant author frontier, persistent edit/trial/review, evidence deltas and self-contained delivery; BN9 verify both entries and commit engineering; BN10–15 execute only eligible registered purposes; BN16–19 ordinary use, assessment, documents and publication. The taskbook remains authoritative. Full context is the compatible default; directed is explicit. Original skill/questions and BM evidence remain unchanged.
+
+Evaluation keeps literal fields, reviewed semantic field mapping, strict event traces and natural four-question quality separate. Byte measurements are wire diagnostics, not token causality. Unknown costs stay unknown. Evaluation expectations never enter model inputs.
+
+2026-10-15 BN0–BN9: implemented shared directed author/consume routing, bounded function candidate frontier and retrievable catalogs, revision/trial-based author progress, actual account source-index deltas, source-window deduplication, and unreviewed same-purpose views in self-contained final delivery. Structured requests retain self-contained snapshots because they do not retain conversation packets. Existing executor semantics were sufficient; trace expectations stay evaluation-only. Production regression: 184 tests/1613 assertions passed; after final declaration citation fix, 13 focused tests/125 assertions passed; main and research type checks, 15 documentation tests and ShareLink zero-model migration passed. Initial default 5s fake-account timeout was resolved by the appropriate 20s test timeout, without production retry changes. No BN model call yet.

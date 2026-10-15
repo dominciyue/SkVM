@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-**BN0–BN19 已登记，待新线程实施。** [任务书](../superpowers/plans/2026-10-15-authorization-purpose-scoped-authoring-and-consumption.md)由 `gpt-6-astra/high` 接管，基线 `a1ea1f3c`，identity 为 `authorization-purpose-scoped-program-v1`。本次只做复核与计划：58 项定向测试/387 断言通过，普通零模型 default、invalid-version、no-external 重现，未改生产代码或调用实验模型。BN重点是相关源码修稿前沿、edit→trial 实际进展、按用途去除重复性质构造、源码目录/窗口增量及执行轨迹评价；full默认和原四问保持。方法见[spec§14.53](skill-ir-aot-optimization-spec.md#1453-bn-purpose-scoped-authoring-and-consumption)，新复核见[研究§7.75](skill-dsl-research.md#775-bm-复核与-bn-聚焦修稿和消费线路调整)。
+**BN0–BN19正在实施，当前完成工程与零模型核验，真实效果待测。** [任务书](../superpowers/plans/2026-10-15-authorization-purpose-scoped-authoring-and-consumption.md)由 `gpt-6-astra/high` 接管，规划基线 `a1ea1f3c`、工程起点 `1b95fa96`，identity 为 `authorization-purpose-scoped-program-v1`。BN0–BN9接通按用途的实际工具/schema、相关函数候选、revision/trial进展、账户来源目录增量和自包含最终交接。184项生产定向测试/1613断言、主类型、6项研究测试/32断言及研究类型通过；ShareLink离线迁移零模型通过。先提交工程，再按A0/A1、串行B0/C0等有限用途执行；此刻没有BN实验效果。full默认、原四问和BM原件保持。方法见[spec§14.53](skill-ir-aot-optimization-spec.md#1453-bn-purpose-scoped-authoring-and-consumption)，过程见[研究§7.75](skill-dsl-research.md#775-bm-复核与-bn-聚焦修稿和消费线路调整)。
 
 ## BM 已结束的实际结果
 
@@ -136,7 +136,7 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 
 | 阶段 | 保留记录 |
 |---|---|
-| 当前BN | [任务书](../superpowers/plans/2026-10-15-authorization-purpose-scoped-authoring-and-consumption.md)、spec§14.53、研究§7.75；planned-not-started，尚无BN工程/实验结果 |
+| 当前BN | [任务书](../superpowers/plans/2026-10-15-authorization-purpose-scoped-authoring-and-consumption.md)、spec§14.53、研究§7.75；in-progress，工程及离线核验落地，真实用途待工程提交后启动 |
 | BM | [任务书](../superpowers/plans/2026-10-14-authorization-branch-completion-and-directed-consumption.md)、spec§14.52、研究§7.74；有限队列收束，A0/A1为15/18、14/18，首对negative，完整自动程序和收益未达 |
 | BL | [任务书](../superpowers/plans/2026-10-14-authorization-reusable-program-semantics-and-delivery.md)、spec§14.51、研究§7.73；适用工程/八用途收束，自动范围15/18、两对negative、C2缺交付，完整研究目标未达 |
 | BK | [任务书](../superpowers/plans/2026-10-13-authorization-recoverable-authoring-and-real-delivery.md)、spec§14.50、研究§7.72；适用工程/有限队列结束，自动主链和净收益未达 |

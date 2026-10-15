@@ -3128,7 +3128,7 @@ BM8实施细节：当前协议只在thread/start注册dynamicTools。宿主预�
 
 ### 14.53 BN purpose scoped authoring and consumption
 
-2026-10-15用户授权[BN0–BN19](../superpowers/plans/2026-10-15-authorization-purpose-scoped-authoring-and-consumption.md)，规划基线a1ea1f3c，identity为`authorization-purpose-scoped-program-v1`。开发gpt-6-astra/high，实验仍为已授权官方gpt-5.6-sol/high；本节登记时仅完成复核和计划，生产代码与真实实验未开始。BM及更早结果保持原分母。
+2026-10-15用户授权[BN0–BN19](../superpowers/plans/2026-10-15-authorization-purpose-scoped-authoring-and-consumption.md)，规划基线a1ea1f3c，实际工程起点1b95fa96，identity为`authorization-purpose-scoped-program-v1`。开发gpt-6-astra/high，实验仍为已授权官方gpt-5.6-sol/high。BN工程与独立轨迹评价已实现，真实用途待工程epoch冻结后执行；BM及更早结果保持原分母。
 
 **作者分工。** 在已有directed模式按programMode选择author/consume用途，复用原运行时。源码候选按当前程序引用、明确问题范围和已读依赖分组，完整目录留宿主可取回；当前修稿前沿不随全部已读无关函数增长。宽区间仅帮助定位，精确映射/语义审查分别保留。候选、草稿、patch、trial事实形成持续locate/edit/trial/review/answer进展，模型判断源码意义并写表达式。宿主不给正确guard、返回对象或oracle，不把候选数量增长当修稿进展。
 
@@ -3139,6 +3139,8 @@ BM8实施细节：当前协议只在thread/start注册dynamicTools。宿主预�
 **真实观察。** 正常八用途为A0修订/A1独立编写/B0C0首对/B1C1条件确认/C2拒绝/S0维护，最多两个具名额外修复用途。A0固定原字节用于消费，不由A1/S0/开发者稿替代；部分稿可诊断消费，缺稿不填位。两臂同epoch/模型/原任务/输入/源码/总预算，串行避免CPU干扰。发生共享错误立即修并登记版本，再做有限确认；首对负向且无具体修改则停止相同方式扩跑。费用按作者、消费者、维护分账，USD/真人unknown保留。只有两对均质量保持且完整observed input+output下降，才能写“两对有界正向观察”；更广主张另需证据。
 
 **范围与收口。** 不扩语言/外部skill/未见样本/CLI平台；ShareLink仅既有材料离线迁移。工程完成、自动程序、普通使用、整题质量与收益逐轴报告。研究统一§7.75，当前入口与研究开头/计划/导航保持同一状态，不重新堆长期结果文档。已知全src旧104失败、历史链接缺档及保护材料不为本轮通过而改写。
+
+**实现细节。** 共享resolveProgramPurpose只改变question-checked的显式directed；实际工具注册和structured schema均排除旧性质动作。相关函数候选每次至多12项，完整目录由details的catalog分页取回；空稿不凭已读顺序猜相关函数。作者进展由revision及不同trial的摘要确定，不由候选增长确定。账户sourceIndexDelta以已发送base为依据，增删/替换和总数常显，仅发生重排时发送order，离线解析校验hash。结构化provider每次请求没有账户历史，因此保持自包含源码快照，禁止跨请求不可见引用；这部分不计作增量收益。无工具交接保留本用途模型观点及来源、当前计算与显式遗漏，观点不成为源码认证。
 
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 
