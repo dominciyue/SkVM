@@ -1,10 +1,10 @@
 # Skill IR 当前状态
 
-更新于2026-10-15（Asia/Shanghai）。工作分支为 `skill-ir-aot`，仅发布到用户 `origin`。本页是唯一实时状态入口；历史任务书与结果保留当时记录。
+更新于2026-10-16（Asia/Shanghai）。工作分支为 `skill-ir-aot`，仅发布到用户 `origin`。本页是唯一实时状态入口；历史任务书与结果保留当时记录。
 
 ## 当前工作
 
-**BN0–BN19正在实施，工程已提交发布，A0真实修稿已完成，有限队列继续。** [任务书](../superpowers/plans/2026-10-15-authorization-purpose-scoped-authoring-and-consumption.md)由 `gpt-6-astra/high` 接管，规划基线 `a1ea1f3c`、工程起点 `1b95fa96`，identity 为 `authorization-purpose-scoped-program-v1`。BN0–BN9接通按用途的实际工具/schema、相关函数候选、revision/trial进展、账户来源目录增量和自包含最终交接。184项生产定向测试/1613断言、主类型、6项研究测试/32断言及研究类型通过；ShareLink离线迁移零模型通过。工程662b9c0c已推用户origin并核对。A0已交付21步原稿、3批trial、四问P/F/F/P，冻结后离线矩阵在跑；A1及消费配对尚未运行。A0 input3693666/output22267，费用USD未知；没有消费收益结论。full默认、原四问和BM原件保持。方法见[spec§14.53](skill-ir-aot-optimization-spec.md#1453-bn-purpose-scoped-authoring-and-consumption)，过程见[研究§7.75](skill-dsl-research.md#775-bm-复核与-bn-聚焦修稿和消费线路调整)。
+**BN0–BN19正在实施，工程及A0/A1真实作者已完成，进入串行B0/C0配对。** [任务书](../superpowers/plans/2026-10-15-authorization-purpose-scoped-authoring-and-consumption.md)由 `gpt-6-astra/high` 接管，规划基线 `a1ea1f3c`、工程起点 `1b95fa96`，identity 为 `authorization-purpose-scoped-program-v1`。BN0–BN9接通用途工具、相关候选、修稿进展、目录增量和自包含交接；184生产测试/1613断言、主类型、6研究测试/33断言、研究类型、15文档测试及ShareLink零模型迁移通过。工程662b9c0c已发布。A0为21步，字段17/18、严格轨迹4/18及额外2/8，四问P/F/F/P；A1为17步，字段1/18（值单列14/18）、严格0/18及额外0/8，四问F/P/F/P。A1新增有依据的上游全局权限条件，与旧局部oracle范围不同，分数不改写；仍缺初始化/短路/拒绝。普通五场景和搬移验证完成，A0仅显式辅助，不升级BL默认。已知两作者input7237979/output48445，USD未知；消费收益未测。full默认、原四问和历史原件保持。方法见[spec§14.53](skill-ir-aot-optimization-spec.md#1453-bn-purpose-scoped-authoring-and-consumption)，过程见[研究§7.75](skill-dsl-research.md#775-bm-复核与-bn-聚焦修稿和消费线路调整)。
 
 ## BM 已结束的实际结果
 
@@ -136,7 +136,7 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 
 | 阶段 | 保留记录 |
 |---|---|
-| 当前BN | [任务书](../superpowers/plans/2026-10-15-authorization-purpose-scoped-authoring-and-consumption.md)、spec§14.53、研究§7.75；in-progress，工程及离线核验落地，真实用途待工程提交后启动 |
+| 当前BN | [任务书](../superpowers/plans/2026-10-15-authorization-purpose-scoped-authoring-and-consumption.md)、spec§14.53、研究§7.75；in-progress，工程及两作者完成，有限语义未达，消费配对继续 |
 | BM | [任务书](../superpowers/plans/2026-10-14-authorization-branch-completion-and-directed-consumption.md)、spec§14.52、研究§7.74；有限队列收束，A0/A1为15/18、14/18，首对negative，完整自动程序和收益未达 |
 | BL | [任务书](../superpowers/plans/2026-10-14-authorization-reusable-program-semantics-and-delivery.md)、spec§14.51、研究§7.73；适用工程/八用途收束，自动范围15/18、两对negative、C2缺交付，完整研究目标未达 |
 | BK | [任务书](../superpowers/plans/2026-10-13-authorization-recoverable-authoring-and-real-delivery.md)、spec§14.50、研究§7.72；适用工程/有限队列结束，自动主链和净收益未达 |

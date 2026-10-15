@@ -1,8 +1,8 @@
 # Skill IR AOT 当前执行计划
 
-更新于2026-10-15。唯一实时入口为[current-status](current-status.md)。
+更新于2026-10-16。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BN0–BN19](../superpowers/plans/2026-10-15-authorization-purpose-scoped-authoring-and-consumption.md)，in-progress。BN0–BN9工程及零模型核验已落地，工程662b9c0c已发布，A0真实修稿完成，正在核验冻结原稿并继续A1/消费用途；不向已关闭BM补行。
+- 当前任务书：[BN0–BN19](../superpowers/plans/2026-10-15-authorization-purpose-scoped-authoring-and-consumption.md)，in-progress。BN0–BN12工程、两作者及分轴评价完成，普通五场景和搬移验证完成；下一步串行B0/C0。A0字段17/18、严格4/18；A1字段1/18受额外全局条件影响，值14/18、严格0/18。自动完整性未达，不向已关闭BM补行。
 - 方法合同：[spec§14.53](skill-ir-aot-optimization-spec.md#1453-bn-purpose-scoped-authoring-and-consumption)；复核和开发过程统一在[研究§7.75](skill-dsl-research.md#775-bm-复核与-bn-聚焦修稿和消费线路调整)。BM实际结果保留在§7.74。
 - identity：`authorization-purpose-scoped-program-v1`，已核对规划基线`a1ea1f3ca26b8f5ee4b088c359eefbbb442d7beb`。继续`skill-ir-aot`，只推用户origin，不建分支/worktree；开发线程独占代码、共享方法文档与Git写入。
 - 开发`gpt-6-astra/high`，按用户指定；实验沿已授权官方账号`gpt-5.6-sol/high`。第三方暂停，OWUI/历史未知ShareLink仅离线，旧未知和保护证据保持。接管时tracked干净，原有未跟踪`.tmp/`不清理。

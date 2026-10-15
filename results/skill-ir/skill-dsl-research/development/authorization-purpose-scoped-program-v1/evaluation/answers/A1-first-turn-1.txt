@@ -1,0 +1,118 @@
+已创建并采用持久化可执行程序：
+
+- 程序：`document-download-selection`
+- 草稿修订：`2b5c2d174c4230b955e03753ce931fade733a552b5e2df1580b74401605cf86c`
+- 17 个有序步骤，覆盖全局权限、请求/根文档、对象权限、版本及文件表示选择。
+- 试验确认了 `version` 缺失与空字符串的不同语义。
+- 程序仍为 **conditional/partial**：实际权限、数据库及存储事实未提供；HTTP 响应元数据未纳入有限资源计算。
+
+## 1. 请求文档、版本和返回文件
+
+### 路由与请求标识
+
+`DefaultRouter` 以 `documents` 注册 `UnifiedSearchViewSet`；后者继承 `DocumentViewSet`。`download` 是 GET detail action，因此生成的入口是 `/api/documents/{pk}/download/`。  
+证据：`src/paperless/urls.py:74-77,97-100,297`、`framework/rest_framework-3.18.1/rest_framework/routers.py:110-131,219`、`src/documents/views.py:1834-1839`。
+
+`pk` 传入 `file_response()`。它用 `Document.global_objects` 按 `id=pk` 获取请求文档，因此这里可以找到软删除文档；不存在则为 404。  
+证据：`src/documents/views.py:1401-1415,1429-1439`。
+
+### 根文档
+
+- 请求文档本身没有 `root_document_id`：它就是根文档。
+- 请求的是版本且关联根文档已加载：使用该根文档。
+- 否则按 `root_document_id` 查询根；查询失败时回退到请求文档本身。  
+  `src/documents/versioning.py:146-156`
+
+### 有效文件文档
+
+版本参数由 `query_params.get("version")` 取得；**参数缺失 (`None`) 和存在但为空 (`""`) 行为不同**。  
+`src/documents/versioning.py:140-143`。
+
+1. **请求的 `pk` 本身是版本，且 `version` 参数缺失**：直接使用该请求版本。  
+   `src/documents/views.py:1388-1399`
+
+2. **请求的是根文档，且 `version` 参数缺失**：选择最新的未删除版本；按 `version_index DESC NULLS LAST, id DESC` 排序；没有版本则回退根文档。  
+   `src/documents/views.py:1375-1381`、`src/documents/versioning.py:23-28,159-182`
+
+3. **`version=""`**：因为参数“存在”，`include_deleted=True`；但空字符串又是假值，所以仍走“最新版本”分支，且此时软删除版本也参加选择。
+
+4. **非空 `version`**：
+   - 转换为整数；转换失败产生 `NotFound("Invalid version parameter")`。
+   - 查找该 ID，包括软删除记录。
+   - 只接受根文档自身，或者 `root_document_id` 等于当前根 ID 的版本。
+   - 不存在或属于其他根时为 404。  
+   `src/documents/versioning.py:169-195`、`src/documents/views.py:1375-1386`
+
+### original/archive
+
+只有查询参数 `original` **精确等于字符串 `"true"`** 才请求原始文件。否则，如果有效文件文档有 archive，则使用 archive：
+
+- archive：`archive_file`
+- original 或无 archive：`source_file`  
+  `src/documents/views.py:1368-1373,1442-1447,4941-4965`
+
+`follow_formatting` 只改变下载文件名的生成方式，不改变文件内容。archive MIME 固定为 PDF；original 使用文档 MIME，并对文本/CSV作调整。响应设置 `Content-Disposition: attachment`。  
+`src/documents/views.py:4941-4995`
+
+文件不存在时，`download()` 将 `FileNotFoundError` 转成 404。  
+`src/documents/views.py:1834-1839`
+
+在给定开发场景中，`version=""` 会选择包含软删除记录在内的最新版本 12；它没有 archive，因此有限模型得到 `v2-original.txt`。这不是部署事实，且仍以全局权限成立为条件。
+
+## 2. 授权检查及其顺序
+
+顺序如下：
+
+1. DRF 在调用 handler 前执行认证、视图权限和节流。  
+   `framework/rest_framework-3.18.1/rest_framework/views.py:404-421`
+
+2. `DocumentViewSet` 配置：
+   - `IsAuthenticated`
+   - `PaperlessObjectPermissions`  
+   `src/documents/views.py:1008-1027`
+
+3. 对 GET，`PaperlessObjectPermissions` 要求全局模型权限 `documents.view_document`；继承的 `has_permission()` 调用 `request.user.has_perms(...)`。  
+   `src/documents/permissions.py:30-44`、`framework/rest_framework-3.18.1/rest_framework/permissions.py:233-246`
+
+4. handler 用 `pk` 获取请求文档并解析根文档。
+
+5. 对**根文档**执行自定义 `has_perms_owner_aware(user, "view_document", root_doc)`：
+   - 根无 owner：允许；
+   - 根 owner 是当前用户：允许；
+   - 否则依赖 Guardian `ObjectPermissionChecker.has_perm()`；
+   - 失败直接返回 403。  
+   `src/documents/views.py:1408-1427`、`src/documents/permissions.py:624-635`
+
+6. 只有根授权通过后，才选择具体版本及 original/archive 文件。  
+   `src/documents/views.py:1429-1448`
+
+虽然类上配置了 DRF 对象权限，但此 action 没有调用 `get_object()` 或 `check_object_permissions()`；实际单对象控制点是上述显式根文档检查，而不是对最终版本再次执行 DRF 对象权限。
+
+## 3. 选择其他版本是否改变授权资源
+
+**不会。授权资源始终是从 `pk` 请求文档解析出的根文档。**
+
+- 请求某个版本的 `pk`：先解析其根并授权根；若没有 `version` 参数，随后返回该请求版本。
+- 在根请求上指定另一版本：仍先授权根，之后才验证并选择指定版本。
+- `original=true` 或 archive 选择：只改变同一有效文件文档上的文件表示。
+- 所选版本自身的 owner、所选 archive/original 路径都不会替代根文档成为该显式检查的授权对象。
+
+因此，源代码建立的是：
+
+`认证/全局模型权限 → 请求文档 → 根文档 → 根对象权限 → 版本 → original/archive → FileResponse`
+
+而不是“先选版本，再对该版本授权”。
+
+## 4. 缺失事实和受阻结论
+
+| 缺失事实 | 阻止的结论 |
+|---|---|
+| 用户实际是否拥有全局 `documents.view_document` | 无法断言 DRF 会进入 `download` handler |
+| 根文档实际 owner 及 Guardian `view_document` grant | 当根不属于用户且非无主时，无法断言最终允许还是 403 |
+| 实际数据库内容、根关系、版本和删除状态 | 无法断言请求文档或所选版本存在，也无法确定真实最新版本 |
+| 实际文件/存储后端状态 | 即使路径选择确定，也无法断言下载成功而非文件缺失导致 404 |
+| 实际认证后端、凭据和部署配置 | 问题给定“authenticated user”可用于行为分析，但不能证明真实请求认证成功 |
+| 代理、外部 URL 重写和部署前缀 | 不能从仓库内路由推断最终公开 URL |
+| 文件名相关模型字段和运行时 I/O | 有源码可说明响应构造规则，但当前有限程序不能计算真实文件名、MIME/header 或读取成功 |
+
+程序还明确保留了 malformed/unrelated `version` 的 404 分支，以及路由和完整 `FileResponse` 元数据未写入有限资源工作流的剩余工作。

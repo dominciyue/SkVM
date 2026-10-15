@@ -2,7 +2,21 @@
 
 The script accepts `-ProgramContext directed` to send current results, premises, branch rules and all original duties with retrievable details and incremental account packets. `full` remains the default. Use `-InputFile <file>` for another explicit input, or the additional `invalid-version`, `other-root-version` and `no-external` variants. Printed output separates actual execution from coverage gaps; `execution.md` retains the complete current view. An exhausted tool phase can receive one tools-free final answer within its original time/display budget, only after a confirmed terminal. Unknown requests are not resent.
 
-## Current BL model-authored original
+## Current BN explicit program
+
+BN's A0 revised the existing raw program from 14 to 21 steps and used three trial batches. Its exact [frozen original](../../../results/skill-ir/skill-dsl-research/development/authorization-purpose-scoped-program-v1/authoring/automatic-program.json) has no developer semantic edits. Run it explicitly:
+
+```powershell
+./examples/authorization-assessment/download-workflow/run.ps1 -ProgramContext directed -ProgramFile ./results/skill-ir/skill-dsl-research/development/authorization-purpose-scoped-program-v1/authoring/automatic-program.json
+./examples/authorization-assessment/download-workflow/run.ps1 -Variant empty-version -ProgramContext directed -ProgramFile ./results/skill-ir/skill-dsl-research/development/authorization-purpose-scoped-program-v1/authoring/automatic-program.json
+./examples/authorization-assessment/download-workflow/run.ps1 -Variant denied -ProgramContext directed -ProgramFile ./results/skill-ir/skill-dsl-research/development/authorization-purpose-scoped-program-v1/authoring/automatic-program.json
+```
+
+Default facts compute document 11/archive; an empty version selects document 12/original; explicit denial stops before file selection. BN improves invalid and foreign-version rejection. It matches 17/18 historical finite cases after reviewed field-name mapping, but only 4/18 strict traces and 2/8 additional traces: the raw still queries permissions on owner/unowned paths and does not use checker construction as a control prerequisite. The anonymous helper bypass is also missing. Consequently, the default remains BL; BN is an explicit partial analysis aid, not a complete authorization model. See the [separate evaluation axes](../../../results/skill-ir/skill-dsl-research/development/authorization-purpose-scoped-program-v1/evaluation/program-summary.json).
+
+Change inputs and rerun for a fresh finite computation. A source change invalidates the old source basis and requires a separately reviewed model revision; do not reuse an old return as current. The copied-package check confirms fresh/previous computation agrees for four inputs, and the changed-source check withdraws the old return. In `directed` account mode, consumers can read source and program details; authors additionally propose, patch and trial. All four original questions remain, and source meanings and external facts remain reviewable. Add `-Mode account` only for an intended new model consumption.
+
+## Retained BL default and historical BM repair
 
 BM's repair attempt retained the exact same 14-step raw program; it did not improve the three known finite gaps, so the default stays BL. To run the separately fixed BM selection explicitly:
 

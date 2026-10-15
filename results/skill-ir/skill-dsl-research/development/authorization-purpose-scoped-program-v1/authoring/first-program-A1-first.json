@@ -1,0 +1,138 @@
+{
+  "schemaVersion": "authorization-executable-contract/v1",
+  "id": "document-download-selection",
+  "description": "Finite source-supported model of document download lookup and later selection stages.",
+  "scope": {
+    "kind": "function-contract",
+    "questionId": "requested-document-and-returned-file",
+    "root": {
+      "path": "src/documents/views.py",
+      "symbol": "documents.views.DocumentViewSet.file_response"
+    },
+    "upstream": [
+      "Router dispatch, authentication, global DRF permissions, queryset configuration, ownership, and object grants remain unresolved until their source or deployment facts are reviewed."
+    ]
+  },
+  "inputBinding": {
+    "questionId": "requested-document-and-returned-file"
+  },
+  "sourceDeclarations": [
+    {
+      "source": {
+        "path": "src/documents/views.py",
+        "symbol": "documents.views.DocumentViewSet.file_response"
+      },
+      "statements": []
+    },
+    {
+      "source": {
+        "path": "src/documents/views.py",
+        "symbol": "documents.views.DocumentViewSet._resolve_request_and_root_doc"
+      },
+      "statements": []
+    }
+  ],
+  "queries": [],
+  "assumptions": [
+    {
+      "origin": "user",
+      "text": "The operation under investigation is the document Download operation in this Paperless revision."
+    },
+    {
+      "origin": "user",
+      "text": "Ownership and object grants are unspecified."
+    }
+  ],
+  "resourceWorkflow": {
+    "inputs": [
+      "actor",
+      "documents",
+      "related_root",
+      "request"
+    ],
+    "steps": [
+      {
+        "id": "requested_doc",
+        "op": "select",
+        "from": "documents",
+        "where": {
+          "op": "eq",
+          "left": {
+            "binding": "row.id"
+          },
+          "right": {
+            "lookup": {
+              "map": {
+                "binding": "request"
+              },
+              "key": {
+                "literal": "pk"
+              }
+            }
+          }
+        },
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1408,
+          "endLine": 1415
+        },
+        "because": "The resolver fetches the request document by id=pk and raises 404 if absent."
+      },
+      {
+        "id": "result",
+        "op": "return",
+        "value": {
+          "record": {
+            "requested_document_id": {
+              "field": {
+                "of": {
+                  "ref": "requested_doc"
+                },
+                "key": "id"
+              }
+            }
+          }
+        },
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1429,
+          "endLine": 1448
+        }
+      }
+    ],
+    "gaps": [
+      "Root-document resolution is not yet modeled.",
+      "The view_document permission decision is not yet modeled.",
+      "Version selection, original/archive representation selection, and returned file are not yet modeled.",
+      "Router, authentication, and inherited DRF permission behavior are not yet modeled."
+    ]
+  },
+  "authoringTarget": {
+    "mode": "reusable",
+    "coverage": [
+      {
+        "id": "request-document-lookup",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1408,
+          "endLine": 1415
+        },
+        "stepIds": [
+          "requested_doc"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "remaining-file-response",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1417,
+          "endLine": 1448
+        },
+        "stepIds": [],
+        "disposition": "unwritten",
+        "reason": "Root resolution, permission, version, and representation branches remain to be authored."
+      }
+    ]
+  }
+}

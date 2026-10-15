@@ -44,9 +44,13 @@ try {
   $result = ($output -join "`n") | ConvertFrom-Json
   Write-Output "Session: $($result.sessionPath)"
   Write-Output "Steps: $($result.sessionPath)/execution.md"
-  if ($ProgramFile) { Write-Output "Program: $ProgramFile" }
+  Write-Output "Input: $InputFile"
+  if ($ProgramFile) {
+    Write-Output "Program: $ProgramFile"
+    Write-Output "Program SHA256: $((Get-FileHash -LiteralPath $ProgramFile -Algorithm SHA256).Hash.ToLowerInvariant())"
+  }
   $execution = if ($Mode -eq 'zero') { $result.executableContract.resourceExecution } else { $result.domain.executableContract.resourceExecution }
-  $execution | Select-Object status, returned, termination, gaps | ConvertTo-Json -Depth 8
+  $execution | Select-Object status, returned, termination, conditions, gaps | ConvertTo-Json -Depth 8
   $outcome = if ($Mode -eq 'zero') { $result.executableContract.outcome } else { $result.domain.executableContract.outcome }
   $outcome | Select-Object execution, value, termination, requiredPremises, executionGaps, executedAssumptions, semanticSupport, requestOperationCertified | ConvertTo-Json -Depth 12
   if ($Mode -eq 'author' -and -not $execution) {
