@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-**BN0–BN19正在实施，工程及A0/A1真实作者已完成，进入串行B0/C0配对。** [任务书](../superpowers/plans/2026-10-15-authorization-purpose-scoped-authoring-and-consumption.md)由 `gpt-6-astra/high` 接管，规划基线 `a1ea1f3c`、工程起点 `1b95fa96`，identity 为 `authorization-purpose-scoped-program-v1`。BN0–BN9接通用途工具、相关候选、修稿进展、目录增量和自包含交接；184生产测试/1613断言、主类型、6研究测试/33断言、研究类型、15文档测试及ShareLink零模型迁移通过。工程662b9c0c已发布。A0为21步，字段17/18、严格轨迹4/18及额外2/8，四问P/F/F/P；A1为17步，字段1/18（值单列14/18）、严格0/18及额外0/8，四问F/P/F/P。A1新增有依据的上游全局权限条件，与旧局部oracle范围不同，分数不改写；仍缺初始化/短路/拒绝。普通五场景和搬移验证完成，A0仅显式辅助，不升级BL默认。已知两作者input7237979/output48445，USD未知；消费收益未测。full默认、原四问和历史原件保持。方法见[spec§14.53](skill-ir-aot-optimization-spec.md#1453-bn-purpose-scoped-authoring-and-consumption)，过程见[研究§7.75](skill-dsl-research.md#775-bm-复核与-bn-聚焦修稿和消费线路调整)。
+**BN有限执行以completed-with-unmet-criteria收束，正在完成发布：工程和八用途交付成立，完整自动程序及净收益未达。** [任务书](../superpowers/plans/2026-10-15-authorization-purpose-scoped-authoring-and-consumption.md)使用identity `authorization-purpose-scoped-program-v1`，工程662b9c0c；最终联合254测试/1845断言及主/研究类型通过。A0为21步，字段17/18、严格轨迹4/18及额外2/8；A1为17步，字段1/18（值14/18）、严格0/18及额外0/8，其上游全局权限条件超出旧局部oracle，保留范围差异而不抬分。两对B/C四问分别P/P/P/P对P/F/F/P、P/P/P/P对F/F/F/P；C总token为B的1.409/1.731倍，无净收益。C2拒绝且交付；S0维护28步，副本三输入符合有条件的局部反转，严格语义仍缺。8用途全部交付、14观察turn、0活动/未知，整题0/8 full。普通五场景、搬移和失效已验证；[显式BN命令](../../examples/authorization-assessment/download-workflow/README.md#current-bn-explicit-program)保留为需审阅辅助，BL默认不变，不自动追加同范围实验。known input14674048（含cache13155328）/output105898，USD/开发评阅/真人成本未知。见[分轴验收](../../results/skill-ir/skill-dsl-research/development/authorization-purpose-scoped-program-v1/verification/acceptance-matrix.json)、[spec§14.53](skill-ir-aot-optimization-spec.md#1453-bn-purpose-scoped-authoring-and-consumption)及[研究§7.75](skill-dsl-research.md#775-bm-复核与-bn-聚焦修稿和消费线路调整)。
 
 ## BM 已结束的实际结果
 
@@ -136,7 +136,7 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 
 | 阶段 | 保留记录 |
 |---|---|
-| 当前BN | [任务书](../superpowers/plans/2026-10-15-authorization-purpose-scoped-authoring-and-consumption.md)、spec§14.53、研究§7.75；in-progress，工程及两作者完成，有限语义未达，消费配对继续 |
+| 当前BN | [任务书](../superpowers/plans/2026-10-15-authorization-purpose-scoped-authoring-and-consumption.md)、spec§14.53、研究§7.75；有限队列收束，完整程序/整题质量/净收益未达，发布核验中 |
 | BM | [任务书](../superpowers/plans/2026-10-14-authorization-branch-completion-and-directed-consumption.md)、spec§14.52、研究§7.74；有限队列收束，A0/A1为15/18、14/18，首对negative，完整自动程序和收益未达 |
 | BL | [任务书](../superpowers/plans/2026-10-14-authorization-reusable-program-semantics-and-delivery.md)、spec§14.51、研究§7.73；适用工程/八用途收束，自动范围15/18、两对negative、C2缺交付，完整研究目标未达 |
 | BK | [任务书](../superpowers/plans/2026-10-13-authorization-recoverable-authoring-and-real-delivery.md)、spec§14.50、研究§7.72；适用工程/有限队列结束，自动主链和净收益未达 |

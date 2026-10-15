@@ -1,0 +1,146 @@
+{
+  "providerCalls": 0,
+  "programSha256": "9367cc0efe27f74743d7cd3dfeceebe63738b188e4e47e3b50d39146930accfe",
+  "originalProgramSha256": "04edaf38c1f81f908fa461b086d41415f76d9dad8ad823472de6c7e99bec9cbb",
+  "replacesConsumerSelection": false,
+  "finiteLocalMatches": 3,
+  "cases": 3,
+  "fullRequestCertified": false,
+  "strictTraceComplete": false,
+  "rows": [
+    {
+      "variant": "root-default",
+      "oldReturnWithdrawn": true,
+      "localChangedBehaviorMatches": true,
+      "status": "conditional",
+      "termination": "authorization",
+      "returned": null,
+      "conditions": [
+        {
+          "step": "authentication_guard",
+          "test": {
+            "op": "truthy",
+            "language": "python",
+            "value": {
+              "binding": "authentication_result"
+            }
+          },
+          "otherwise": "authentication"
+        },
+        {
+          "step": "global_permission_guard",
+          "test": {
+            "op": "truthy",
+            "language": "python",
+            "value": {
+              "binding": "global_permission_result"
+            }
+          },
+          "otherwise": "authorization"
+        }
+      ],
+      "executedExternalCalls": [
+        "IsAuthenticated.has_permission",
+        "request.user.has_perms",
+        "ObjectPermissionChecker.construct",
+        "ObjectPermissionChecker.has_perm"
+      ]
+    },
+    {
+      "variant": "empty-version",
+      "oldReturnWithdrawn": true,
+      "localChangedBehaviorMatches": true,
+      "status": "conditional",
+      "termination": "authorization",
+      "returned": null,
+      "conditions": [
+        {
+          "step": "authentication_guard",
+          "test": {
+            "op": "truthy",
+            "language": "python",
+            "value": {
+              "binding": "authentication_result"
+            }
+          },
+          "otherwise": "authentication"
+        },
+        {
+          "step": "global_permission_guard",
+          "test": {
+            "op": "truthy",
+            "language": "python",
+            "value": {
+              "binding": "global_permission_result"
+            }
+          },
+          "otherwise": "authorization"
+        }
+      ],
+      "executedExternalCalls": [
+        "IsAuthenticated.has_permission",
+        "request.user.has_perms",
+        "ObjectPermissionChecker.construct",
+        "ObjectPermissionChecker.has_perm"
+      ]
+    },
+    {
+      "variant": "denied",
+      "oldReturnWithdrawn": true,
+      "localChangedBehaviorMatches": true,
+      "status": "conditional",
+      "termination": "return",
+      "returned": {
+        "request_document": 10,
+        "authorized_root": 10,
+        "owner_aware_result": false,
+        "forbidden_condition": false,
+        "selected_document": 11,
+        "version_parameter_present": false,
+        "requested_version_id": null,
+        "use_archive": true,
+        "selected_representation": "archive",
+        "selected_file": "v1-archive.pdf",
+        "disposition": "attachment"
+      },
+      "conditions": [
+        {
+          "step": "authentication_guard",
+          "test": {
+            "op": "truthy",
+            "language": "python",
+            "value": {
+              "binding": "authentication_result"
+            }
+          },
+          "otherwise": "authentication"
+        },
+        {
+          "step": "global_permission_guard",
+          "test": {
+            "op": "truthy",
+            "language": "python",
+            "value": {
+              "binding": "global_permission_result"
+            }
+          },
+          "otherwise": "authorization"
+        }
+      ],
+      "executedExternalCalls": [
+        "IsAuthenticated.has_permission",
+        "request.user.has_perms",
+        "ObjectPermissionChecker.construct",
+        "ObjectPermissionChecker.has_perm"
+      ]
+    }
+  ],
+  "sourceInterpretation": "Changed local condition is correctly inverted. New unresolved authentication/global guards are source-supported scope extensions, not invented grants. Local behavior agreement is conditional and does not certify whole-request semantics.",
+  "remaining": [
+    "Constructor return is unused as a control prerequisite.",
+    "Permission query remains unconditional on owner/null-owner and anonymous helper bypass.",
+    "Upstream external abstractions do not prove complete framework/backend semantics; global has_perms is represented with a scalar permission field instead of its concrete list argument.",
+    "selected_file non-null guard is not proof of real filesystem availability."
+  ],
+  "review": "Main inspected full raw, actual conditions/events and copied source; independent read-only review agrees on3local outcomes."
+}

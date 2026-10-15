@@ -5,7 +5,7 @@
 
 **最后更新：** 2026-10-15
 
-**当前已确认路线：** 按skill/task范围设计领域表达并验证实际价值，复用既有授权DSL执行与SkVM入口。[BN聚焦修稿与按用途消费](../superpowers/plans/2026-10-15-authorization-purpose-scoped-authoring-and-consumption.md)承接BM的实际候选、初始作者指令和发送记录，调整工作前沿及消费线路；当前规划见§14.53，尚未实施BN。BM有限执行见§14.52，完整自动化和收益未达。旧协议和full默认继续兼容；完整原skill与四问保持，分开评价自动程序、实际使用和收益。研究与问题复盘见[研究总文档](skill-dsl-research.md)，当前顺序见[执行计划](skill-ir-aot-optimization-plan.md)。AS及其后各轮合同保留历史，I1保留后备。
+**当前已确认路线：** 按skill/task范围设计领域表达并验证实际价值，复用既有授权DSL执行与SkVM入口。[BN聚焦修稿与按用途消费](../superpowers/plans/2026-10-15-authorization-purpose-scoped-authoring-and-consumption.md)已完成工程及八用途有限执行，完整自动语义和净收益未达，合同见§14.53。保留需审阅的显式辅助，不自动追加同范围实验。BM有限执行见§14.52，历史原件保持。旧协议和full默认继续兼容；完整原skill与四问保持，分开评价自动程序、实际使用和收益。研究与问题复盘见[研究总文档](skill-dsl-research.md)，当前顺序见[执行计划](skill-ir-aot-optimization-plan.md)。AS及其后各轮合同保留历史，I1保留后备。
 
 本文保留旧研究阶段的标题与章节定位。下文有关统一 IR、AOT 优先、“不新建 DSL”和旧队列先后关系的限定，适用于各自阶段；总体方向以第14.34节为准，当前增量合同以第14.53节及任务书为准。已有 IR、接口、冻结结果和版本化材料不因路线变化而删除或改写。
 
@@ -3128,7 +3128,7 @@ BM8实施细节：当前协议只在thread/start注册dynamicTools。宿主预�
 
 ### 14.53 BN purpose scoped authoring and consumption
 
-2026-10-15用户授权[BN0–BN19](../superpowers/plans/2026-10-15-authorization-purpose-scoped-authoring-and-consumption.md)，规划基线a1ea1f3c，实际工程起点1b95fa96，identity为`authorization-purpose-scoped-program-v1`。开发gpt-6-astra/high，实验仍为已授权官方gpt-5.6-sol/high。BN工程已发布，两作者真实交付及有限轨迹评价已完成，完整语义未达，消费配对继续；BM及更早结果保持原分母。
+2026-10-15用户授权[BN0–BN19](../superpowers/plans/2026-10-15-authorization-purpose-scoped-authoring-and-consumption.md)，规划基线a1ea1f3c，实际工程起点1b95fa96，identity为`authorization-purpose-scoped-program-v1`。开发gpt-6-astra/high，实验为已授权官方gpt-5.6-sol/high。BN工程及八用途有限执行已完成，以completed-with-unmet-criteria收束；完整语义和净收益未达，发布核验中。BM及更早结果保持原分母。
 
 **作者分工。** 在已有directed模式按programMode选择author/consume用途，复用原运行时。源码候选按当前程序引用、明确问题范围和已读依赖分组，完整目录留宿主可取回；当前修稿前沿不随全部已读无关函数增长。宽区间仅帮助定位，精确映射/语义审查分别保留。候选、草稿、patch、trial事实形成持续locate/edit/trial/review/answer进展，模型判断源码意义并写表达式。宿主不给正确guard、返回对象或oracle，不把候选数量增长当修稿进展。
 
@@ -3141,6 +3141,8 @@ BM8实施细节：当前协议只在thread/start注册dynamicTools。宿主预�
 **范围与收口。** 不扩语言/外部skill/未见样本/CLI平台；ShareLink仅既有材料离线迁移。工程完成、自动程序、普通使用、整题质量与收益逐轴报告。研究统一§7.75，当前入口与研究开头/计划/导航保持同一状态，不重新堆长期结果文档。已知全src旧104失败、历史链接缺档及保护材料不为本轮通过而改写。
 
 **实现细节。** 共享resolveProgramPurpose只改变question-checked的显式directed；实际工具注册和structured schema均排除旧性质动作。相关函数候选每次至多12项，完整目录由details的catalog分页取回；空稿不凭已读顺序猜相关函数。作者进展由revision及不同trial的摘要确定，不由候选增长确定。账户sourceIndexDelta以已发送base为依据，增删/替换和总数常显，仅发生重排时发送order，离线解析校验hash。结构化provider每次请求没有账户历史，因此保持自包含源码快照，禁止跨请求不可见引用；这部分不计作增量收益。无工具交接保留本用途模型观点及来源、当前计算与显式遗漏，观点不成为源码认证。
+
+**实际证据与边界。** A0字段17/18、严格4/18；A1新增源码支持的上游全局条件，旧局部口径字段1/18、值单列14/18、严格0/18，不为抬分删条件。一般coverage gap不等于运行控制条件，缺初始化必须真实进入控制依赖。两对消费较基线部分题质量改善，但总observed token1.409/1.731倍，没有净收益。S0仅确认副本反转三场景的条件行为，保留constructor/shortcut缺口；不替换A0。八用途全交付不等于整题full（实际0/8）。当前交付为显式局部辅助和需审阅作者流程，BL默认及保护证据保持，不自动展开后续同范围实验。
 
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 

@@ -1,0 +1,106 @@
+## 程序状态
+
+已生成并采用持久化可执行程序 `document-download-selection`：
+
+- Active revision: `77d5729df529eda699f03e44804c6b36096d74af656621b34e32bf2caea87ca9`
+- Draft revision: `80520ed3c85c6daa83c541f33e0effffd1203e2f998cae03d31a35b197aaa95b`
+- 28 个有序步骤，无编译诊断。
+- 已试验认证失败、全局权限通过、显式版本、子版本、原件/归档，以及 owner-aware 返回真等分支。
+- 外部事实仍作为显式 gap 保留，没有虚构权限授予。
+
+## 1. 请求如何决定返回文件
+
+1. `documents` 注册到 DRF router，`download` 是 `GET`、`detail=True` 的 action；它调用 `file_response(pk, request, "attachment")`，文件或文档不存在时转为 404。  
+   `src/paperless/urls.py:74-77,280-300`  
+   `src/documents/views.py:1834-1839`
+
+2. `pk` 首先使用 `Document.global_objects` 查找，因此已删除文档也能成为 `request_doc`；不存在则 404。若它是版本文档，则解析其 root；否则它自己就是 root。  
+   `src/documents/views.py:1401-1420`  
+   `src/documents/versioning.py:146-156`
+
+3. root 权限分支完成后才选择实际文件文档：
+   - 请求的 `pk` 本身是版本文档，且没有 `version` 参数：直接返回该版本。
+   - 否则围绕 root 解析版本：
+     - `version` 缺失：选择最新的未删除版本，没有版本则使用 root。
+     - `version=""`：参数“存在”，因此允许查询已删除版本；空串本身是 falsy，最终选择包含已删除项的最新版本。
+     - 非空 `version`：转为整数并按 ID 查找；只能是 root 本身或该 root 的版本。
+     - 非整数：`NotFound("Invalid version parameter")`。
+     - ID 不存在或属于另一 root：404。  
+   `src/documents/views.py:1375-1399`  
+   `src/documents/versioning.py:159-195`
+
+4. 选定 `file_doc` 后：
+   - 只有 `original=true`（精确字符串）才明确要求原件。
+   - 否则，只要该版本具有 archive，就选择 archive。
+   - 没有 archive 时仍选择原件。  
+   `src/documents/views.py:1368-1373,1429-1448`
+
+5. `serve_file` 对 archive 使用 `archive_file`，MIME 固定为 PDF；对 original 使用 `source_file` 和文档 MIME。Download 的 disposition 固定为 `attachment`。`follow_formatting` 只影响响应文件名，不改变文件句柄。  
+   `src/documents/views.py:4941-4995`
+
+## 2. 授权检查及其顺序
+
+顺序如下：
+
+1. DRF 在调用 action 前执行认证和全局权限检查。  
+   `framework/rest_framework-3.18.1/rest_framework/views.py:404-421`
+
+2. `DocumentViewSet` 配置：
+   - `IsAuthenticated`
+   - `PaperlessObjectPermissions`  
+   `src/documents/views.py:1008-1021`
+
+3. `IsAuthenticated` 要求 `request.user` 存在且 `is_authenticated` 为真。`PaperlessObjectPermissions` 对 GET 要求 `documents.view_document`，其继承的全局检查调用 `request.user.has_perms(...)`。  
+   `framework/rest_framework-3.18.1/rest_framework/permissions.py:145-151,233-246`  
+   `src/documents/permissions.py:30-44`
+
+4. Download 没有调用 DRF 的 `get_object()`，因此不会针对 `request_doc` 执行通常的 `check_object_permissions`。它自行按 `pk` 查询，然后对 **root 文档**调用 `has_perms_owner_aware`。  
+   `framework/rest_framework-3.18.1/rest_framework/permissions.py:278-314`  
+   `src/documents/views.py:1408-1427`
+
+5. 此 revision 中存在一个必须按原文解释的反直觉分支：
+
+   ```python
+   if request.user is not None and has_perms_owner_aware(...):
+       return HttpResponseForbidden(...)
+   ```
+
+   而 `has_perms_owner_aware` 在 root 无 owner、用户就是 owner、或拥有 Guardian `view_document` 权限时返回真。因此，源码实际表现为：
+
+   - helper 返回 **真** → 403；
+   - 对有 owner 的 root，用户既不是 owner、Guardian 检查又返回假 → 继续下载。
+
+   这看起来像条件取反错误，但这里只陈述该 revision 的源码行为。  
+   `src/documents/views.py:1421-1427`  
+   `src/documents/permissions.py:624-635`
+
+该 root 检查发生在版本选择及 original/archive 选择之前。
+
+## 3. 版本或表示选择是否改变授权资源
+
+不会。
+
+- `pk` 可以指向 root，也可以直接指向某个版本。
+- 授权资源始终是 `get_root_document(request_doc)` 得到的 root。
+- `version=<id>` 只改变后续 `file_doc`，并且该 ID 必须属于同一 root 家族。
+- 对子版本 URL，在没有 `version` 参数时，返回该子版本本身，但授权仍针对 root。
+- `original=true` 或 archive 选择更晚发生，只改变 `file_doc.source_file` 与 `file_doc.archive_file` 之间的选择。
+- 所选版本自己的 owner 和文件表示没有单独的对象权限检查。
+
+因此，alternate version 和 original/archive 都是**授权后的资源表示选择**，不是新的授权对象。该结论仍受上述反直觉 root 检查条件影响。
+
+## 4. 缺失事实与条件性结论
+
+以下事实不在允许证据或开发输入中：
+
+- `request.user.is_authenticated` 的实际运行值：决定请求能否通过 `IsAuthenticated`。
+- 用户的全局 `documents.view_document` 结果：决定 action 是否会在任何 `pk` 查询之前执行。
+- root 上实际的 Guardian `view_document` 授予：对非 owner root，决定 owner-aware helper 的结果；由于源码条件方向，它也决定 403 还是继续。
+- 实际部署中的 owner、文档、版本及删除状态：给出的行只是开发试验数据，不是部署事实。
+- 存储后端中选定文件是否存在、能否打开：决定最终能否流式返回，或是否被 Download 转为 404。
+- filename、MIME、`follow_formatting` 所需字段：阻止确定完整响应文件名和 Content-Type，但不阻止确定选择的是 source 还是 archive 文件句柄。
+- 代理、部署前缀和外部路由配置：阻止断言完整公网 URL，但不影响仓库内 router/action 路径。
+- 可执行模型把 malformed `version` 归入 not-found 终止；源码中更具体的 `"Invalid version parameter"` 文本未单独建模。
+- 工作流中的 Guardian external 步骤是无条件表示；Python 实际会在 owner/unowned 分支短路而不调用 `has_perm`。
+
+当前开发数据仅提供了 Guardian checker 构造成功这一外部假设；因此不能把当前执行当成真实用户的下载授权结论。

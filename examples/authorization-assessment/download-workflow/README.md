@@ -16,6 +16,8 @@ Default facts compute document 11/archive; an empty version selects document 12/
 
 Change inputs and rerun for a fresh finite computation. A source change invalidates the old source basis and requires a separately reviewed model revision; do not reuse an old return as current. The copied-package check confirms fresh/previous computation agrees for four inputs, and the changed-source check withdraws the old return. In `directed` account mode, consumers can read source and program details; authors additionally propose, patch and trial. All four original questions remain, and source meanings and external facts remain reviewable. Add `-Mode account` only for an intended new model consumption.
 
+Real BN consumers delivered the default, empty-version and denied scenarios. The [four-question reviews](../../../results/skill-ir/skill-dsl-research/development/authorization-purpose-scoped-program-v1/evaluation/quality.json) remain partial overall. Two serial baseline/consumer pairs used 1.409 and 1.731 times the baseline's total observed tokens; no net-saving or break-even claim is made. The separate 28-step S0 maintenance raw adapts a copied permission inversion in three conditional local cases, retains unresolved upstream facts and trace gaps, and does not replace this A0 program. See [maintenance assessment](../../../results/skill-ir/skill-dsl-research/development/authorization-purpose-scoped-program-v1/evaluation/maintenance-assessment.json).
+
 ## Retained BL default and historical BM repair
 
 BM's repair attempt retained the exact same 14-step raw program; it did not improve the three known finite gaps, so the default stays BL. To run the separately fixed BM selection explicitly:

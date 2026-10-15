@@ -8,7 +8,7 @@
 
 **Tech Stack：** TypeScript、Bun、Zod、现有源码索引与官方 Codex account adapter；开发 `gpt-6-astra/high`，实验沿用已授权官方 `gpt-5.6-sol/high`。第三方 API 暂停。
 
-日期：2026-10-15。规划基线：`a1ea1f3ca26b8f5ee4b088c359eefbbb442d7beb`。新 identity：`authorization-purpose-scoped-program-v1`。状态：`in-progress`。BN0–BN9 工程已通过离线验证并发布662b9c0c；BN10 A0已完成冻结，BN11以后继续。实际接管 HEAD 为 `1b95fa964647b5b41572c7ce0e5b5a883c595aae`。约 8–12 小时为实质工作窗口，提前完成可交付，不等待、重复审计或重复抽样凑时长。
+日期：2026-10-15，2026-10-16收束。规划基线：`a1ea1f3ca26b8f5ee4b088c359eefbbb442d7beb`。新 identity：`authorization-purpose-scoped-program-v1`。状态：`completed-with-unmet-criteria`，发布核验中。工程662b9c0c已发布，八用途全部交付，完整自动语义/整题质量/净收益未达；实际接管 HEAD 为 `1b95fa964647b5b41572c7ce0e5b5a883c595aae`。约 8–12 小时为参考实质工作窗口，不等待、重复审计或重复抽样凑时长。
 
 ## 一、接管上下文
 
@@ -197,10 +197,12 @@ function changedById<T extends { id: string }>(before: readonly T[], after: read
 
 ### BN13 第一对真实 B0/C0
 
-- [ ] 先 B0 后 C0，固定同一生产 epoch、完整原 skill、原四问、源码、输入、模型、努力级别与总预算。两个用途串行，暂停 CPU 重的离线检查。
-- [ ] B0 是源码自然基线，保留相同来源访问、普通 skill 引用和交付支持；C0 增加固定 A0 程序及新用途消费。完整代码/prose 预处理差异和作者成本单列，这是整套程序工作流比较。
-- [ ] 真实记录 program execution 与材料使用、按需 details、重复读区间、工具种类、实际发送字节及 token。没有 program tool 调用不直接判“未使用”，依据宿主执行和交付事实。
-- [ ] 逐字评阅四问，重点核对排序、初始化、owner 短路、上游权限与当前程序冲突。第一次错误当场排查；语义意见只有回到源码才可改评。
+- [x] 先 B0 后 C0，固定同一生产 epoch、完整原 skill、原四问、源码、输入、模型、努力级别与总预算。两个用途串行，暂停 CPU 重的离线检查。
+- [x] B0 是源码自然基线，保留相同来源访问、普通 skill 引用和交付支持；C0 增加固定 A0 程序及新用途消费。完整代码/prose 预处理差异和作者成本单列，这是整套程序工作流比较。
+- [x] 真实记录 program execution 与材料使用、按需 details、重复读区间、工具种类、实际发送字节及 token。没有 program tool 调用不直接判“未使用”，依据宿主执行和交付事实。
+- [x] 逐字评阅四问，重点核对排序、初始化、owner 短路、上游权限与当前程序冲突。第一次错误当场排查；语义意见只有回到源码才可改评。
+
+实际首对：B0 P/P/P/P、C0 P/F/F/P；C0 input1.418倍、output0.803倍、总token1.409倍、observed duration0.704倍。两臂均恢复过网络重连，耗时不作纯性能因果。归为tradeoff，无净收益；按BN14/BN17质量保持且output下降的有限条件，仅做一次空版本反序C1/B1，不能称正向总成本结果或再追加第三对。
 
 ### BN14 首对后的修复与有限确认
 
@@ -270,3 +272,5 @@ python scripts/check_skill_ir_doc_links_test.py
 新 identity 内复用 BM 驱动约定，实现 `study.ts status/offline/summarize/verify`，研究类型配置包含实际导入；`status/offline/summarize/verify` 均零模型，真实派发由独立明确的用途命令完成，禁止 summarize 隐式补跑。结果集中放在 `results/skill-ir/skill-dsl-research/development/authorization-purpose-scoped-program-v1/`，只保留必要 compact 机器报告、原稿、评价和一份 `execution.md`，raw 按既有本地归档约定保存。
 
 最终每轴记录 `engineeringComplete`、`automaticProgramComplete`、`ordinaryUseDelivered`、`wholeTaskQuality`、`benefitObserved`、`finiteQueueComplete`、`researchGoalAchieved` 的真实结果；布尔验收目标放独立 requirements，不把“要求通过”记成“实际通过”。没有正向结果也必须交付可运行现状、具名缺口及下一条可检验决定。
+
+实际收束：8用途/14观察turn/8自然交付/0活动或未知；逐题11/32 full、整题0/8。A0为21步、字段17/18/严格4/18/额外2/8；A1为17步、字段1/18（值14/18，上游条件范围差异）/严格0/18/额外0/8。两对C总token1.409/1.731倍，没有净收益或正摊销。C2明确拒绝且交付；S0为28步/4trial，3/3副本局部反转符合但带上游未决条件和严格轨迹缺口，不替换A0。普通5场景、搬移与源码失效保持；BL默认不升级。最后联合254测试/1845断言、主/研究类型通过。known input14674048/cache13155328/output105898，USD/开发评阅/真人unknown。分轴验收见结果目录verification/acceptance-matrix.json；不自动开启下一轮同范围实验。
