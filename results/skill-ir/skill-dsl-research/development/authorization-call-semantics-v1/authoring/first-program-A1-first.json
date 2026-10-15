@@ -1,0 +1,129 @@
+{
+  "schemaVersion": "authorization-executable-contract/v1",
+  "id": "paperless-document-download",
+  "description": "Source-backed function contract for DocumentViewSet.file_response, the download action's file selection helper.",
+  "scope": {
+    "kind": "function-contract",
+    "questionId": "requested-document-and-returned-file",
+    "root": {
+      "path": "src/documents/views.py",
+      "startLine": 1429,
+      "endLine": 1448
+    },
+    "upstream": [
+      "Router dispatch into DocumentViewSet.download and framework authentication/permission setup are outside this local root.",
+      "Ownership, object grants, filesystem state, and deployment behavior remain runtime facts."
+    ]
+  },
+  "inputBinding": {
+    "questionId": "requested-document-and-returned-file"
+  },
+  "sourceDeclarations": [
+    {
+      "source": {
+        "path": "src/documents/views.py",
+        "startLine": 1401,
+        "endLine": 1427
+      },
+      "statements": []
+    },
+    {
+      "source": {
+        "path": "src/documents/views.py",
+        "startLine": 1429,
+        "endLine": 1448
+      },
+      "statements": []
+    }
+  ],
+  "queries": [],
+  "assumptions": [
+    {
+      "origin": "user",
+      "text": "The operation under investigation is the document Download operation in this Paperless revision."
+    }
+  ],
+  "authoringTarget": {
+    "mode": "reusable",
+    "coverage": [
+      {
+        "id": "request-document-lookup",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1408,
+          "endLine": 1415
+        },
+        "stepIds": [
+          "request_doc"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "remaining-download-flow",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1417,
+          "endLine": 1448
+        },
+        "stepIds": [],
+        "disposition": "unwritten",
+        "reason": "Will be modeled after resolving helper semantics and authorization."
+      }
+    ]
+  },
+  "resourceWorkflow": {
+    "inputs": [
+      "actor",
+      "documents",
+      "related_root",
+      "request"
+    ],
+    "steps": [
+      {
+        "id": "request_doc",
+        "op": "select",
+        "from": "documents",
+        "where": {
+          "op": "eq",
+          "left": {
+            "binding": "row.id"
+          },
+          "right": {
+            "binding": "request.pk"
+          }
+        },
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1408,
+          "endLine": 1415
+        },
+        "because": "file_response calls resolution with include_deleted=True, whose manager lookup gets id=pk."
+      },
+      {
+        "id": "result",
+        "op": "return",
+        "value": {
+          "record": {
+            "requested_document_id": {
+              "field": {
+                "of": {
+                  "ref": "request_doc"
+                },
+                "key": "id"
+              }
+            }
+          }
+        },
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1427,
+          "endLine": 1448
+        }
+      }
+    ],
+    "gaps": [
+      "Root-document resolution, permission evaluation, version selection, original/archive selection, file serving, and exception outcomes remain to be modeled.",
+      "Actual ownership and object grants are not supplied as deployment facts."
+    ]
+  }
+}

@@ -2,7 +2,7 @@
 
 > 执行者：使用 executing-plans、systematic-debugging 和 test-driven-development。用户已授权本轮接续；读完上下文后直接实施有限队列，不在常规检查点等待确认。
 
-**状态：** in-progress，BO9工程754b72f3已发布；BO10 A0-first完成原始交付，因真实工具契约遗漏正在具名修复。2026-10-16 从任务书提交 `89ef2864` 接管。用户授权 BN 收束后派发一轮后继；本任务结束后不自动创建下一轮。
+**状态：** completed-with-unmet-criteria。BO0–BO17有限队列收束，工程/普通使用成立，自动完整语义/自然全题/净收益未达。八attempt含一个具名修复确认、15观察turn、全交付且关闭；两对总token比1.045/2.269。S0维护54步、三局部反转符合副本源码，不替换A0。2026-10-16从89ef2864接管；本轮后停止，不自动创建下一轮。
 
 **目标：** 让模型写出的同一份程序忠实表达源码中的调用激活、正常完成前提、授权短路及拒绝后的停止，并让普通消费者看清程序算出了什么、还依赖什么。先补可复用的作者反馈和执行语义检查，再做有限真实编写与消费，检验收益。
 
@@ -153,6 +153,10 @@ BN 工程与八个用途已完成，14 个观察 turn 均关闭，无活动或�
 
 ## 五、实验、当场修复与终止规则
 
+**BO13–BO14首对决定。** B0/C0同e8522ee9及同sourceTree/skill/source/account/预算绑定，串行运行。B0四问P/P/P/F，C0为P/F/F/P；正常完成前提责任按Q4评价，Q2源内顺序完整不重复扣分。C0总observed input+output为620862，B0为594130，比1.04499；fresh比0.60423、output比0.65298。时间比0.57527含B0无工具child与两臂恢复差异，不当作隔离速度收益。两题具体改善满足已登记确认条件，Q4退步及作者成本保留；执行反序空版本C1/B1，不加第三对，不声称净收益。
+
+**BO10具名确认与BO12固定。** A0/advertised-call-contract正常关闭并交付，8次patch、5批trial、45步，原件SHA256为3298dd5172216b632d0230036d79fe7e2359335dd829a70346730bdde07ff609。模型自己采用when、两个正常完成guard和call元数据；18字段/局部轨迹全通过，额外7/8，唯一剩余匿名外层helper激活失败。四问P/F/F/F，精确版本排序未查清。input4905175含cache4576000、output36805；耗时1314346ms含通道恢复和四观察turn，不作为隔离性能效果。首件原件、成本、旧分数保留；额外预算和自己的前稿使公共说明净效应不可单独归因。A1不见这些评阅和原稿。
+
 **BO10现场修复。** A0-first增加到33步却仍断言DSL无法条件化external；实际thread/start说明与宽松步骤schema均未公开when。先对实际账号工具说明做红测，再给program/patch共同补已有when、正常完成与真假区别、关系元数据说明；details说明同步overview/raw。无executor变更，不供应源内正确条件。原稿17/18字段、4/18局部轨迹和2/8额外轨迹保留，四问P/P/F/P。注册A0/advertised-call-contract唯一确认，用新工具表会话恢复自己的原稿，不重导入BN原稿。首次完成答案current，续作是host预算中断且已知终态/本地关闭；选择器允许这种有效交付，仍拒绝unknown/stale/active。后续生产epoch分列。
 
 **BO0–BO8实施记录（2026-10-16）。** 复用现有有限求值：已知 False/None 的自等测试可表示正常完成，未知仍保留条件，因此没有增加执行语法。可选 `coverage[].call` 声明 activation/completion/resultUse、完成 guard 和后继；宿主报告实际依赖、事件与 trial 差异，源码意义始终 unreviewed。native/account 的 source→proposal→patch→trial→details→answer 假账号链已红绿验证。独立核验发现 trialCase 详情漏带调用诊断，已先红测再修复。BN 实际包证明 C0/C1 已有45/42次目录delta、245/234次引用；一个全量details是可削减对象，既有编码器整流反事实各减少29145/29137字节，不是实测token收益。显式 directed 的未指定步骤active details改用已有紧凑事件投影，`format:raw`仍按当前basis取回；full默认保持。18/8范围评价先以匿名正反例固定，再读BN原稿；上游来源定位与语义证明分开。ShareLink离线兼容完成，零模型。
@@ -163,6 +167,8 @@ BN 工程与八个用途已完成，14 个观察 turn 均关闭，无活动或�
 - 同因两次修复没有新增可用证据，停止该真实位置，完成独立工程与归纳。修复确认额度不因另换名字重置；无需把已知错误的整个面板跑完。
 - BN 无活动请求；旧 BJ/OWUI 等 unknown 只隔离，不重发。新 unknown 先只读核查，原终态/费用保留；本地进程关闭且用途隔离后，独立位置可继续。额度/认证拒绝暂停该通道；重复路由故障按一次有据恢复上限停止通道，继续离线工作，不切第三方。
 - input 包含 cache-read 一次；另列 fresh input、cache-read、output、耗时、工具、恢复/final turns、作者与维护成本。未报告 USD 就 unknown；无实测真人分钟不称人力节省。字节缩减不换算成 token 收益，网络恢复干扰单列。
+
+**BO15–BO17收束。** S0独立维护增加9步并按副本views.py:1421移除not的实际含义反转授权guard；默认/空版本在文件选择前停止，原denied输入返回11/archive，三次零模型有限重算成立。匿名外层激活仍缺，DRF新增literal不构成上游控制。自然四问F/P/F/P，构造顺序与正常完成说明仍不足。S0不替换固定A0。全部八attempt、15观察turn交付关闭，0活动/未知；14/32逐题full、0/8整题full。known input17911460（含cache16421248）/output133089；USD/开发评阅/真人成本未知。最终180测试/1285断言、主/研究类型、15文档测试通过；study与文档链接检查随发布记录。五轴见[验收矩阵](../../../results/skill-ir/skill-dsl-research/development/authorization-call-semantics-v1/verification/acceptance-matrix.json)。完成适用BO0–17工作不等于研究目标达成；停止，不追加BP。
 
 ## 六、完成判据和定向命令
 

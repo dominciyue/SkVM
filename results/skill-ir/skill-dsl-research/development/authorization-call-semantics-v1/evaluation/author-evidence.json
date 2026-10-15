@@ -1,0 +1,3881 @@
+{
+  "providerCalls": 0,
+  "semantics": "Author declarations and actual host events; source review remains independent.",
+  "rows": [
+    {
+      "purpose": "A0",
+      "attempt": "first",
+      "session": "results/skill-ir/skill-dsl-research/development/authorization-call-semantics-v1/runs/A0-first/sessions/2026-10-15T183830356Z-f9328e88",
+      "terminal": "interrupted",
+      "answerDelivery": "delivered",
+      "codeEpoch": {
+        "commit": "754b72f3b14838673addda47a1beb6e1d6525d64",
+        "sourceTree": "a257fc6c92f6c5cd952cfa2726f6c48bf096910c",
+        "sourceDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "advertisements": [
+        {
+          "file": "account-turn-1.json",
+          "tools": [
+            {
+              "name": "authorization_program",
+              "advertisesWhen": false,
+              "advertisesCompletion": false
+            },
+            {
+              "name": "authorization_program_patch",
+              "advertisesWhen": false,
+              "advertisesCompletion": false
+            }
+          ]
+        }
+      ],
+      "reads": [
+        {
+          "path": "src/paperless/urls.py",
+          "startLine": 60,
+          "endLine": 85
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1340,
+          "endLine": 1465
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1810,
+          "endLine": 1850
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 4925,
+          "endLine": 5005
+        },
+        {
+          "path": "src/documents/versioning.py",
+          "startLine": 130,
+          "endLine": 205
+        },
+        {
+          "path": "src/documents/permissions.py",
+          "startLine": 600,
+          "endLine": 645
+        },
+        {
+          "path": "framework/rest_framework-3.18.1/rest_framework/views.py",
+          "startLine": 300,
+          "endLine": 430
+        },
+        {
+          "path": "framework/rest_framework-3.18.1/rest_framework/permissions.py",
+          "startLine": 200,
+          "endLine": 325
+        },
+        {
+          "path": "src/documents/versioning.py",
+          "startLine": 146,
+          "endLine": 195
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 4941,
+          "endLine": 4995
+        },
+        {
+          "path": "framework/rest_framework-3.18.1/rest_framework/views.py",
+          "startLine": 404,
+          "endLine": 425
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1000,
+          "endLine": 1030
+        },
+        {
+          "path": "src/documents/permissions.py",
+          "startLine": 24,
+          "endLine": 60
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1828,
+          "endLine": 1841
+        }
+      ],
+      "edits": [
+        {
+          "ordinal": 12,
+          "tool": "authorization_program_patch",
+          "revision": "713993fcded8fa5df8dcd6edd275b56f4b5530eaf93ad4f13b88fd5eb426a1f7",
+          "adopted": true,
+          "editedSteps": [
+            {
+              "id": "requested_document_is_version",
+              "op": "value"
+            },
+            {
+              "id": "object_grant_required",
+              "op": "value"
+            },
+            {
+              "id": "authorization_path",
+              "op": "value"
+            },
+            {
+              "id": "authorization_target_owner",
+              "op": "value"
+            },
+            {
+              "id": "selected_document_owner",
+              "op": "value"
+            },
+            {
+              "id": "selected_differs_from_authorized_root",
+              "op": "value"
+            },
+            {
+              "id": "selection_after_authorization",
+              "op": "value"
+            },
+            {
+              "id": "authorization_rechecked_for_selected_document",
+              "op": "value"
+            },
+            {
+              "id": "representation_changes_authorization_target",
+              "op": "value"
+            },
+            {
+              "id": "result",
+              "op": "return"
+            }
+          ]
+        },
+        {
+          "ordinal": 27,
+          "tool": "authorization_program_patch",
+          "revision": "e27caec9eceb49ffddcea259ce2a9539594e5297451a3b5f12d64ccc4549f71f",
+          "adopted": true,
+          "editedSteps": [
+            {
+              "id": "framework_checks_precede_action",
+              "op": "value"
+            },
+            {
+              "id": "configured_global_permissions",
+              "op": "value"
+            },
+            {
+              "id": "root_permission_name",
+              "op": "value"
+            },
+            {
+              "id": "result",
+              "op": "return"
+            }
+          ]
+        }
+      ],
+      "finalRevision": "e27caec9eceb49ffddcea259ce2a9539594e5297451a3b5f12d64ccc4549f71f",
+      "callRelations": [
+        {
+          "stepId": "permission_checker_construct",
+          "source": {
+            "path": "src/documents/permissions.py",
+            "startLine": 624,
+            "endLine": 635
+          },
+          "declarationId": "permission-checker-construction",
+          "relation": {
+            "stepId": "permission_checker_construct",
+            "activation": "always",
+            "completion": "unreviewed",
+            "successorStepIds": [],
+            "resultUse": "ignored",
+            "reason": "The helper constructs the checker before evaluating its short-circuit return; constructor completion is an external runtime fact."
+          },
+          "activation": "unconditional",
+          "valueConsumers": [],
+          "controlConsumers": [],
+          "dependencyPaths": [],
+          "event": {
+            "outcome": "computed",
+            "value": true,
+            "arguments": {
+              "user": {
+                "known": true,
+                "value": 7,
+                "gaps": []
+              }
+            },
+            "gaps": []
+          },
+          "trials": [],
+          "diagnostics": [
+            "call-completion-unreviewed"
+          ],
+          "semanticSupport": "unreviewed",
+          "instruction": "Review this call's exact source: activation (when), normal completion (a dependent guard after the call and before its successors), and returned value are different. A later choose cannot undo a call. False/None can return normally; truthy is only a declared finite completion marker or source Boolean test. Declare coverage.call with your source explanation, completion guard/successors or caught exception, then patch/trial; no source meaning is inferred here."
+        },
+        {
+          "stepId": "object_grant",
+          "source": {
+            "path": "src/documents/permissions.py",
+            "startLine": 624,
+            "endLine": 635
+          },
+          "declarationId": "owner-aware-permission",
+          "relation": {
+            "stepId": "object_grant",
+            "activation": "conditional",
+            "completion": "unreviewed",
+            "successorStepIds": [],
+            "resultUse": "used",
+            "reason": "checker.has_perm is reached only when the root is owned by another user; its Boolean result controls the root authorization guard. The workflow DSL cannot conditionally suppress the external event, so that activation difference remains explicit."
+          },
+          "activation": "unconditional",
+          "valueConsumers": [
+            "permission_allows"
+          ],
+          "controlConsumers": [
+            "authorization"
+          ],
+          "dependencyPaths": [
+            {
+              "from": "object_grant",
+              "to": "permission_allows",
+              "path": "value.choose.else"
+            },
+            {
+              "from": "permission_allows",
+              "to": "authorization",
+              "path": "test.value"
+            }
+          ],
+          "event": {
+            "outcome": "unresolved",
+            "arguments": {
+              "user": {
+                "known": true,
+                "value": 7,
+                "gaps": []
+              },
+              "resource": {
+                "known": true,
+                "value": 10,
+                "gaps": []
+              },
+              "permission": {
+                "known": true,
+                "value": "view_document",
+                "gaps": []
+              }
+            },
+            "gaps": [
+              "external:ObjectPermissionChecker.has_perm"
+            ]
+          },
+          "trials": [],
+          "diagnostics": [
+            "selection-after-call-does-not-control-activation",
+            "call-activation-not-connected",
+            "call-completion-unreviewed"
+          ],
+          "semanticSupport": "unreviewed",
+          "instruction": "Review this call's exact source: activation (when), normal completion (a dependent guard after the call and before its successors), and returned value are different. A later choose cannot undo a call. False/None can return normally; truthy is only a declared finite completion marker or source Boolean test. Declare coverage.call with your source explanation, completion guard/successors or caught exception, then patch/trial; no source meaning is inferred here."
+        }
+      ],
+      "trials": [
+        {
+          "revision": "cdbd0a8ae978110473fad66154aa85c272736d95dc80b5662c7639876629a3b5",
+          "cases": [
+            {
+              "id": "root-default",
+              "termination": "return",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "permission_checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "unresolved",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    },
+                    "resource": {
+                      "known": true,
+                      "value": 10,
+                      "gaps": []
+                    },
+                    "permission": {
+                      "known": true,
+                      "value": "view_document",
+                      "gaps": []
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "empty-version",
+              "termination": "return",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "permission_checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "unresolved",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    },
+                    "resource": {
+                      "known": true,
+                      "value": 10,
+                      "gaps": []
+                    },
+                    "permission": {
+                      "known": true,
+                      "value": "view_document",
+                      "gaps": []
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "explicit-version",
+              "termination": "return",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "permission_checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "unresolved",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    },
+                    "resource": {
+                      "known": true,
+                      "value": 10,
+                      "gaps": []
+                    },
+                    "permission": {
+                      "known": true,
+                      "value": "view_document",
+                      "gaps": []
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "denied",
+              "termination": "authorization",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "permission_checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 9,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 9,
+                      "gaps": []
+                    },
+                    "resource": {
+                      "known": true,
+                      "value": 10,
+                      "gaps": []
+                    },
+                    "permission": {
+                      "known": true,
+                      "value": "view_document",
+                      "gaps": []
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "revision": "713993fcded8fa5df8dcd6edd275b56f4b5530eaf93ad4f13b88fd5eb426a1f7",
+          "cases": [
+            {
+              "id": "root-default",
+              "termination": "return",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "permission_checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "unresolved",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    },
+                    "resource": {
+                      "known": true,
+                      "value": 10,
+                      "gaps": []
+                    },
+                    "permission": {
+                      "known": true,
+                      "value": "view_document",
+                      "gaps": []
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "version-pk-no-query",
+              "termination": "return",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "permission_checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "unresolved",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    },
+                    "resource": {
+                      "known": true,
+                      "value": 10,
+                      "gaps": []
+                    },
+                    "permission": {
+                      "known": true,
+                      "value": "view_document",
+                      "gaps": []
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "empty-version",
+              "termination": "return",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "permission_checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "unresolved",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    },
+                    "resource": {
+                      "known": true,
+                      "value": 10,
+                      "gaps": []
+                    },
+                    "permission": {
+                      "known": true,
+                      "value": "view_document",
+                      "gaps": []
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "denied",
+              "termination": "authorization",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "permission_checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 9,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 9,
+                      "gaps": []
+                    },
+                    "resource": {
+                      "known": true,
+                      "value": 10,
+                      "gaps": []
+                    },
+                    "permission": {
+                      "known": true,
+                      "value": "view_document",
+                      "gaps": []
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "revision": "e27caec9eceb49ffddcea259ce2a9539594e5297451a3b5f12d64ccc4549f71f",
+          "cases": [
+            {
+              "id": "root-default-final",
+              "termination": "return",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "permission_checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "unresolved",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    },
+                    "resource": {
+                      "known": true,
+                      "value": 10,
+                      "gaps": []
+                    },
+                    "permission": {
+                      "known": true,
+                      "value": "view_document",
+                      "gaps": []
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "version-pk-final",
+              "termination": "return",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "permission_checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "unresolved",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    },
+                    "resource": {
+                      "known": true,
+                      "value": 10,
+                      "gaps": []
+                    },
+                    "permission": {
+                      "known": true,
+                      "value": "view_document",
+                      "gaps": []
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "explicit-original-final",
+              "termination": "return",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "permission_checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "unresolved",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    },
+                    "resource": {
+                      "known": true,
+                      "value": 10,
+                      "gaps": []
+                    },
+                    "permission": {
+                      "known": true,
+                      "value": "view_document",
+                      "gaps": []
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "denied-final",
+              "termination": "authorization",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "permission_checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 9,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 9,
+                      "gaps": []
+                    },
+                    "resource": {
+                      "known": true,
+                      "value": 10,
+                      "gaps": []
+                    },
+                    "permission": {
+                      "known": true,
+                      "value": "view_document",
+                      "gaps": []
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "purpose": "A0",
+      "attempt": "advertised-call-contract",
+      "session": "results/skill-ir/skill-dsl-research/development/authorization-call-semantics-v1/runs/A0-advertised-call-contract/sessions/2026-10-15T185911528Z-bf58b7ce",
+      "terminal": "completed",
+      "answerDelivery": "delivered",
+      "codeEpoch": {
+        "commit": "e8522ee9ef50501c6bec7ba5cc75b5fd682528dd",
+        "sourceTree": "32e3cd240331242b40060f3ca996f9a9be35676d",
+        "sourceDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "advertisements": [
+        {
+          "file": "account-turn-1.json",
+          "tools": [
+            {
+              "name": "authorization_program",
+              "advertisesWhen": true,
+              "advertisesCompletion": true
+            },
+            {
+              "name": "authorization_program_patch",
+              "advertisesWhen": true,
+              "advertisesCompletion": true
+            }
+          ]
+        },
+        {
+          "file": "account-turn-4.json",
+          "tools": []
+        }
+      ],
+      "reads": [
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1340,
+          "endLine": 1465
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1810,
+          "endLine": 1850
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 4925,
+          "endLine": 5005
+        },
+        {
+          "path": "src/documents/versioning.py",
+          "startLine": 130,
+          "endLine": 205
+        },
+        {
+          "path": "src/documents/permissions.py",
+          "startLine": 600,
+          "endLine": 645
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 990,
+          "endLine": 1030
+        },
+        {
+          "path": "src/documents/versioning.py",
+          "startLine": 130,
+          "endLine": 205
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 4935,
+          "endLine": 5000
+        },
+        {
+          "path": "src/documents/permissions.py",
+          "startLine": 1,
+          "endLine": 70
+        },
+        {
+          "path": "framework/rest_framework-3.18.1/rest_framework/permissions.py",
+          "startLine": 210,
+          "endLine": 320
+        },
+        {
+          "path": "framework/rest_framework-3.18.1/rest_framework/views.py",
+          "startLine": 404,
+          "endLine": 510
+        },
+        {
+          "path": "src/paperless/urls.py",
+          "startLine": 60,
+          "endLine": 85
+        },
+        {
+          "path": "src/documents/versioning.py",
+          "startLine": 145,
+          "endLine": 195
+        },
+        {
+          "path": "src/documents/permissions.py",
+          "startLine": 28,
+          "endLine": 58
+        },
+        {
+          "path": "framework/rest_framework-3.18.1/rest_framework/permissions.py",
+          "startLine": 225,
+          "endLine": 315
+        },
+        {
+          "path": "framework/rest_framework-3.18.1/rest_framework/views.py",
+          "startLine": 331,
+          "endLine": 342
+        },
+        {
+          "path": "framework/rest_framework-3.18.1/rest_framework/views.py",
+          "startLine": 404,
+          "endLine": 421
+        },
+        {
+          "path": "framework/rest_framework-3.18.1/rest_framework/views.py",
+          "startLine": 507,
+          "endLine": 530
+        },
+        {
+          "path": "src/documents/versioning.py",
+          "startLine": 136,
+          "endLine": 144
+        }
+      ],
+      "edits": [
+        {
+          "ordinal": 8,
+          "tool": "authorization_program_patch",
+          "revision": "1c0a6fcc730a5892096b7053aef4f749be636c745e54bd459be8b7b5be4d8a13",
+          "adopted": true,
+          "editedSteps": [
+            {
+              "id": "permission_checker_construct_completed",
+              "op": "guard",
+              "test": {
+                "op": "eq",
+                "left": {
+                  "binding": "permission_checker_construct"
+                },
+                "right": {
+                  "binding": "permission_checker_construct"
+                }
+              }
+            },
+            {
+              "id": "object_grant",
+              "op": "external",
+              "when": {
+                "op": "truthy",
+                "language": "python",
+                "value": {
+                  "binding": "object_grant_required"
+                }
+              }
+            },
+            {
+              "id": "object_grant_completed",
+              "op": "guard",
+              "when": {
+                "op": "truthy",
+                "language": "python",
+                "value": {
+                  "binding": "object_grant_required"
+                }
+              },
+              "test": {
+                "op": "eq",
+                "left": {
+                  "binding": "object_grant"
+                },
+                "right": {
+                  "binding": "object_grant"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ordinal": 9,
+          "tool": "authorization_program_patch",
+          "revision": "194441d45fa60e1b45bbf36ed17594242f8d34654a11c6f756964ce7aaccaa11",
+          "adopted": true,
+          "editedSteps": [
+            {
+              "id": "object_grant",
+              "op": "external",
+              "when": {
+                "op": "truthy",
+                "language": "python",
+                "value": {
+                  "binding": "object_grant_required"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ordinal": 27,
+          "tool": "authorization_program_patch",
+          "revision": "b34556e436f75e09b73f88d213dc8957ebede9e95e5fa9fea43d94393ff39707",
+          "adopted": true,
+          "editedSteps": [
+            {
+              "id": "route_prefix",
+              "op": "value"
+            },
+            {
+              "id": "action_method",
+              "op": "value"
+            },
+            {
+              "id": "global_model_permission",
+              "op": "value"
+            },
+            {
+              "id": "inherited_object_permission_invoked",
+              "op": "value"
+            },
+            {
+              "id": "version_selection_mode",
+              "op": "value"
+            },
+            {
+              "id": "invalid_version_outcome",
+              "op": "value"
+            },
+            {
+              "id": "file_open_failure_outcome",
+              "op": "value"
+            },
+            {
+              "id": "result",
+              "op": "return"
+            }
+          ]
+        },
+        {
+          "ordinal": 34,
+          "tool": "authorization_program_patch",
+          "revision": "014c63b280a6be6632d5caaa60bc667a5860a6f6c1b283e41af0b309036dfb2f",
+          "adopted": true,
+          "editedSteps": []
+        },
+        {
+          "ordinal": 36,
+          "tool": "authorization_program_patch",
+          "revision": "fc7fec6e401e60028201150183d62dc5e292974650d719702868538cee70b6bb",
+          "adopted": true,
+          "editedSteps": []
+        },
+        {
+          "ordinal": 37,
+          "tool": "authorization_program_patch",
+          "revision": "de20d99bd050288431fe4f2844059b76f384149a1705645bbf33f2d7a8324cf6",
+          "adopted": true,
+          "editedSteps": []
+        },
+        {
+          "ordinal": 42,
+          "tool": "authorization_program_patch",
+          "revision": "b10b432e7a33a4a87b1f7b7e789c876d08c1e61eb39084db7958ba180d6eec6c",
+          "adopted": true,
+          "editedSteps": []
+        },
+        {
+          "ordinal": 43,
+          "tool": "authorization_program_patch",
+          "revision": "572418e87e3d3c605a159fa4fb8f77e42c3b0af155085b7b785b64a4114a26d2",
+          "adopted": true,
+          "editedSteps": [
+            {
+              "id": "latest_manager_selected",
+              "op": "value"
+            },
+            {
+              "id": "latest_query_newest_first",
+              "op": "value"
+            },
+            {
+              "id": "latest_fallback_to_root",
+              "op": "value"
+            }
+          ]
+        }
+      ],
+      "finalRevision": "572418e87e3d3c605a159fa4fb8f77e42c3b0af155085b7b785b64a4114a26d2",
+      "callRelations": [
+        {
+          "stepId": "permission_checker_construct",
+          "source": {
+            "path": "src/documents/permissions.py",
+            "startLine": 624,
+            "endLine": 635
+          },
+          "declarationId": "owner-aware-constructor-call",
+          "relation": {
+            "stepId": "permission_checker_construct",
+            "activation": "always",
+            "completion": "required",
+            "completionGuardId": "permission_checker_construct_completed",
+            "completionMeaning": "normal-return",
+            "successorStepIds": [
+              "owner_allows",
+              "object_grant"
+            ],
+            "resultUse": "ignored",
+            "reason": "Constructor must complete before the short-circuit expression."
+          },
+          "activation": "unconditional",
+          "valueConsumers": [],
+          "controlConsumers": [
+            "permission_checker_construct_completed"
+          ],
+          "dependencyPaths": [
+            {
+              "from": "permission_checker_construct",
+              "to": "permission_checker_construct_completed",
+              "path": "test.left"
+            },
+            {
+              "from": "permission_checker_construct",
+              "to": "permission_checker_construct_completed",
+              "path": "test.right"
+            }
+          ],
+          "event": {
+            "outcome": "computed",
+            "value": true,
+            "arguments": {
+              "user": {
+                "known": true,
+                "value": 7,
+                "gaps": []
+              }
+            },
+            "gaps": []
+          },
+          "completionGuard": {
+            "id": "permission_checker_construct_completed",
+            "test": {
+              "op": "eq",
+              "left": {
+                "binding": "permission_checker_construct"
+              },
+              "right": {
+                "binding": "permission_checker_construct"
+              }
+            },
+            "outcome": "computed"
+          },
+          "trials": [],
+          "diagnostics": [],
+          "semanticSupport": "unreviewed",
+          "instruction": "Review this call's exact source: activation (when), normal completion (a dependent guard after the call and before its successors), and returned value are different. A later choose cannot undo a call. False/None can return normally; truthy is only a declared finite completion marker or source Boolean test. Declare coverage.call with your source explanation, completion guard/successors or caught exception, then patch/trial; no source meaning is inferred here."
+        },
+        {
+          "stepId": "object_grant",
+          "source": {
+            "path": "src/documents/permissions.py",
+            "startLine": 624,
+            "endLine": 635
+          },
+          "declarationId": "owner-aware-return-and-grant-call",
+          "relation": {
+            "stepId": "object_grant",
+            "activation": "conditional",
+            "completion": "required",
+            "completionGuardId": "object_grant_completed",
+            "completionMeaning": "normal-return",
+            "successorStepIds": [
+              "permission_allows",
+              "authorization"
+            ],
+            "resultUse": "used",
+            "reason": "Conditional grant result controls authorization."
+          },
+          "activation": {
+            "op": "truthy",
+            "language": "python",
+            "value": {
+              "binding": "object_grant_required"
+            }
+          },
+          "valueConsumers": [
+            "permission_allows"
+          ],
+          "controlConsumers": [
+            "object_grant_completed",
+            "authorization"
+          ],
+          "dependencyPaths": [
+            {
+              "from": "object_grant",
+              "to": "object_grant_completed",
+              "path": "test.left"
+            },
+            {
+              "from": "object_grant",
+              "to": "object_grant_completed",
+              "path": "test.right"
+            },
+            {
+              "from": "object_grant",
+              "to": "permission_allows",
+              "path": "value.choose.else"
+            },
+            {
+              "from": "permission_allows",
+              "to": "authorization",
+              "path": "test.value"
+            }
+          ],
+          "event": {
+            "outcome": "skipped",
+            "value": null,
+            "gaps": []
+          },
+          "completionGuard": {
+            "id": "object_grant_completed",
+            "test": {
+              "op": "eq",
+              "left": {
+                "binding": "object_grant"
+              },
+              "right": {
+                "binding": "object_grant"
+              }
+            },
+            "outcome": "skipped"
+          },
+          "trials": [],
+          "diagnostics": [],
+          "semanticSupport": "unreviewed",
+          "instruction": "Review this call's exact source: activation (when), normal completion (a dependent guard after the call and before its successors), and returned value are different. A later choose cannot undo a call. False/None can return normally; truthy is only a declared finite completion marker or source Boolean test. Declare coverage.call with your source explanation, completion guard/successors or caught exception, then patch/trial; no source meaning is inferred here."
+        }
+      ],
+      "trials": [
+        {
+          "revision": "194441d45fa60e1b45bbf36ed17594242f8d34654a11c6f756964ce7aaccaa11",
+          "cases": [
+            {
+              "id": "root-default",
+              "termination": "return",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "permission_checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "skipped"
+                }
+              ]
+            },
+            {
+              "id": "empty-version",
+              "termination": "return",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "permission_checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "skipped"
+                }
+              ]
+            },
+            {
+              "id": "explicit-version",
+              "termination": "return",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "permission_checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "skipped"
+                }
+              ]
+            },
+            {
+              "id": "denied",
+              "termination": "authorization",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "permission_checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 9,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 9,
+                      "gaps": []
+                    },
+                    "resource": {
+                      "known": true,
+                      "value": 10,
+                      "gaps": []
+                    },
+                    "permission": {
+                      "known": true,
+                      "value": "view_document",
+                      "gaps": []
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "revision": "194441d45fa60e1b45bbf36ed17594242f8d34654a11c6f756964ce7aaccaa11",
+          "cases": [
+            {
+              "id": "requested-version-pk",
+              "termination": "return",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "permission_checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "skipped"
+                }
+              ]
+            },
+            {
+              "id": "force-original",
+              "termination": "return",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "permission_checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "skipped"
+                }
+              ]
+            },
+            {
+              "id": "explicit-deleted",
+              "termination": "return",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "permission_checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "skipped"
+                }
+              ]
+            },
+            {
+              "id": "unrelated-version",
+              "termination": "not-found",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "permission_checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "skipped"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "revision": "b34556e436f75e09b73f88d213dc8957ebede9e95e5fa9fea43d94393ff39707",
+          "cases": [
+            {
+              "id": "root-default-v2",
+              "termination": "return",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "permission_checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "skipped"
+                }
+              ]
+            },
+            {
+              "id": "empty-version-v2",
+              "termination": "return",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "permission_checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "skipped"
+                }
+              ]
+            },
+            {
+              "id": "requested-version-original-v2",
+              "termination": "return",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "permission_checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "skipped"
+                }
+              ]
+            },
+            {
+              "id": "denied-v2",
+              "termination": "authorization",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "permission_checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 9,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 9,
+                      "gaps": []
+                    },
+                    "resource": {
+                      "known": true,
+                      "value": 10,
+                      "gaps": []
+                    },
+                    "permission": {
+                      "known": true,
+                      "value": "view_document",
+                      "gaps": []
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "revision": "de20d99bd050288431fe4f2844059b76f384149a1705645bbf33f2d7a8324cf6",
+          "cases": [
+            {
+              "id": "owner-short-circuit-final",
+              "termination": "return",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "permission_checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "skipped"
+                }
+              ]
+            },
+            {
+              "id": "grant-denial-final",
+              "termination": "authorization",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "permission_checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 9,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 9,
+                      "gaps": []
+                    },
+                    "resource": {
+                      "known": true,
+                      "value": 10,
+                      "gaps": []
+                    },
+                    "permission": {
+                      "known": true,
+                      "value": "view_document",
+                      "gaps": []
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "revision": "572418e87e3d3c605a159fa4fb8f77e42c3b0af155085b7b785b64a4114a26d2",
+          "cases": [
+            {
+              "id": "latest-visible-after-latest-source-edit",
+              "termination": "return",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "permission_checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "skipped"
+                }
+              ]
+            },
+            {
+              "id": "latest-including-deleted-after-latest-source-edit",
+              "termination": "return",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "permission_checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "skipped"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "purpose": "A1",
+      "attempt": "first",
+      "session": "results/skill-ir/skill-dsl-research/development/authorization-call-semantics-v1/runs/A1-first/sessions/2026-10-15T192846226Z-92aed67c",
+      "terminal": "completed",
+      "answerDelivery": "delivered",
+      "codeEpoch": {
+        "commit": "e8522ee9ef50501c6bec7ba5cc75b5fd682528dd",
+        "sourceTree": "32e3cd240331242b40060f3ca996f9a9be35676d",
+        "sourceDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "advertisements": [
+        {
+          "file": "account-turn-1.json",
+          "tools": [
+            {
+              "name": "authorization_program",
+              "advertisesWhen": true,
+              "advertisesCompletion": true
+            },
+            {
+              "name": "authorization_program_patch",
+              "advertisesWhen": true,
+              "advertisesCompletion": true
+            }
+          ]
+        },
+        {
+          "file": "account-turn-3.json",
+          "tools": []
+        }
+      ],
+      "reads": [
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1700,
+          "endLine": 1905
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1320,
+          "endLine": 1455
+        },
+        {
+          "path": "src/documents/versioning.py",
+          "startLine": 120,
+          "endLine": 210
+        },
+        {
+          "path": "src/documents/permissions.py",
+          "startLine": 600,
+          "endLine": 645
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 4941,
+          "endLine": 4995
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1000,
+          "endLine": 1048
+        },
+        {
+          "path": "src/documents/permissions.py",
+          "startLine": 1,
+          "endLine": 60
+        },
+        {
+          "path": "framework/rest_framework-3.18.1/rest_framework/views.py",
+          "startLine": 270,
+          "endLine": 360
+        },
+        {
+          "path": "framework/rest_framework-3.18.1/rest_framework/views.py",
+          "startLine": 400,
+          "endLine": 535
+        },
+        {
+          "path": "framework/rest_framework-3.18.1/rest_framework/permissions.py",
+          "startLine": 200,
+          "endLine": 314
+        },
+        {
+          "path": "src/paperless/urls.py",
+          "startLine": 1,
+          "endLine": 180
+        }
+      ],
+      "edits": [
+        {
+          "ordinal": 9,
+          "tool": "authorization_program",
+          "revision": "6c13f5f2f3f0cce577393d7a96ad44fba2be829c812f5566bc1bc5a5b7d5c7cb",
+          "editedSteps": [
+            {
+              "id": "request_doc",
+              "op": "select"
+            },
+            {
+              "id": "result",
+              "op": "return"
+            }
+          ]
+        },
+        {
+          "ordinal": 10,
+          "tool": "authorization_program",
+          "revision": "98c3645da9960b6e2ff159f32ae8382868752df3f806bf88d2d4f92bef399e88",
+          "editedSteps": [
+            {
+              "id": "request_doc",
+              "op": "select"
+            },
+            {
+              "id": "result",
+              "op": "return"
+            }
+          ]
+        },
+        {
+          "ordinal": 11,
+          "tool": "authorization_program",
+          "revision": "3fb5e19f9e1544f9fb4bdc622d39a4ef1370063d47122239481ab7ff3ba1048a",
+          "adopted": true,
+          "editedSteps": [
+            {
+              "id": "request_doc",
+              "op": "select"
+            },
+            {
+              "id": "result",
+              "op": "return"
+            }
+          ]
+        },
+        {
+          "ordinal": 20,
+          "tool": "authorization_program_patch",
+          "revision": "5c270088406a3d33d99a04fc148c29636a7d8b90ede3f80b2bc0425ab6db1f07",
+          "adopted": true,
+          "editedSteps": [
+            {
+              "id": "request_doc_exists",
+              "op": "guard",
+              "test": {
+                "op": "not",
+                "arg": {
+                  "op": "is-null",
+                  "value": {
+                    "binding": "request_doc"
+                  }
+                }
+              }
+            },
+            {
+              "id": "root_candidate",
+              "op": "select"
+            },
+            {
+              "id": "root_doc",
+              "op": "value"
+            },
+            {
+              "id": "checker_construct",
+              "op": "external",
+              "when": {
+                "op": "not",
+                "arg": {
+                  "op": "is-null",
+                  "value": {
+                    "binding": "actor"
+                  }
+                }
+              }
+            },
+            {
+              "id": "checker_construct_completed",
+              "op": "guard",
+              "when": {
+                "op": "not",
+                "arg": {
+                  "op": "is-null",
+                  "value": {
+                    "binding": "actor"
+                  }
+                }
+              },
+              "test": {
+                "op": "eq",
+                "left": {
+                  "binding": "checker_construct"
+                },
+                "right": {
+                  "binding": "checker_construct"
+                }
+              }
+            },
+            {
+              "id": "object_grant",
+              "op": "external",
+              "when": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "is-null",
+                      "value": {
+                        "binding": "actor"
+                      }
+                    }
+                  },
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "is-null",
+                      "value": {
+                        "binding": "root_doc.owner_id"
+                      }
+                    }
+                  },
+                  {
+                    "op": "neq",
+                    "left": {
+                      "binding": "root_doc.owner_id"
+                    },
+                    "right": {
+                      "binding": "actor.id"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "object_grant_completed",
+              "op": "guard",
+              "when": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "is-null",
+                      "value": {
+                        "binding": "actor"
+                      }
+                    }
+                  },
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "is-null",
+                      "value": {
+                        "binding": "root_doc.owner_id"
+                      }
+                    }
+                  },
+                  {
+                    "op": "neq",
+                    "left": {
+                      "binding": "root_doc.owner_id"
+                    },
+                    "right": {
+                      "binding": "actor.id"
+                    }
+                  }
+                ]
+              },
+              "test": {
+                "op": "eq",
+                "left": {
+                  "binding": "object_grant"
+                },
+                "right": {
+                  "binding": "object_grant"
+                }
+              }
+            },
+            {
+              "id": "permission_allowed",
+              "op": "value"
+            },
+            {
+              "id": "view_permission",
+              "op": "guard",
+              "test": {
+                "op": "truthy",
+                "language": "python",
+                "value": {
+                  "binding": "permission_allowed"
+                }
+              }
+            },
+            {
+              "id": "latest_version",
+              "op": "select"
+            },
+            {
+              "id": "latest_or_root",
+              "op": "value"
+            },
+            {
+              "id": "requested_version_id",
+              "op": "value",
+              "when": {
+                "op": "truthy",
+                "language": "python",
+                "value": {
+                  "binding": "request.version"
+                }
+              }
+            },
+            {
+              "id": "explicit_version",
+              "op": "select",
+              "when": {
+                "op": "truthy",
+                "language": "python",
+                "value": {
+                  "binding": "request.version"
+                }
+              }
+            },
+            {
+              "id": "explicit_version_belongs",
+              "op": "guard",
+              "when": {
+                "op": "truthy",
+                "language": "python",
+                "value": {
+                  "binding": "request.version"
+                }
+              },
+              "test": {
+                "op": "any",
+                "args": [
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "explicit_version.id"
+                    },
+                    "right": {
+                      "binding": "root_doc.id"
+                    }
+                  },
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "explicit_version.root_document_id"
+                    },
+                    "right": {
+                      "binding": "root_doc.id"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "file_doc",
+              "op": "value"
+            },
+            {
+              "id": "use_archive",
+              "op": "value"
+            },
+            {
+              "id": "returned_file",
+              "op": "value"
+            },
+            {
+              "id": "result",
+              "op": "return"
+            }
+          ]
+        },
+        {
+          "ordinal": 42,
+          "tool": "authorization_program_patch",
+          "revision": "3f2d50a47b520092c8ddb98ef0ac58c577676287a878a9b69dfe7db8e0b2eb8b",
+          "adopted": true,
+          "editedSteps": [
+            {
+              "id": "model_view_perm",
+              "op": "external"
+            },
+            {
+              "id": "model_view_perm_completed",
+              "op": "guard",
+              "test": {
+                "op": "eq",
+                "left": {
+                  "binding": "model_view_perm"
+                },
+                "right": {
+                  "binding": "model_view_perm"
+                }
+              }
+            },
+            {
+              "id": "framework_view_permission",
+              "op": "guard",
+              "test": {
+                "op": "truthy",
+                "language": "python",
+                "value": {
+                  "binding": "model_view_perm"
+                }
+              }
+            },
+            {
+              "id": "root_candidate",
+              "op": "select",
+              "when": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "is-null",
+                      "value": {
+                        "binding": "request_doc.root_document_id"
+                      }
+                    }
+                  },
+                  {
+                    "op": "is-null",
+                    "value": {
+                      "binding": "related_root"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "latest_version",
+              "op": "select",
+              "when": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "all",
+                      "args": [
+                        {
+                          "op": "not",
+                          "arg": {
+                            "op": "is-null",
+                            "value": {
+                              "binding": "request_doc.root_document_id"
+                            }
+                          }
+                        },
+                        {
+                          "op": "is-null",
+                          "value": {
+                            "binding": "request.version"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "truthy",
+                      "language": "python",
+                      "value": {
+                        "binding": "request.version"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "latest_or_root",
+              "op": "value",
+              "when": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "all",
+                      "args": [
+                        {
+                          "op": "not",
+                          "arg": {
+                            "op": "is-null",
+                            "value": {
+                              "binding": "request_doc.root_document_id"
+                            }
+                          }
+                        },
+                        {
+                          "op": "is-null",
+                          "value": {
+                            "binding": "request.version"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "truthy",
+                      "language": "python",
+                      "value": {
+                        "binding": "request.version"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "ordinal": 43,
+          "tool": "authorization_program_patch",
+          "revision": "0f9cc346129c483f3349ae11abfe560a456b59680abbae0915a42f8c9e4fe3d0",
+          "adopted": true,
+          "editedSteps": [
+            {
+              "id": "model_permission_allowed",
+              "op": "value"
+            },
+            {
+              "id": "framework_view_permission",
+              "op": "guard",
+              "test": {
+                "op": "truthy",
+                "language": "python",
+                "value": {
+                  "binding": "model_permission_allowed"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ordinal": 47,
+          "tool": "authorization_program",
+          "revision": "b756bf9ea4276e8fbaa112a741b2eebc9cf29694696388a0f86166b12a830113",
+          "editedSteps": [
+            {
+              "id": "model_view_perm",
+              "op": "external"
+            },
+            {
+              "id": "model_view_perm_completed",
+              "op": "guard",
+              "test": {
+                "op": "eq",
+                "left": {
+                  "binding": "model_view_perm"
+                },
+                "right": {
+                  "binding": "model_view_perm"
+                }
+              }
+            },
+            {
+              "id": "model_permission_allowed",
+              "op": "value"
+            },
+            {
+              "id": "framework_view_permission",
+              "op": "guard",
+              "test": {
+                "op": "truthy",
+                "language": "python",
+                "value": {
+                  "binding": "model_permission_allowed"
+                }
+              }
+            },
+            {
+              "id": "request_doc",
+              "op": "select"
+            },
+            {
+              "id": "request_doc_exists",
+              "op": "guard",
+              "test": {
+                "op": "not",
+                "arg": {
+                  "op": "is-null",
+                  "value": {
+                    "binding": "request_doc"
+                  }
+                }
+              }
+            },
+            {
+              "id": "root_candidate",
+              "op": "select",
+              "when": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "is-null",
+                      "value": {
+                        "binding": "request_doc.root_document_id"
+                      }
+                    }
+                  },
+                  {
+                    "op": "is-null",
+                    "value": {
+                      "binding": "related_root"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "root_doc",
+              "op": "value"
+            },
+            {
+              "id": "checker_construct",
+              "op": "external",
+              "when": {
+                "op": "not",
+                "arg": {
+                  "op": "is-null",
+                  "value": {
+                    "binding": "actor"
+                  }
+                }
+              }
+            },
+            {
+              "id": "checker_construct_completed",
+              "op": "guard",
+              "when": {
+                "op": "not",
+                "arg": {
+                  "op": "is-null",
+                  "value": {
+                    "binding": "actor"
+                  }
+                }
+              },
+              "test": {
+                "op": "eq",
+                "left": {
+                  "binding": "checker_construct"
+                },
+                "right": {
+                  "binding": "checker_construct"
+                }
+              }
+            },
+            {
+              "id": "object_grant",
+              "op": "external",
+              "when": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "is-null",
+                      "value": {
+                        "binding": "actor"
+                      }
+                    }
+                  },
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "is-null",
+                      "value": {
+                        "binding": "root_doc.owner_id"
+                      }
+                    }
+                  },
+                  {
+                    "op": "neq",
+                    "left": {
+                      "binding": "root_doc.owner_id"
+                    },
+                    "right": {
+                      "binding": "actor.id"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "object_grant_completed",
+              "op": "guard",
+              "when": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "is-null",
+                      "value": {
+                        "binding": "actor"
+                      }
+                    }
+                  },
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "is-null",
+                      "value": {
+                        "binding": "root_doc.owner_id"
+                      }
+                    }
+                  },
+                  {
+                    "op": "neq",
+                    "left": {
+                      "binding": "root_doc.owner_id"
+                    },
+                    "right": {
+                      "binding": "actor.id"
+                    }
+                  }
+                ]
+              },
+              "test": {
+                "op": "eq",
+                "left": {
+                  "binding": "object_grant"
+                },
+                "right": {
+                  "binding": "object_grant"
+                }
+              }
+            },
+            {
+              "id": "permission_allowed",
+              "op": "value"
+            },
+            {
+              "id": "view_permission",
+              "op": "guard",
+              "test": {
+                "op": "truthy",
+                "language": "python",
+                "value": {
+                  "binding": "permission_allowed"
+                }
+              }
+            },
+            {
+              "id": "latest_version",
+              "op": "select",
+              "when": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "all",
+                      "args": [
+                        {
+                          "op": "not",
+                          "arg": {
+                            "op": "is-null",
+                            "value": {
+                              "binding": "request_doc.root_document_id"
+                            }
+                          }
+                        },
+                        {
+                          "op": "is-null",
+                          "value": {
+                            "binding": "request.version"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "truthy",
+                      "language": "python",
+                      "value": {
+                        "binding": "request.version"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "latest_or_root",
+              "op": "value",
+              "when": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "all",
+                      "args": [
+                        {
+                          "op": "not",
+                          "arg": {
+                            "op": "is-null",
+                            "value": {
+                              "binding": "request_doc.root_document_id"
+                            }
+                          }
+                        },
+                        {
+                          "op": "is-null",
+                          "value": {
+                            "binding": "request.version"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "truthy",
+                      "language": "python",
+                      "value": {
+                        "binding": "request.version"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "requested_version_id",
+              "op": "value",
+              "when": {
+                "op": "truthy",
+                "language": "python",
+                "value": {
+                  "binding": "request.version"
+                }
+              }
+            },
+            {
+              "id": "explicit_version",
+              "op": "select",
+              "when": {
+                "op": "truthy",
+                "language": "python",
+                "value": {
+                  "binding": "request.version"
+                }
+              }
+            },
+            {
+              "id": "explicit_version_belongs",
+              "op": "guard",
+              "when": {
+                "op": "truthy",
+                "language": "python",
+                "value": {
+                  "binding": "request.version"
+                }
+              },
+              "test": {
+                "op": "any",
+                "args": [
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "explicit_version.id"
+                    },
+                    "right": {
+                      "binding": "root_doc.id"
+                    }
+                  },
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "explicit_version.root_document_id"
+                    },
+                    "right": {
+                      "binding": "root_doc.id"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "file_doc",
+              "op": "value"
+            },
+            {
+              "id": "use_archive",
+              "op": "value"
+            },
+            {
+              "id": "returned_file",
+              "op": "value"
+            },
+            {
+              "id": "result",
+              "op": "return"
+            }
+          ]
+        },
+        {
+          "ordinal": 48,
+          "tool": "authorization_program",
+          "revision": "d635f988c91527f0e1610a2e85324034c5ae08b50ab1fc87e0f78d482e24bd45",
+          "adopted": true,
+          "editedSteps": []
+        },
+        {
+          "ordinal": 51,
+          "tool": "authorization_program_patch",
+          "revision": "2bd1094e472b8f19fc7b2e96e16bf2a84369b8eca549b481315e831a652f9ebe",
+          "adopted": true,
+          "editedSteps": [
+            {
+              "id": "root_doc",
+              "op": "value"
+            }
+          ]
+        }
+      ],
+      "finalRevision": "2bd1094e472b8f19fc7b2e96e16bf2a84369b8eca549b481315e831a652f9ebe",
+      "callRelations": [
+        {
+          "stepId": "model_view_perm",
+          "source": {
+            "path": "framework/rest_framework-3.18.1/rest_framework/permissions.py",
+            "startLine": 233,
+            "endLine": 246
+          },
+          "declarationId": "framework-model-permission-call",
+          "relation": {
+            "stepId": "model_view_perm",
+            "activation": "always",
+            "completion": "required",
+            "completionGuardId": "model_view_perm_completed",
+            "completionMeaning": "normal-return",
+            "successorStepIds": [
+              "model_permission_allowed",
+              "framework_view_permission",
+              "request_doc"
+            ],
+            "resultUse": "used",
+            "reason": "APIView.initial checks class permissions before action dispatch; DjangoModelPermissions delegates the GET permission list to request.user.has_perms."
+          },
+          "activation": "unconditional",
+          "valueConsumers": [
+            "model_permission_allowed"
+          ],
+          "controlConsumers": [
+            "model_view_perm_completed",
+            "framework_view_permission"
+          ],
+          "dependencyPaths": [
+            {
+              "from": "model_view_perm",
+              "to": "model_view_perm_completed",
+              "path": "test.left"
+            },
+            {
+              "from": "model_view_perm",
+              "to": "model_view_perm_completed",
+              "path": "test.right"
+            },
+            {
+              "from": "model_view_perm",
+              "to": "model_permission_allowed",
+              "path": "value"
+            },
+            {
+              "from": "model_permission_allowed",
+              "to": "framework_view_permission",
+              "path": "test.value"
+            }
+          ],
+          "event": {
+            "outcome": "unresolved",
+            "arguments": {
+              "user": {
+                "known": true,
+                "value": 7,
+                "gaps": []
+              },
+              "permissions": {
+                "known": true,
+                "value": [
+                  "documents.view_document"
+                ],
+                "gaps": []
+              }
+            },
+            "gaps": [
+              "external:User.has_perms"
+            ]
+          },
+          "completionGuard": {
+            "id": "model_view_perm_completed",
+            "test": {
+              "op": "eq",
+              "left": {
+                "binding": "model_view_perm"
+              },
+              "right": {
+                "binding": "model_view_perm"
+              }
+            },
+            "outcome": "unresolved"
+          },
+          "trials": [],
+          "diagnostics": [],
+          "semanticSupport": "unreviewed",
+          "instruction": "Review this call's exact source: activation (when), normal completion (a dependent guard after the call and before its successors), and returned value are different. A later choose cannot undo a call. False/None can return normally; truthy is only a declared finite completion marker or source Boolean test. Declare coverage.call with your source explanation, completion guard/successors or caught exception, then patch/trial; no source meaning is inferred here."
+        },
+        {
+          "stepId": "checker_construct",
+          "source": {
+            "path": "src/documents/permissions.py",
+            "startLine": 624,
+            "endLine": 635
+          },
+          "declarationId": "checker-construction",
+          "relation": {
+            "stepId": "checker_construct",
+            "activation": "conditional",
+            "completion": "required",
+            "completionGuardId": "checker_construct_completed",
+            "completionMeaning": "normal-return",
+            "successorStepIds": [
+              "object_grant",
+              "permission_allowed"
+            ],
+            "resultUse": "ignored",
+            "reason": "When request.user is not None, the helper constructs ObjectPermissionChecker before owner/grant short-circuiting."
+          },
+          "activation": {
+            "op": "not",
+            "arg": {
+              "op": "is-null",
+              "value": {
+                "binding": "actor"
+              }
+            }
+          },
+          "valueConsumers": [],
+          "controlConsumers": [
+            "checker_construct_completed"
+          ],
+          "dependencyPaths": [
+            {
+              "from": "checker_construct",
+              "to": "checker_construct_completed",
+              "path": "test.left"
+            },
+            {
+              "from": "checker_construct",
+              "to": "checker_construct_completed",
+              "path": "test.right"
+            }
+          ],
+          "event": {
+            "outcome": "conditional",
+            "value": true,
+            "arguments": {
+              "user": {
+                "known": true,
+                "value": 7,
+                "gaps": []
+              }
+            },
+            "gaps": []
+          },
+          "completionGuard": {
+            "id": "checker_construct_completed",
+            "test": {
+              "op": "eq",
+              "left": {
+                "binding": "checker_construct"
+              },
+              "right": {
+                "binding": "checker_construct"
+              }
+            },
+            "outcome": "conditional"
+          },
+          "trials": [],
+          "diagnostics": [],
+          "semanticSupport": "unreviewed",
+          "instruction": "Review this call's exact source: activation (when), normal completion (a dependent guard after the call and before its successors), and returned value are different. A later choose cannot undo a call. False/None can return normally; truthy is only a declared finite completion marker or source Boolean test. Declare coverage.call with your source explanation, completion guard/successors or caught exception, then patch/trial; no source meaning is inferred here."
+        },
+        {
+          "stepId": "object_grant",
+          "source": {
+            "path": "src/documents/permissions.py",
+            "startLine": 634,
+            "endLine": 635
+          },
+          "declarationId": "object-grant-call",
+          "relation": {
+            "stepId": "object_grant",
+            "activation": "conditional",
+            "completion": "required",
+            "completionGuardId": "object_grant_completed",
+            "completionMeaning": "normal-return",
+            "successorStepIds": [
+              "permission_allowed",
+              "view_permission"
+            ],
+            "resultUse": "used",
+            "reason": "checker.has_perm runs only for a non-null owner different from the request user; false is a normal denial result."
+          },
+          "activation": {
+            "op": "all",
+            "args": [
+              {
+                "op": "not",
+                "arg": {
+                  "op": "is-null",
+                  "value": {
+                    "binding": "actor"
+                  }
+                }
+              },
+              {
+                "op": "not",
+                "arg": {
+                  "op": "is-null",
+                  "value": {
+                    "binding": "root_doc.owner_id"
+                  }
+                }
+              },
+              {
+                "op": "neq",
+                "left": {
+                  "binding": "root_doc.owner_id"
+                },
+                "right": {
+                  "binding": "actor.id"
+                }
+              }
+            ]
+          },
+          "valueConsumers": [
+            "permission_allowed"
+          ],
+          "controlConsumers": [
+            "object_grant_completed",
+            "view_permission"
+          ],
+          "dependencyPaths": [
+            {
+              "from": "object_grant",
+              "to": "object_grant_completed",
+              "path": "test.left"
+            },
+            {
+              "from": "object_grant",
+              "to": "object_grant_completed",
+              "path": "test.right"
+            },
+            {
+              "from": "object_grant",
+              "to": "permission_allowed",
+              "path": "value.choose.else.choose.else"
+            },
+            {
+              "from": "permission_allowed",
+              "to": "view_permission",
+              "path": "test.value"
+            }
+          ],
+          "event": {
+            "outcome": "skipped",
+            "value": null,
+            "gaps": []
+          },
+          "completionGuard": {
+            "id": "object_grant_completed",
+            "test": {
+              "op": "eq",
+              "left": {
+                "binding": "object_grant"
+              },
+              "right": {
+                "binding": "object_grant"
+              }
+            },
+            "outcome": "skipped"
+          },
+          "trials": [],
+          "diagnostics": [],
+          "semanticSupport": "unreviewed",
+          "instruction": "Review this call's exact source: activation (when), normal completion (a dependent guard after the call and before its successors), and returned value are different. A later choose cannot undo a call. False/None can return normally; truthy is only a declared finite completion marker or source Boolean test. Declare coverage.call with your source explanation, completion guard/successors or caught exception, then patch/trial; no source meaning is inferred here."
+        }
+      ],
+      "trials": [
+        {
+          "revision": "5c270088406a3d33d99a04fc148c29636a7d8b90ede3f80b2bc0425ab6db1f07",
+          "cases": [
+            {
+              "id": "root-default",
+              "termination": "return",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "skipped"
+                }
+              ]
+            },
+            {
+              "id": "empty-version",
+              "termination": "return",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "skipped"
+                }
+              ]
+            },
+            {
+              "id": "explicit-version",
+              "termination": "return",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "skipped"
+                }
+              ]
+            },
+            {
+              "id": "denied",
+              "termination": "HTTP 403: insufficient permissions",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 9,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 9,
+                      "gaps": []
+                    },
+                    "resource": {
+                      "known": true,
+                      "value": 10,
+                      "gaps": []
+                    },
+                    "permission": {
+                      "known": true,
+                      "value": "view_document",
+                      "gaps": []
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "revision": "d635f988c91527f0e1610a2e85324034c5ae08b50ab1fc87e0f78d482e24bd45",
+          "cases": [
+            {
+              "id": "current-root-default",
+              "termination": "return",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "model_view_perm",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    },
+                    "permissions": {
+                      "known": true,
+                      "value": [
+                        "documents.view_document"
+                      ],
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "skipped"
+                }
+              ]
+            },
+            {
+              "id": "current-empty-version",
+              "termination": "return",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "model_view_perm",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    },
+                    "permissions": {
+                      "known": true,
+                      "value": [
+                        "documents.view_document"
+                      ],
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "skipped"
+                }
+              ]
+            },
+            {
+              "id": "current-explicit-original",
+              "termination": "return",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "model_view_perm",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    },
+                    "permissions": {
+                      "known": true,
+                      "value": [
+                        "documents.view_document"
+                      ],
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "skipped"
+                }
+              ]
+            },
+            {
+              "id": "current-denied",
+              "termination": "HTTP 403: insufficient permissions",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "model_view_perm",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 9,
+                      "gaps": []
+                    },
+                    "permissions": {
+                      "known": true,
+                      "value": [
+                        "documents.view_document"
+                      ],
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 9,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 9,
+                      "gaps": []
+                    },
+                    "resource": {
+                      "known": true,
+                      "value": 10,
+                      "gaps": []
+                    },
+                    "permission": {
+                      "known": true,
+                      "value": "view_document",
+                      "gaps": []
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "revision": "2bd1094e472b8f19fc7b2e96e16bf2a84369b8eca549b481315e831a652f9ebe",
+          "cases": [
+            {
+              "id": "root-ignores-unrelated-preload",
+              "termination": "return",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "model_view_perm",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    },
+                    "permissions": {
+                      "known": true,
+                      "value": [
+                        "documents.view_document"
+                      ],
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 7,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "skipped"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "purpose": "S0",
+      "attempt": "first",
+      "session": "results/skill-ir/skill-dsl-research/development/authorization-call-semantics-v1/runs/S0-first/sessions/2026-10-15T201746640Z-2796375a",
+      "terminal": "completed",
+      "answerDelivery": "delivered",
+      "codeEpoch": {
+        "commit": "e8522ee9ef50501c6bec7ba5cc75b5fd682528dd",
+        "sourceTree": "32e3cd240331242b40060f3ca996f9a9be35676d",
+        "sourceDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "advertisements": [
+        {
+          "file": "account-turn-1.json",
+          "tools": [
+            {
+              "name": "authorization_program",
+              "advertisesWhen": true,
+              "advertisesCompletion": true
+            },
+            {
+              "name": "authorization_program_patch",
+              "advertisesWhen": true,
+              "advertisesCompletion": true
+            }
+          ]
+        }
+      ],
+      "reads": [
+        {
+          "path": "src/documents/versioning.py",
+          "startLine": 130,
+          "endLine": 205
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1350,
+          "endLine": 1460
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1825,
+          "endLine": 1845
+        },
+        {
+          "path": "src/documents/permissions.py",
+          "startLine": 615,
+          "endLine": 640
+        },
+        {
+          "path": "src/documents/permissions.py",
+          "startLine": 1,
+          "endLine": 70
+        },
+        {
+          "path": "framework/rest_framework-3.18.1/rest_framework/views.py",
+          "startLine": 390,
+          "endLine": 430
+        },
+        {
+          "path": "src/paperless/urls.py",
+          "startLine": 60,
+          "endLine": 90
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 990,
+          "endLine": 1035
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 4930,
+          "endLine": 5010
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1828,
+          "endLine": 1843
+        },
+        {
+          "path": "src/documents/permissions.py",
+          "startLine": 20,
+          "endLine": 60
+        },
+        {
+          "path": "framework/rest_framework-3.18.1/rest_framework/permissions.py",
+          "startLine": 220,
+          "endLine": 320
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 2495,
+          "endLine": 2510
+        },
+        {
+          "path": "src/documents/versioning.py",
+          "startLine": 1,
+          "endLine": 35
+        },
+        {
+          "path": "src/paperless/urls.py",
+          "startLine": 280,
+          "endLine": 305
+        },
+        {
+          "path": "src/paperless/urls.py",
+          "startLine": 245,
+          "endLine": 281
+        },
+        {
+          "path": "src/paperless/urls.py",
+          "startLine": 92,
+          "endLine": 112
+        }
+      ],
+      "edits": [
+        {
+          "ordinal": 8,
+          "tool": "authorization_program_patch",
+          "revision": "2a0cb8d6457fb074c750f5e448fdfb5b2401d090de7c604098e32ad6cca46c29",
+          "adopted": true,
+          "editedSteps": [
+            {
+              "id": "application_forbidden_condition",
+              "op": "value"
+            },
+            {
+              "id": "authorization",
+              "op": "guard",
+              "test": {
+                "op": "not",
+                "arg": {
+                  "op": "truthy",
+                  "language": "python",
+                  "value": {
+                    "binding": "application_forbidden_condition"
+                  }
+                }
+              }
+            },
+            {
+              "id": "authorization_path",
+              "op": "value"
+            }
+          ]
+        },
+        {
+          "ordinal": 13,
+          "tool": "authorization_program_patch",
+          "revision": "290cf0defc3713af961535ca2608a128c628fc110f8277182ded38ed5815d93c",
+          "adopted": true,
+          "editedSteps": [
+            {
+              "id": "result",
+              "op": "return"
+            }
+          ]
+        },
+        {
+          "ordinal": 19,
+          "tool": "authorization_program_patch",
+          "revision": "8c19c4d5ab3d880602f1409154f589a864bb6a1c922ac2e598331e57a7e22141",
+          "adopted": true,
+          "editedSteps": []
+        },
+        {
+          "ordinal": 25,
+          "tool": "authorization_program_patch",
+          "revision": "428c27a76e593abdcbb31f2ea9db8705e0380756cb26db0dafae288b51457178",
+          "adopted": true,
+          "editedSteps": [
+            {
+              "id": "drf_format_call",
+              "op": "value"
+            },
+            {
+              "id": "drf_negotiation_call",
+              "op": "value"
+            },
+            {
+              "id": "drf_version_call",
+              "op": "value"
+            },
+            {
+              "id": "drf_authentication_call",
+              "op": "value"
+            },
+            {
+              "id": "drf_permission_call",
+              "op": "value"
+            },
+            {
+              "id": "drf_throttle_call",
+              "op": "value"
+            }
+          ]
+        },
+        {
+          "ordinal": 29,
+          "tool": "authorization_program_patch",
+          "revision": "7deb493faeab8c75998216c9fbd7cb5d3291659872bd4821e35b44e6f2d16b41",
+          "adopted": true,
+          "editedSteps": [
+            {
+              "id": "latest_order",
+              "op": "value"
+            }
+          ]
+        },
+        {
+          "ordinal": 35,
+          "tool": "authorization_program_patch",
+          "revision": "10a12796dbcb003bac19c4208940fde82abe305bc3d74e05b09e71736a0dbc20",
+          "adopted": true,
+          "editedSteps": [
+            {
+              "id": "route_shape",
+              "op": "value"
+            }
+          ]
+        }
+      ],
+      "finalRevision": "10a12796dbcb003bac19c4208940fde82abe305bc3d74e05b09e71736a0dbc20",
+      "callRelations": [
+        {
+          "stepId": "permission_checker_construct",
+          "source": {
+            "path": "src/documents/permissions.py",
+            "startLine": 624,
+            "endLine": 635
+          },
+          "declarationId": "owner-checker-construction",
+          "relation": {
+            "stepId": "permission_checker_construct",
+            "activation": "always",
+            "completion": "required",
+            "completionGuardId": "permission_checker_construct_completed",
+            "completionMeaning": "normal-return",
+            "successorStepIds": [
+              "owner_allows",
+              "object_grant"
+            ],
+            "resultUse": "ignored",
+            "reason": "Construction must return normally before owner/grant expression."
+          },
+          "activation": "unconditional",
+          "valueConsumers": [],
+          "controlConsumers": [
+            "permission_checker_construct_completed"
+          ],
+          "dependencyPaths": [
+            {
+              "from": "permission_checker_construct",
+              "to": "permission_checker_construct_completed",
+              "path": "test.left"
+            },
+            {
+              "from": "permission_checker_construct",
+              "to": "permission_checker_construct_completed",
+              "path": "test.right"
+            }
+          ],
+          "event": {
+            "outcome": "computed",
+            "value": true,
+            "arguments": {
+              "user": {
+                "known": true,
+                "value": 7,
+                "gaps": []
+              }
+            },
+            "gaps": []
+          },
+          "completionGuard": {
+            "id": "permission_checker_construct_completed",
+            "test": {
+              "op": "eq",
+              "left": {
+                "binding": "permission_checker_construct"
+              },
+              "right": {
+                "binding": "permission_checker_construct"
+              }
+            },
+            "outcome": "computed"
+          },
+          "trials": [],
+          "diagnostics": [],
+          "semanticSupport": "unreviewed",
+          "instruction": "Review this call's exact source: activation (when), normal completion (a dependent guard after the call and before its successors), and returned value are different. A later choose cannot undo a call. False/None can return normally; truthy is only a declared finite completion marker or source Boolean test. Declare coverage.call with your source explanation, completion guard/successors or caught exception, then patch/trial; no source meaning is inferred here."
+        },
+        {
+          "stepId": "object_grant",
+          "source": {
+            "path": "src/documents/permissions.py",
+            "startLine": 624,
+            "endLine": 635
+          },
+          "declarationId": "owner-or-grant-expression",
+          "relation": {
+            "stepId": "object_grant",
+            "activation": "conditional",
+            "completion": "required",
+            "completionGuardId": "object_grant_completed",
+            "completionMeaning": "normal-return",
+            "successorStepIds": [
+              "permission_allows",
+              "application_forbidden_condition",
+              "authorization"
+            ],
+            "resultUse": "used",
+            "reason": "has_perm is called only after false owner/unowned terms and its value feeds the caller condition."
+          },
+          "activation": {
+            "op": "truthy",
+            "language": "python",
+            "value": {
+              "binding": "object_grant_required"
+            }
+          },
+          "valueConsumers": [
+            "permission_allows",
+            "authorization_path"
+          ],
+          "controlConsumers": [
+            "object_grant_completed",
+            "authorization"
+          ],
+          "dependencyPaths": [
+            {
+              "from": "object_grant",
+              "to": "object_grant_completed",
+              "path": "test.left"
+            },
+            {
+              "from": "object_grant",
+              "to": "object_grant_completed",
+              "path": "test.right"
+            },
+            {
+              "from": "object_grant",
+              "to": "permission_allows",
+              "path": "value.choose.else"
+            },
+            {
+              "from": "permission_allows",
+              "to": "application_forbidden_condition",
+              "path": "value.test.value"
+            },
+            {
+              "from": "application_forbidden_condition",
+              "to": "authorization",
+              "path": "test.arg.value"
+            },
+            {
+              "from": "object_grant",
+              "to": "authorization_path",
+              "path": "value.choose.else.choose.test.value"
+            },
+            {
+              "from": "permission_allows",
+              "to": "result",
+              "path": "value.record.owner_or_grant_result"
+            },
+            {
+              "from": "application_forbidden_condition",
+              "to": "result",
+              "path": "value.record.application_forbidden_condition"
+            },
+            {
+              "from": "authorization_path",
+              "to": "result",
+              "path": "value.record.authorization_path"
+            }
+          ],
+          "event": {
+            "outcome": "skipped",
+            "value": null,
+            "gaps": []
+          },
+          "completionGuard": {
+            "id": "object_grant_completed",
+            "test": {
+              "op": "eq",
+              "left": {
+                "binding": "object_grant"
+              },
+              "right": {
+                "binding": "object_grant"
+              }
+            },
+            "outcome": "skipped"
+          },
+          "trials": [],
+          "diagnostics": [],
+          "semanticSupport": "unreviewed",
+          "instruction": "Review this call's exact source: activation (when), normal completion (a dependent guard after the call and before its successors), and returned value are different. A later choose cannot undo a call. False/None can return normally; truthy is only a declared finite completion marker or source Boolean test. Declare coverage.call with your source explanation, completion guard/successors or caught exception, then patch/trial; no source meaning is inferred here."
+        }
+      ],
+      "trials": [
+        {
+          "revision": "290cf0defc3713af961535ca2608a128c628fc110f8277182ded38ed5815d93c",
+          "cases": [
+            {
+              "id": "root-latest-visible-archive",
+              "termination": "return",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "permission_checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 99,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 99,
+                      "gaps": []
+                    },
+                    "resource": {
+                      "known": true,
+                      "value": 10,
+                      "gaps": []
+                    },
+                    "permission": {
+                      "known": true,
+                      "value": "view_document",
+                      "gaps": []
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "pk-is-version-no-param",
+              "termination": "return",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "permission_checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 99,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 99,
+                      "gaps": []
+                    },
+                    "resource": {
+                      "known": true,
+                      "value": 10,
+                      "gaps": []
+                    },
+                    "permission": {
+                      "known": true,
+                      "value": "view_document",
+                      "gaps": []
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "explicit-deleted-version-original",
+              "termination": "return",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "permission_checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 99,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 99,
+                      "gaps": []
+                    },
+                    "resource": {
+                      "known": true,
+                      "value": 10,
+                      "gaps": []
+                    },
+                    "permission": {
+                      "known": true,
+                      "value": "view_document",
+                      "gaps": []
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "empty-version-latest-all",
+              "termination": "return",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "permission_checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 99,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 99,
+                      "gaps": []
+                    },
+                    "resource": {
+                      "known": true,
+                      "value": 10,
+                      "gaps": []
+                    },
+                    "permission": {
+                      "known": true,
+                      "value": "view_document",
+                      "gaps": []
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "revision": "428c27a76e593abdcbb31f2ea9db8705e0380756cb26db0dafae288b51457178",
+          "cases": [
+            {
+              "id": "object-grant-true-is-forbidden",
+              "termination": "authorization-forbidden-on-truthy-owner-aware-result",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "permission_checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 99,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 99,
+                      "gaps": []
+                    },
+                    "resource": {
+                      "known": true,
+                      "value": 10,
+                      "gaps": []
+                    },
+                    "permission": {
+                      "known": true,
+                      "value": "view_document",
+                      "gaps": []
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "unrelated-explicit-version",
+              "termination": "not-found",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "permission_checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 99,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 99,
+                      "gaps": []
+                    },
+                    "resource": {
+                      "known": true,
+                      "value": 10,
+                      "gaps": []
+                    },
+                    "permission": {
+                      "known": true,
+                      "value": "view_document",
+                      "gaps": []
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "invalid-version-string",
+              "termination": "not-found",
+              "conditions": [],
+              "calls": [
+                {
+                  "id": "permission_checker_construct",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 99,
+                      "gaps": []
+                    }
+                  }
+                },
+                {
+                  "id": "object_grant",
+                  "outcome": "computed",
+                  "arguments": {
+                    "user": {
+                      "known": true,
+                      "value": 99,
+                      "gaps": []
+                    },
+                    "resource": {
+                      "known": true,
+                      "value": 10,
+                      "gaps": []
+                    },
+                    "permission": {
+                      "known": true,
+                      "value": "view_document",
+                      "gaps": []
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

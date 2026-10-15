@@ -2,6 +2,22 @@
 
 The script accepts `-ProgramContext directed` to send current results, premises, branch rules and all original duties with retrievable details and incremental account packets. `full` remains the default. Use `-InputFile <file>` for another explicit input, or the additional `invalid-version`, `other-root-version` and `no-external` variants. Printed output separates actual execution from coverage gaps; `execution.md` retains the complete current view. An exhausted tool phase can receive one tools-free final answer within its original time/display budget, only after a confirmed terminal. Unknown requests are not resent.
 
+## Current BO explicit program
+
+BO's [frozen A0 original](../../../results/skill-ir/skill-dsl-research/development/authorization-call-semantics-v1/authoring/automatic-program.json) has 45 steps and no developer semantic edits. The model repaired permission-query activation and the checker-construction completion prerequisite after one named public-contract repair. Run the same raw explicitly:
+
+```powershell
+./examples/authorization-assessment/download-workflow/run.ps1 -ProgramContext directed -ProgramFile ./results/skill-ir/skill-dsl-research/development/authorization-call-semantics-v1/authoring/automatic-program.json
+./examples/authorization-assessment/download-workflow/run.ps1 -Variant empty-version -ProgramContext directed -ProgramFile ./results/skill-ir/skill-dsl-research/development/authorization-call-semantics-v1/authoring/automatic-program.json
+./examples/authorization-assessment/download-workflow/run.ps1 -Variant no-external -ProgramContext directed -ProgramFile ./results/skill-ir/skill-dsl-research/development/authorization-call-semantics-v1/authoring/automatic-program.json
+```
+
+The [separate evaluation axes](../../../results/skill-ir/skill-dsl-research/development/authorization-call-semantics-v1/evaluation/program-summary.json) record 18/18 finite field matches and 18/18 local traces, plus 7/8 additional traces. Owner and unowned-root paths skip `has_perm`, while missing constructor completion remains a condition. The anonymous outer helper bypass is still absent, so this is a partial analysis aid. Default facts select document 11/archive; empty version selects document 12/original; denial and invalid version stop before a file return. These descriptors do not execute a download or certify full request authorization.
+
+In directed mode, program details default to a compact overview; request `format:raw` for current complete details. The full context default and the retained BL program default remain compatible. The complete original four-question duty remains; the A0 answer explains completion and anonymous behavior, but leaves precise latest-version ordering unreviewed. Natural explanation does not repair the executable raw. Authoring, consumption and maintenance evidence are recorded separately in the [BO study](../../../results/skill-ir/skill-dsl-research/development/authorization-call-semantics-v1/).
+
+The BO finite queue is closed with unmet criteria. Two real consumer pairs use 1.045 and 2.269 times baseline total observed tokens, with partial quality improvements; no net saving is established. S0 separately adapts a copied source inversion in three local finite cases and does not replace A0. See the [execution record](../../../results/skill-ir/skill-dsl-research/development/authorization-call-semantics-v1/execution.md) and [acceptance matrix](../../../results/skill-ir/skill-dsl-research/development/authorization-call-semantics-v1/verification/acceptance-matrix.json).
+
 ## Current BN explicit program
 
 BN's A0 revised the existing raw program from 14 to 21 steps and used three trial batches. Its exact [frozen original](../../../results/skill-ir/skill-dsl-research/development/authorization-purpose-scoped-program-v1/authoring/automatic-program.json) has no developer semantic edits. Run it explicitly:

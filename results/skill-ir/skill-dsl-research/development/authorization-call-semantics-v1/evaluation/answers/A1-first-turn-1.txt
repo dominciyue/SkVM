@@ -1,0 +1,94 @@
+## 程序编写结果
+
+已生成并采纳持久化可执行程序 `paperless-document-download`：
+
+- 活动修订：`d24b20b6a08fa0ee55f67563b5196408bb365c65bd4f0154133e1a11a8d0db8a`
+- 已采纳草稿：`d635f988c91527f0e1610a2e85324034c5ae08b50ab1fc87e0f78d482e24bd45`
+- 共 23 个有序步骤，覆盖框架权限、文档与根文档查找、所有者/对象授权、版本选择、原件/归档选择和返回文件。
+- 当前无机械诊断错误。
+- 不受有限模型支持的行为保留为明确 gap，没有推断任何实际授权。
+
+## 1. 请求如何确定文档及返回文件
+
+路由把 `documents` 注册到相应 ViewSet；`download` 是 detail GET action，因此 URL 中的 `pk` 标识初始请求文档。`download()` 将其交给 `file_response()`，并把响应作为附件返回。[src/paperless/urls.py:74-78] [src/documents/views.py:1834-1839]
+
+处理顺序如下：
+
+1. 使用 `pk` 从包含已删除文档的 manager 中查找请求文档；不存在则 404。[src/documents/views.py:1408-1415] [src/documents/views.py:1429-1441]
+2. 若请求文档是版本，则解析其根文档；预载根文档优先，否则按 `root_document_id` 查找，找不到时源代码回退到请求文档本身。[src/documents/versioning.py:146-156]
+3. 授权通过后才选择实际文件文档：
+   - 请求的 `pk` 本身是版本，且完全没有 `version` 参数（值为 `None`）：直接使用该请求版本。
+   - 其他情况都相对于根文档解析版本。[src/documents/views.py:1375-1399]
+   - `version` 缺失或为空字符串等 Python-falsy 值：选择索引最高的最新版本；没有版本则回退根文档。该下载路径包含已删除版本。[src/documents/versioning.py:159-182]
+   - truthy 的 `version`：转换为整数并查找对应文档。候选必须是根文档本身，或者是该根文档的直接版本；不存在或属于其他根时返回 404。[src/documents/versioning.py:184-195]
+   - 非整数版本值转换失败，也被下载处理转换为 404。[src/documents/views.py:1375-1386]
+4. 表示选择：
+   - 只有 `original=true`（精确字符串）要求原件。
+   - 否则，所选文件文档存在归档版本时返回归档文件。
+   - 没有归档版本时回退原始源文件。[src/documents/views.py:1368-1373] [src/documents/views.py:1442-1448]
+5. `serve_file()` 对归档使用 `archive_file` 和 PDF 类型；原件使用 `source_file` 及源 MIME 类型，并构造 `FileResponse`、下载文件名和 Content-Disposition。[src/documents/views.py:4941-4995]
+
+## 2. 授权检查及其相对顺序
+
+`DocumentViewSet` 声明：
+
+- `IsAuthenticated`
+- `PaperlessObjectPermissions`
+
+[src/documents/views.py:1008-1027]
+
+DRF 在调用 `download()` 前执行认证及 view-level permissions。[framework/rest_framework-3.18.1/rest_framework/views.py:319-355] [framework/rest_framework-3.18.1/rest_framework/views.py:490-516]
+
+对于 GET，`PaperlessObjectPermissions` 要求模型级 `documents.view_document` 权限；底层通过 `request.user.has_perms(...)` 判断。[src/documents/permissions.py:30-53] [framework/rest_framework-3.18.1/rest_framework/permissions.py:233-246]
+
+随后应用层执行自己的对象检查：
+
+1. 先查找请求文档及其根文档。
+2. 对**根文档**调用 `has_perms_owner_aware(user, "view_document", root_doc)`。
+3. 根文档无 owner、owner 是当前用户，或者 Guardian checker 对根文档返回授权时通过；否则立即返回 403。[src/documents/views.py:1401-1427] [src/documents/permissions.py:624-635]
+4. 只有通过该检查后才进行版本及原件/归档选择。[src/documents/views.py:1429-1448]
+
+这个 action 没有通过标准 `get_object()` 调用框架的 `check_object_permissions()`；实际对象级决策是上述显式根文档检查。
+
+## 3. 备用版本会不会改变被授权资源
+
+通常不会。
+
+- 被授权资源是由初始 `pk` 得出的 `root_doc`。
+- 显式 `version` 只在授权之后改变 `file_doc`。
+- `original=true` 或归档选择只改变最终文件表示。
+- 源代码没有对所选版本再次执行 owner 或对象授权检查。
+
+因此，一个所有者不同的子版本仍可被返回，只要：
+
+1. 请求者通过框架级模型权限；
+2. 请求者对根文档通过 owner-aware 检查；
+3. 所选版本确实是该根文档或其直接版本。
+
+请求 `pk` 本身就是版本时，授权仍以解析出的根文档为目标；仅在没有 `version` 参数时，返回的文件文档保持为该请求版本。[src/documents/views.py:1388-1399] [src/documents/views.py:1416-1427]
+
+## 4. 条件结论和缺失事实
+
+当前证据无法确定一次真实部署请求最终是否成功，因为缺少：
+
+- `User.has_perms(user, ["documents.view_document"])` 的真实结果——阻止确定框架级准入。
+- 实际根文档 owner 和 Guardian 对象授权——阻止确定 owner-aware 检查结果。
+- 实际数据库内容及删除状态——阻止确定真实请求文档、根文档和版本。
+- 存储文件是否存在以及 FileResponse I/O 是否成功——阻止确定实际字节响应；文件缺失会被 action 转成 404。
+- 认证后端、会话/令牌及部署配置——源码任务将 principal 设为“已认证用户”，但这些运行时事实未提供。
+- 代理、外部存储及部署行为——不能由允许的源码推断。
+
+开发场景和外部 assumptions 仅用于试跑，不是实际授权证据。
+
+## 试跑结果
+
+在显式加入“模型权限通过”的开发假设后：
+
+| 场景 | 结果 |
+|---|---|
+| `pk=10, version=null` | 授权资源 10；选择版本 12；无归档；`v2-original.txt` |
+| `pk=10, version=""` | 同样按最新版本处理，返回 `v2-original.txt` |
+| `pk=10, version="11", original="true"` | 授权资源仍为 10；选择版本 11；返回 `v1-original.pdf` |
+| 用户 9、模型权限通过但根文档对象授权为 false | 在版本选择前终止为 HTTP 403 |
+
+剩余程序限制是：非整数版本的捕获式 404、DRF 路由合成，以及实际文件 I/O/MIME/文件名响应没有被有限关系模型完全执行；这些行为已保留为明确 gap。

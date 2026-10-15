@@ -3146,7 +3146,7 @@ BM8实施细节：当前协议只在thread/start注册dynamicTools。宿主预�
 
 ### 14.54 BO source call semantics and program repair
 
-2026-10-16根据用户预先授权的BN夜间接续，登记[BO0–BO17](../superpowers/plans/2026-10-16-authorization-call-semantics-and-program-repair.md)，基线21100431，identity `authorization-call-semantics-v1`。BO9工程已发布，A0-first实际交付并暴露公开when契约遗漏；补公开工具说明后做一个具名确认，不改executor；BN历史原件和结果不变。开发gpt-6-astra/high，实验官方gpt-5.6-sol/high，第三方暂停。
+2026-10-16根据用户预先授权的BN夜间接续，登记[BO0–BO17](../superpowers/plans/2026-10-16-authorization-call-semantics-and-program-repair.md)，基线21100431，identity `authorization-call-semantics-v1`。工程754b72f3与公开契约修复e8522ee9已发布；一个具名确认后固定A0为45步，18/18字段及局部调用轨迹、额外7/8，匿名激活仍缺。A1独立23步，调用轨迹17/18加8/8、值7/18，上游未知与局部错误分列；普通运行、搬移和变化撤回已验证。两对总token比1.045/2.269，质量改善伴随成本增加，无净收益；S0三组副本局部反转成立，完整语义未达。有限队列已以completed-with-unmet-criteria收束，八attempt全交付，15观察turn，0活动/未知。BN历史原件和结果不变。开发gpt-6-astra/high，实验官方gpt-5.6-sol/high，第三方暂停。
 
 **调用语义。** 当前executor已有when/guard，A0多做权限调用不是缺短路能力；调用结果随后被choose忽略也不能撤销事件。区分激活、正常完成与返回值使用；作者从原源码判定关系，宿主检查当前来源、步骤、依赖和事件。复用program-obligations/authoringTarget，不再要求全部已读调用填写新表。值False/None可以是正常返回，不能默认当失败；只有匿名反例证明既有表达不足才加可选完成表示，保持旧协议行为，不按函数或仓库名称自动补guard。
 
