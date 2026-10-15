@@ -2,25 +2,25 @@
 
 更新于2026-10-16。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BN0–BN19](../superpowers/plans/2026-10-15-authorization-purpose-scoped-authoring-and-consumption.md)，completed-with-unmet-criteria，实质成果bd613fc2已发布用户origin并核对。八用途/14观察turn全部交付，0活动/未知；A0字段17/18、严格4/18，A1字段1/18受额外全局条件影响、值14/18、严格0/18。两对C总token1.409/1.731倍，S0副本三场景局部反转符合但严格语义未达。保留显式分析辅助，不升级BL默认，不自动开新一轮；不向BM补行。
-- 方法合同：[spec§14.53](skill-ir-aot-optimization-spec.md#1453-bn-purpose-scoped-authoring-and-consumption)；复核和开发过程统一在[研究§7.75](skill-dsl-research.md#775-bm-复核与-bn-聚焦修稿和消费线路调整)。BM实际结果保留在§7.74。
-- identity：`authorization-purpose-scoped-program-v1`，已核对规划基线`a1ea1f3ca26b8f5ee4b088c359eefbbb442d7beb`。继续`skill-ir-aot`，只推用户origin，不建分支/worktree；开发线程独占代码、共享方法文档与Git写入。
+- 当前任务书：[BO0–BO17](../superpowers/plans/2026-10-16-authorization-call-semantics-and-program-repair.md)，planned-not-started。用户已授权BN结束后接续一轮，父线程完成实际结果/代码复核后派发。BN最终21100431已发布，八用途/14观察turn全部交付且0活动/未知；A0字段17/18、严格4/18，A1值14/18但上游条件超出旧局部oracle。两对C总token1.409/1.731倍，完整语义与净收益未达，不重开BN。
+- 方法合同：[spec§14.54](skill-ir-aot-optimization-spec.md#1454-bo-source-call-semantics-and-program-repair)；复核与开发过程统一在[研究§7.76](skill-dsl-research.md#776-bn-复核与-bo-源码调用语义修稿决定)。BN结果保留在§7.75。
+- identity：`authorization-call-semantics-v1`，已核对规划基线`21100431f6a427ffe46f7d07f822f231aafe567e`。继续`skill-ir-aot`，只推用户origin，不建分支/worktree；新开发线程独占代码、共享方法文档与Git写入。
 - 开发`gpt-6-astra/high`，按用户指定；实验沿已授权官方账号`gpt-5.6-sol/high`。第三方暂停，OWUI/历史未知ShareLink仅离线，旧未知和保护证据保持。接管时tracked干净，原有未跟踪`.tmp/`不清理。
 
 约8–12小时为参考实质任务窗口，不等待或重复验证凑时长。沿BK恢复合同区分旧unknown、本地宿主与研究处置；不重发原请求、不改终态/费用，核查隔离后可开展已授权独立用途。新额度/认证及重复通道故障按任务书暂停对应通道，仍推进独立工程。
 
 ## 本轮责任与处置
 
-| 责任 | 实际缺口 | BN动作 |
+| 责任 | 实际缺口 | BO动作 |
 |---|---|---|
-| 分支补齐 | 初始化控制、权限短路仍缺 | 相关候选和真实patch/trial已接通；保留未达，后续范围由用户决定 |
-| 执行含义 | 字段匹配不足以证明轨迹 | 18场景三轴及额外8轨迹已评价；上游额外条件明确范围差异 |
-| 消费实现 | 程序消费仍更贵 | 用途工具和真实目录增量已验证，停止继续堆摘要 |
-| 最终交付 | 八份整题均仍partial | 原四问交付已保留，11/32逐题full，不以局部值代替质量 |
-| 自动化与维护 | S0局部反转成功但全语义不完整 | 28步维护稿和固定21步A0分列，源码变化撤回旧返回 |
-| 效果判断 | 两对C总token均更高 | 两对串行同epoch已结束；无正摊销，不追加第三对 |
+| 调用保真 | when已支持，但作者仍先无条件查询再选择值 | 检查激活、正常完成、取值及后继依赖，具体事件反馈供自动修稿 |
+| 执行含义 | constructor存在但没有实际控制依赖 | 匿名反例验证；先复用guard/when，必要完成字段须有反例且兼容 |
+| 范围评价 | A1全局条件与局部oracle口径不同 | 先固定局部轨迹/上游前提分层，不删合法条件、不回填旧评分 |
+| 消费实现 | token仍更高，已有增量并非未接通 | 从实际发送包定位details重复，复用引用，不再叠摘要机制 |
+| 自动化与维护 | 自然正确说明不能修好程序 | A0修稿、A1独立、固定A0消费与S0维护原件分轨 |
+| 效果判断 | BN两对存在质量与成本取舍 | BO首对后有据决定确认，最多两对，不采样到正向 |
 
-普通入口保留BL A0默认，[Download说明](../../examples/authorization-assessment/download-workflow/README.md#current-bn-explicit-program)优先给BN显式命令：默认11/archive、空版本12/original、denied/invalid无文件返回，no-external仍缺构造控制条件。五场景零模型及真实C0/C1/C2已交付；S0维护稿不替换固定A0。完整请求证明和稳定净收益未达，没有历史或开发者稿补位。
+普通入口当前仍保留BL A0默认，[Download说明](../../examples/authorization-assessment/download-workflow/README.md#current-bn-explicit-program)提供BN显式命令。BO沿同入口交付自己的原稿与事件过程；缺稿记未运行，不以旧稿或开发者稿填位。五正常用途、两条件确认、最多两具名共享修复，遇已知缺陷先修再继续；完成有限队列后停止，不自动派发BP。
 
 ## 继承的真实结果
 
