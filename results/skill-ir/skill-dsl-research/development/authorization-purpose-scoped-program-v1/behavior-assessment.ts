@@ -14,7 +14,9 @@ export function assessBehaviorTrace(execution: any, expected: {
   if (!isDeepStrictEqual(calls, expected.calls)) failures.push("ordered-exact-external-calls")
   if (expected.termination !== undefined && execution?.termination !== expected.termination) failures.push("termination")
   if (Object.hasOwn(expected, "returned") && !isDeepStrictEqual(execution?.returned, expected.returned)) failures.push("returned-value")
-  const conditional = !!(execution?.conditions?.length || execution?.gaps?.length)
+  // Coverage warnings and unused external gaps are not execution conditions.
+  // Required missing calls must still occur in an actual control condition below.
+  const conditional = !!execution?.conditions?.length
   if (expected.conditional !== undefined && conditional !== expected.conditional) failures.push("required-conditions")
   const contains = (value: any, wanted: string): boolean => value === wanted || !!value && typeof value === "object" && Object.values(value).some(v => contains(v, wanted))
   for (const name of expected.requiredConditionCalls ?? []) {

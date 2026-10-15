@@ -8,7 +8,7 @@
 
 **Tech Stack：** TypeScript、Bun、Zod、现有源码索引与官方 Codex account adapter；开发 `gpt-6-astra/high`，实验沿用已授权官方 `gpt-5.6-sol/high`。第三方 API 暂停。
 
-日期：2026-10-15。规划基线：`a1ea1f3ca26b8f5ee4b088c359eefbbb442d7beb`。新 identity：`authorization-purpose-scoped-program-v1`。状态：`in-progress`。BN0–BN9 工程已通过离线验证，正在提交；BN10 起真实用途尚未派发。实际接管 HEAD 为 `1b95fa964647b5b41572c7ce0e5b5a883c595aae`。约 8–12 小时为实质工作窗口，提前完成可交付，不等待、重复审计或重复抽样凑时长。
+日期：2026-10-15。规划基线：`a1ea1f3ca26b8f5ee4b088c359eefbbb442d7beb`。新 identity：`authorization-purpose-scoped-program-v1`。状态：`in-progress`。BN0–BN9 工程已通过离线验证并发布662b9c0c；BN10 A0已完成冻结，BN11以后继续。实际接管 HEAD 为 `1b95fa964647b5b41572c7ce0e5b5a883c595aae`。约 8–12 小时为实质工作窗口，提前完成可交付，不等待、重复审计或重复抽样凑时长。
 
 ## 一、接管上下文
 
@@ -177,9 +177,9 @@ function changedById<T extends { id: string }>(before: readonly T[], after: read
 
 ### BN10 A0 真实修订当前自动稿
 
-- [ ] 使用新 identity，读取 BM 固定 A0 原稿原字节、当前允许源码、原四问、普通输入和新作者流程。这是独立新用途，不能改 BM 原件或谎称恢复其旧终态。
-- [ ] 观察真实 patch/trial。首次出现共享接口故障立即停受影响派发，定位、红绿修复并登记 epoch，再做一次具名确认；不要先跑完整队列。
-- [ ] 作者只看到自己的试算实际输出，不看到 evaluator 正确值/失败场景清单。冻结其最终原稿供消费，记录首稿、每次修改、最终稿、未修改 no-change。
+- [x] 使用新 identity，读取 BM 固定 A0 原稿原字节、当前允许源码、原四问、普通输入和新作者流程。这是独立新用途，不能改 BM 原件或谎称恢复其旧终态。
+- [x] 观察真实 patch/trial。首次出现共享接口故障立即停受影响派发，定位、红绿修复并登记 epoch，再做一次具名确认；不要先跑完整队列。
+- [x] 作者只看到自己的试算实际输出，不看到 evaluator 正确值/失败场景清单。冻结其最终原稿供消费，记录首稿、每次修改、最终稿、未修改 no-change。
 
 ### BN11 A1 从空稿的独立作者
 

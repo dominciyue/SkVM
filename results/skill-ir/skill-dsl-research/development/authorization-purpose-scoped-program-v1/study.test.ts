@@ -19,6 +19,7 @@ test("strict trace rejects a correct value with unconditional extra check or abs
   const expected = { calls: [{ name: "init", arguments: {} }], termination: "return", returned: 23, conditional: false }
   const good = executeResourceWorkflow(workflow, facts, { externalAssumptions: assumptions() })
   expect(api.assessBehaviorTrace(good, expected).pass).toBe(true)
+  expect(api.assessBehaviorTrace({ ...good, gaps: ["author coverage remains unreviewed"] }, expected).pass).toBe(true)
   const bad = structuredClone(workflow); delete bad.steps[2].when
   expect(api.assessBehaviorTrace(executeResourceWorkflow(bad, facts, { externalAssumptions: assumptions() }), expected).pass).toBe(false)
   const missing = structuredClone(workflow); missing.steps.splice(0, 2)

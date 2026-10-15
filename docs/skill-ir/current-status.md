@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-**BN0–BN19正在实施，当前完成工程与零模型核验，真实效果待测。** [任务书](../superpowers/plans/2026-10-15-authorization-purpose-scoped-authoring-and-consumption.md)由 `gpt-6-astra/high` 接管，规划基线 `a1ea1f3c`、工程起点 `1b95fa96`，identity 为 `authorization-purpose-scoped-program-v1`。BN0–BN9接通按用途的实际工具/schema、相关函数候选、revision/trial进展、账户来源目录增量和自包含最终交接。184项生产定向测试/1613断言、主类型、6项研究测试/32断言及研究类型通过；ShareLink离线迁移零模型通过。先提交工程，再按A0/A1、串行B0/C0等有限用途执行；此刻没有BN实验效果。full默认、原四问和BM原件保持。方法见[spec§14.53](skill-ir-aot-optimization-spec.md#1453-bn-purpose-scoped-authoring-and-consumption)，过程见[研究§7.75](skill-dsl-research.md#775-bm-复核与-bn-聚焦修稿和消费线路调整)。
+**BN0–BN19正在实施，工程已提交发布，A0真实修稿已完成，有限队列继续。** [任务书](../superpowers/plans/2026-10-15-authorization-purpose-scoped-authoring-and-consumption.md)由 `gpt-6-astra/high` 接管，规划基线 `a1ea1f3c`、工程起点 `1b95fa96`，identity 为 `authorization-purpose-scoped-program-v1`。BN0–BN9接通按用途的实际工具/schema、相关函数候选、revision/trial进展、账户来源目录增量和自包含最终交接。184项生产定向测试/1613断言、主类型、6项研究测试/32断言及研究类型通过；ShareLink离线迁移零模型通过。工程662b9c0c已推用户origin并核对。A0已交付21步原稿、3批trial、四问P/F/F/P，冻结后离线矩阵在跑；A1及消费配对尚未运行。A0 input3693666/output22267，费用USD未知；没有消费收益结论。full默认、原四问和BM原件保持。方法见[spec§14.53](skill-ir-aot-optimization-spec.md#1453-bn-purpose-scoped-authoring-and-consumption)，过程见[研究§7.75](skill-dsl-research.md#775-bm-复核与-bn-聚焦修稿和消费线路调整)。
 
 ## BM 已结束的实际结果
 

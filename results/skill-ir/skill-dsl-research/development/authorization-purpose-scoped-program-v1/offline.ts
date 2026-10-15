@@ -26,7 +26,11 @@ export async function runOffline(programFile = path.join(base, "authoring/automa
     for (const row of saved.results) { const input = await load(path.resolve(repo, row.input)); row.strictTrace = assessBehaviorTrace(row.actual, downloadTraceExpectation(input.resourceInputs[question], input.externalAssumptions?.[question] ?? [])) }
     const tracesFile = path.join(base, `evaluation/${track}/additional-traces.json`), traces = await load(tracesFile)
     assert(traces.programSha256 === programSha256, "Trace track names other raw bytes")
-    for (const row of traces.rows) Object.assign(row, assessAutomaticCase(row.expected, row.actual, programSha256))
+    for (const row of traces.rows) {
+      const input = await load(path.resolve(repo, row.input))
+      row.strictTrace = assessBehaviorTrace(row.actual, downloadTraceExpectation(input.resourceInputs[question], input.externalAssumptions?.[question] ?? []))
+      Object.assign(row, assessAutomaticCase(row.expected, row.actual, programSha256))
+    }
     await save(tracesFile, traces)
     await save(matrixFile, saved)
     return saved

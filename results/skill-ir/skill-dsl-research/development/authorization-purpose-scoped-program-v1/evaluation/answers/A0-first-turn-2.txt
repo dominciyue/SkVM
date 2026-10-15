@@ -1,0 +1,15 @@
+已继续修订当前草稿：
+
+- 新活跃修订：`69fbc113751172a2f321118640fbaebf8da8ac17fdd1b7e13fdb475317f6e3a3`
+- 新草稿修订：`cdbd0a8ae978110473fad66154aa85c272736d95dc80b5662c7639876629a3b5`
+- 补充了精确覆盖映射：
+  - owner-aware 根文档授权；
+  - DRF 认证和模型权限；
+  - 未被 Download 调用的 DRF 对象权限路径；
+  - framework 入口执行顺序；
+  - 版本解析与响应构造。
+- 明确将实际认证、全局权限和未调用的框架对象权限路径保留为外部边界，没有虚构授权事实。
+- 拒绝场景复测成功：对象授权为 `false` 时终止于 `authorization`，无执行缺口。
+- 当前草稿无诊断，`authorization` guard 仍明确作用于 `root_doc`。
+
+剩余工作是逐项审阅庞大的源码候选目录，并处理保守遗留覆盖提示；Guardian `ObjectPermissionChecker.has_perm` 仍必须保留为运行时外部事实。
