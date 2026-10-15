@@ -3146,7 +3146,7 @@ BM8实施细节：当前协议只在thread/start注册dynamicTools。宿主预�
 
 ### 14.54 BO source call semantics and program repair
 
-2026-10-16根据用户预先授权的BN夜间接续，登记[BO0–BO17](../superpowers/plans/2026-10-16-authorization-call-semantics-and-program-repair.md)，基线21100431，identity `authorization-call-semantics-v1`。BO0–BO8已实现，正在联合验证，尚无BO研究模型请求；BN历史原件和结果不变。开发gpt-6-astra/high，实验官方gpt-5.6-sol/high，第三方暂停。
+2026-10-16根据用户预先授权的BN夜间接续，登记[BO0–BO17](../superpowers/plans/2026-10-16-authorization-call-semantics-and-program-repair.md)，基线21100431，identity `authorization-call-semantics-v1`。BO9工程已发布，A0-first实际交付并暴露公开when契约遗漏；补公开工具说明后做一个具名确认，不改executor；BN历史原件和结果不变。开发gpt-6-astra/high，实验官方gpt-5.6-sol/high，第三方暂停。
 
 **调用语义。** 当前executor已有when/guard，A0多做权限调用不是缺短路能力；调用结果随后被choose忽略也不能撤销事件。区分激活、正常完成与返回值使用；作者从原源码判定关系，宿主检查当前来源、步骤、依赖和事件。复用program-obligations/authoringTarget，不再要求全部已读调用填写新表。值False/None可以是正常返回，不能默认当失败；只有匿名反例证明既有表达不足才加可选完成表示，保持旧协议行为，不按函数或仓库名称自动补guard。
 

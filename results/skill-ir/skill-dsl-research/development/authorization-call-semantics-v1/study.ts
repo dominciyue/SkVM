@@ -22,6 +22,9 @@ export function positionOptions(position: string) {
   if (!positions.includes(position)) throw new Error("Unknown BO purpose")
   return { author: ["A0", "A1", "S0"].includes(position), baseline: position.startsWith("B"), variant: ["C1", "B1"].includes(position) ? "empty-version" : position === "S0" ? "source-change" : "root-default" }
 }
+export function hasCurrentClosedDelivery(entry: any) {
+  return ["completed", "interrupted"].includes(entry?.status) && ["completed", "interrupted"].includes(entry?.terminalStatus) && entry?.answerDelivery === "delivered" && entry?.deliveryStatus === "current" && entry?.lifecycle?.localExecution === "closed" && entry?.lifecycle?.providerTerminalObserved === true
+}
 async function sourceBinding(inputFile: string) {
   const input = await load(inputFile), root = path.resolve(path.dirname(inputFile), input.sourceRoot), files: Array<[string, string]> = []
   const visit = async (name: string) => { const file = path.join(root, name); if ((await stat(file)).isDirectory()) for (const child of (await readdir(file)).sort()) await visit(path.join(name, child)); else files.push([name.split(path.sep).join("/"), hash(await readFile(file))]) }
@@ -78,7 +81,8 @@ async function run(position: string, attempt = "first") {
   const index = comparisonOrder.indexOf(position)
   if (index > 0 && !ledger.some(e => e.position === comparisonOrder[index - 1] && e.status !== "running")) throw new Error("Registered pair order required")
   const inputFile = position === "S0" ? path.join(base, "verification/source-change/package/input.json") : path.join(base, `inputs/${author ? "author-" : ""}${variant}.json`)
-  const domainProgramFile = position === "A0" ? path.resolve(base, "../authorization-purpose-scoped-program-v1/authoring/automatic-program.json") : author || baseline ? undefined : path.join(base, "authoring/automatic-program.json")
+  if (repair?.previous && !ledger.some(e => e.position === position && e.session === repair.previous && hasCurrentClosedDelivery(e))) throw new Error("Repair may restore only its own closed current delivery")
+  const domainProgramFile = position === "A0" && !repair?.previous ? path.resolve(base, "../authorization-purpose-scoped-program-v1/authoring/automatic-program.json") : author || baseline ? undefined : path.join(base, "authoring/automatic-program.json")
   if (domainProgramFile && position !== "A0" && hash(await readFile(domainProgramFile)) !== selection.programSha256) throw new Error("Selected bytes changed")
   const c0 = ledger.find(e => e.position === "C0" && e.status === "completed"), previous = repair?.previous ? path.resolve(repo, repair.previous) : ["C1", "S0"].includes(position) && c0?.session ? path.resolve(repo, c0.session) : undefined
   if (["C1", "S0"].includes(position) && !previous) throw new Error("Eligible C0 session required")
@@ -108,7 +112,7 @@ async function run(position: string, attempt = "first") {
 }
 async function freeze(attempt = "first") {
   const ledger: any[] = await load(ledgerFile); if (ledger.some(e => e.position.startsWith("C"))) throw new Error("Consumer selection already fixed")
-  const selected = ledger.find(e => e.position === "A0" && e.attempt === attempt && e.status === "completed"); if (!selected) throw new Error("Known completed A0 required")
+  const selected = ledger.find(e => e.position === "A0" && e.attempt === attempt && hasCurrentClosedDelivery(e)); if (!selected) throw new Error("Known closed A0 with current delivered answer required")
   const inspected: any = await inspectLocalInquiry(path.resolve(repo, selected.session)), adopted = inspected.domain.executableContract.adoptedDraft, file = path.join(base, `authoring/automatic-program-A0-${attempt}.json`), bytes = await readFile(file)
   if (JSON.stringify(JSON.parse(bytes.toString("utf8"))) !== JSON.stringify(adopted.raw)) throw new Error("Raw program differs from model original")
   await copyFile(file, path.join(base, "authoring/automatic-program.json")); await save(path.join(base, "authoring/frozen-selection.json"), { position: "A0", attempt, session: selected.session, rawRevision: adopted.revision, programSha256: hash(bytes), developerSemanticEdits: false, selectedBeforeConsumers: true })

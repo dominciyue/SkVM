@@ -2,7 +2,7 @@
 
 > 执行者：使用 executing-plans、systematic-debugging 和 test-driven-development。用户已授权本轮接续；读完上下文后直接实施有限队列，不在常规检查点等待确认。
 
-**状态：** in-progress，BO0–BO8 工程已实现，正在联合验证；尚无 BO 研究模型请求。2026-10-16 从任务书提交 `89ef2864` 接管。用户授权 BN 收束后派发一轮后继；本任务结束后不自动创建下一轮。
+**状态：** in-progress，BO9工程754b72f3已发布；BO10 A0-first完成原始交付，因真实工具契约遗漏正在具名修复。2026-10-16 从任务书提交 `89ef2864` 接管。用户授权 BN 收束后派发一轮后继；本任务结束后不自动创建下一轮。
 
 **目标：** 让模型写出的同一份程序忠实表达源码中的调用激活、正常完成前提、授权短路及拒绝后的停止，并让普通消费者看清程序算出了什么、还依赖什么。先补可复用的作者反馈和执行语义检查，再做有限真实编写与消费，检验收益。
 
@@ -152,6 +152,8 @@ BN 工程与八个用途已完成，14 个观察 turn 均关闭，无活动或�
 仅提交本轮归属实现、测试、紧凑原件和文档，核对 origin 同 SHA；不清理他人内容或旧 `.tmp/`。外部 handoff/communication/conversation_log 追加简短真实状态。五轴逐一写 achieved/unmet，不把有限队列关闭当目标达成。给出可运行命令、实际返回/条件、源码执行轨迹和下一个具体缺口。本轮终结，不自动创建 BP 或增加第三对。
 
 ## 五、实验、当场修复与终止规则
+
+**BO10现场修复。** A0-first增加到33步却仍断言DSL无法条件化external；实际thread/start说明与宽松步骤schema均未公开when。先对实际账号工具说明做红测，再给program/patch共同补已有when、正常完成与真假区别、关系元数据说明；details说明同步overview/raw。无executor变更，不供应源内正确条件。原稿17/18字段、4/18局部轨迹和2/8额外轨迹保留，四问P/P/F/P。注册A0/advertised-call-contract唯一确认，用新工具表会话恢复自己的原稿，不重导入BN原稿。首次完成答案current，续作是host预算中断且已知终态/本地关闭；选择器允许这种有效交付，仍拒绝unknown/stale/active。后续生产epoch分列。
 
 **BO0–BO8实施记录（2026-10-16）。** 复用现有有限求值：已知 False/None 的自等测试可表示正常完成，未知仍保留条件，因此没有增加执行语法。可选 `coverage[].call` 声明 activation/completion/resultUse、完成 guard 和后继；宿主报告实际依赖、事件与 trial 差异，源码意义始终 unreviewed。native/account 的 source→proposal→patch→trial→details→answer 假账号链已红绿验证。独立核验发现 trialCase 详情漏带调用诊断，已先红测再修复。BN 实际包证明 C0/C1 已有45/42次目录delta、245/234次引用；一个全量details是可削减对象，既有编码器整流反事实各减少29145/29137字节，不是实测token收益。显式 directed 的未指定步骤active details改用已有紧凑事件投影，`format:raw`仍按当前basis取回；full默认保持。18/8范围评价先以匿名正反例固定，再读BN原稿；上游来源定位与语义证明分开。ShareLink离线兼容完成，零模型。
 

@@ -12,7 +12,7 @@ test("account author reads source, diagnoses call, patches, trials and delivers 
     const inputFile = path.join(root, "input.json"), at = { path: "app.py", startLine: 1, endLine: 3 }, callAt = { path: "app.py", startLine: 2, endLine: 2 }
     await writeFile(inputFile, JSON.stringify({ schemaVersion: "authorization-inquiry-input/v1", taskId: "call-loop", repository: "anonymous", sourceRef: "fixed", sourceRoot: ".", allowedPaths: ["app.py"], inquiry: { schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Explain call completion and the result", premises: [] }] }, resourceInputs: { q: {} }, externalAssumptions: { q: [{ name: "remote", arguments: {}, value: null, reason: "Normal None return" }] } }))
     const raw: any = { schemaVersion: "authorization-executable-contract/v1", id: "work", scope: { kind: "function-contract", questionId: "q", root: at, upstream: [] }, sourceDeclarations: [{ source: at, statements: [] }], queries: [], assumptions: [], resourceWorkflow: { inputs: [], steps: [{ id: "invoke", op: "external", name: "remote", arguments: {}, source: callAt }, { id: "result", op: "return", value: { literal: 7 }, source: at }] } }
-    const packets: any[] = [], results: any[] = [], contexts: any[] = []
+    const packets: any[] = [], results: any[] = [], contexts: any[] = [], advertised: any[] = []
     let receive = (_m: any) => {}, action = 0, current: any
     const decode = (wire: any) => { if (wire.contextSequence === 1) packets.length = 0; const restored = resolveInquiryContext(wire, packets); packets.push(restored); return restored }
     const next = () => {
@@ -28,12 +28,19 @@ test("account author reads source, diagnoses call, patches, trials and delivers 
     }
     const transportFactory: any = () => ({ isolation: { kind: "test-transport" }, onMessage(fn: any) { receive = fn }, onExit() {}, close() {}, send(m: any) {
       if (m.method === "initialize") receive({ id: m.id, result: {} })
-      if (m.method === "thread/start") receive({ id: m.id, result: { thread: { id: "calls" }, model: "gpt-5.6-sol" } })
+      if (m.method === "thread/start") { advertised.push(...m.params.dynamicTools); receive({ id: m.id, result: { thread: { id: "calls" }, model: "gpt-5.6-sol" } }) }
       if (m.method === "turn/start") { current = decode(JSON.parse(m.params.input[0].text.split("Current local explanation context: ")[1])); receive({ id: m.id, result: { turn: { id: "turn" } } }); queueMicrotask(next) }
       if (m.result?.contentItems) { const packet = decode(JSON.parse(m.result.contentItems[0].text)); results.push(packet.toolResult); current = packet.currentContext; contexts.push(current); queueMicrotask(next) }
     } })
     const run = await runCodexAccountInquiry({ inputFile, workDir: root, model: "gpt-5.6-sol", skillContent: "Explain source and remaining conditions", strategy: "question-checked-v1", method: "M", domainTools: true, programMode: "edit", programContext: "directed", executionPolicy: "progressive", maxAuthorContinuations: 0, maxToolCalls: 16, timeoutMs: 10000, transportFactory })
     expect(run.account.status).toBe("completed")
+    for (const name of ["authorization_program", "authorization_program_patch"]) {
+      const description = advertised.find(t => t.name === name).description
+      expect(description).toContain("when:finitePredicate")
+      expect(description).toContain("False and None")
+      expect(description).toContain("completionGuardId")
+    }
+    expect(advertised.find(t => t.name === "authorization_program_details").description).toContain('format:"raw"')
     expect(contexts[1].authoring.feedbackGroups.callRelations[0].diagnostics).toContain("call-result-unused-completion-unreviewed")
     expect(contexts[2].authoring.feedbackGroups.callRelations).toEqual([])
     expect(contexts[2].authoring.candidatePreviewAvailable, JSON.stringify(results[2])).toBe(true)

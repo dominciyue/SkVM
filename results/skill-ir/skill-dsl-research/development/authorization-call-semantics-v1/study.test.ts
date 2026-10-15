@@ -1,6 +1,15 @@
 import { expect, test } from "bun:test"
 import { executeResourceWorkflow } from "../../../../../src/task-dsl/authorization/resource-relations.ts"
 import { positionOptions } from "./study.ts"
+const studyApi: any = await import("./study.ts")
+test("selection retains a current delivered draft after a known host interruption, never an unknown or stale answer", () => {
+  expect(typeof studyApi.hasCurrentClosedDelivery).toBe("function")
+  const entry = { status: "interrupted", terminalStatus: "interrupted", answerDelivery: "delivered", deliveryStatus: "current", lifecycle: { localExecution: "closed", providerTerminalObserved: true } }
+  expect(studyApi.hasCurrentClosedDelivery(entry)).toBe(true)
+  expect(studyApi.hasCurrentClosedDelivery({ ...entry, status: "unknown" })).toBe(false)
+  expect(studyApi.hasCurrentClosedDelivery({ ...entry, deliveryStatus: "stale" })).toBe(false)
+  expect(studyApi.hasCurrentClosedDelivery({ ...entry, lifecycle: { localExecution: "active" } })).toBe(false)
+})
 test("BO keeps separate repair and empty author tracks and excludes a paid denied position", () => {
   expect(positionOptions("A0")).toEqual({ author: true, baseline: false, variant: "root-default" })
   expect(positionOptions("A1")).toEqual({ author: true, baseline: false, variant: "root-default" })

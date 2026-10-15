@@ -2,7 +2,7 @@
 
 更新于2026-10-16。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BO0–BO17](../superpowers/plans/2026-10-16-authorization-call-semantics-and-program-repair.md)，in-progress；BO0–BO8工程已实现，正在联合验证，研究模型调用尚未开始。用户已授权BN结束后接续一轮，开发线程从89ef2864接管。BN最终21100431已发布，八用途/14观察turn全部交付且0活动/未知；A0字段17/18、严格4/18，A1值14/18但上游条件超出旧局部oracle。两对C总token1.409/1.731倍，完整语义与净收益未达，不重开BN。
+- 当前任务书：[BO0–BO17](../superpowers/plans/2026-10-16-authorization-call-semantics-and-program-repair.md)，in-progress；BO9工程已发布，A0-first实际交付；公开when契约遗漏已定位并红绿修复，进入一个具名确认。用户已授权BN结束后接续一轮，开发线程从89ef2864接管。BN最终21100431已发布，八用途/14观察turn全部交付且0活动/未知；A0字段17/18、严格4/18，A1值14/18但上游条件超出旧局部oracle。两对C总token1.409/1.731倍，完整语义与净收益未达，不重开BN。
 - 方法合同：[spec§14.54](skill-ir-aot-optimization-spec.md#1454-bo-source-call-semantics-and-program-repair)；复核与开发过程统一在[研究§7.76](skill-dsl-research.md#776-bn-复核与-bo-源码调用语义修稿决定)。BN结果保留在§7.75。
 - identity：`authorization-call-semantics-v1`，已核对规划基线`21100431f6a427ffe46f7d07f822f231aafe567e`。继续`skill-ir-aot`，只推用户origin，不建分支/worktree；新开发线程独占代码、共享方法文档与Git写入。
 - 开发`gpt-6-astra/high`，按用户指定；实验沿已授权官方账号`gpt-5.6-sol/high`。第三方暂停，OWUI/历史未知ShareLink仅离线，旧未知和保护证据保持。接管时tracked干净，原有未跟踪`.tmp/`不清理。
