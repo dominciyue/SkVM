@@ -4,6 +4,10 @@
 
 ## 当前工作
 
+**用户已授权 BP0–BP21：质量优先的分支可靠性与可执行支持实验，当前为 planned-not-started。** [当前任务书](../superpowers/plans/2026-10-16-authorization-quality-evidence-and-branch-reliability.md)从已发布 BO `af8321c3` 接续，identity 为 `authorization-quality-evidence-v1`，开发 `gpt-6-astra/high`。重点为匿名外层激活、从空稿编写可靠性、纯规则/实际执行隔离，以及对象关系、分支和变化一致性的分项质量证据。主面板六情形×三臂×两重复，原四问和全部结果保留；局部质量目标与整题/自动化/成本分别判断。方法见 [spec §14.55](skill-ir-aot-optimization-spec.md#1455-bp-capability-quality-and-executable-support)、[研究 §7.77](skill-dsl-research.md#777-bo-质量复核与-bp-能力实验决定)。实验继续官方账号 `gpt-5.6-sol/high`，第三方暂停；派发后开发线程独占写入。本次仅计划，尚无 BP 工程或实验结果。
+
+## BO 已结束的实际结果
+
 **BO0–BO17以completed-with-unmet-criteria收束有限队列：工程和普通使用完成，完整自动语义、四问质量及净收益未达。** 工程754b72f3与公开契约修复e8522ee9已发布；[当前任务书](../superpowers/plans/2026-10-16-authorization-call-semantics-and-program-repair.md)从89ef2864接管，identity为`authorization-call-semantics-v1`。固定A0为模型原稿45步，字段/局部轨迹18/18、额外7/8，匿名外层激活仍缺；A1独立23步，值7/18、局部调用17/18加8/8，上游未知与局部错误分列。普通CLI七组、搬移四组及源码变化撤回已验证；S0维护54步，副本三组局部反转成立，不替换A0。两对四问B/C为P/P/P/F对P/F/F/P、P/P/P/F对P/P/F/F，总token比1.045/2.269，均为质量与成本取舍。八attempt/七位置全部交付、15观察turn、0活动/未知；逐题14/32 full、整题0/8 full。known input17,911,460（含cache-read16,421,248一次）/output133,089，USD、开发评阅和真人成本未知。180测试/1285断言、主/研究类型及15文档测试通过。见[分轴验收](../../results/skill-ir/skill-dsl-research/development/authorization-call-semantics-v1/verification/acceptance-matrix.json)、[运行过程](../../results/skill-ir/skill-dsl-research/development/authorization-call-semantics-v1/execution.md)、[显式命令](../../examples/authorization-assessment/download-workflow/README.md#current-bo-explicit-program)、[spec§14.54](skill-ir-aot-optimization-spec.md#1454-bo-source-call-semantics-and-program-repair)和[研究§7.76](skill-dsl-research.md#776-bn-复核与-bo-源码调用语义修稿决定)。第三方继续暂停；本轮结束，不自动追加BP。
 
 ## BN 已结束的实际结果

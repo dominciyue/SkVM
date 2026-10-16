@@ -1,13 +1,13 @@
 # Skill IR AOT 优化研究契约
 
-**阅读路径：** 当前授权 DSL 合同读 [§14.54](#1454-bo-source-call-semantics-and-program-repair)，总体方向见 [§14.34](#1434-按-skilltask-范围设计领域-dsl)；通用 trace 包生成读 §14.29–§14.33。其余章节保留各时期 IR/AOT 方法及兼容约束，按涉及的组件查阅。逐次调用、当前结果和队列分别在结果、当前状态和任务书中。
+**阅读路径：** 当前授权 DSL 合同读 [§14.55](#1455-bp-capability-quality-and-executable-support)，总体方向见 [§14.34](#1434-按-skilltask-范围设计领域-dsl)；通用 trace 包生成读 §14.29–§14.33。其余章节保留各时期 IR/AOT 方法及兼容约束，按涉及的组件查阅。逐次调用、当前结果和队列分别在结果、当前状态和任务书中。
 
 
 **最后更新：** 2026-10-16
 
-**当前已确认路线：** 按skill/task范围设计领域表达并验证实际价值，复用既有授权DSL执行与SkVM入口。用户授权BN完成后接续[BO源码调用语义与程序修稿](../superpowers/plans/2026-10-16-authorization-call-semantics-and-program-repair.md)，规划合同见§14.54；先补调用激活、完成及后继依赖的实际接线，再检验自动稿和消费。BN已完成工程及八用途有限执行，完整自动语义和净收益未达，其结果仍按§14.53保留。旧协议和full默认继续兼容；完整原skill与四问保持，分开评价自动程序、实际使用和收益。研究与问题复盘见[研究总文档](skill-dsl-research.md)，当前顺序见[执行计划](skill-ir-aot-optimization-plan.md)。历史合同及原件保留，I1保留后备。
+**当前已确认路线：** 按 skill/task 范围设计领域表达并验证实际价值，复用既有授权 DSL 执行与 SkVM 入口。BO 已形成局部轨迹改善和逐题质量信号；用户授权 [BP 质量证据与分支可靠性](../superpowers/plans/2026-10-16-authorization-quality-evidence-and-branch-reliability.md)，以质量为主要效果轴，检验规则整理、有限执行和变化维护的增量。完整原 skill/四问、旧协议及默认保持，局部质量、整题、自动编写与成本分别判断。当前规划见 §14.55，BO 历史合同/结果保留 §14.54。研究过程统一[研究总文档](skill-dsl-research.md)，当前顺序见[执行计划](skill-ir-aot-optimization-plan.md)。BP 尚未实施，I1保留后备。
 
-本文保留旧研究阶段的标题与章节定位。下文有关统一 IR、AOT 优先、“不新建 DSL”和旧队列先后关系的限定，适用于各自阶段；总体方向以第14.34节为准，当前增量合同以第14.54节及任务书为准。已有 IR、接口、冻结结果和版本化材料不因路线变化而删除或改写。
+本文保留旧研究阶段的标题与章节定位。下文有关统一 IR、AOT 优先、“不新建 DSL”和旧队列先后关系的限定，适用于各自阶段；总体方向以第14.34节为准，当前增量合同以第14.55节及任务书为准。已有 IR、接口、冻结结果和版本化材料不因路线变化而删除或改写。
 
 ## 1. 北极星：以公开验证依据组织受限 Skill IR / AOT
 
@@ -3157,6 +3157,20 @@ BM8实施细节：当前协议只在thread/start注册dynamicTools。宿主预�
 **交付边界。** 完整有限语义、四问质量与净收益分别验收；未达仍交付普通运行轨迹和具名责任。full默认不改、BN不重开、不扩语言/skill/held-out/prospective。研究过程统一§7.76，文档当前问题表随实施结果更新。仅执行这轮有限队列，不自动追加下一任务书。
 
 **工程落点。** 可选coverage.call记录作者的activation/completion/resultUse、完成guard及后继；当前来源/真实引用/事件/trial投影进入同一修稿前沿。现有自等表达式区分已知False/None与未知，故不扩external语法。宿主检查依赖一致性，源码意义仍unreviewed。directed未指定步骤active details复用紧凑事件，显式format:raw及basis取回原文；full及strict保持。独立评价固定原18/8分母，以明确源码范围分列上游事件及条件，原strict分数完整保留；范围定位本身不证明上游语义。
+
+### 14.55 BP capability quality and executable support
+
+2026-10-16 用户授权 [BP0–BP21](../superpowers/plans/2026-10-16-authorization-quality-evidence-and-branch-reliability.md)，从已发布 af8321c3 接续，identity `authorization-quality-evidence-v1`。开发 gpt-6-astra/high，实验官方 gpt-5.6-sol/high，第三方暂停。当前仅规划；BO 原件、评分和默认不改。
+
+**主要目标。** 质量按授权对象关系、分支/调用顺序、变化一致性、条件/证据忠实性评价。局部重复优势可以独立成立，成本不作为质量成立的前置；完整四问、自动作者可靠性和长期目标保持各自验收。逐项正确、遗漏、错误肯定、合理 unknown、过度弃答和未交付分别记录；保持整题统计，不用单一整题 full 遮蔽局部进步。
+
+**共享实现。** 沿用 when/guard 和 coverage.call，补可选的模型作者激活依赖及实际连接反馈，不从函数名/旧答案推断正确条件。增加纯规则文档及显式 rules/execute 支持；full/compact/directed 原含义与旧默认兼容。rules 所有首包、details、patch/trial能力、恢复和终答 child 不得泄漏当前执行结果；执行臂使用同一份 raw 与规则。author-declared literal、有限计算、外部事实和上游未知的依据可区分，不把 literal 升格为证明。
+
+**配对实验。** R0 为原完整 skill/四问/源码/事实，R1 增加固定自动稿的规则文档及原字节，R2 在 R1 相同信息上增加实际执行支持。R1−R0 衡量规则准备，R2−R1 衡量执行支持；不把差异单独归因于语法。六个固定 development 情形各两次重复三臂，交付合同/模型/预算一致，独立 expected 在生成边界外。研究编写和源码变化维护另列；已暴露 ShareLink 辅助组只检验第二任务结构。
+
+**选择与失败。** A0 的最后当前采用 raw 在消费前固定；A1/A2 空稿不替换、不拼优点。partial 可作为准确标注范围的辅助材料进入评价，缺稿不以历史/开发者稿补位。首轮、修订与跨 epoch 分轨；发现共享问题立即修复，不跑满已知坏协议；保留全部正负样本，不重复抽到满意为止。旧 unknown 不重发，通道拒绝/重复路由故障时暂停相应调用、继续离线。
+
+**结论合同。** 至少一个预定能力域在两重复中 R2 对 R1 均减少关键遗漏/错误且不增加该域关键错误肯定，可报告有界重复局部优势，并令 localQualityGoalAchieved=true；报告schema同时要求全部能力域、所有失败/退步和整题结果，不能单独展示该布尔值。仅一次改善、取舍、持平、负向和不足分开，不能改写完整研究目标。所有成本仍真实归档但作为次要轴。队列最多45首位置及6具名修复确认，详见任务书；有限执行结束后停止，不自动追加 BQ。过程统一研究§7.77。
 
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 
