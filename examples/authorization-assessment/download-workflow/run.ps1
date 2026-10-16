@@ -6,7 +6,8 @@ param(
   [string]$AccountBoundary,
   [string]$ProgramFile,
   [string]$Previous,
-  [ValidateSet('full', 'compact', 'directed')][string]$ProgramContext = 'full'
+  [ValidateSet('full', 'compact', 'directed')][string]$ProgramContext = 'full',
+  [ValidateSet('rules', 'execute')][string]$ProgramSupport = 'execute'
 )
 $ErrorActionPreference = 'Stop'
 $repo = (Resolve-Path (Join-Path $PSScriptRoot '../../..')).Path
@@ -17,7 +18,7 @@ $command = @('src/index.ts', 'authorization', 'inquiry')
 if ($Mode -eq 'zero') { $command += 'check' } else { $command += 'run' }
 if (-not $InputFile) { $InputFile = Join-Path $PSScriptRoot "inputs/$Variant.json" }
 $InputFile = (Resolve-Path -LiteralPath $InputFile).Path
-$command += @("--input=$InputFile", '--strategy=question-checked-v1', '--execution-policy=progressive', "--program-context=$ProgramContext", "--out=$Out")
+$command += @("--input=$InputFile", '--strategy=question-checked-v1', '--execution-policy=progressive', "--program-context=$ProgramContext", "--program-support=$ProgramSupport", "--out=$Out")
 if ($Mode -eq 'author') {
   if ($ProgramFile) { throw 'Author mode starts without a supplied program; use -Previous for a saved author session.' }
   $command += @('--program-mode=edit', '--authoring-target=reusable')
@@ -49,6 +50,7 @@ try {
     Write-Output "Program: $ProgramFile"
     Write-Output "Program SHA256: $((Get-FileHash -LiteralPath $ProgramFile -Algorithm SHA256).Hash.ToLowerInvariant())"
   }
+  if ($ProgramSupport -eq 'rules') { Write-Output 'Rules only: execution.md contains the authored rule document; no host evaluation or trial results were produced.' }
   $execution = if ($Mode -eq 'zero') { $result.executableContract.resourceExecution } else { $result.domain.executableContract.resourceExecution }
   $execution | Select-Object status, returned, termination, conditions, gaps | ConvertTo-Json -Depth 8
   $outcome = if ($Mode -eq 'zero') { $result.executableContract.outcome } else { $result.domain.executableContract.outcome }

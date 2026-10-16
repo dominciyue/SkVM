@@ -1,0 +1,428 @@
+{
+  "schemaVersion": "authorization-executable-contract/v1",
+  "id": "share-create-workflow-v1",
+  "scope": {
+    "kind": "function-contract",
+    "questionId": "share-create",
+    "root": {
+      "path": "src/documents/serialisers.py",
+      "startLine": 2873,
+      "endLine": 2886,
+      "receiverClass": "ShareLinkSerializer"
+    },
+    "upstream": [
+      "DRF inherited CreateModelMixin and relation field execution are declared assumptions, not supplied framework source in this task."
+    ]
+  },
+  "sourceDeclarations": [
+    {
+      "source": {
+        "path": "src/documents/serialisers.py",
+        "startLine": 2873,
+        "endLine": 2886,
+        "receiverClass": "ShareLinkSerializer"
+      },
+      "statements": [
+        {
+          "kind": "object",
+          "expression": "document",
+          "as": "resource",
+          "because": "Exact validated field formal."
+        },
+        {
+          "kind": "object",
+          "expression": "self",
+          "as": "context",
+          "because": "Actual serializer instance formal."
+        }
+      ]
+    }
+  ],
+  "queries": [],
+  "assumptions": [
+    {
+      "origin": "development-premise",
+      "text": "Finite documents and grants are complete development populations; grant rows represent effective backend results, not a measured database. Standard DRF create/permission/related-field semantics and normal Guardian constructor completion are assumed."
+    }
+  ],
+  "resourceWorkflow": {
+    "inputs": [
+      "actor",
+      "request",
+      "documents",
+      "model_grants",
+      "object_grants"
+    ],
+    "steps": [
+      {
+        "id": "authenticated",
+        "op": "guard",
+        "test": {
+          "op": "all",
+          "args": [
+            {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "actor"
+                }
+              }
+            },
+            {
+              "op": "eq",
+              "left": {
+                "binding": "actor.authenticated"
+              },
+              "right": {
+                "literal": true
+              }
+            }
+          ]
+        },
+        "failure": "endpoint-authentication-denied",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 4696,
+          "endLine": 4710
+        },
+        "because": "IsAuthenticated is the first inherited endpoint permission; fixture authentication is an explicit fact."
+      },
+      {
+        "id": "endpoint_grant",
+        "op": "select",
+        "from": "model_grants",
+        "where": {
+          "op": "all",
+          "args": [
+            {
+              "op": "eq",
+              "left": {
+                "binding": "row.actor_id"
+              },
+              "right": {
+                "binding": "actor.id"
+              }
+            },
+            {
+              "op": "eq",
+              "left": {
+                "binding": "row.permission"
+              },
+              "right": {
+                "literal": "documents.add_sharelink"
+              }
+            }
+          ]
+        },
+        "source": {
+          "path": "src/documents/permissions.py",
+          "startLine": 30,
+          "endLine": 44
+        },
+        "sources": [
+          {
+            "path": "src/documents/views.py",
+            "startLine": 4696,
+            "endLine": 4710
+          }
+        ],
+        "because": "POST maps to add_sharelink under the declared DRF inheritance assumption; select the supplied global grant for this actor."
+      },
+      {
+        "id": "endpoint_allowed",
+        "op": "guard",
+        "test": {
+          "op": "not",
+          "arg": {
+            "op": "is-null",
+            "value": {
+              "binding": "endpoint_grant"
+            }
+          }
+        },
+        "failure": "endpoint-model-permission-denied",
+        "principal": {
+          "ref": "actor"
+        },
+        "permission": "documents.add_sharelink",
+        "source": {
+          "path": "src/documents/permissions.py",
+          "startLine": 30,
+          "endLine": 44
+        },
+        "sources": [
+          {
+            "path": "src/documents/views.py",
+            "startLine": 4696,
+            "endLine": 4710
+          }
+        ],
+        "because": "A global model grant is necessary but does not prove exact-document access."
+      },
+      {
+        "id": "document",
+        "op": "select",
+        "from": "documents",
+        "where": {
+          "op": "eq",
+          "left": {
+            "binding": "row.id"
+          },
+          "right": {
+            "binding": "request.document_id"
+          }
+        },
+        "source": {
+          "path": "src/documents/serialisers.py",
+          "startLine": 2857,
+          "endLine": 2867
+        },
+        "because": "Finite model of DRF's document relation validation; the supplied population represents eligible related documents."
+      },
+      {
+        "id": "document_found",
+        "op": "guard",
+        "test": {
+          "op": "not",
+          "arg": {
+            "op": "is-null",
+            "value": {
+              "binding": "document"
+            }
+          }
+        },
+        "failure": "document-validation-error",
+        "source": {
+          "path": "src/documents/serialisers.py",
+          "startLine": 2857,
+          "endLine": 2886
+        },
+        "because": "The finite relation must resolve to the exact supplied document before field validation; DRF implementation is an explicit gap."
+      },
+      {
+        "id": "view_model_grant",
+        "op": "select",
+        "from": "model_grants",
+        "where": {
+          "op": "all",
+          "args": [
+            {
+              "op": "eq",
+              "left": {
+                "binding": "row.actor_id"
+              },
+              "right": {
+                "binding": "actor.id"
+              }
+            },
+            {
+              "op": "eq",
+              "left": {
+                "binding": "row.permission"
+              },
+              "right": {
+                "literal": "documents.view_document"
+              }
+            }
+          ]
+        },
+        "source": {
+          "path": "src/documents/serialisers.py",
+          "startLine": 2873,
+          "endLine": 2886
+        },
+        "because": "The serializer separately requires the caller's global documents.view_document permission."
+      },
+      {
+        "id": "view_model_allowed",
+        "op": "guard",
+        "test": {
+          "op": "all",
+          "args": [
+            {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "actor"
+                }
+              }
+            },
+            {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "view_model_grant"
+                }
+              }
+            }
+          ]
+        },
+        "failure": "serializer-model-permission-denied",
+        "principal": {
+          "ref": "actor"
+        },
+        "resource": {
+          "ref": "document"
+        },
+        "permission": "documents.view_document",
+        "source": {
+          "path": "src/documents/serialisers.py",
+          "startLine": 2873,
+          "endLine": 2886
+        },
+        "sources": [
+          {
+            "path": "src/documents/views.py",
+            "startLine": 406,
+            "endLine": 428
+          }
+        ],
+        "because": "PassUserMixin supplies request.user to the serializer; the global check short-circuits the exact-object helper."
+      },
+      {
+        "id": "object_grant",
+        "op": "select",
+        "from": "object_grants",
+        "where": {
+          "op": "all",
+          "args": [
+            {
+              "op": "eq",
+              "left": {
+                "binding": "row.actor_id"
+              },
+              "right": {
+                "binding": "actor.id"
+              }
+            },
+            {
+              "op": "eq",
+              "left": {
+                "binding": "row.document_id"
+              },
+              "right": {
+                "binding": "document.id"
+              }
+            },
+            {
+              "op": "eq",
+              "left": {
+                "binding": "row.permission"
+              },
+              "right": {
+                "literal": "view_document"
+              }
+            }
+          ]
+        },
+        "source": {
+          "path": "src/documents/permissions.py",
+          "startLine": 624,
+          "endLine": 635
+        },
+        "because": "Finite development facts represent effective Guardian grants for the exact actor and document, not a precomputed authorization boolean."
+      },
+      {
+        "id": "object_allowed",
+        "op": "guard",
+        "test": {
+          "op": "any",
+          "args": [
+            {
+              "op": "is-null",
+              "value": {
+                "binding": "document.owner_id"
+              }
+            },
+            {
+              "op": "eq",
+              "left": {
+                "binding": "document.owner_id"
+              },
+              "right": {
+                "binding": "actor.id"
+              }
+            },
+            {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "object_grant"
+                }
+              }
+            }
+          ]
+        },
+        "failure": "serializer-object-permission-denied",
+        "principal": {
+          "ref": "actor"
+        },
+        "resource": {
+          "ref": "document"
+        },
+        "permission": "view_document",
+        "source": {
+          "path": "src/documents/serialisers.py",
+          "startLine": 2873,
+          "endLine": 2886
+        },
+        "sources": [
+          {
+            "path": "src/documents/permissions.py",
+            "startLine": 624,
+            "endLine": 635
+          }
+        ],
+        "because": "Owner-aware semantics: unowned OR actor is owner OR the exact object's effective grant; never substitute add_sharelink."
+      },
+      {
+        "id": "create_descriptor",
+        "op": "return",
+        "value": {
+          "record": {
+            "operation": {
+              "literal": "create-share-analysis-only"
+            },
+            "actor_id": {
+              "field": {
+                "of": {
+                  "ref": "actor"
+                },
+                "key": "id"
+              }
+            },
+            "document_id": {
+              "field": {
+                "of": {
+                  "ref": "document"
+                },
+                "key": "id"
+              }
+            },
+            "effect": {
+              "literal": "serializer-valid; creation remains external"
+            }
+          }
+        },
+        "source": {
+          "path": "src/documents/serialisers.py",
+          "startLine": 2869,
+          "endLine": 2886
+        },
+        "because": "A read-only descriptor after validation; no slug, ORM write or share is created."
+      }
+    ],
+    "gaps": [
+      "No target creation or storage access is executed.",
+      "DRF inherited create and relation-field implementation is not included in this task's allowed snapshot.",
+      "Effective grant rows and ORM user identity by primary key are supplied development facts; deployed authentication/backend state remains unknown."
+    ]
+  },
+  "inputBinding": {
+    "questionId": "scenario-facts"
+  }
+}

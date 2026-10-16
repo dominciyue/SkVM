@@ -1,5 +1,11 @@
 # Download: input → source program → execution → result
 
+Use `-ProgramSupport rules` to inspect the same authored raw as a complete rule document without host evaluation or trials; `execute` remains the default. Both use the original questions and source tools. Rules account authoring can edit raw with structural diagnostics. The ordinary `execution.md` then contains the rules document and `execution.json` uses `authorization-program-rules-archive/v1`; inspect verifies it normally. Source changes invalidate a previous session; start explicit fresh maintenance on your own source copy. BP engineering and preregistration are in progress; no new model quality result is claimed here.
+
+```powershell
+./examples/authorization-assessment/download-workflow/run.ps1 -ProgramSupport rules -ProgramContext directed -ProgramFile ./results/skill-ir/skill-dsl-research/development/authorization-call-semantics-v1/authoring/automatic-program.json
+```
+
 The script accepts `-ProgramContext directed` to send current results, premises, branch rules and all original duties with retrievable details and incremental account packets. `full` remains the default. Use `-InputFile <file>` for another explicit input, or the additional `invalid-version`, `other-root-version` and `no-external` variants. Printed output separates actual execution from coverage gaps; `execution.md` retains the complete current view. An exhausted tool phase can receive one tools-free final answer within its original time/display budget, only after a confirmed terminal. Unknown requests are not resent.
 
 ## Current BO explicit program

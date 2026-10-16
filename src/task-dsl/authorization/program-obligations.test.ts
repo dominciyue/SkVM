@@ -20,6 +20,47 @@ const call = { id: "invoke", op: "external", name: "remote", arguments: { actor:
 const out = { id: "result", op: "return", value: { literal: 1 }, source: at }
 const rawFor = (steps: any[], relation?: any): any => ({ resourceWorkflow: { inputs: ["shortcut"], steps, gaps: [] }, authoringTarget: { mode: "reusable", coverage: relation ? [{ id: "call", source: at, stepIds: ["invoke"], disposition: "implemented", call: relation }] : [] } })
 const relation = { stepId: "invoke", activation: "always", completion: "required", completionGuardId: "complete", completionMeaning: "normal-return", successorStepIds: ["result"], resultUse: "ignored", reason: "Source continues only after the call returns normally." }
+test("an inner predicate does not satisfy the declared outer activation", () => {
+  const prefix = [{ id: "present", op: "value", value: { literal: false }, source: at }, { id: "needsCheck", op: "value", value: { literal: true }, source: at }]
+  const declaration = { ...relation, activation: "conditional", activationDependencyIds: ["present", "needsCheck"] }
+  const bad = rawFor([...prefix, { ...call, when: truth("needsCheck") }, out], declaration)
+  expect(api.projectProgramCallRelations(bad)[0].diagnostics).toContain("activation-dependency-unconnected")
+  const good = rawFor([...prefix, { ...call, when: { op: "all", args: [truth("present"), truth("needsCheck")] } }, out], declaration)
+  expect(AuthoringTargetSchema.safeParse(good.authoringTarget).success).toBe(true)
+  const row = api.projectProgramCallRelations(good)[0]
+  expect(row.diagnostics).not.toContain("activation-dependency-unconnected")
+  expect(row.diagnostics).toContain("completion-guard-missing-or-out-of-order")
+  expect(row.activationDependencies.map((d: any) => [d.id, d.connected])).toEqual([["present", true], ["needsCheck", true]])
+})
+test("activation dependencies are exact ordered references and do not cross call sites or literal text", () => {
+  const present = { id: "present", op: "value", value: { literal: true }, source: at }
+  const proxy = { id: "proxy", op: "value", value: { ref: "present" }, source: at }
+  const declaration = { ...relation, activation: "conditional", completion: "caught", activationDependencyIds: ["present"] }
+  const make = (steps: any[], ids = ["present"]) => rawFor(steps, { ...declaration, activationDependencyIds: ids })
+  expect(api.projectProgramCallRelations(make([present, proxy, { ...call, when: truth("proxy") }, out]))[0].diagnostics).toEqual([])
+  expect(api.projectProgramCallRelations(make([present, { ...call, when: truth("presentOther") }, out]))[0].diagnostics).toContain("activation-dependency-unconnected")
+  expect(api.projectProgramCallRelations(make([{ ...call, when: truth("present") }, present, out]))[0].diagnostics).toContain("activation-dependency-order")
+  expect(api.projectProgramCallRelations(make([{ ...call, when: truth("absent") }, out], ["absent"]))[0].diagnostics).toContain("activation-dependency-missing")
+  expect(api.projectProgramCallRelations(make([present, { ...call, when: { op: "eq", left: { literal: "present" }, right: { literal: "present" } } }, out]))[0].diagnostics).toContain("activation-dependency-unconnected")
+  const two = make([present, { ...call, id: "other", when: truth("present") }, call, out])
+  expect(api.projectProgramCallRelations(two).find((r: any) => r.stepId === "invoke").diagnostics).toContain("activation-dependency-unconnected")
+  const stale = structuredClone(make([present, { ...call, when: truth("present") }, out])); stale.authoringTarget.coverage[0].source = { ...at, sha256: "stale" }
+  expect(api.projectProgramCallRelations(stale)[0].diagnostics).toContain("call-relation-source-mismatch")
+})
+test("existing finite activation preserves false true unknown, early stop and skipped-value gaps", () => {
+  const when = { op: "all", args: [truth("present"), truth("needsCheck")] }
+  for (const present of [false, true, undefined]) for (const needsCheck of [false, true]) {
+    const workflow: any = { inputs: ["present", "needsCheck"], steps: [{ ...call, when }, { ...out, value: { ref: "invoke" } }] }
+    const execution = executeResourceWorkflow(workflow, { ...(present === undefined ? {} : { present }), needsCheck }, { externalAssumptions: [{ name: "remote", arguments: { actor: 7 }, value: 9, reason: "Finite return" }] })
+    const event = execution.events.find(e => e.id === "invoke")!
+    if (present === false || needsCheck === false) { expect(event.outcome).toBe("skipped"); expect(execution.returned).toBeNull(); expect(execution.values.invoke).toBeUndefined() }
+    else if (present === true) { expect(event.outcome).toBe("computed"); expect(execution.returned).toBe(9) }
+    else { expect(event.outcome).toBe("unresolved"); expect(execution.returned).toBeUndefined() }
+  }
+  const execution = executeResourceWorkflow({ inputs: [], steps: [{ id: "stop", op: "guard", test: { op: "eq", left: { literal: 1 }, right: { literal: 2 } }, failure: "denied", source: at }, call, out] } as any, {})
+  expect(execution.termination).toBe("denied")
+  expect(execution.events.some(e => e.id === "invoke")).toBe(false)
+})
 test("call feedback exposes post-call selection and unused known completion without inventing a predicate", () => {
   expect(typeof api.projectProgramCallRelations).toBe("function")
   const raw = rawFor([call, { id: "chosen", op: "value", source: at, value: { choose: { test: truth("shortcut"), then: { literal: 1 }, else: { ref: "invoke" } } } }, out])

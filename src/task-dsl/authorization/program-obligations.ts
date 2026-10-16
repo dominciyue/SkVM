@@ -36,6 +36,31 @@ export function projectProgramCallRelations(raw: any, execution?: any, trials: r
     if (!relation && !consumers.length) diagnostics.push("call-result-unused-completion-unreviewed")
     if (!step?.when && consumers.some(s => references(s.value).some(r => (r.name === id || r.name.startsWith(id + ".")) && /choose\.(then|else)/.test(r.path)))) diagnostics.push("selection-after-call-does-not-control-activation")
     const source = claim?.source, target = step?.source
+    // Follow only this call's when and its referenced executable steps. A guard
+    // observed elsewhere, source prose or a later value use cannot bind it.
+    const activationPaths: Array<{ from: string; to: string; path: string }> = []
+    const activationAncestors = new Set<string>()
+    const visitActivation = (value: any, to: string, before: number) => {
+      for (const ref of references(value)) {
+        const dependency = steps.find(s => s.id === ref.name) ?? steps.filter(s => typeof s.id === "string" && ref.name.startsWith(s.id + ".")).sort((a, b) => b.id.length - a.id.length)[0]
+        if (!dependency) continue
+        const dependencyIndex = steps.indexOf(dependency)
+        activationPaths.push({ from: dependency.id, to, path: ref.path })
+        if (dependencyIndex >= before) { diagnostics.push("activation-dependency-order"); continue }
+        if (activationAncestors.has(dependency.id)) continue
+        activationAncestors.add(dependency.id)
+        visitActivation(executable(dependency), dependency.id, dependencyIndex)
+      }
+    }
+    if (relation?.activationDependencyIds?.length) visitActivation(step?.when, id, index)
+    const activationDependencies = (relation?.activationDependencyIds ?? []).map(dependencyId => {
+      const dependency = steps.find(s => s.id === dependencyId), dependencyIndex = steps.indexOf(dependency)
+      const connected = activationAncestors.has(dependencyId)
+      if (!dependency) diagnostics.push("activation-dependency-missing")
+      else if (dependencyIndex >= index) diagnostics.push("activation-dependency-order")
+      if (!connected) diagnostics.push("activation-dependency-unconnected")
+      return { id: dependencyId, source: dependency?.source, present: !!dependency, beforeCall: !!dependency && dependencyIndex < index, connected }
+    })
     if (relation) {
       if (!source || !target || source.path !== target.path || source.startLine < target.startLine || (source.endLine ?? source.startLine) > (target.endLine ?? target.startLine) || source.sha256 && target.sha256 && source.sha256 !== target.sha256 || !claim.stepIds?.includes(id)) diagnostics.push("call-relation-source-mismatch")
       if (relation.activation === "unreviewed") diagnostics.push("call-activation-unreviewed")
@@ -65,10 +90,10 @@ export function projectProgramCallRelations(raw: any, execution?: any, trials: r
         }
       }
     }
-    return { stepId: id, source: step?.source, declarationId: claim?.id, relation, activation: step?.when ?? "unconditional", valueConsumers, controlConsumers, dependencyPaths,
+    return { stepId: id, source: step?.source, declarationId: claim?.id, relation, activation: step?.when ?? "unconditional", activationDependencies, activationPaths, activationReview: relation?.activationDependencyIds?.length ? "structural-reference-review" : "dependencies-unreviewed", valueConsumers, controlConsumers, dependencyPaths,
       event: event && { outcome: event.outcome, value: event.outputs?.value, arguments: event.inputs?.arguments, gaps: event.gaps },
       completionGuard: guard && { id: guard.id, test: guard.test, outcome: guardEvent?.outcome },
-      trials: trials.map(t => { const e = t.execution?.events?.find((e: any) => e.id === id); return { id: t.id, outcome: e?.outcome ?? "not-reached", gaps: e?.gaps ?? [] } }), diagnostics, semanticSupport: "unreviewed" as const,
+      trials: trials.map(t => { const e = t.execution?.events?.find((e: any) => e.id === id); return { id: t.id, outcome: e?.outcome ?? "not-reached", gaps: e?.gaps ?? [] } }), diagnostics: [...new Set(diagnostics)], semanticSupport: "unreviewed" as const,
       instruction: "Review this call's exact source: activation (when), normal completion (a dependent guard after the call and before its successors), and returned value are different. A later choose cannot undo a call. False/None can return normally; truthy is only a declared finite completion marker or source Boolean test. Declare coverage.call with your source explanation, completion guard/successors or caught exception, then patch/trial; no source meaning is inferred here." }
   })
 }

@@ -83,6 +83,6 @@ test("ordinary native tools return and archive explicit draft withdrawal outcome
   await observe({ rules: [f.rule("q", "bad", { kind: "principal-binding" })] })
   const outcome = await observe({ withdrawals: [f.withdrawal("q", "bad")] })
   expect(outcome.withdrawn).toMatchObject([{ group: "rules", questionId: "q", targetKey: "bad" }])
-  expect(native.report().domain!.proposals[1]!.withdrawn).toEqual(outcome.withdrawn)
-  expect(native.report().domain!.proposals[0]!.rejected).toHaveLength(1)
+  expect(native.report().domain!.proposals?.[1]!.withdrawn).toEqual(outcome.withdrawn)
+  expect(native.report().domain!.proposals?.[0]!.rejected).toHaveLength(1)
 })

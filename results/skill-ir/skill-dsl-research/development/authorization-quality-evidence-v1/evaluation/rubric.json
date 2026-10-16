@@ -1,0 +1,198 @@
+{
+  "schemaVersion": "authorization-quality-rubric/v1",
+  "frozenBeforeAuthors": true,
+  "domains": [
+    "object-relations",
+    "branch-call-order",
+    "change-consistency",
+    "conditions-evidence"
+  ],
+  "semantics": "Human source-grounded review, never keyword scoring. Each label requires answer quote/location and source rationale; omissions identify the missing criterion. No credit solely because the source or raw program contains a fact. Current scenario facts supplement, never erase, the original four questions. Across-profile consistency uses the existing six answers only.",
+  "labels": [
+    "correct",
+    "omitted",
+    "incorrect",
+    "appropriately-unknown",
+    "over-abstained",
+    "undelivered"
+  ],
+  "questions": [
+    "requested-document-and-returned-file",
+    "authorization-and-selection-order",
+    "alternate-version-authorized-resource",
+    "missing-facts-and-conditional-conclusions"
+  ],
+  "questionScoring": "full requires all relevant essential facts with no material contradiction; partial retains supported substance with omissions; incorrect contains a material false affirmation. Whole full requires four full questions and mutually consistent scope. Undelivered is recorded separately, never excluded.",
+  "unknownRule": "appropriately-unknown requires the exact missing decisive fact and the conclusion it blocks; unknown for source-visible relations is over-abstained. Optional facts are reported but excluded from essential error/omission comparisons.",
+  "facts": [
+    {
+      "id": "O1",
+      "domain": "object-relations",
+      "question": 1,
+      "essential": true,
+      "criterion": "Request pk selects request_doc with global_objects in file_response; absent document is 404. This direct lookup is distinct from a generic get_object call.",
+      "source": "views.py:1401-1415,1429-1434"
+    },
+    {
+      "id": "O2",
+      "domain": "object-relations",
+      "question": 3,
+      "essential": true,
+      "criterion": "Root resolution returns self for root; otherwise related root, query fallback, then self. view_document is evaluated on that resolved root, not the eventual file/version.",
+      "source": "versioning.py:146-156; views.py:1417-1427"
+    },
+    {
+      "id": "O3",
+      "domain": "object-relations",
+      "question": 3,
+      "essential": true,
+      "criterion": "Requested document, authorization root and effective file document can differ; choosing a version/representation does not introduce a second object check on the selected file in this path.",
+      "source": "views.py:1388-1448"
+    },
+    {
+      "id": "O4",
+      "domain": "object-relations",
+      "question": 1,
+      "essential": false,
+      "criterion": "serve_file uses selected doc archive_file or source_file and constructs FileResponse/disposition; file materialization remains separate from permission evidence.",
+      "source": "views.py:4941-4995"
+    },
+    {
+      "id": "B1",
+      "domain": "branch-call-order",
+      "question": 2,
+      "essential": true,
+      "criterion": "Framework authentication and configured permission checks occur before action; this custom lookup does not automatically invoke generic get_object/check_object_permissions. Explain evidence rather than assuming either hook executed.",
+      "source": "views.py:1021,1834-1836; framework/views.py:404-421,509-523; permissions.py:30-53"
+    },
+    {
+      "id": "B2",
+      "domain": "branch-call-order",
+      "question": 2,
+      "essential": true,
+      "criterion": "Outer request.user is not None gates the owner-aware helper. Inside it ObjectPermissionChecker is constructed before owner-null/owner-equality short circuit; only nonowner reaches has_perm.",
+      "source": "views.py:1421-1426; permissions.py:624-635"
+    },
+    {
+      "id": "B3",
+      "domain": "branch-call-order",
+      "question": 2,
+      "essential": true,
+      "criterion": "Failed owner-aware check yields Forbidden before effective version/representation selection or serve_file; no invented later calls on denial.",
+      "source": "views.py:1421-1448"
+    },
+    {
+      "id": "B4",
+      "domain": "branch-call-order",
+      "question": 1,
+      "essential": true,
+      "criterion": "Absent version and empty string differ: requested child plus absent version returns child directly; otherwise resolver runs. Presence controls include_deleted, while falsey parameter selects latest.",
+      "source": "views.py:1375-1399; versioning.py:169-182"
+    },
+    {
+      "id": "B5",
+      "domain": "branch-call-order",
+      "question": 1,
+      "essential": true,
+      "criterion": "Explicit nonempty version is int-parsed; conversion failure, missing candidate and foreign-root candidate reject. Candidate must be root itself or belong to resolved root.",
+      "source": "versioning.py:184-195; views.py:1382-1386"
+    },
+    {
+      "id": "B6",
+      "domain": "branch-call-order",
+      "question": 1,
+      "essential": true,
+      "criterion": "Latest uses version_index DESC NULLS LAST then id DESC, manager depends on include_deleted, no candidate falls back to root. Do not omit deleted filtering or substitute maximum id.",
+      "source": "versioning.py:23-28,136-137,159-166; views.py:1375-1381"
+    },
+    {
+      "id": "B7",
+      "domain": "branch-call-order",
+      "question": 1,
+      "essential": true,
+      "criterion": "Only exact original=true requests original; otherwise use archive iff selected file has archive, else source. Distinguish this from version selection and authorization.",
+      "source": "views.py:1368-1373,1442-1448,4948-4965"
+    },
+    {
+      "id": "B8",
+      "domain": "branch-call-order",
+      "question": 1,
+      "essential": false,
+      "criterion": "Response filename/disposition and content type follow selected representation; formatting affects filename rather than permission resource.",
+      "source": "views.py:1446-1447,4952-4995"
+    },
+    {
+      "id": "C1",
+      "domain": "change-consistency",
+      "question": 1,
+      "essential": true,
+      "criterion": "Current profile's finite request/root/file/representation or refusal/conditional result agrees with supplied facts and source. Cross-profile Q0/Q1 change is explained using absent/empty and deleted visibility, not a changed grant.",
+      "source": "profile-specific expected facts in evaluation/profile-expectations.json; views.py:1375-1448"
+    },
+    {
+      "id": "C2",
+      "domain": "change-consistency",
+      "question": 3,
+      "essential": true,
+      "criterion": "Version/original changes preserve resolved authorization object for same request/root facts; a root fallback can change the object because root lookup changed. Explain concrete current profile and general source relation.",
+      "source": "versioning.py:146-156; views.py:1417-1448"
+    },
+    {
+      "id": "C3",
+      "domain": "change-consistency",
+      "question": 2,
+      "essential": true,
+      "criterion": "Profiles Q3/Q4/Q5 differ by explicit false, local None actor, and missing external facts: reject, skip local checker, and condition respectively. Do not carry default permission or computed file into a changed case.",
+      "source": "views.py:1421-1436; permissions.py:634-635; supplied facts"
+    },
+    {
+      "id": "C4",
+      "domain": "change-consistency",
+      "question": 3,
+      "essential": false,
+      "criterion": "The source reasoning distinguishes a changed input from a changed rule; untriggered branches remain relevant to the original all-branches question.",
+      "source": "original questions1/3; views.py:1375-1448"
+    },
+    {
+      "id": "E1",
+      "domain": "conditions-evidence",
+      "question": 4,
+      "essential": true,
+      "criterion": "Finite local-entry facts do not prove real HTTP admission, authentication/backend configuration or global permissions. Q4 None actor is hypothetical local reachability, not an anonymous endpoint bypass.",
+      "source": "framework/views.py:404-421; views.py:1021; profile Q4 scope note"
+    },
+    {
+      "id": "E2",
+      "domain": "conditions-evidence",
+      "question": 4,
+      "essential": true,
+      "criterion": "Normal constructor completion is not a grant; false/None return may still mean completion. Owner shortcut does not erase constructor; missing has_perm/constructor evidence blocks only the dependent local continuation.",
+      "source": "permissions.py:634-635; supplied external assumptions"
+    },
+    {
+      "id": "E3",
+      "domain": "conditions-evidence",
+      "question": 4,
+      "essential": true,
+      "criterion": "Source-supported rules, hypothetical execution, author literal claims and actual deployment facts are distinguished. No assertion that DSL checked literal or source coverage proves all request behavior.",
+      "source": "original question4; source boundary; actual program basis when present"
+    },
+    {
+      "id": "E4",
+      "domain": "conditions-evidence",
+      "question": 4,
+      "essential": true,
+      "criterion": "Name missing ownership/grant or upstream facts precisely and their blocked conclusions; use provided finite facts for local reasoning. Do not blanket-abstain on source-visible selection and authorization relations.",
+      "source": "original questions2-4; supplied finite inputs"
+    },
+    {
+      "id": "E5",
+      "domain": "conditions-evidence",
+      "question": 4,
+      "essential": false,
+      "criterion": "Actual database consistency, file existence/storage success and deployed configuration are not established by finite records or FileResponse construction alone.",
+      "source": "versioning.py:154-156; views.py:4941-4995"
+    }
+  ],
+  "advantage": "For a domain R2 must have fewer essential incorrect+omitted+over-abstained+undelivered than R1 in EACH repeat, with no increase in essential incorrect in either repeat. All four domain matrices and every planned first position are mandatory; secondary repairs never replace them."
+}

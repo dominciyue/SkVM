@@ -1,11 +1,35 @@
 import { expect, test } from "bun:test"
 import { executeResourceWorkflow } from "./resource-relations.ts"
 const api: any = await import("./program-outcome.ts").catch(() => ({}))
+test("return basis separates literal claims, finite selection and external facts with unresolved control", () => {
+  const source = { path: "anonymous.py", startLine: 1, endLine: 10 }
+  const workflow: any = { inputs: ["rows"], steps: [
+    { id: "selected", op: "select", from: "rows", where: { op: "eq", left: { literal: true }, right: { literal: true } }, source },
+    { id: "remote", op: "external", name: "initialize", arguments: {}, source },
+    { id: "complete", op: "guard", test: { op: "eq", left: { binding: "remote" }, right: { binding: "remote" } }, failure: "not-complete", source },
+    { id: "done", op: "return", source, value: { record: { object: { field: { of: { ref: "selected" }, key: "id" } }, framework: { literal: "upstream admission succeeded" }, external: { ref: "remote" } } } },
+  ] }
+  const execution = executeResourceWorkflow(workflow, { rows: [{ id: 7 }] })
+  const view = api.projectProgramOutcome({ program: { resourceWorkflow: workflow, scope: { upstream: ["upstream admission is outside this function"] } }, resourceExecution: execution })
+  expect(view.returnBasis.fields.object.kinds).toContain("finite-computation")
+  expect(view.returnBasis.fields.object.dependencies.map((d: any) => d.id)).toContain("selected")
+  expect(view.returnBasis.fields.framework.kinds).toEqual(["authored-literal"])
+  expect(view.returnBasis.fields.framework.semanticSupport).toBe("author-declared-unreviewed")
+  expect(view.returnBasis.fields.external.dependencies[0]).toMatchObject({ id: "remote", op: "external", outcome: "unresolved" })
+  expect(view.returnBasis.controlDependencies.map((d: any) => d.id)).toContain("complete")
+  expect(view.returnBasis.requiredPremises.length).toBeGreaterThan(0)
+  expect(view.coverageGaps).toContain("upstream admission is outside this function")
+})
 test("computed value and unreviewed coverage coexist without certification", () => {
   expect(typeof api.projectProgramOutcome).toBe("function")
   const value = api.projectProgramOutcome({ resourceExecution: { returned: { chosen: 4 }, termination: "return", conditions: [], gaps: ["unwritten other branch"], events: [{ id: "r", op: "return", outcome: "computed", gaps: [] }] }, program: { resourceWorkflow: { gaps: ["unwritten other branch"] } }, obligations: [{ id: "error", state: "unmapped" }] })
   expect(value).toMatchObject({ execution: "computed", value: { chosen: 4 }, semanticSupport: "unreviewed", requestOperationCertified: false })
   expect(value.coverageGaps.length).toBeGreaterThan(0)
+})
+test("a row binding outside selection remains unresolved instead of losing its basis", () => {
+  const source = { path: "anon.py", startLine: 1 }, step = { id: "return", op: "return", source, value: { test: { op: "eq", left: { binding: "row.id" }, right: { literal: 7 } } } }
+  const view = api.projectProgramOutcome({ program: { resourceWorkflow: { inputs: [], steps: [step] } }, resourceExecution: { events: [{ id: "return", op: "return", outcome: "unresolved" }] } })
+  expect(view.returnBasis.fields.$return.kinds).toContain("unresolved-reference")
 })
 test("missing actual external premise stays conditional and denial has no value", () => {
   expect(typeof api.projectProgramOutcome).toBe("function")

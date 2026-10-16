@@ -1,8 +1,8 @@
 # Skill IR AOT 当前执行计划
 
-更新于2026-10-16。唯一实时入口为[current-status](current-status.md)。
+更新于2026-10-17。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BP0–BP21](../superpowers/plans/2026-10-16-authorization-quality-evidence-and-branch-reliability.md)，planned-not-started。用户已授权新线程实际开发，优先补外层激活、独立编写可靠性与 rules/execute 对照，以对象关系、分支、变化一致性和条件忠实性为主要质量轴。
+- 当前任务书：[BP0–BP21](../superpowers/plans/2026-10-16-authorization-quality-evidence-and-branch-reliability.md)，共享工程与评价预登记完成，进入真实作者队列。从189a5924接管，零模型兼容和三臂材料隔离已核验，质量效果尚待有限队列。以对象关系、分支、变化一致性和条件忠实性为主要质量轴。
 - 方法合同：[spec §14.55](skill-ir-aot-optimization-spec.md#1455-bp-capability-quality-and-executable-support)；复核与开发过程统一在[研究 §7.77](skill-dsl-research.md#777-bo-质量复核与-bp-能力实验决定)。BO结果与合同保留在§7.76/§14.54。
 - identity：`authorization-quality-evidence-v1`，规划基线`af8321c313bcd3216620c1436802bacd8420fca8`。继续`skill-ir-aot`，只推用户origin，不建分支/worktree；新开发线程独占代码、共享方法文档与Git写入。
 - 开发`gpt-6-astra/high`，按用户指定；实验沿已授权官方账号`gpt-5.6-sol/high`。第三方暂停；旧未知与保护证据保持。接管时tracked干净，原有未跟踪`.tmp/`不清理。

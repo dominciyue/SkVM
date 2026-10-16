@@ -6,6 +6,7 @@ export type AuthoringTargetMode = z.infer<typeof AuthoringTargetModeSchema>
 /** Source-authored relationships, not execution syntax or a coverage certificate. */
 export const ProgramCallRelationSchema = z.object({
   stepId: z.string().min(1).max(256), activation: z.enum(["always", "conditional", "unreviewed"]),
+  activationDependencyIds: z.array(z.string().min(1).max(256)).max(32).optional(),
   completion: z.enum(["required", "caught", "unreviewed"]), completionGuardId: z.string().min(1).max(256).optional(),
   completionMeaning: z.enum(["normal-return", "finite-marker"]).optional(),
   successorStepIds: z.array(z.string().min(1).max(256)).max(128).default([]),

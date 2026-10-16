@@ -3160,7 +3160,9 @@ BM8实施细节：当前协议只在thread/start注册dynamicTools。宿主预�
 
 ### 14.55 BP capability quality and executable support
 
-2026-10-16 用户授权 [BP0–BP21](../superpowers/plans/2026-10-16-authorization-quality-evidence-and-branch-reliability.md)，从已发布 af8321c3 接续，identity `authorization-quality-evidence-v1`。开发 gpt-6-astra/high，实验官方 gpt-5.6-sol/high，第三方暂停。当前仅规划；BO 原件、评分和默认不改。
+2026-10-16 用户授权 [BP0–BP21](../superpowers/plans/2026-10-16-authorization-quality-evidence-and-branch-reliability.md)，从已发布 af8321c3 接续，identity `authorization-quality-evidence-v1`。开发 gpt-6-astra/high，实验官方 gpt-5.6-sol/high，第三方暂停。2026-10-17从189a5924接管并进入共享工程；尚无BP实际模型调用，BO原件、评分和默认不改。
+
+**当前实现细节。** rules在同native宿主保留raw草稿，复用patch/schema/来源结构工具，禁止调用会同时求值resource/property的编译器。规则check与普通session归档采用独立rules投影；现有execution.json/md文件名兼容inspect，schema为authorization-program-rules-archive/v1。CLI显式program-support=rules仅支持零模型check/compare和codex-account运行；provider入口明确拒绝该能力，避免静默执行。来源变化仍报告失效，跨执行历史不能作为rules账号续作来源。此边界尚在工程验证，不计真实采用证据。
 
 **主要目标。** 质量按授权对象关系、分支/调用顺序、变化一致性、条件/证据忠实性评价。局部重复优势可以独立成立，成本不作为质量成立的前置；完整四问、自动作者可靠性和长期目标保持各自验收。逐项正确、遗漏、错误肯定、合理 unknown、过度弃答和未交付分别记录；保持整题统计，不用单一整题 full 遮蔽局部进步。
 

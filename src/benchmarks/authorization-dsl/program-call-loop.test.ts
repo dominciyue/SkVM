@@ -39,6 +39,7 @@ test("account author reads source, diagnoses call, patches, trials and delivers 
       expect(description).toContain("when:finitePredicate")
       expect(description).toContain("False and None")
       expect(description).toContain("completionGuardId")
+      expect(description).toContain("activationDependencyIds")
     }
     expect(advertised.find(t => t.name === "authorization_program_details").description).toContain('format:"raw"')
     expect(contexts[1].authoring.feedbackGroups.callRelations[0].diagnostics).toContain("call-result-unused-completion-unreviewed")
@@ -52,5 +53,49 @@ test("account author reads source, diagnoses call, patches, trials and delivers 
     expect(results[4].callRelations[0].trials.map((t: any) => t.id)).toEqual(["normal-false", "unknown"])
     expect(results[5].format).toBe("overview")
     expect(run.account.text).toContain("conditional")
+  } finally { await rm(root, { recursive: true, force: true }) }
+})
+
+test("rules account maintenance exposes raw/schema only through source patch details and final child", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "rules-loop-"))
+  try {
+    const at = { path: "app.py", startLine: 1, endLine: 2 }, inputFile = path.join(root, "input.json"), programFile = path.join(root, "program.json")
+    await writeFile(path.join(root, "app.py"), "def work():\n    return 7\n\ndef sibling():\n    return None\n")
+    await writeFile(inputFile, JSON.stringify({ schemaVersion: "authorization-inquiry-input/v1", taskId: "rules-loop", repository: "anonymous", sourceRef: "fixed", sourceRoot: ".", allowedPaths: ["app.py"], inquiry: { schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Explain the source result and all remaining conditions", premises: [] }] }, resourceInputs: { q: {} } }))
+    const raw: any = { schemaVersion: "authorization-executable-contract/v1", id: "work", scope: { kind: "function-contract", questionId: "q", root: at, upstream: [] }, sourceDeclarations: [{ source: at, statements: [] }], queries: [], assumptions: [], resourceWorkflow: { inputs: [], steps: [{ id: "result", op: "return", value: { literal: 7 }, source: at }] } }
+    await writeFile(programFile, JSON.stringify(raw))
+    const advertised: any[] = [], visible: any[] = [], packets: any[] = []
+    let receive = (_m: any) => {}, action = 0, current: any, child = 0
+    const decode = (wire: any) => { if (wire.contextSequence === 1) packets.length = 0; const restored = resolveInquiryContext(wire, packets); packets.push(restored); visible.push(restored); return restored }
+    const next = () => {
+      if (child > 1) { receive({ method: "turn/completed", params: { threadId: "child", turn: { id: "final", status: "completed", items: [{ type: "agentMessage", phase: "final_answer", text: "The authored rule says 8; source says 7. No host computation was supplied." }] } } }); return }
+      const calls = [
+        ["source_read", at],
+        ["authorization_program_details", { view: "draft", format: "raw" }],
+        ["authorization_program_patch", { baseRevision: current?.authoring?.draftRevision, upsertSteps: [{ id: "result", op: "return", value: { literal: 8 }, source: at }] }],
+        ["authorization_program_details", { view: "draft", format: "overview" }],
+      ]
+      if (action === calls.length) { receive({ method: "turn/completed", params: { threadId: "rules", turn: { id: "turn", status: "completed", items: [] } } }); return }
+      const [tool, args] = calls[action++]!; receive({ id: `rpc-${action}`, method: "item/tool/call", params: { threadId: "rules", turnId: "turn", callId: `call-${action}`, tool, arguments: args } })
+    }
+    const transportFactory: any = () => ({ isolation: { kind: "test-transport" }, onMessage(fn: any) { receive = fn }, onExit() {}, close() {}, send(m: any) {
+      if (m.method === "initialize") receive({ id: m.id, result: {} })
+      if (m.method === "thread/start") { child++; advertised.push(m.params); receive({ id: m.id, result: { thread: { id: child > 1 ? "child" : "rules" }, model: "gpt-5.6-sol" } }) }
+      if (m.method === "turn/start") { current = decode(JSON.parse(m.params.input[0].text.split("Current local explanation context: ")[1])); receive({ id: m.id, result: { turn: { id: child > 1 ? "final" : "turn" } } }); queueMicrotask(next) }
+      if (m.result?.contentItems) { const packet = decode(JSON.parse(m.result.contentItems[0].text)); current = packet.currentContext; queueMicrotask(next) }
+    } })
+    const run = await runCodexAccountInquiry({ inputFile, domainProgramFile: programFile, workDir: root, model: "gpt-5.6-sol", strategy: "question-checked-v1", method: "M", domainTools: true, programMode: "edit", programSupport: "rules", programContext: "directed", executionPolicy: "progressive", maxAuthorContinuations: 0, maxToolCalls: 16, timeoutMs: 10000, transportFactory,
+      reuse: { info: {}, seed: { evidence: [], programDraft: { raw, candidate: { resourceExecution: { returned: "LEAK_FROM_PRIOR" } }, trials: [{ result: "LEAK_FROM_PRIOR" }] } } } } as any)
+    expect(run.account.status).toBe("completed")
+    expect(child).toBe(2)
+    expect(advertised[0].dynamicTools.some((t: any) => t.name === "authorization_program_trial")).toBe(false)
+    expect(advertised[0].dynamicTools.some((t: any) => t.name === "authorization_program_patch")).toBe(true)
+    expect(advertised[1].dynamicTools).toEqual([])
+    const text = JSON.stringify(visible)
+    expect(text).not.toContain("LEAK_FROM_PRIOR")
+    for (const key of ["resourceExecution", "outcome", "events", "computed", "propertyChecks", "candidatePreviewAvailable", "returned"]) expect(text).not.toContain(`"${key}":`)
+    expect(text).toContain("authorization-program-rules/v1")
+    expect(run.native.domain?.executableContract?.resourceExecution).toBeUndefined()
+    expect((run.native.domain as any)?.programDraft?.currentDraft.raw.resourceWorkflow.steps[0].value.literal).toBe(8)
   } finally { await rm(root, { recursive: true, force: true }) }
 })

@@ -301,8 +301,9 @@ test("ordinary incomplete author session archives its raw draft and remaining du
     const arguments_ = n === 0 ? { schemaVersion: "authorization-property-intent/v1", questions: [{ questionId: "other", state: "residual", reason: "Original duty still needs investigation" }] } : { kind: "program", name: "authorization_program", arguments: invalid }
     return { text: "", toolCalls: [{ id: `draft-${n}`, name: params.tools[0].name, arguments: arguments_ }], stopReason: "tool_use", tokens: emptyTokenUsage(), durationMs: 0 }
   }, async completeWithToolResults() { throw new Error("unused") } }
-  const report: any = await executeLocalInquiryRun({ inputFile: f.inputFile, outDir: path.join(f.root, "draft-out"), model: "mock", strategy: "question-checked-v1", programMode: "edit", executionPolicy: "progressive", providerFactory: () => provider, execution: { maxDispatches: 8 } })
+  const report: any = await executeLocalInquiryRun({ inputFile: f.inputFile, outDir: path.join(f.root, "draft-out"), model: "mock", strategy: "question-checked-v1", programMode: "edit", programSupport: "execute", executionPolicy: "progressive", providerFactory: () => provider, execution: { maxDispatches: 8 } })
   const inspected = await inspectLocalInquiry(report.sessionPath)
+  expect(inspected.programSupport).toBe("execute")
   expect(inspected.execution.schemaVersion).toBe("authorization-execution/v2")
   expect(inspected.execution.currentDraft.raw).toEqual({ ...invalid, resourceWorkflow: { ...invalid.resourceWorkflow, gaps: [] } })
   expect(inspected.execution.finalRevision).toBeUndefined()
@@ -771,7 +772,7 @@ test("ordinary native file import and model declaration adopt the same contract 
     const context: any = await imported.accountContext(false)
     expect(context.executableContract.program.id).toBe(f.contract.id)
     const property = imported.report().domain?.executableContract?.evaluation?.questions.find((q: any) => q.questionId === "q")?.properties[0]
-    expect(property?.status, JSON.stringify({ gaps: property?.gaps, projection: imported.report().domain?.materialProjection, units: imported.report().domain?.semantic?.units.map(u => ({ questionId: u.questionId, role: u.role, handle: u.handle })), rules: imported.report().domain?.slice.rules.map(r => ({ kind: r.kind, origin: r.sourceOrigin })) })).toBe("checked")
+    expect(property?.status, JSON.stringify({ gaps: property?.gaps, projection: imported.report().domain?.materialProjection, units: imported.report().domain?.semantic?.units.map(u => ({ questionId: u.questionId, role: u.role, handle: u.handle })), rules: imported.report().domain?.slice?.rules.map(r => ({ kind: r.kind, origin: r.sourceOrigin })) })).toBe("checked")
     expect(imported.report().program?.questions.map(q => q.id)).toEqual(["q", "other"])
   } finally { await imported.close() }
   // No authored file is loaded in the model path. It must read original source.

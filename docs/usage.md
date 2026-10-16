@@ -2,6 +2,8 @@
 
 Command reference and workflows for the `skvm` CLI. For a 1-minute onboarding see the [README](../README.md); for subsystem and data-layout details see [architecture.md](architecture.md).
 
+Authorization program support can be selected with `check/run/compare --program-support=rules|execute` (default execute). Rules mode displays the complete authored rules/raw with schema/source diagnostics, without evaluation, previews or trials; account edit mode can still patch raw. Use `run --harness=codex-account` for rules mode; provider runs reject this unsupported capability. Original questions and skill duties remain. `check --out` and `inspect` retain ordinary archives with a rules-specific schema. See the [Download example](../examples/authorization-assessment/download-workflow/README.md) for `-ProgramSupport rules` and source-change handling.
+
 ## CLI conventions
 
 ```bash

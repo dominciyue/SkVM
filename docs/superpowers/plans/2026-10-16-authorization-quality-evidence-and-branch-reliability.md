@@ -2,11 +2,13 @@
 
 > **For agentic workers:** 使用 `superpowers:executing-plans`，遇到真实缺陷使用 systematic-debugging 和 test-driven-development。用户已明确要求新线程直接执行；开发模型 `gpt-6-astra/high`。常规检查点不等待确认，按有限队列完成工程、真实使用、评价和发布。探子仅做窄范围只读核验，不另派写代码线程。
 
-**状态：** planned-not-started。本文件是新的开发授权；BO 的终态、原件和评分保持。执行线程接管后更新本行和 current-status。
+**状态：** in-progress（2026-10-17，BP0接管；HEAD/origin均189a5924，仅既有.tmp/未跟踪）。先固定评价与共享工程，再开始真实实验；当前零BP调用。BO 的终态、原件和评分保持。
 
 **Goal：** 让自动程序可靠表达外层激活、对象关系和有限分支，并用同条件实验查明规则整理与实际执行各自改善哪些回答质量；交付可运行、可解释、可维护的程序和明确的优势/退步边界。
 
 **Architecture：** 沿用 SkVM inquiry/native、resource workflow、when/guard、patch/trial、来源失效和账号归档。补共享作者反馈、纯规则文档及可控的消费支持；固定同一份模型原稿，比较原 skill、同规则 Markdown、同规则加可执行 DSL。源码含义仍由模型判断，独立评价在生成边界外。
+
+**BP6 实现细化（首次真实调用前）：** legacy 基线默认未公开 source_structure，与两组辅助模式不等价。新增独立的 sourceStructure opt-in，把相同有限源码结构能力提供给三组；不开启基线 domain 工具或求值。保留旧默认值，预检比较三组源码工具定义及文件绑定，回归测试比较实际结构输出。原预注册输入、量规与位置不变。
 
 **Tech Stack：** TypeScript、Bun、Zod、既有只读源码工具和官方账号 adapter。使用现有 CLI 与示例，不新建平台或通用语言解释器。
 
@@ -171,57 +173,59 @@ Q4 是“在给定局部入口事实下分析分支”，不冒充真实匿名 H
 
 ### BP0 — 接管与登记
 
-- [ ] 读上述入口，核对 HEAD/origin、BO completed 和当前无重叠写入；只登记已有 `.tmp/`。
-- [ ] 新建 BP `status.json`、`manifest.json`、`attempts.json`、`accounting.json`。明确 planned criteria、observed results 分开，登记本节全部位置和共享预算。
-- [ ] 恢复时依据 ledger 和实际终态继续未完成位置，不能重新 prepare 覆盖已有输入或重发 active/unknown。
+- [x] 读上述入口，核对 HEAD/origin、BO completed 和当前无重叠写入；只登记已有 `.tmp/`。
+- [x] 新建 BP `status.json`、`manifest.json`、`attempts.json`、`accounting.json`。明确 planned criteria、observed results 分开，登记本节全部位置和共享预算。
+- [x] 恢复时依据 ledger 和实际终态继续未完成位置，不能重新 prepare 覆盖已有输入或重发 active/unknown。
 
 ### BP1 — 固定能力域和独立评价
 
-- [ ] 从 BO 原四问与实际源码写 `evaluation/rubric.json`，固定 essential/optional 与能力域映射，避免把已有结论自动判为“已写进回答”。
-- [ ] 固定六个 fact profile、两次重复和三臂装配；记录 Q4 局部边界。expected 与模型输入分目录，common input 不含评分或目标返回。
-- [ ] 用匿名回答反例验证评分：返回对象正确但授权对象错、顺序遗漏、合理 unknown、过度弃答、协议失败分别得不同标签。
+- [x] 从 BO 原四问与实际源码写 `evaluation/rubric.json`，固定 essential/optional 与能力域映射，避免把已有结论自动判为“已写进回答”。
+- [x] 固定六个 fact profile、两次重复和三臂装配；记录 Q4 局部边界。expected 与模型输入分目录，common input 不含评分或目标返回。
+- [x] 用匿名回答反例验证评分：返回对象正确但授权对象错、顺序遗漏、合理 unknown、过度弃答、协议失败分别得不同标签。
 
 ### BP2 — 外层激活的失败测试
 
-- [ ] 在 program-obligations 测试建立 outer=false/true/unknown × inner=true/false 的有限反例；仅有 inner when 不能被视为外层已连。
-- [ ] 验证 source 同名但不同调用点、缺 step、逆序依赖、stale revision、合法早停及后续 return 使用被跳过值的情况。
-- [ ] 运行新测试并保留预期失败；旧 executor 已能做到的行为是保持测试，不制造假失败。
+- [x] 在 program-obligations 测试建立 outer=false/true/unknown × inner=true/false 的有限反例；仅有 inner when 不能被视为外层已连。
+- [x] 验证 source 同名但不同调用点、缺 step、逆序依赖、stale revision、合法早停及后续 return 使用被跳过值的情况。
+- [x] 运行新测试并保留预期失败；旧 executor 已能做到的行为是保持测试，不制造假失败。
 
 ### BP3 — 共享作者反馈
 
-- [ ] 在既有 coverage.call 和 projectProgramCallRelations 实现可选激活依赖；反馈提供 missing ID/source/current actual path，不填正确条件。
-- [ ] 将 inner/outer 条件、调用完成与取值责任分别显示到现有 authoring feedbackGroups；不新建全函数必填协议。
-- [ ] 用 BP2 全部正反例验证并检查旧声明兼容。确有更小方案时先记录本节设计修订再实现。
+- [x] 在既有 coverage.call 和 projectProgramCallRelations 实现可选激活依赖；反馈提供 missing ID/source/current actual path，不填正确条件。
+- [x] 将 inner/outer 条件、调用完成与取值责任分别显示到现有 authoring feedbackGroups；不新建全函数必填协议。
+- [x] 用 BP2 全部正反例验证并检查旧声明兼容。确有更小方案时先记录本节设计修订再实现。
 
 ### BP4 — 实际工具广告与渐进修稿
 
-- [ ] 扩展 `program-call-loop.test.ts`，走账号 source→program→当前诊断→patch→trial→details→自然交付；直接检查 thread/start 广告字段和恢复 child。
-- [ ] 对 empty-version/deleted/filter/sort 只公开当前规则、操作支持与实际选择轨迹，作者从源码修值；不得内置 Paperless 正确过滤器。
-- [ ] 模型能看到本次修订确实修了哪些依赖、哪些原职责还在；正确局部稿保留，unknown 不堵住不依赖它的分析。
+- [x] 扩展 `program-call-loop.test.ts`，走账号 source→program→当前诊断→patch→trial→details→自然交付；直接检查 thread/start 广告字段和恢复 child。
+- [x] 对 empty-version/deleted/filter/sort 只公开当前规则、操作支持与实际选择轨迹，作者从源码修值；不得内置 Paperless 正确过滤器。
+- [x] 模型能看到本次修订确实修了哪些依赖、哪些原职责还在；正确局部稿保留，unknown 不堵住不依赖它的分析。
 
 ### BP5 — 完整规则文档 renderer
 
-- [ ] 创建 program-rule-document 及红测试：when、guard、排序/NULLS、external、嵌套表达式、source(s)、gaps、未知操作全部可追踪，无当前结果 sentinel。
-- [ ] 实现上述纯接口；用 representedStepIds 与 raw 步骤集合、关键属性映射证明无静默遗漏。render 不调用模型、不调用 evaluator、不执行程序。
-- [ ] 原 raw 可取回；原稿中的错误也原样保留，不由 renderer 修正确条件。
+- [x] 创建 program-rule-document 及红测试：when、guard、排序/NULLS、external、嵌套表达式、source(s)、gaps、未知操作全部可追踪，无当前结果 sentinel。
+- [x] 实现上述纯接口；用 representedStepIds 与 raw 步骤集合、关键属性映射证明无静默遗漏。render 不调用模型、不调用 evaluator、不执行程序。
+- [x] 原 raw 可取回；原稿中的错误也原样保留，不由 renderer 修正确条件。
 
 ### BP6 — rules/execute 的薄接线
 
-- [ ] 在现有 consumer host 增加显式支持选择，默认不变；R1/R2 使用同一规则渲染、同一 source tools 与 answer contract。
-- [ ] fake-account 捕获所有首包/续作/final-child/details，证明 R1 不收到 outcome、events、current returned、trial 结果或历史结果引用；R2 得到当前计算。
-- [ ] 禁用 R1 的执行/修改能力时返回准确的能力说明，不能给模型虚假的工具失败；记录公开差异。普通入口可明确选择该支持方式。
+实现细节（2026-10-17）：现有 compileExecutableContract 同时执行 resource/property；rules 使用同一 native host 的草稿分支，复用 createProgramDraft/patchProgramDraft、normalizeExecutableContract、现有 schema 与来源工具，只做结构诊断，不调用执行编译器。所有模型可见 rules 投影由 raw 白名单构造，避免先求值再删字段；维护仍可编辑同样 raw。此调整不改变三臂材料、预算或评价分母。
+
+- [x] 在现有 consumer host 增加显式支持选择，默认不变；R1/R2 使用同一规则渲染、同一 source tools 与 answer contract。
+- [x] fake-account 捕获所有首包/续作/final-child/details，证明 R1 不收到 outcome、events、current returned、trial 结果或历史结果引用；R2 得到当前计算。
+- [x] 禁用 R1 的执行/修改能力时返回准确的能力说明，不能给模型虚假的工具失败；记录公开差异。普通入口可明确选择该支持方式。
 
 ### BP7 — 返回依据与回答忠实性
 
-- [ ] 检查当前消费投影是否能定位 returned 字段来自 literal、计算依赖还是 external assumption；只为实际缺口补一个纯依赖投影，复用现有 event meaningOrigin。
-- [ ] 测试对象返回字段是计算值、框架描述是 authored literal、missing completion 影响相关结论。不要给所有 literal 加一层无意义“已证明”标签。
-- [ ] 终答保留原四问的要求和当前具体条件，模型可自行查规则/来源；不添加 evaluator 导出的答案提纲。
+- [x] 检查当前消费投影是否能定位 returned 字段来自 literal、计算依赖还是 external assumption；只为实际缺口补一个纯依赖投影，复用现有 event meaningOrigin。
+- [x] 测试对象返回字段是计算值、框架描述是 authored literal、missing completion 影响相关结论。不要给所有 literal 加一层无意义“已证明”标签。
+- [x] 终答保留原四问的要求和当前具体条件，模型可自行查规则/来源；不添加 evaluator 导出的答案提纲。
 
 ### BP8 — 离线接线和首个工程 epoch
 
-- [ ] 用 BO 原字节只读重放验证新诊断，不写回旧结果；匿名正反例走 rules/execute/native 普通路径。
-- [ ] 既有 ShareLink 开发者稿只作零模型接口兼容，不计自动作者。
-- [ ] 运行受影响测试、主/BP 类型及改动文档检查，提交工程 epoch。实际广告与传输隔离通过后开始真实作者。
+- [x] 用 BO 原字节只读重放验证新诊断，不写回旧结果；匿名正反例走 rules/execute/native 普通路径。
+- [x] 既有 ShareLink 开发者稿只作零模型接口兼容，不计自动作者。
+- [x] 运行受影响测试、主/BP 类型及改动文档检查，提交工程 epoch。实际广告与传输隔离通过后开始真实作者。
 
 ### BP9 — A0 自动修订
 

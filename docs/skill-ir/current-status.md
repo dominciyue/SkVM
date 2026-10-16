@@ -1,10 +1,10 @@
 # Skill IR 当前状态
 
-更新于2026-10-16（Asia/Shanghai）。工作分支为 `skill-ir-aot`，仅发布到用户 `origin`。本页是唯一实时状态入口；历史任务书与结果保留当时记录。
+更新于2026-10-17（Asia/Shanghai）。工作分支为 `skill-ir-aot`，仅发布到用户 `origin`。本页是唯一实时状态入口；历史任务书与结果保留当时记录。
 
 ## 当前工作
 
-**用户已授权 BP0–BP21：质量优先的分支可靠性与可执行支持实验，当前为 planned-not-started。** [当前任务书](../superpowers/plans/2026-10-16-authorization-quality-evidence-and-branch-reliability.md)从已发布 BO `af8321c3` 接续，identity 为 `authorization-quality-evidence-v1`，开发 `gpt-6-astra/high`。重点为匿名外层激活、从空稿编写可靠性、纯规则/实际执行隔离，以及对象关系、分支和变化一致性的分项质量证据。主面板六情形×三臂×两重复，原四问和全部结果保留；局部质量目标与整题/自动化/成本分别判断。方法见 [spec §14.55](skill-ir-aot-optimization-spec.md#1455-bp-capability-quality-and-executable-support)、[研究 §7.77](skill-dsl-research.md#777-bo-质量复核与-bp-能力实验决定)。实验继续官方账号 `gpt-5.6-sol/high`，第三方暂停；派发后开发线程独占写入。本次仅计划，尚无 BP 工程或实验结果。
+**用户已授权 BP0–BP21：质量优先的分支可靠性与可执行支持实验，共享工程与预登记已完成，正进入真实作者队列；尚无BP质量效果结论。** [当前任务书](../superpowers/plans/2026-10-16-authorization-quality-evidence-and-branch-reliability.md)从已发布 BO `af8321c3` 接续，identity 为 `authorization-quality-evidence-v1`，开发 `gpt-6-astra/high`。重点为匿名外层激活、从空稿编写可靠性、纯规则/实际执行隔离，以及对象关系、分支和变化一致性的分项质量证据。主面板六情形×三臂×两重复，原四问和全部结果保留；局部质量目标与整题/自动化/成本分别判断。方法见 [spec §14.55](skill-ir-aot-optimization-spec.md#1455-bp-capability-quality-and-executable-support)、[研究 §7.77](skill-dsl-research.md#777-bo-质量复核与-bp-能力实验决定)。实验继续官方账号 `gpt-5.6-sol/high`，第三方暂停；派发后开发线程独占写入。2026-10-17从189a5924接管；外层依赖、完整规则renderer、native/local规则隔离、三臂源码工具同构及返回依据已经验证。BO原字节零模型33例重放为历史18/18、额外7/8、扰动6/7；匿名激活与缺version键仍失败。评价输入和量规已预登记，A0真实自动修订为下一步。工程完成与质量效果保持分开。
 
 ## BO 已结束的实际结果
 

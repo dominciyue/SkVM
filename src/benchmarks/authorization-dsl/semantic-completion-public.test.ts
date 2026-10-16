@@ -319,5 +319,5 @@ test("actual thread/start static schema admits narrow edits and host repairs onl
   const property: any = run.native.domain!.propertyAnalysis!.checks!.questions[0]!.properties[0]!
   expect(property.status, JSON.stringify(property)).toBe("checked")
   expect(new Set(property.traceDetails.map((r: any) => r.source?.id)).size).toBe(2)
-  expect(run.native.domain!.computation.propertyEvaluations).toBeGreaterThan(0)
+  expect(run.native.domain!.computation?.propertyEvaluations).toBeGreaterThan(0)
 })
