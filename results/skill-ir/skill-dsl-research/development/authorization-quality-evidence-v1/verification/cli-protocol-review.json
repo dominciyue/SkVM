@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-17",
+  "cliVersion": "0.163.0-alpha.10.2",
+  "reason": "Desktop update after user interruption replaced local supported client; bounded read refused before inference",
+  "schemaCommand": "codex app-server generate-json-schema --experimental --out verification/archives/cli-schema-0.163.0-alpha.10.2",
+  "schemaSha256": {
+    "v2/ThreadStartParams.json": "80a40a7fac15b4bf70efb7f893fb353acc0a0d30c68f54aee4f01923deca85de",
+    "v2/ThreadStartResponse.json": "107fe36c99ebaeb750a371580beec807a28c6451e9c8a02cd7d451a0135f1c91",
+    "v2/TurnStartParams.json": "abf0d6d29d223b38c650ff1155cb9c9f9b4211e6d0e20c57d750a9e1babfdb41",
+    "DynamicToolCallParams.json": "401bba20cfbd95762bef0467d840430c46be53369093ad9f26425ba757e34efc",
+    "DynamicToolCallResponse.json": "abb082cad67f11fcc98ba75f2eff75d7d1723af0c657655329b83ff160451a02",
+    "v2/ThreadReadParams.json": "dfe040c6ac71d30795b8be3f3ff232e66f362a37f883b491e5d1ea367f470db4",
+    "v2/ThreadTokenUsageUpdatedNotification.json": "aba4f6c7e4a19b2b842c08ee793b57000c07dafd57b922ad0d8e7c76609108c2"
+  },
+  "inspected": [
+    "Named permissions excludes legacy sandbox; empty runtime roots and environments retained",
+    "dynamicTools function name/description/inputSchema and exact tool result fields retained",
+    "thread response retains sandbox/profile/instructionSources/runtimeWorkspaceRoots",
+    "thread/read includeTurns remains supported; pagination preferred but existing small turn read works",
+    "Token usage remains thread/turn scoped; cached input is part of input"
+  ],
+  "change": "Admit only exact inspected version; effective config, instructions, roots, model and native-tool checks remain mandatory",
+  "verification": {
+    "red": "new version test returned unavailable before allowlist edit",
+    "green": "41 account/recovery tests,219 assertions; main typecheck passed",
+    "research": "6 BP tests,34 assertions; BP typecheck passed"
+  },
+  "inferenceProbe": false,
+  "actualEffectiveControls": "Will be verified by existing runtime before next authorized task turn",
+  "readonlyReconciliation": "q0-readonly-reconciliation-supported.json confirms old turn interrupted, no agentMessage"
+}
