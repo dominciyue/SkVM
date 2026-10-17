@@ -1,0 +1,95 @@
+## Executable program
+
+Persistent program **`paperless-document-download`** was authored and repaired. Current draft revision:
+
+`fc1a87905cb117988cdce2a05b7f73413352425981a3cb76f176f26aa165ae89`
+
+It models routing requirements, requested/root document resolution, owner-aware authorization, version selection, original/archive selection, and the selected file. Current trials confirmed the important absent-versus-empty `version` distinction without diagnostics.
+
+## 1. Requested document and returned file
+
+- The router registers `UnifiedSearchViewSet` under `documents`; its inherited detail `download` action serves `GET /api/documents/{pk}/download/` (`src/paperless/urls.py:74-77`, `src/documents/views.py:1834-1839`).
+- `pk` identifies the **requested document**. Download resolves it using `Document.global_objects` because `include_deleted=True`, so even a soft-deleted requested document can be found. Missing documents become 404 (`src/documents/views.py:1401-1415`).
+- The requested document is mapped to its root:
+  - a root document remains itself;
+  - a version normally resolves to its `root_document`;
+  - if that root cannot be resolved, `get_root_document` falls back to the requested document (`src/documents/versioning.py:146-156`).
+
+After authorization, the file-bearing document is selected:
+
+1. If `pk` directly names a version and the `version` query parameter is **absent** (`None`), that requested version is returned directly (`src/documents/views.py:1388-1399`).
+2. Otherwise selection occurs relative to the root:
+   - **Absent `version`:** select the newest non-deleted version, falling back to the root.
+   - **Present but empty `version=`:** it is falsey for selection, but its presence enables `include_deleted`; therefore the newest version including deleted versions is selected.
+   - **Truthy `version`:** convert it to an integer and select that ID only if it is the root or one of that root’s versions.
+   - Non-integer values produce “Invalid version parameter”; missing or unrelated IDs produce 404 (`src/documents/versioning.py:169-195`, `src/documents/views.py:1375-1386`).
+
+Representation selection then uses the selected file document:
+
+- Only the exact query value `original=true` requests the source/original file.
+- Otherwise, the archive file is used when `has_archive_version` is true; if not, the source file is used (`src/documents/views.py:1368-1373`, `1429-1448`).
+- `serve_file` opens `archive_file` with PDF MIME type on the archive branch, or `source_file` with the document MIME type on the original branch. Download uses attachment disposition (`src/documents/views.py:4941-4995`).
+- Missing files are translated to 404 by the download wrapper (`src/documents/views.py:1835-1839`).
+
+In the supplied development fixture:
+
+- absent `version` → active version **11**, archive `v1-archive.pdf`;
+- empty `version=` → deleted newest version **12**, source `v2-original.txt`;
+- `version=11&original=true` → version **11**, source `v1-original.pdf`.
+
+These are fixture computations, not deployment observations.
+
+## 2. Authorization checks and ordering
+
+Before the action runs, DRF performs authentication and view-level permission checks (`framework/rest_framework-3.18.1/rest_framework/views.py:415-420`).
+
+`DocumentViewSet` declares:
+
+- `IsAuthenticated`;
+- `PaperlessObjectPermissions` (`src/documents/views.py:1008-1027`).
+
+For GET, `PaperlessObjectPermissions` requires the global model permission `documents.view_document`; inherited DRF behavior checks it using `request.user.has_perms(...)` (`src/documents/permissions.py:30-44`, `framework/rest_framework-3.18.1/rest_framework/permissions.py:233-246`).
+
+The custom download action does not use DRF’s normal `get_object()` object-permission path. Instead, `_resolve_request_and_root_doc` manually authorizes the **root document** using `has_perms_owner_aware(user, "view_document", root_doc)` (`src/documents/views.py:1401-1427`).
+
+That helper allows access when any branch succeeds:
+
+1. the root is unowned;
+2. the authenticated user owns the root;
+3. Guardian’s `ObjectPermissionChecker.has_perm("view_document", root)` succeeds.
+
+The Guardian call is short-circuited for the first two branches (`src/documents/permissions.py:624-635`). Failure returns HTTP 403. This check finishes **before** version and original/archive selection.
+
+## 3. Does alternate selection change the authorized resource?
+
+No.
+
+The authorization resource is the resolved **root document**. Only after that authorization succeeds does the code select:
+
+- a directly requested version;
+- the latest version;
+- an explicit version ID;
+- source versus archive representation.
+
+Consequently:
+
+- selecting a version with a different owner does not authorize against that version;
+- choosing original versus archive does not trigger a separate permission check;
+- there is no per-file-path or per-representation authorization check;
+- an explicit version must belong to the already-authorized root, but its own ownership or object grants are not evaluated.
+
+This order is explicit in `file_response`: root resolution/authorization at lines 1430–1436, file-document selection at 1437–1441, and representation selection at 1442–1448.
+
+## 4. Missing facts and conditional conclusions
+
+The allowed source establishes the control flow, but not whether a real request succeeds. Missing facts are:
+
+- **Actual authentication and global model grant:** blocks concluding that the request reaches `download`.
+- **Actual root ownership and Guardian grants:** blocks concluding whether the root-document authorization succeeds when it is neither unowned nor user-owned.
+- **Guardian implementation/runtime completion:** outside the allowed source. The supplied constructor result is only a development fixture, not permission evidence.
+- **Actual document/version rows and file existence:** blocks determining the real selected document and whether serving ends in 404.
+- **Actual query parameters:** blocks selecting the real version and original/archive branch.
+- **Filename, public-filename, MIME, and `follow_formatting` values:** blocks computing exact response headers and filename.
+- **Deployment, proxy, and other upstream controls:** blocks conclusions about admission outside the represented application/DRF path.
+
+The executable program retains these as named gaps rather than assuming successful grants.

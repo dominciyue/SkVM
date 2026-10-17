@@ -1,0 +1,258 @@
+以下结论基于 `paperless-ngx/paperless-ngx@126ec414a8b65158368653a2604ae58415e43103` 的允许源码，未执行目标代码。
+
+## 1. 请求入口与文档识别
+
+`UnifiedSearchViewSet` 注册在 `documents` 路由下，继承实现下载操作的 `DocumentViewSet`：
+
+- 注册：`src/paperless/urls.py:74-78`
+- 路由包含在 `/api/`：`src/paperless/urls.py:97-100,293-300`
+- `@action(detail=True)` 生成 `{prefix}/{lookup}/{url_path}/`：`framework/rest_framework-3.18.1/rest_framework/routers.py:128-134`
+
+因此通常入口是：
+
+```text
+GET /api/documents/{pk}/download/
+```
+
+`pk` 首先选择“请求文档” `request_doc`。下载处理函数调用 `file_response(pk, request, "attachment")`；文件不存在等情况转换为 404：`src/documents/views.py:1834-1839`。
+
+### 查找顺序
+
+`file_response()` 的处理顺序是：
+
+1. 用 `Document.global_objects.get(id=pk)` 查找 `request_doc`，所以此处有意使用包含软删除对象的管理器。
+2. 若它是版本文档，取得其 `root_document`；否则它自身就是根文档。
+3. 对根文档执行查看权限检查。
+4. 权限通过后，才根据 `version` 选择最终的 `file_doc`。
+5. 再根据 `original` 决定返回 `file_doc` 的原始文件还是归档文件。
+
+证据：`src/documents/views.py:1401-1448`。
+
+---
+
+## 2. 认证与授权检查，以及相对于文件选择的顺序
+
+### 第一层：DRF 请求级检查
+
+`DocumentViewSet` 声明：
+
+```python
+permission_classes = (IsAuthenticated, PaperlessObjectPermissions)
+```
+
+见 `src/documents/views.py:1008-1027`。
+
+DRF 在调用 `download()` 前依次执行认证和请求权限检查：`framework/rest_framework-3.18.1/rest_framework/views.py:404-421`。
+
+具体要求是：
+
+1. `IsAuthenticated` 要求 `request.user.is_authenticated` 为真：  
+   `framework/rest_framework-3.18.1/rest_framework/permissions.py:145-151`
+2. 对 GET，`PaperlessObjectPermissions` 要求模型权限：
+   ```text
+   documents.view_document
+   ```
+   `PaperlessObjectPermissions` 的 GET 映射见 `src/documents/permissions.py:30-44`；其父类在请求级调用 `request.user.has_perms(...)`，见 `framework/rest_framework-3.18.1/rest_framework/permissions.py:233-246`。
+
+因此，即使用户拥有某个根文档，仅凭所有权也不能从本段源码证明请求一定通过第一层；还需要全局 `documents.view_document` 检查成功。
+
+### 第二层：根文档对象检查
+
+该 action 没有调用 DRF 的 `get_object()`，所以框架不会自动对 `request_doc` 调用 `check_object_permissions()`。应用自行执行：
+
+```python
+has_perms_owner_aware(
+    request.user,
+    "view_document",
+    root_doc,
+)
+```
+
+见 `src/documents/views.py:1417-1427`。
+
+该检查在以下任一条件成立时通过：
+
+- 根文档没有 owner；
+- 根文档 owner 就是当前用户；
+- Guardian 的 `ObjectPermissionChecker` 报告用户具有该根文档的 `view_document` 对象权限。
+
+见 `src/documents/permissions.py:624-635`。失败时直接返回 403 `"Insufficient permissions"`。
+
+### 关键结论：检查的是根文档
+
+对象授权发生在最终版本选择之前，并且授权资源始终是 `root_doc`：
+
+```text
+pk 查找 request_doc
+→ 求 root_doc
+→ 授权 root_doc
+→ 选择 file_doc
+→ 选择原始/归档表示
+→ 返回文件
+```
+
+代码没有对以下对象再次执行所有权或对象授权检查：
+
+- `request_doc` 本身（当它是版本时）；
+- `?version=` 选择的版本；
+- 最终的 `file_doc`；
+- 原始或归档文件表示。
+
+不过，显式 `version` 不能跳到任意文档：候选必须是该根文档本身，或 `root_document_id` 指向该根文档的版本，否则返回 404。见 `src/documents/versioning.py:184-195`。
+
+所以，**切换版本或者原始/归档表示不会改变授权所针对的资源；授权仍针对根文档，只会改变授权通过后返回的数据库版本行或文件表示。**
+
+---
+
+## 3. 版本选择的全部相关分支
+
+版本参数读取自：
+
+```text
+?version=<document-id>
+```
+
+见 `src/documents/versioning.py:140-143`。
+
+### A. 路径 `pk` 指向版本文档，且没有 `version` 参数
+
+直接使用路径所指版本作为 `file_doc`：
+
+```python
+if request_doc.root_document_id is not None
+and get_request_version_param(request) is None:
+    return request_doc
+```
+
+见 `src/documents/views.py:1388-1399`。
+
+由于最初按 `pk` 使用 `global_objects` 查找，源码意图上直接按 ID 请求软删除版本也进入这一分支；但其根文档权限仍必须通过。
+
+### B. 路径 `pk` 指向根文档，且没有 `version` 参数
+
+从根文档的版本中选择最新版本；若不存在版本，使用根文档：
+
+- 排序：`version_index` 降序，然后 `id` 降序；
+- 普通 `Document.objects` 管理器用于这次隐式最新版本选择。
+
+见 `src/documents/versioning.py:23-28,159-182`。
+
+### C. 提供非空、可解析为整数的 `version`
+
+候选按该整数作为文档 ID 查找，且使用 `global_objects`，所以源码意图允许显式选择已删除版本。候选必须是：
+
+- 当前根文档自身；或
+- 当前根文档的直接版本。
+
+否则为 404：`src/documents/versioning.py:184-195`。
+
+这也意味着：
+
+- `pk` 可以指向根文档，再用 `version` 选择其版本；
+- `pk` 可以指向一个版本，再用 `version` 选择同一根下的另一个版本或根文档；
+- 不能通过 `version` 选择另一个根文档家族。
+
+### D. `version` 非空但不是整数
+
+产生 `"Invalid version parameter"` 的 DRF `NotFound`，即 404：  
+`src/documents/views.py:1375-1385`、`src/documents/versioning.py:184-187`。
+
+### E. 整数对应对象不存在或不属于当前根
+
+返回 404：`src/documents/versioning.py:189-195`。
+
+### F. 参数存在但为空：`?version=`
+
+这是一个特殊分支：
+
+- `_get_effective_file_doc()` 将其视为“提供了版本参数”，不会采用“直接返回路径版本”的捷径；
+- `version_requested is not None` 为真，因此使用包含删除对象的管理器；
+- 但解析函数中的 `if not version_param` 又把空字符串当成“未指定具体 ID”，于是选择包含删除版本范围内的最新版本。
+
+相关条件分别见 `src/documents/views.py:1375-1399` 和 `src/documents/versioning.py:175-182`。
+
+---
+
+## 4. 原始文件与归档文件选择
+
+只有参数值严格等于小写字符串 `"true"` 才算请求原始文件：
+
+```text
+?original=true
+```
+
+`True`、`1`、`false` 或参数缺失均不满足该条件。见 `src/documents/views.py:1368-1373`。
+
+选择规则是：
+
+| 条件 | 返回内容 |
+|---|---|
+| `original=true` | `file_doc.source_file` |
+| 未精确请求 original，且 `file_doc.has_archive_version` | `file_doc.archive_file` |
+| 未精确请求 original，但没有归档版本 | 回退到 `file_doc.source_file` |
+
+`has_archive_version` 等价于 `archive_filename is not None`：`src/documents/models.py:452-475`。
+
+响应构造见 `src/documents/views.py:4941-4995`：
+
+- 归档：内容类型固定为 `application/pdf`；
+- 原始文件：使用选中版本的 `mime_type`，文本类型可能添加 UTF-8 charset；
+- 下载响应使用 `attachment`；
+- 打开文件失败时最终返回 404。
+
+`follow_formatting` 只改变下载文件名，不改变所读取的文件：
+
+- 假值：使用 `get_public_filename()`；
+- 真值：使用磁盘上的 `filename` 或 `archive_filename`。
+
+实现直接使用查询字符串的真值，因此任何非空值（包括 `follow_formatting=false`）在 Python 中都是真值：`src/documents/views.py:1442-1448,4948-4965`。
+
+---
+
+## 5. 给定开发场景的结果
+
+给定：
+
+- 用户 ID 7；
+- 路径 `pk=10`；
+- 根文档 10 的 owner 是 7；
+- 无 `version` 参数；
+- 无 `original` 参数；
+- 版本 11：未删除、`version_index=1`、有归档；
+- 版本 12：已删除、`version_index=2`；
+- `ObjectPermissionChecker` 构造正常完成。
+
+如果第一层的全局 `documents.view_document` 权限也通过，则：
+
+1. `request_doc` 是根文档 10。
+2. 根文档对象检查因 `owner_id == 7` 通过；无需依赖版本 11/12 的 owner 或对象授权。
+3. 无 `version` 且路径指向根文档，因此选择普通管理器可见的最新版本。
+4. 按场景的软删除含义，版本 12 被排除，选择版本 11。
+5. 未指定 `original=true`，且版本 11 有归档版本。
+6. 最终返回 **版本 11 的归档文件 `v1-archive.pdf`**，而不是根文档 10 的 `root-archive.pdf`。
+
+版本 11 的 owner 是 9 不会触发第二次权限检查；授权已经在根文档 10 上完成。
+
+外部假设只证明 `ObjectPermissionChecker` 能被构造，不证明任何对象授权。但在此场景中，根所有权已经满足对象检查。它仍然不证明用户具有第一层所需的全局 `documents.view_document` 权限。
+
+---
+
+## 6. 尚缺事实及其阻断的结论
+
+1. **用户 7 是否具有全局 `documents.view_document` 权限**  
+   阻断“该请求会进入 `download()` 并成功到达根文档检查”的无条件结论。拥有根文档本身不足以从源码推出全局模型权限检查成功。
+
+2. **真实请求中的 owner 和 Guardian 对象授权**  
+   阻断对实际用户是否通过根文档对象检查的结论。开发场景只是示例，不证明部署数据。
+
+3. **真实数据库中的文档、版本关系、删除状态和 `archive_filename`**  
+   阻断实际选中哪个版本以及返回原始还是归档文件的结论。
+
+4. **`django_softdelete` 管理器的外部实现未在允许源码中**  
+   应用明确以 `global_objects` 表示包含删除对象、以 `objects` 表示普通对象，但该依赖的具体过滤实现不可在当前证据中核验。因此有关软删除行实际可见性的部署级结论仍依赖该锁定依赖按预期工作。
+
+5. **存储目录设置、文件存在性、文件内容及进程文件权限**  
+   `source_file` 和 `archive_file` 分别从配置的 originals/archive 目录打开文件；当前源码不能证明文件确实存在或可读。该事实阻断“最终一定返回 200 和具体字节内容”的结论。
+
+6. **认证后端、代理、部署 URL 前缀及上游准入**  
+   源码只能描述请求到达该 DRF 路由后的行为，不能证明部署请求实际以用户 7 身份到达，或外部反向代理没有施加额外限制。

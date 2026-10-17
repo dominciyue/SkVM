@@ -1,0 +1,17 @@
+{
+  "scope": "Auxiliary ShareLink single three-arm block; not the Download primary denominator or cross-repository generalization",
+  "beforeSharelinkAuthor": true,
+  "questions": ["share-create"],
+  "labels": ["correct", "omitted", "incorrect", "appropriately-unknown", "over-abstained", "undelivered"],
+  "facts": [
+    {"id":"T1","essential":true,"criterion":"Identify share_links route, ShareLinkViewSet/CreateModelMixin, IsAuthenticated and PaperlessObjectPermissions; POST maps to add_sharelink, which does not alone authorize the document.","source":"urls.py:88; views.py:4696-4716; permissions.py:36-44"},
+    {"id":"T2","essential":true,"criterion":"PassUserMixin passes request.user to SerializerWithPerms; OwnedObjectSerializer inherits it, so validate_document receives the current user and exact validated document.","source":"views.py:406-428; serialisers.py:260-265,295-301,2851-2886"},
+    {"id":"T3","essential":true,"criterion":"Validation requires user non-None AND global documents.view_document AND owner-aware view_document on the exact document; document existence, another document grant or add_sharelink alone is insufficient.","source":"serialisers.py:2873-2886"},
+    {"id":"T4","essential":true,"criterion":"Owner-aware helper constructs checker before owner-null/equality shortcut and invokes has_perm only otherwise; constructor completion is not a grant.","source":"permissions.py:624-635"},
+    {"id":"T5","essential":true,"criterion":"Failed serializer predicate raises PermissionDenied; successful validation returns that same document before normal creation. Separate inherited framework behavior from directly inspected local code.","source":"serialisers.py:2869-2886; views.py:4696-4708"},
+    {"id":"T6","essential":false,"criterion":"create generates a random slug then delegates; slug generation is not an authorization check or evidence of successful persistence.","source":"serialisers.py:2869-2871"},
+    {"id":"T7","essential":true,"criterion":"Relate exact-document guard to independently supplied policy; finite actor7/doc10/owner9 and named grants support a conditional allowed simulation, not actual deployment/backend observations.","source":"inputs/sharelink.json:14-17,28-63; serialisers.py:2873-2886"},
+    {"id":"T8","essential":true,"criterion":"Name missing framework/backend, actual permission evaluation, constructor and persistence facts precisely; still explain source-visible object and order relations. Do not claim actual shares were created.","source":"original share-create question; allowlist excludes framework implementation; permissions.py:634-635"}
+  ],
+  "scoring": "Independent blinded answer review followed by main adjudication, with answer quotes and source rationale. One original question full/partial/incorrect plus delivery separately. No automatic keyword score; no repeated-quality claim from this one auxiliary block."
+}

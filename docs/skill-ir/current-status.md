@@ -4,7 +4,9 @@
 
 ## 当前工作
 
-**用户已授权 BP0–BP21：质量优先的分支可靠性与可执行支持实验，共享工程与预登记已完成，正进入真实作者队列；尚无BP质量效果结论。** [当前任务书](../superpowers/plans/2026-10-16-authorization-quality-evidence-and-branch-reliability.md)从已发布 BO `af8321c3` 接续，identity 为 `authorization-quality-evidence-v1`，开发 `gpt-6-astra/high`。重点为匿名外层激活、从空稿编写可靠性、纯规则/实际执行隔离，以及对象关系、分支和变化一致性的分项质量证据。主面板六情形×三臂×两重复，原四问和全部结果保留；局部质量目标与整题/自动化/成本分别判断。方法见 [spec §14.55](skill-ir-aot-optimization-spec.md#1455-bp-capability-quality-and-executable-support)、[研究 §7.77](skill-dsl-research.md#777-bo-质量复核与-bp-能力实验决定)。实验继续官方账号 `gpt-5.6-sol/high`，第三方暂停；派发后开发线程独占写入。2026-10-17从189a5924接管；外层依赖、完整规则renderer、native/local规则隔离、三臂源码工具同构及返回依据已经验证。BO原字节零模型33例重放为历史18/18、额外7/8、扰动6/7；匿名激活与缺version键仍失败。评价输入和量规已预登记，A0真实自动修订为下一步。工程完成与质量效果保持分开。
+**用户已授权 BP0–BP21，当前推进BP13固定面板；共享工程与三个真实作者已完成，完整面板尚未完成，尚无质量优势结论。** [当前任务书](../superpowers/plans/2026-10-16-authorization-quality-evidence-and-branch-reliability.md) identity为`authorization-quality-evidence-v1`，开发`gpt-6-astra/high`，实验官方账号`gpt-5.6-sol/high`，第三方暂停。方法见[spec§14.55](skill-ir-aot-optimization-spec.md#1455-bp-capability-quality-and-executable-support)和[研究§7.77](skill-dsl-research.md#777-bo-质量复核与-bp-能力实验决定)。工程14eea13f已验证外层依赖诊断、完整规则renderer、规则/执行隔离及三臂源码工具同构。固定A0为52步原稿，A0/A1最终字段及局部轨迹均18/18、7/8、6/7；A2字段17/18、5/8、5/7，局部轨迹18/18、7/8、6/7。匿名外层激活和缺version键仍有缺口，A2另有输出值受未解析条件影响。普通入口五组和搬移失效均通过。
+
+恢复后按本地协议核验与红绿测试登记CLI 0.163.0-alpha.10.2（b33adeb4），只读确认Q0原R0首件为interrupted且无答案。原completion-unknown、未交付和部分费用仍保留；具名cli-recovery另轨交付（1/6修复额度），不替换原36首位置分母。BP12已处置，BP13现完成Q0/Q1六首位置及评阅（五份交付、原R0未交付），Q2-R2-0已交付、待盲评。Q0 R1/R2为F/P/F/P对F/F/F/P；Q1 R0/R1/R2为P/P/P/P、F/F/F/P、F/F/F/P。仅首重复局部观察，尚不构成重复优势。三作者离线和独立评阅已完成，评阅分歧独立留存。两个工程提交尚未推送；原件和文档有本轮未提交改动。跨实现epoch不作同条件因果配对，后续按任务书有限队列继续，不自动创建BQ。
 
 ## BO 已结束的实际结果
 

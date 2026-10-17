@@ -2871,9 +2871,9 @@ BM首件实测补修：A0-first用60探索单位而无patch/trial；暂态重连
 
 ### 7.77 BO 质量复核与 BP 能力实验决定
 
-2026-10-16 用户要求先看质量进步，并围绕 DSL 的部分优势开展更有区分力的实验，随后明确授权新线程 gpt-6-astra/high 开发。[BP0–BP21](../superpowers/plans/2026-10-16-authorization-quality-evidence-and-branch-reliability.md)从已同步的 af8321c3 接续，identity 为 authorization-quality-evidence-v1。2026-10-17在189a5924接管，当前进入共享工程，尚无BP真实模型调用；BO原件保留。
+2026-10-16 用户要求先看质量进步，并围绕 DSL 的部分优势开展更有区分力的实验，随后明确授权新线程 gpt-6-astra/high 开发。[BP0–BP21](../superpowers/plans/2026-10-16-authorization-quality-evidence-and-branch-reliability.md)从已同步的 af8321c3 接续，identity 为 authorization-quality-evidence-v1。2026-10-17在189a5924接管，共享工程提交14eea13f，已进入真实作者队列；BO原件保留。A0原稿从49步首提交修订到52步并已固定，首稿18/18、额外7/8、扰动6/7；匿名外层激活仍缺，最终稿评价继续。A1/A2从空稿独立记录，主质量面板尚未开始。
 
-**工程进行中。** outer依赖的结构引用检查与既有false/unknown执行保持测试已通过；纯raw规则文档和native/local规则路径已具备定向红绿证据。真实预检查曾忽略rules选项并执行程序，新增测试复现后改为仅解析/结构诊断；fake-account维护source→patch→details→final child与本地check/archive/inspect/compare未出现执行字段。返回依据投影沿实际event区分literal、有限计算、外部事实和控制条件，不另设求值器。联合验证、评价预登记和真实队列仍待完成；这些工程事实不代表质量收益。
+**共享工程已验证。** outer依赖的结构引用检查与既有false/unknown执行保持测试已通过；纯raw规则文档和native/local规则路径已具备定向红绿证据。真实预检查曾忽略rules选项并执行程序，新增测试复现后改为仅解析/结构诊断；fake-account维护source→patch→details→final child与本地check/archive/inspect/compare未出现执行字段。返回依据投影沿实际event区分literal、有限计算、外部事实和控制条件，不另设求值器。联合验证与评价预登记已完成；新增sourceStructure使三臂源工具定义和实际结构输出相同。量规标签/整题一致性及None构造正常完成的评价适配均有红绿测试，原评分修订前后保留。真实队列进行中；这些工程事实不代表质量收益。
 
 **本轮复核。** 固定自动稿的18场景字段/局部轨迹及额外7/8是具体局部成果；BO首稿4/18及2/8到修订稿18/18及7/8的进步伴随公共工具说明修复、自己的旧稿和额外预算，不能单归因于广告。父线程实际用当前 checkAuthorizationInquiry 重放默认、拒绝、no-external、null-owner、匿名五项，前四项局部通过，匿名仍漏外层激活，providerCalls均0，未写回旧证据。A1空稿值7/18反映另一个可靠性问题，不能用A0/A1优点拼成自动成功。
 

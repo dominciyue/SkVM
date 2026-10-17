@@ -1,0 +1,40 @@
+{
+  "reviewer": "bp_q0_use_audit",
+  "scope": "BP12 Q0 actual controlled boundary",
+  "sharedBindings": {
+    "inputSha256": "0c1eae6868163716482ee1d6c3e854486f538472ec347f430cc6e0eabfe7d757",
+    "programSha256": "e0110eabf60abd088f062b7f2c9bab5fb9d2cd032106cfeabca92db4e04738ac",
+    "sameModelEffort": true,
+    "sameSourceSkillAccount": true
+  },
+  "rules": {
+    "packets": 38,
+    "executionContexts": 0,
+    "rulesIsolation": "passed"
+  },
+  "execute": {
+    "packets": 33,
+    "executionContexts": 33,
+    "toolCalls": 32,
+    "toolKinds": [
+      "source_read",
+      "source_symbol",
+      "source_search"
+    ],
+    "activeExecutionToolCalls": 0,
+    "answerUse": "Q0-R2-0-first.txt lines54-60 reports fixture result;124 critiques unused engine lookups;129 conditional calculation, not authorization certificate."
+  },
+  "evidence": [
+    "verification/actual-wire.json rows Q0-R1-0/Q0-R2-0",
+    "evaluation/timeline-Q0-R1-0-first.json",
+    "evaluation/timeline-Q0-R2-0-first.json",
+    "attempts.json corresponding entries",
+    "run archives raw/tools.jsonl and execution.json"
+  ],
+  "adjudication": [
+    "No explicit execution tool invocation is needed to receive initial and subsequent host computation; distinguish delivery from tool use.",
+    "Reviewer claimed no external provider call from actual-wire.providerCalls=0. That field only means the audit itself made zero calls. Both experimental attempts used the official model; usage remains in attempts/accounting.",
+    "Reviewer leakage conclusion is limited to controlled archived input/tool/context boundary; not a general assertion about all host logs."
+  ],
+  "evaluatorSent": false
+}

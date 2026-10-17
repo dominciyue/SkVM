@@ -1,0 +1,85 @@
+## Executable program
+
+A valid persistent reusable program was authored and patched:
+
+- Draft revision: `89c46dd198872d1fd214bd8e46734587e37c667f712e86da31ec1b21dcc318d1`
+- It models request/root lookup, root authorization, version resolution, original/archive choice, and returned file.
+- Rechecks passed without diagnostics:
+  - absent `version` → active latest version `11`, archive file
+  - empty `version=` → deleted versions included; version `12`, source file
+  - explicit version, direct-child request, original selection, unrelated version, and denial branches were also exercised.
+
+The program remains formally partial for upstream framework admission, actual object-grant results, and storage existence. Its retained top-level gap labels are broader than its final implemented steps.
+
+## 1. Requested document and returned file
+
+- `DefaultRouter` registers `UnifiedSearchViewSet` as `documents`; that class inherits `DocumentViewSet`. The detail GET action therefore exposes the Download action under the generated documents route. There is also a `/fetch/doc/<pk>` redirect to `/api/documents/<pk>/download/`.  
+  `src/paperless/urls.py:74-78`, `src/paperless/urls.py:97-100`, `src/paperless/urls.py:297-312`, `src/documents/views.py:2503-2516`
+- The path `pk` identifies `request_doc`. Download passes `include_deleted=True`, so this lookup uses `Document.global_objects`; a missing document becomes 404.  
+  `src/documents/views.py:1401-1415`, `src/documents/views.py:1429-1436`
+- `root_doc` is the document itself when it has no root; otherwise its root relation is used, with a database lookup and fallback to the request document if necessary.  
+  `src/documents/versioning.py:146-156`
+- File-document selection occurs only after root authorization:
+  1. If the URL identifies a version document and the `version` query parameter is **absent**, that requested version itself is returned.
+  2. Otherwise resolution starts from `root_doc`.
+  3. If `version` is falsey, the newest child by `(version_index or 0, id)` descending is selected, falling back to the root.
+  4. If `version` is truthy, it must parse as an integer and identify either the root itself or a direct version of that root. Invalid, missing, or unrelated values produce 404.  
+  `src/documents/views.py:1375-1399`, `src/documents/versioning.py:159-195`
+- There is a subtle absent-versus-empty distinction:
+  - absent `version`: deleted versions are excluded from “latest” selection;
+  - present but empty `version=`: it is falsey for latest-version selection, but `include_deleted=True` because the parameter is present.  
+  `src/documents/views.py:1375-1381`, `src/documents/versioning.py:169-182`
+- `original` is recognized only when present with the exact string `"true"`. Otherwise an archive is used when the selected file document has one; if not, the source file is used.  
+  `src/documents/views.py:1368-1373`, `src/documents/views.py:1442-1447`
+- `serve_file` opens `archive_file` with PDF MIME type on the archive branch, otherwise `source_file` with the document MIME type. `follow_formatting` changes the response filename, not which physical file is opened. Download uses attachment disposition.  
+  `src/documents/views.py:1834-1839`, `src/documents/views.py:4941-4995`
+
+For the supplied development fixture:
+
+- absent `version` → document `11`, `v1-archive.pdf`;
+- empty `version` → deleted document `12`, `v2-original.txt`;
+- `version=11` → `v1-archive.pdf`;
+- `version=11&original=true` → `v1-original.pdf`.
+
+These are fixture computations, not deployment observations.
+
+## 2. Authorization checks and order
+
+1. DRF authentication and view-level permissions run before the handler.  
+   `framework/rest_framework-3.18.1/rest_framework/views.py:404-421`
+2. `DocumentViewSet` declares `IsAuthenticated` and `PaperlessObjectPermissions`. Its GET mapping requires `documents.view_document`; DRF’s model-permission check calls `request.user.has_perms(...)`.  
+   `src/documents/views.py:1008-1027`, `src/documents/permissions.py:30-44`, `framework/rest_framework-3.18.1/rest_framework/permissions.py:233-246`
+3. This custom action does **not** call DRF’s `get_object()`, which is where DRF normally invokes `check_object_permissions`.  
+   `framework/rest_framework-3.18.1/rest_framework/generics.py:79-105`
+4. Instead, application code loads `request_doc`, resolves `root_doc`, and manually checks `view_document` on **the root**. If the user is non-null and the helper denies access, it returns 403 immediately.  
+   `src/documents/views.py:1408-1427`
+5. `has_perms_owner_aware` permits an unowned root, a root owned by the user, or a positive `ObjectPermissionChecker.has_perm("view_document", root_doc)` result.  
+   `src/documents/permissions.py:624-635`
+6. Only after that succeeds does code select the effective version and original/archive representation.  
+   `src/documents/views.py:1429-1448`
+
+## 3. Does an alternate version change the authorized resource?
+
+No. Authorization is evaluated on `root_doc`.
+
+- Requesting a child version by path still resolves and authorizes its root.
+- Supplying `version=<id>` changes `file_doc` only after root authorization.
+- The explicit candidate must be the root or belong directly to that root.
+- `original=true` versus archive selection changes only the physical representation opened from `file_doc`; it introduces no additional object authorization check.
+
+Thus a selected version may have different owner data in the fixture, but that version’s owner is not the authorization target on this path. The root remains the checked resource.  
+`src/documents/views.py:1388-1448`, `src/documents/versioning.py:189-195`
+
+## 4. Missing facts and conditional conclusions
+
+The source establishes the control flow, but not these runtime outcomes:
+
+- whether the real request authenticated successfully;
+- whether the user has the required model-level `documents.view_document` permission;
+- the actual root owner, unowned state, or Guardian/object grant;
+- permission-backend behavior and the real `ObjectPermissionChecker.has_perm` result;
+- actual database rows, deletion state, and version/root relationships;
+- whether the selected source/archive file exists and can be opened by the configured storage backend;
+- proxy, deployment, throttling, and other admission behavior outside the allowed source.
+
+Therefore no unconditional statement that a particular real user can download a particular document is supported. The supplied constructor assumption proves only normal checker construction; it is not an object grant.

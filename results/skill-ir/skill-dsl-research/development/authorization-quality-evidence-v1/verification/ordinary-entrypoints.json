@@ -1,0 +1,231 @@
+{
+  "programSha256": "e0110eabf60abd088f062b7f2c9bab5fb9d2cd032106cfeabca92db4e04738ac",
+  "rows": [
+    {
+      "variant": "root-default",
+      "command": "run.ps1 -InputFile inputs/root-default.json -ProgramFile authoring/automatic-program.json -ProgramContext directed",
+      "session": "results/skill-ir/skill-dsl-research/development/authorization-quality-evidence-v1/verification/ordinary-root-default/sessions/2026-10-16T175817984Z-8d234398",
+      "providerCalls": 0,
+      "returned": {
+        "route_prefix": "documents",
+        "action_method": "GET detail download",
+        "framework_checks_precede_action": true,
+        "configured_global_permissions": "IsAuthenticated + PaperlessObjectPermissions",
+        "global_model_permission": "documents.view_document",
+        "inherited_object_permission_invoked_for_selected_document": false,
+        "request_document": 10,
+        "request_lookup_includes_deleted": true,
+        "requested_document_is_version": false,
+        "authorized_root": 10,
+        "authorization_target_owner": 7,
+        "root_permission": "view_document",
+        "authorization_path": "root-unowned-or-owned-by-actor",
+        "object_grant_required": false,
+        "selected_document": 11,
+        "selected_document_owner": 9,
+        "selected_differs_from_authorized_root": true,
+        "selection_after_authorization": true,
+        "authorization_rechecked_for_selected_document": false,
+        "version_parameter_present": false,
+        "requested_version_id": null,
+        "version_selection_mode": "latest-visible",
+        "latest_order_keys": "version_index descending nulls-last, then id descending",
+        "invalid_version_outcome": "not-found",
+        "file_selection_precedes_representation": true,
+        "use_archive": true,
+        "selected_representation": "archive",
+        "representation_changes_authorization_target": false,
+        "selected_file": "v1-archive.pdf",
+        "selected_content_type_rule": "application/pdf",
+        "follow_formatting_effect": "changes response filename only, not selected document or file handle",
+        "disposition": "attachment",
+        "file_open_failure_outcome": "not-found",
+        "runtime_auth_facts_missing": "actual authentication, model-permission, ownership, and guardian object-grant outcomes are not supplied",
+        "runtime_storage_fact_missing": "selected file existence/readability and storage backend behavior are not supplied"
+      },
+      "conditions": [],
+      "inspectPassed": true,
+      "reportSha256": "35293fbba16e3fb81130678fd909d38978524ee97bfba5b3179f63ac63ba30a4"
+    },
+    {
+      "variant": "empty-version",
+      "command": "run.ps1 -InputFile inputs/empty-version.json -ProgramFile authoring/automatic-program.json -ProgramContext directed",
+      "session": "results/skill-ir/skill-dsl-research/development/authorization-quality-evidence-v1/verification/ordinary-empty-version/sessions/2026-10-16T175833388Z-c6c66ebf",
+      "providerCalls": 0,
+      "returned": {
+        "route_prefix": "documents",
+        "action_method": "GET detail download",
+        "framework_checks_precede_action": true,
+        "configured_global_permissions": "IsAuthenticated + PaperlessObjectPermissions",
+        "global_model_permission": "documents.view_document",
+        "inherited_object_permission_invoked_for_selected_document": false,
+        "request_document": 10,
+        "request_lookup_includes_deleted": true,
+        "requested_document_is_version": false,
+        "authorized_root": 10,
+        "authorization_target_owner": 7,
+        "root_permission": "view_document",
+        "authorization_path": "root-unowned-or-owned-by-actor",
+        "object_grant_required": false,
+        "selected_document": 12,
+        "selected_document_owner": 9,
+        "selected_differs_from_authorized_root": true,
+        "selection_after_authorization": true,
+        "authorization_rechecked_for_selected_document": false,
+        "version_parameter_present": true,
+        "requested_version_id": null,
+        "version_selection_mode": "latest-including-deleted",
+        "latest_order_keys": "version_index descending nulls-last, then id descending",
+        "invalid_version_outcome": "not-found",
+        "file_selection_precedes_representation": true,
+        "use_archive": false,
+        "selected_representation": "original",
+        "representation_changes_authorization_target": false,
+        "selected_file": "v2-original.txt",
+        "selected_content_type_rule": "selected document mime_type",
+        "follow_formatting_effect": "changes response filename only, not selected document or file handle",
+        "disposition": "attachment",
+        "file_open_failure_outcome": "not-found",
+        "runtime_auth_facts_missing": "actual authentication, model-permission, ownership, and guardian object-grant outcomes are not supplied",
+        "runtime_storage_fact_missing": "selected file existence/readability and storage backend behavior are not supplied"
+      },
+      "conditions": [],
+      "inspectPassed": true,
+      "reportSha256": "f0b62072e9e94b74d0e57666c4f506e3b77fc076efe9b47c05843d0b01d14847"
+    },
+    {
+      "variant": "denied",
+      "command": "run.ps1 -InputFile inputs/denied.json -ProgramFile authoring/automatic-program.json -ProgramContext directed",
+      "session": "results/skill-ir/skill-dsl-research/development/authorization-quality-evidence-v1/verification/ordinary-denied/sessions/2026-10-16T175847902Z-b553e1ad",
+      "providerCalls": 0,
+      "conditions": [],
+      "inspectPassed": true,
+      "reportSha256": "aae542b391096c1e0fb8244e96e4362f10d0a636ab93c4181700fed79eed0030"
+    },
+    {
+      "variant": "anonymous-skip-checker",
+      "command": "run.ps1 -InputFile inputs/anonymous-skip-checker.json -ProgramFile authoring/automatic-program.json -ProgramContext directed",
+      "session": "results/skill-ir/skill-dsl-research/development/authorization-quality-evidence-v1/verification/ordinary-anonymous-skip-checker/sessions/2026-10-16T175902430Z-813d994f",
+      "providerCalls": 0,
+      "conditions": [
+        {
+          "step": "permission_checker_construct_completed",
+          "test": {
+            "op": "eq",
+            "left": {
+              "binding": "permission_checker_construct"
+            },
+            "right": {
+              "binding": "permission_checker_construct"
+            }
+          },
+          "otherwise": "permission-checker-construction"
+        },
+        {
+          "step": "object_grant_completed",
+          "controlGaps": [
+            "object_grant_required"
+          ],
+          "otherwise": "object-permission-check"
+        },
+        {
+          "step": "authorization",
+          "test": {
+            "op": "truthy",
+            "language": "python",
+            "value": {
+              "binding": "permission_allows"
+            }
+          },
+          "otherwise": "authorization"
+        }
+      ],
+      "inspectPassed": true,
+      "reportSha256": "97dbfac40ac5288eede9f446dfc2d5abc6b3cdcad54247ba28418aad6c6a947f"
+    },
+    {
+      "variant": "no-external",
+      "command": "run.ps1 -InputFile inputs/no-external.json -ProgramFile authoring/automatic-program.json -ProgramContext directed",
+      "session": "results/skill-ir/skill-dsl-research/development/authorization-quality-evidence-v1/verification/ordinary-no-external/sessions/2026-10-16T175918053Z-53e23030",
+      "providerCalls": 0,
+      "returned": {
+        "route_prefix": "documents",
+        "action_method": "GET detail download",
+        "framework_checks_precede_action": true,
+        "configured_global_permissions": "IsAuthenticated + PaperlessObjectPermissions",
+        "global_model_permission": "documents.view_document",
+        "inherited_object_permission_invoked_for_selected_document": false,
+        "request_document": 10,
+        "request_lookup_includes_deleted": true,
+        "requested_document_is_version": false,
+        "authorized_root": 10,
+        "authorization_target_owner": 9,
+        "root_permission": "view_document",
+        "authorization_path": "root-object-grant",
+        "object_grant_required": true,
+        "selected_document": 11,
+        "selected_document_owner": 9,
+        "selected_differs_from_authorized_root": true,
+        "selection_after_authorization": true,
+        "authorization_rechecked_for_selected_document": false,
+        "version_parameter_present": false,
+        "requested_version_id": null,
+        "version_selection_mode": "latest-visible",
+        "latest_order_keys": "version_index descending nulls-last, then id descending",
+        "invalid_version_outcome": "not-found",
+        "file_selection_precedes_representation": true,
+        "use_archive": true,
+        "selected_representation": "archive",
+        "representation_changes_authorization_target": false,
+        "selected_file": "v1-archive.pdf",
+        "selected_content_type_rule": "application/pdf",
+        "follow_formatting_effect": "changes response filename only, not selected document or file handle",
+        "disposition": "attachment",
+        "file_open_failure_outcome": "not-found",
+        "runtime_auth_facts_missing": "actual authentication, model-permission, ownership, and guardian object-grant outcomes are not supplied",
+        "runtime_storage_fact_missing": "selected file existence/readability and storage backend behavior are not supplied"
+      },
+      "conditions": [
+        {
+          "step": "permission_checker_construct_completed",
+          "test": {
+            "op": "eq",
+            "left": {
+              "binding": "permission_checker_construct"
+            },
+            "right": {
+              "binding": "permission_checker_construct"
+            }
+          },
+          "otherwise": "permission-checker-construction"
+        },
+        {
+          "step": "object_grant_completed",
+          "test": {
+            "op": "eq",
+            "left": {
+              "binding": "object_grant"
+            },
+            "right": {
+              "binding": "object_grant"
+            }
+          },
+          "otherwise": "object-permission-check"
+        },
+        {
+          "step": "authorization",
+          "test": {
+            "op": "truthy",
+            "language": "python",
+            "value": {
+              "binding": "permission_allows"
+            }
+          },
+          "otherwise": "authorization"
+        }
+      ],
+      "inspectPassed": true,
+      "reportSha256": "ddb0da34112e4e5e1db06a00aad4f14ae28134bd453ab647061be31fb5d7a4df"
+    }
+  ]
+}

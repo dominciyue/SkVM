@@ -1,0 +1,119 @@
+{
+  "schemaVersion": "authorization-executable-contract/v1",
+  "id": "paperless-document-download",
+  "scope": {
+    "kind": "function-contract",
+    "questionId": "requested-document-and-returned-file",
+    "root": {
+      "path": "src/documents/views.py",
+      "symbol": "documents.views.DocumentViewSet.download"
+    },
+    "upstream": [
+      "HTTP routing, authentication, permission dispatch, and deployment controls before DocumentViewSet.download remain unresolved until traced"
+    ]
+  },
+  "sourceDeclarations": [
+    {
+      "source": {
+        "path": "src/documents/views.py",
+        "symbol": "documents.views.DocumentViewSet.download"
+      },
+      "statements": []
+    }
+  ],
+  "queries": [],
+  "assumptions": [
+    {
+      "origin": "user",
+      "text": "The operation under investigation is the document Download operation in this Paperless revision."
+    }
+  ],
+  "inputBinding": {
+    "questionId": "requested-document-and-returned-file"
+  },
+  "resourceWorkflow": {
+    "inputs": [
+      "actor",
+      "documents",
+      "related_root",
+      "request"
+    ],
+    "steps": [
+      {
+        "id": "requested_pk",
+        "op": "value",
+        "value": {
+          "field": {
+            "of": {
+              "ref": "request"
+            },
+            "key": "pk"
+          }
+        },
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1835,
+          "endLine": 1839
+        },
+        "because": "The detail action receives pk and forwards it to file_response."
+      },
+      {
+        "id": "disposition",
+        "op": "value",
+        "value": {
+          "literal": "attachment"
+        },
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1835,
+          "endLine": 1839
+        },
+        "because": "download invokes file_response with attachment disposition."
+      },
+      {
+        "id": "result",
+        "op": "return",
+        "value": {
+          "record": {
+            "requested_document_id": {
+              "ref": "requested_pk"
+            },
+            "disposition": {
+              "ref": "disposition"
+            }
+          }
+        },
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1835,
+          "endLine": 1839
+        }
+      }
+    ],
+    "gaps": [
+      "file_response document resolution, authorization, version selection, original/archive choice, response construction, and 404 branches are not yet modeled",
+      "Actual ownership, object grants, request authentication, and deployment admission are not supplied"
+    ]
+  },
+  "authoringTarget": {
+    "mode": "reusable",
+    "coverage": [
+      {
+        "id": "download-wrapper",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1835,
+          "endLine": 1839
+        },
+        "stepIds": [
+          "requested_pk",
+          "disposition",
+          "result"
+        ],
+        "disposition": "implemented",
+        "reason": "Models the wrapper's pk forwarding and attachment disposition; caught file exceptions remain a named gap pending helper modeling."
+      }
+    ]
+  },
+  "notes": "Initial source-supported wrapper model; helper and authorization relations will be patched after reading their bodies."
+}

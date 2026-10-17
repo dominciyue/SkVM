@@ -1,0 +1,1176 @@
+{
+  "schemaVersion": "authorization-executable-contract/v1",
+  "id": "document-download-selection",
+  "description": "Source-supported document and root selection at the Download file-response path; authorization and representation branches will be added from cited source.",
+  "scope": {
+    "kind": "function-contract",
+    "questionId": "requested-document-and-returned-file",
+    "root": {
+      "path": "src/documents/views.py",
+      "symbol": "documents.views.DocumentViewSet.file_response"
+    },
+    "upstream": [
+      "HTTP route admission, authentication, deployment configuration, actual ownership and object grants remain unresolved"
+    ]
+  },
+  "inputBinding": {
+    "questionId": "requested-document-and-returned-file"
+  },
+  "sourceDeclarations": [
+    {
+      "source": {
+        "path": "src/documents/views.py",
+        "symbol": "documents.views.DocumentViewSet.file_response"
+      },
+      "statements": []
+    },
+    {
+      "source": {
+        "path": "src/documents/views.py",
+        "symbol": "documents.views.DocumentViewSet._resolve_request_and_root_doc"
+      },
+      "statements": []
+    }
+  ],
+  "queries": [],
+  "assumptions": [
+    {
+      "origin": "user",
+      "text": "The operation under investigation is the document Download operation in this Paperless revision."
+    }
+  ],
+  "resourceWorkflow": {
+    "inputs": [
+      "actor",
+      "documents",
+      "related_root",
+      "request"
+    ],
+    "steps": [
+      {
+        "id": "requested_pk",
+        "op": "value",
+        "value": {
+          "field": {
+            "of": {
+              "ref": "request"
+            },
+            "key": "pk"
+          }
+        },
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1408,
+          "endLine": 1415
+        }
+      },
+      {
+        "id": "request_doc",
+        "op": "select",
+        "from": "documents",
+        "where": {
+          "op": "eq",
+          "left": {
+            "binding": "row.id"
+          },
+          "right": {
+            "binding": "requested_pk"
+          }
+        },
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1408,
+          "endLine": 1415
+        }
+      },
+      {
+        "id": "request_doc_exists",
+        "op": "guard",
+        "test": {
+          "op": "not",
+          "arg": {
+            "op": "is-null",
+            "value": {
+              "binding": "request_doc"
+            }
+          }
+        },
+        "failure": "Http404: requested document does not exist",
+        "resource": {
+          "ref": "request_doc"
+        },
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1409,
+          "endLine": 1415
+        }
+      },
+      {
+        "id": "root_key",
+        "op": "value",
+        "value": {
+          "coalesce": [
+            {
+              "field": {
+                "of": {
+                  "ref": "request_doc"
+                },
+                "key": "root_document_id"
+              }
+            },
+            {
+              "field": {
+                "of": {
+                  "ref": "request_doc"
+                },
+                "key": "id"
+              }
+            }
+          ]
+        },
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1417,
+          "endLine": 1420
+        }
+      },
+      {
+        "id": "root_candidate",
+        "op": "select",
+        "from": "documents",
+        "where": {
+          "op": "eq",
+          "left": {
+            "binding": "row.id"
+          },
+          "right": {
+            "binding": "root_key"
+          }
+        },
+        "source": {
+          "path": "src/documents/versioning.py",
+          "startLine": 146,
+          "endLine": 156
+        }
+      },
+      {
+        "id": "root_doc",
+        "op": "value",
+        "value": {
+          "coalesce": [
+            {
+              "ref": "root_candidate"
+            },
+            {
+              "ref": "request_doc"
+            }
+          ]
+        },
+        "source": {
+          "path": "src/documents/versioning.py",
+          "startLine": 146,
+          "endLine": 156
+        }
+      },
+      {
+        "id": "permission_checker_construct",
+        "op": "external",
+        "name": "ObjectPermissionChecker.construct",
+        "arguments": {
+          "user": {
+            "field": {
+              "of": {
+                "ref": "actor"
+              },
+              "key": "id"
+            }
+          }
+        },
+        "source": {
+          "path": "src/documents/permissions.py",
+          "startLine": 624,
+          "endLine": 635
+        },
+        "because": "has_perms_owner_aware constructs the checker before evaluating owner and object-permission alternatives."
+      },
+      {
+        "id": "permission_checker_completed",
+        "op": "guard",
+        "test": {
+          "op": "eq",
+          "left": {
+            "binding": "permission_checker_construct"
+          },
+          "right": {
+            "binding": "permission_checker_construct"
+          }
+        },
+        "failure": "Object permission checker construction did not have a known normal return.",
+        "source": {
+          "path": "src/documents/permissions.py",
+          "startLine": 634,
+          "endLine": 635
+        }
+      },
+      {
+        "id": "object_permission",
+        "op": "external",
+        "name": "ObjectPermissionChecker.has_perm",
+        "arguments": {
+          "user": {
+            "field": {
+              "of": {
+                "ref": "actor"
+              },
+              "key": "id"
+            }
+          },
+          "resource": {
+            "field": {
+              "of": {
+                "ref": "root_doc"
+              },
+              "key": "id"
+            }
+          },
+          "permission": {
+            "literal": "view_document"
+          }
+        },
+        "when": {
+          "op": "all",
+          "args": [
+            {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "root_doc.owner_id"
+                }
+              }
+            },
+            {
+              "op": "neq",
+              "left": {
+                "binding": "root_doc.owner_id"
+              },
+              "right": {
+                "binding": "actor.id"
+              }
+            }
+          ]
+        },
+        "source": {
+          "path": "src/documents/permissions.py",
+          "startLine": 635,
+          "endLine": 635
+        }
+      },
+      {
+        "id": "object_permission_completed",
+        "op": "guard",
+        "test": {
+          "op": "eq",
+          "left": {
+            "binding": "object_permission"
+          },
+          "right": {
+            "binding": "object_permission"
+          }
+        },
+        "when": {
+          "op": "all",
+          "args": [
+            {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "root_doc.owner_id"
+                }
+              }
+            },
+            {
+              "op": "neq",
+              "left": {
+                "binding": "root_doc.owner_id"
+              },
+              "right": {
+                "binding": "actor.id"
+              }
+            }
+          ]
+        },
+        "failure": "Object permission lookup did not have a known normal return.",
+        "source": {
+          "path": "src/documents/permissions.py",
+          "startLine": 635,
+          "endLine": 635
+        }
+      },
+      {
+        "id": "authorization_allowed",
+        "op": "value",
+        "value": {
+          "choose": {
+            "test": {
+              "op": "any",
+              "args": [
+                {
+                  "op": "is-null",
+                  "value": {
+                    "binding": "root_doc.owner_id"
+                  }
+                },
+                {
+                  "op": "eq",
+                  "left": {
+                    "binding": "root_doc.owner_id"
+                  },
+                  "right": {
+                    "binding": "actor.id"
+                  }
+                }
+              ]
+            },
+            "then": {
+              "literal": true
+            },
+            "else": {
+              "ref": "object_permission"
+            }
+          }
+        },
+        "source": {
+          "path": "src/documents/permissions.py",
+          "startLine": 624,
+          "endLine": 635
+        }
+      },
+      {
+        "id": "authorize_root",
+        "op": "guard",
+        "test": {
+          "op": "truthy",
+          "language": "python",
+          "value": {
+            "binding": "authorization_allowed"
+          }
+        },
+        "failure": "Insufficient permissions",
+        "principal": {
+          "ref": "actor"
+        },
+        "resource": {
+          "ref": "root_doc"
+        },
+        "permission": "view_document",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1421,
+          "endLine": 1426
+        }
+      },
+      {
+        "id": "version_param",
+        "op": "value",
+        "value": {
+          "field": {
+            "of": {
+              "ref": "request"
+            },
+            "key": "version"
+          }
+        },
+        "source": {
+          "path": "src/documents/versioning.py",
+          "startLine": 142,
+          "endLine": 142
+        },
+        "because": "Models the query_params.get('version') return on the normal DRF Request branch only; the helper's no-query_params fallback remains explicitly outside this input abstraction."
+      },
+      {
+        "id": "include_deleted_versions",
+        "op": "value",
+        "value": {
+          "choose": {
+            "test": {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "version_param"
+                }
+              }
+            },
+            "then": {
+              "literal": true
+            },
+            "else": {
+              "literal": false
+            }
+          }
+        },
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1375,
+          "endLine": 1381
+        }
+      },
+      {
+        "id": "direct_file_requested",
+        "op": "value",
+        "value": {
+          "choose": {
+            "test": {
+              "op": "all",
+              "args": [
+                {
+                  "op": "not",
+                  "arg": {
+                    "op": "is-null",
+                    "value": {
+                      "binding": "request_doc.root_document_id"
+                    }
+                  }
+                },
+                {
+                  "op": "is-null",
+                  "value": {
+                    "binding": "version_param"
+                  }
+                }
+              ]
+            },
+            "then": {
+              "literal": true
+            },
+            "else": {
+              "literal": false
+            }
+          }
+        },
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1394,
+          "endLine": 1399
+        }
+      },
+      {
+        "id": "latest_version",
+        "op": "select",
+        "from": "documents",
+        "where": {
+          "op": "all",
+          "args": [
+            {
+              "op": "eq",
+              "left": {
+                "binding": "row.root_document_id"
+              },
+              "right": {
+                "binding": "root_key"
+              }
+            },
+            {
+              "op": "any",
+              "args": [
+                {
+                  "op": "not",
+                  "arg": {
+                    "op": "truthy",
+                    "language": "python",
+                    "value": {
+                      "binding": "row.deleted"
+                    }
+                  }
+                },
+                {
+                  "op": "truthy",
+                  "language": "python",
+                  "value": {
+                    "binding": "include_deleted_versions"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "unique": false,
+        "order": [
+          {
+            "field": "version_index",
+            "direction": "desc",
+            "nulls": "last"
+          },
+          {
+            "field": "id",
+            "direction": "desc"
+          }
+        ],
+        "when": {
+          "op": "all",
+          "args": [
+            {
+              "op": "not",
+              "arg": {
+                "op": "truthy",
+                "language": "python",
+                "value": {
+                  "binding": "direct_file_requested"
+                }
+              }
+            },
+            {
+              "op": "not",
+              "arg": {
+                "op": "truthy",
+                "language": "python",
+                "value": {
+                  "binding": "version_param"
+                }
+              }
+            }
+          ]
+        },
+        "source": {
+          "path": "src/documents/versioning.py",
+          "startLine": 159,
+          "endLine": 166
+        }
+      },
+      {
+        "id": "explicit_version_id",
+        "op": "value",
+        "value": {
+          "integer": {
+            "ref": "version_param"
+          }
+        },
+        "when": {
+          "op": "all",
+          "args": [
+            {
+              "op": "not",
+              "arg": {
+                "op": "truthy",
+                "language": "python",
+                "value": {
+                  "binding": "direct_file_requested"
+                }
+              }
+            },
+            {
+              "op": "truthy",
+              "language": "python",
+              "value": {
+                "binding": "version_param"
+              }
+            }
+          ]
+        },
+        "source": {
+          "path": "src/documents/versioning.py",
+          "startLine": 184,
+          "endLine": 187
+        }
+      },
+      {
+        "id": "explicit_version_doc",
+        "op": "select",
+        "from": "documents",
+        "where": {
+          "op": "all",
+          "args": [
+            {
+              "op": "eq",
+              "left": {
+                "binding": "row.id"
+              },
+              "right": {
+                "binding": "explicit_version_id"
+              }
+            },
+            {
+              "op": "any",
+              "args": [
+                {
+                  "op": "eq",
+                  "left": {
+                    "binding": "row.id"
+                  },
+                  "right": {
+                    "binding": "root_key"
+                  }
+                },
+                {
+                  "op": "eq",
+                  "left": {
+                    "binding": "row.root_document_id"
+                  },
+                  "right": {
+                    "binding": "root_key"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "when": {
+          "op": "all",
+          "args": [
+            {
+              "op": "not",
+              "arg": {
+                "op": "truthy",
+                "language": "python",
+                "value": {
+                  "binding": "direct_file_requested"
+                }
+              }
+            },
+            {
+              "op": "truthy",
+              "language": "python",
+              "value": {
+                "binding": "version_param"
+              }
+            }
+          ]
+        },
+        "source": {
+          "path": "src/documents/versioning.py",
+          "startLine": 189,
+          "endLine": 195
+        }
+      },
+      {
+        "id": "resolved_file_doc",
+        "op": "value",
+        "value": {
+          "choose": {
+            "test": {
+              "op": "truthy",
+              "language": "python",
+              "value": {
+                "binding": "version_param"
+              }
+            },
+            "then": {
+              "ref": "explicit_version_doc"
+            },
+            "else": {
+              "coalesce": [
+                {
+                  "ref": "latest_version"
+                },
+                {
+                  "ref": "root_doc"
+                }
+              ]
+            }
+          }
+        },
+        "when": {
+          "op": "not",
+          "arg": {
+            "op": "truthy",
+            "language": "python",
+            "value": {
+              "binding": "direct_file_requested"
+            }
+          }
+        },
+        "source": {
+          "path": "src/documents/versioning.py",
+          "startLine": 169,
+          "endLine": 195
+        }
+      },
+      {
+        "id": "file_doc",
+        "op": "value",
+        "value": {
+          "choose": {
+            "test": {
+              "op": "truthy",
+              "language": "python",
+              "value": {
+                "binding": "direct_file_requested"
+              }
+            },
+            "then": {
+              "ref": "request_doc"
+            },
+            "else": {
+              "ref": "resolved_file_doc"
+            }
+          }
+        },
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1388,
+          "endLine": 1399
+        }
+      },
+      {
+        "id": "file_doc_exists",
+        "op": "guard",
+        "test": {
+          "op": "not",
+          "arg": {
+            "op": "is-null",
+            "value": {
+              "binding": "file_doc"
+            }
+          }
+        },
+        "failure": "Http404: requested version does not exist or does not belong to the authorized root",
+        "resource": {
+          "ref": "root_doc"
+        },
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1375,
+          "endLine": 1386
+        }
+      },
+      {
+        "id": "original_requested",
+        "op": "value",
+        "value": {
+          "choose": {
+            "test": {
+              "op": "eq",
+              "left": {
+                "binding": "request.original"
+              },
+              "right": {
+                "literal": "true"
+              }
+            },
+            "then": {
+              "literal": true
+            },
+            "else": {
+              "literal": false
+            }
+          }
+        },
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1368,
+          "endLine": 1373
+        }
+      },
+      {
+        "id": "use_archive",
+        "op": "value",
+        "value": {
+          "choose": {
+            "test": {
+              "op": "all",
+              "args": [
+                {
+                  "op": "not",
+                  "arg": {
+                    "op": "truthy",
+                    "language": "python",
+                    "value": {
+                      "binding": "original_requested"
+                    }
+                  }
+                },
+                {
+                  "op": "truthy",
+                  "language": "python",
+                  "value": {
+                    "binding": "file_doc.has_archive_version"
+                  }
+                }
+              ]
+            },
+            "then": {
+              "literal": true
+            },
+            "else": {
+              "literal": false
+            }
+          }
+        },
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1442,
+          "endLine": 1447
+        }
+      },
+      {
+        "id": "returned_file",
+        "op": "value",
+        "value": {
+          "choose": {
+            "test": {
+              "op": "truthy",
+              "language": "python",
+              "value": {
+                "binding": "use_archive"
+              }
+            },
+            "then": {
+              "field": {
+                "of": {
+                  "ref": "file_doc"
+                },
+                "key": "archive_file"
+              }
+            },
+            "else": {
+              "field": {
+                "of": {
+                  "ref": "file_doc"
+                },
+                "key": "source_file"
+              }
+            }
+          }
+        },
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 4948,
+          "endLine": 4965
+        }
+      },
+      {
+        "id": "returned_file_exists",
+        "op": "guard",
+        "test": {
+          "op": "not",
+          "arg": {
+            "op": "is-null",
+            "value": {
+              "binding": "returned_file"
+            }
+          }
+        },
+        "failure": "Http404: selected file is unavailable",
+        "resource": {
+          "ref": "file_doc"
+        },
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1835,
+          "endLine": 1839
+        }
+      },
+      {
+        "id": "result",
+        "op": "return",
+        "value": {
+          "record": {
+            "request_document_id": {
+              "field": {
+                "of": {
+                  "ref": "request_doc"
+                },
+                "key": "id"
+              }
+            },
+            "authorization_document_id": {
+              "field": {
+                "of": {
+                  "ref": "root_doc"
+                },
+                "key": "id"
+              }
+            },
+            "authorization_allowed": {
+              "ref": "authorization_allowed"
+            },
+            "selected_file_document_id": {
+              "field": {
+                "of": {
+                  "ref": "file_doc"
+                },
+                "key": "id"
+              }
+            },
+            "version_parameter": {
+              "ref": "version_param"
+            },
+            "original_requested": {
+              "ref": "original_requested"
+            },
+            "use_archive": {
+              "ref": "use_archive"
+            },
+            "returned_file": {
+              "ref": "returned_file"
+            }
+          }
+        },
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1429,
+          "endLine": 1448
+        }
+      }
+    ],
+    "gaps": [
+      "Authorization outcome is not yet modeled.",
+      "Version selection and original/archive representation are not yet modeled.",
+      "Routing, framework authentication, and final serve_file behavior remain to be inspected."
+    ]
+  },
+  "authoringTarget": {
+    "mode": "reusable",
+    "coverage": [
+      {
+        "id": "download-route-registration",
+        "source": {
+          "path": "src/paperless/urls.py",
+          "startLine": 74,
+          "endLine": 100
+        },
+        "stepIds": [],
+        "disposition": "unwritten",
+        "reason": "Router registration is explained naturally; route identity is not a finite resource input."
+      },
+      {
+        "id": "viewset-entry-controls",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1008,
+          "endLine": 1027
+        },
+        "stepIds": [],
+        "disposition": "unwritten",
+        "reason": "Actual framework admission outcomes are upstream facts."
+      },
+      {
+        "id": "framework-initial",
+        "source": {
+          "path": "framework/rest_framework-3.18.1/rest_framework/views.py",
+          "startLine": 404,
+          "endLine": 421
+        },
+        "stepIds": [],
+        "disposition": "unwritten",
+        "reason": "Authentication and permission checks precede the handler."
+      },
+      {
+        "id": "request-root-resolution",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1401,
+          "endLine": 1427
+        },
+        "stepIds": [
+          "requested_pk",
+          "request_doc",
+          "request_doc_exists",
+          "root_key",
+          "root_doc",
+          "authorize_root"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "root-helper",
+        "source": {
+          "path": "src/documents/versioning.py",
+          "startLine": 146,
+          "endLine": 156
+        },
+        "stepIds": [
+          "root_candidate",
+          "root_doc"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "permission-helper",
+        "source": {
+          "path": "src/documents/permissions.py",
+          "startLine": 624,
+          "endLine": 635
+        },
+        "stepIds": [
+          "permission_checker_construct",
+          "permission_checker_completed",
+          "object_permission",
+          "object_permission_completed",
+          "authorization_allowed"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "permission-constructor-call",
+        "source": {
+          "path": "src/documents/permissions.py",
+          "startLine": 634,
+          "endLine": 634
+        },
+        "stepIds": [
+          "permission_checker_construct",
+          "permission_checker_completed"
+        ],
+        "disposition": "implemented",
+        "call": {
+          "stepId": "permission_checker_construct",
+          "activation": "always",
+          "completion": "required",
+          "completionGuardId": "permission_checker_completed",
+          "completionMeaning": "normal-return",
+          "successorStepIds": [
+            "object_permission",
+            "authorization_allowed"
+          ],
+          "resultUse": "ignored",
+          "reason": "Construction is unconditional."
+        }
+      },
+      {
+        "id": "object-permission-call",
+        "source": {
+          "path": "src/documents/permissions.py",
+          "startLine": 635,
+          "endLine": 635
+        },
+        "stepIds": [
+          "object_permission",
+          "object_permission_completed",
+          "authorization_allowed"
+        ],
+        "disposition": "implemented",
+        "call": {
+          "stepId": "object_permission",
+          "activation": "conditional",
+          "activationDependencyIds": [],
+          "completion": "required",
+          "completionGuardId": "object_permission_completed",
+          "completionMeaning": "normal-return",
+          "successorStepIds": [
+            "authorization_allowed",
+            "authorize_root"
+          ],
+          "resultUse": "used",
+          "reason": "Called only when the root is owned by someone else; false is a normal result."
+        }
+      },
+      {
+        "id": "version-param",
+        "source": {
+          "path": "src/documents/versioning.py",
+          "startLine": 140,
+          "endLine": 143
+        },
+        "stepIds": [
+          "version_param"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "effective-file",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1375,
+          "endLine": 1399
+        },
+        "stepIds": [
+          "include_deleted_versions",
+          "direct_file_requested",
+          "file_doc",
+          "file_doc_exists"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "latest-version",
+        "source": {
+          "path": "src/documents/versioning.py",
+          "startLine": 159,
+          "endLine": 166
+        },
+        "stepIds": [
+          "latest_version"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "requested-version",
+        "source": {
+          "path": "src/documents/versioning.py",
+          "startLine": 169,
+          "endLine": 195
+        },
+        "stepIds": [
+          "explicit_version_id",
+          "explicit_version_doc",
+          "resolved_file_doc"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "original-flag",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1368,
+          "endLine": 1373
+        },
+        "stepIds": [
+          "original_requested"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "file-response",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1429,
+          "endLine": 1448
+        },
+        "stepIds": [
+          "use_archive",
+          "result"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "serve-file",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 4941,
+          "endLine": 4995
+        },
+        "stepIds": [
+          "returned_file",
+          "returned_file_exists"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "download-handler",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1834,
+          "endLine": 1839
+        },
+        "stepIds": [
+          "returned_file_exists"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "uncalled-drf-get-object",
+        "source": {
+          "path": "framework/rest_framework-3.18.1/rest_framework/generics.py",
+          "startLine": 79,
+          "endLine": 105
+        },
+        "stepIds": [],
+        "disposition": "unwritten",
+        "reason": "The custom action does not call get_object; its object hook is not executed."
+      }
+    ]
+  }
+}

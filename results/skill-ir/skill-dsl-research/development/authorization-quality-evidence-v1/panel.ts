@@ -54,9 +54,10 @@ export function validateReview(row: Review) {
   if (row.facts.length !== rubric.facts.length || new Set(row.facts.map(f => f.id)).size !== rubric.facts.length || rubric.facts.some(f => !row.facts.some(r => r.id === f.id))) throw new Error("Incomplete fact coverage")
   for (const f of row.facts) if (!rubric.labels.includes(f.label) || !f.evidence.trim() || row.delivery === "undelivered" && f.label !== "undelivered") throw new Error("Invalid review label/evidence")
   if (row.questions.length !== 4 || [...row.questions, row.wholeAnswer].some(q => !["full", "partial", "incorrect"].includes(q))) throw new Error("Incomplete question scores")
+  if (row.wholeAnswer === "full" && (row.delivery !== "delivered" || row.questions.some(q => q !== "full"))) throw new Error("Inconsistent whole answer score")
   return true
 }
-export function summarizeQuality(rows: Review[]) {
+export function summarizeQuality(rows: Review[], sourceEpochs?: Record<string, string | undefined>) {
   if (rows.length !== 36 || new Set(rows.map(r => r.position)).size !== 36 || panelOrder.some(p => !rows.some(r => r.position === p))) throw new Error("Primary denominator must retain all 36 first positions")
   rows.forEach(validateReview)
   const counts = (row: Review, domain: string) => {
@@ -67,13 +68,15 @@ export function summarizeQuality(rows: Review[]) {
     const comparisons = Object.fromEntries([["R1", "R0"], ["R2", "R1"], ["R2", "R0"]].map(([treatment, control]) => {
       const pairs = [0, 1].flatMap(repeat => profiles.map((_, q) => {
         const a = rows.find(r => r.position === `Q${q}-${treatment}-${repeat}`)!, b = rows.find(r => r.position === `Q${q}-${control}-${repeat}`)!, x = counts(a, domain), y = counts(b, domain)
-        return { profile: `Q${q}`, repeat, treatment: x, control: y, result: x.essentialLoss < y.essentialLoss && x.essentialIncorrect <= y.essentialIncorrect ? "win" : x.essentialLoss === y.essentialLoss && x.essentialIncorrect === y.essentialIncorrect ? "tie" : "loss", answers: [a.answer, b.answer] }
+        const descriptiveResult = x.essentialLoss < y.essentialLoss && x.essentialIncorrect <= y.essentialIncorrect ? "win" : x.essentialLoss === y.essentialLoss && x.essentialIncorrect === y.essentialIncorrect ? "tie" : "loss"
+        const eligible = !sourceEpochs || !!sourceEpochs[a.position] && sourceEpochs[a.position] === sourceEpochs[b.position]
+        return { profile: `Q${q}`, repeat, treatment: x, control: y, result: eligible ? descriptiveResult : "unpaired", descriptiveResult, causalComparisonEligible: eligible, reason: eligible ? undefined : sourceEpochs?.[a.position] && sourceEpochs?.[b.position] ? "implementation-epoch-mismatch" : "implementation-epoch-unavailable", answers: [a.answer, b.answer] }
       }))
-      const repeats = [0, 1].map(repeat => { const p = pairs.filter(p => p.repeat === repeat); return { repeat, treatmentLoss: p.reduce((n, p) => n + p.treatment.essentialLoss, 0), controlLoss: p.reduce((n, p) => n + p.control.essentialLoss, 0), treatmentIncorrect: p.reduce((n, p) => n + p.treatment.essentialIncorrect, 0), controlIncorrect: p.reduce((n, p) => n + p.control.essentialIncorrect, 0) } })
-      return [`${treatment}-${control}`, { pairs, repeats, win: pairs.filter(p => p.result === "win").length, tie: pairs.filter(p => p.result === "tie").length, loss: pairs.filter(p => p.result === "loss").length }]
+      const repeats = [0, 1].map(repeat => { const p = pairs.filter(p => p.repeat === repeat); return { repeat, plannedPairs: p.length, eligiblePairs: p.filter(p => p.causalComparisonEligible).length, treatmentLoss: p.reduce((n, p) => n + p.treatment.essentialLoss, 0), controlLoss: p.reduce((n, p) => n + p.control.essentialLoss, 0), treatmentIncorrect: p.reduce((n, p) => n + p.treatment.essentialIncorrect, 0), controlIncorrect: p.reduce((n, p) => n + p.control.essentialIncorrect, 0) } })
+      return [`${treatment}-${control}`, { pairs, repeats, win: pairs.filter(p => p.result === "win").length, tie: pairs.filter(p => p.result === "tie").length, loss: pairs.filter(p => p.result === "loss").length, unpaired: pairs.filter(p => p.result === "unpaired").length }]
     }))
     const repeats = comparisons["R2-R1"]!.repeats, wins = repeats.filter(r => r.treatmentLoss < r.controlLoss && r.treatmentIncorrect <= r.controlIncorrect).length
-    return [domain, { comparisons, qualityEvidenceStatus: wins === 2 ? "repeated-local-advantage" : wins ? "exploratory-improvement-or-tradeoff" : repeats.every(r => r.treatmentLoss === r.controlLoss && r.treatmentIncorrect === r.controlIncorrect) ? "tie" : "negative-or-tradeoff" }]
+    return [domain, { comparisons, qualityEvidenceStatus: repeats.some(r => r.eligiblePairs !== r.plannedPairs) ? "incomplete-pairing" : wins === 2 ? "repeated-local-advantage" : wins ? "exploratory-improvement-or-tradeoff" : repeats.every(r => r.treatmentLoss === r.controlLoss && r.treatmentIncorrect === r.controlIncorrect) ? "tie" : "negative-or-tradeoff" }]
   }))
   return { primaryDenominator: 36, domains: matrix, localQualityGoalAchieved: Object.values(matrix).some(d => d.qualityEvidenceStatus === "repeated-local-advantage"), delivered: rows.filter(r => r.delivery === "delivered").length, wholeFull: rows.filter(r => r.delivery === "delivered" && r.wholeAnswer === "full").length, rows, researchGoalAchieved: false }
 }

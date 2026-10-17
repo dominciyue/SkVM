@@ -1,0 +1,40 @@
+{
+  "reviewer": "bp_summary_integrity_review",
+  "reviewScope": [
+    "study.ts",
+    "panel.ts",
+    "wire.ts",
+    "study.test.ts",
+    "wire.test.ts"
+  ],
+  "findings": [
+    {
+      "claim": "Same tree alone ignores dirty diff in summary pairing",
+      "severity": "HIGH",
+      "adjudication": "Prospective run already rejects dirty src and strictly compares sourceDiffSha256; no observed affected primary pair. Accepted independent summary binding completeness: identity now also includes diff/model/effort/input/limits/source/skill/account. Missing identity unavailable."
+    },
+    {
+      "claim": "Only first rule checked; subsequent fixed rules can differ unnoticed",
+      "severity": "HIGH",
+      "adjudication": "Accepted. All consumer sent rule hashes must agree. Zero observed rules cannot establish equality."
+    },
+    {
+      "claim": "Empty source tool evidence yields vacuous true",
+      "severity": "MEDIUM",
+      "adjudication": "Accepted. Every row must have observed nonempty source tool table to establish identicalSourceTools; discrepancies still reject."
+    },
+    {
+      "claim": "Readonly request params/order not verified",
+      "severity": "potential MEDIUM",
+      "adjudication": "Exact response thread/turn/terminal and lifecycle digest already bound; actual read request targets same thread. No observed inconsistency. Exact RPC sequence ordering is not a study claim; no extra protocol gate added."
+    }
+  ],
+  "verification": {
+    "red": "New tests failed before functions existed",
+    "green": "11 tests /63 assertions; BP typecheck passed",
+    "actualWire": "10 closed attempts still identical source tools and every fixed rule"
+  },
+  "productionEpochChanged": false,
+  "modelInputsChanged": false,
+  "repairModelCalls": 0
+}

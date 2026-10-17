@@ -1,0 +1,78 @@
+{
+  "providerCalls": 0,
+  "targetExecutions": 0,
+  "selectedRawSha256": "e0110eabf60abd088f062b7f2c9bab5fb9d2cd032106cfeabca92db4e04738ac",
+  "outer": {
+    "origin": "developer-authored-mechanism-fixture",
+    "reason": "Selected automatic A0 still omits the outer activation, so a removal counterfactual cannot be attributed to that raw.",
+    "before": [],
+    "after": [
+      "activation-dependency-unconnected"
+    ],
+    "detected": true
+  },
+  "resource": {
+    "origin": "copy-of-selected-model-raw",
+    "mutant": "results/skill-ir/skill-dsl-research/development/authorization-quality-evidence-v1/verification/mutations/misbound-resource.json",
+    "changedStep": "object_grant",
+    "independentTrace": {
+      "pass": false,
+      "failures": [
+        "ordered-exact-external-calls",
+        "required-conditions"
+      ],
+      "actualCalls": [
+        {
+          "name": "ObjectPermissionChecker.construct",
+          "arguments": {
+            "user": 9
+          }
+        },
+        {
+          "name": "ObjectPermissionChecker.has_perm",
+          "arguments": {
+            "user": 9,
+            "resource": 999999,
+            "permission": "view_document"
+          }
+        }
+      ],
+      "semanticSupport": "independently-reviewed-finite-expectation",
+      "requestOperationCertified": false
+    },
+    "hostConditions": [
+      {
+        "step": "object_grant_completed",
+        "test": {
+          "op": "eq",
+          "left": {
+            "binding": "object_grant"
+          },
+          "right": {
+            "binding": "object_grant"
+          }
+        },
+        "otherwise": "object-permission-check"
+      },
+      {
+        "step": "authorization",
+        "test": {
+          "op": "truthy",
+          "language": "python",
+          "value": {
+            "binding": "permission_allows"
+          }
+        },
+        "otherwise": "authorization"
+      }
+    ],
+    "interpretation": "Host exposes unmatched external fact; only independent source-grounded trace review identifies the wrong resource. No semantic proof is claimed."
+  },
+  "selectedRawUnchanged": true,
+  "stale": {
+    "reference": "results/skill-ir/skill-dsl-research/development/authorization-quality-evidence-v1/verification/portable.json",
+    "pending": false,
+    "oldReturnWithdrawn": true,
+    "originalUnchanged": true
+  }
+}

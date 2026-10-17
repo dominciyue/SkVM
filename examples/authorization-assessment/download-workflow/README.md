@@ -1,12 +1,28 @@
 # Download: input → source program → execution → result
 
-Use `-ProgramSupport rules` to inspect the same authored raw as a complete rule document without host evaluation or trials; `execute` remains the default. Both use the original questions and source tools. Rules account authoring can edit raw with structural diagnostics. The ordinary `execution.md` then contains the rules document and `execution.json` uses `authorization-program-rules-archive/v1`; inspect verifies it normally. Source changes invalidate a previous session; start explicit fresh maintenance on your own source copy. BP engineering and preregistration are in progress; no new model quality result is claimed here.
+Use `-ProgramSupport rules` to inspect the same authored raw as a complete rule document without host evaluation or trials; `execute` remains the default. Both use the original questions and source tools. Rules account authoring can edit raw with structural diagnostics. The ordinary `execution.md` then contains the rules document and `execution.json` uses `authorization-program-rules-archive/v1`; inspect verifies it normally. Source changes invalidate a previous session; start explicit fresh maintenance on your own source copy. BP engineering is verified; its quality comparison remains in progress.
 
 ```powershell
 ./examples/authorization-assessment/download-workflow/run.ps1 -ProgramSupport rules -ProgramContext directed -ProgramFile ./results/skill-ir/skill-dsl-research/development/authorization-call-semantics-v1/authoring/automatic-program.json
 ```
 
 The script accepts `-ProgramContext directed` to send current results, premises, branch rules and all original duties with retrievable details and incremental account packets. `full` remains the default. Use `-InputFile <file>` for another explicit input, or the additional `invalid-version`, `other-root-version` and `no-external` variants. Printed output separates actual execution from coverage gaps; `execution.md` retains the complete current view. An exhausted tool phase can receive one tools-free final answer within its original time/display budget, only after a confirmed terminal. Unknown requests are not resent.
+
+## Current BP explicit program
+
+BP fixes A0's final 52-step [model original](../../../results/skill-ir/skill-dsl-research/development/authorization-quality-evidence-v1/authoring/automatic-program.json) before consumers. It is a revision of BO, with no developer semantic edits; independent authors do not replace this selection. Run it from the repository root:
+
+```powershell
+./examples/authorization-assessment/download-workflow/run.ps1 -ProgramContext directed -ProgramFile ./results/skill-ir/skill-dsl-research/development/authorization-quality-evidence-v1/authoring/automatic-program.json
+./examples/authorization-assessment/download-workflow/run.ps1 -Variant empty-version -ProgramContext directed -ProgramFile ./results/skill-ir/skill-dsl-research/development/authorization-quality-evidence-v1/authoring/automatic-program.json
+./examples/authorization-assessment/download-workflow/run.ps1 -ProgramSupport rules -ProgramContext directed -ProgramFile ./results/skill-ir/skill-dsl-research/development/authorization-quality-evidence-v1/authoring/automatic-program.json
+```
+
+The [current finite assessment](../../../results/skill-ir/skill-dsl-research/development/authorization-quality-evidence-v1/evaluation/selected/summary.json) records 18/18 historical cases, 7/8 additional cases and 6/7 preregistered perturbations, for both semantic fields and local traces. Default input returns request/root 10, file document 11 and `v1-archive.pdf`; empty version selects document 12's original. Explicit denial stops before file selection. The automatic raw still omits the outer `user is not None` activation and does not handle a missing `version` key like the source. Its natural explanation can state those source rules without repairing its raw. Treat it as a partial analysis aid.
+
+Pass `-InputFile ./results/skill-ir/skill-dsl-research/development/authorization-quality-evidence-v1/inputs/anonymous-skip-checker.json` to expose the anonymous-path gap, or `-Variant no-external` to see the unresolved completion condition. The printed `execution.md` shows values, skipped calls, conditions, gaps and source locations. Inspect the printed session with `bun src/index.ts authorization inquiry inspect --out=<session>`. Finite facts do not establish real admission, external permissions or file delivery.
+
+The [portable check](../../../results/skill-ir/skill-dsl-research/development/authorization-quality-evidence-v1/verification/portable.json) confirms five fresh/previous pairs agree after moving copied input, raw, source and session. A source permission-condition change withdraws the old return. For maintenance, preserve the original source, edit a copy and start an explicit author session with its previous raw; compare source-current output before treating the result as current. The rules/execute quality comparison and maintenance study are not yet concluded. Historical commands and the BL default remain available below.
 
 ## Current BO explicit program
 

@@ -1,0 +1,92 @@
+## Program status
+
+The persistent executable program was repaired and adopted:
+
+- **Draft revision:** `b1704c11814beefd84aa1944127f8cba7c168c002321839fd390cb44d2b3813e`
+- **Executable revision:** `3e2b80c8c79d93cf1add1c76a045becefe3ea96e09db4f01aba58f459e0aebed`
+- Added explicit modeling for include-deleted lookup, version ordering, representation ordering, content-type rules, filename formatting, and runtime evidence limits.
+- Trials covered absent, empty, explicit, invalid version parameters; a version-document `pk`; and permission denial. The invalid-version trial terminated `not-found`, while the denied trial terminated at authorization.
+
+The workflow still carries one inherited generic coverage gap and unreviewed source-candidate metadata; this does not change the source trace below.
+
+## 1. Requested document and returned file
+
+1. The `documents` router reaches `UnifiedSearchViewSet`, which inherits the document download action. `download` is a GET detail action and passes its route `pk` to `file_response` with attachment disposition (`src/paperless/urls.py:74-77`, `src/documents/views.py:1834-1839`).
+
+2. `file_response` resolves the `pk` with `include_deleted=True`. Thus the initial requested document and unresolved root lookup use `Document.global_objects`, not the visible-only manager. Missing `pk` produces `Http404` (`src/documents/views.py:1401-1415,1429-1434`).
+
+3. Root resolution is:
+   - root document (`root_document_id is None`) → that document;
+   - version with a loaded root relation → that root;
+   - otherwise look up the root ID using the selected manager;
+   - if that lookup unexpectedly yields nothing, retain the requested document as fallback (`src/documents/versioning.py:146-156`).
+
+4. Only after root authorization succeeds does `_get_effective_file_doc` select the document whose file is served (`src/documents/views.py:1429-1445`):
+   - If `pk` already identifies a version and the `version` parameter is absent, return that exact version.
+   - Otherwise resolve relative to the root:
+     - parameter absent → newest visible related version;
+     - parameter present but empty → newest related version including deleted versions;
+     - truthy parameter → parse it as an integer and select only that root or a version related to that root;
+     - no related version → fall back to the root;
+     - malformed parameter → DRF `NotFound`;
+     - missing or unrelated explicit version → `Http404`.
+   - “Newest” means `version_index DESC NULLS LAST`, then `id DESC` (`src/documents/versioning.py:23-28,159-195`; `src/documents/views.py:1375-1399`).
+
+5. Representation selection happens after `file_doc` selection:
+   - `original=true` exactly → original;
+   - otherwise archive when `file_doc.has_archive_version` is truthy;
+   - otherwise original (`src/documents/views.py:1368-1373,1437-1448`).
+
+6. `serve_file` opens:
+   - archive → `file_doc.archive_file`, content type `application/pdf`;
+   - original → `file_doc.source_file`, using the document MIME type, with source-defined text charset adjustments.
+   `follow_formatting` changes the response filename, not the selected document or file handle (`src/documents/views.py:4941-4995`).
+
+7. Download uses `Content-Disposition: attachment`. `FileNotFoundError` and `Document.DoesNotExist` are translated to 404 (`src/documents/views.py:1834-1839`).
+
+For the supplied default fixture, the computed path is: requested/root document `10` → latest visible version `11` → archive representation → `v1-archive.pdf`.
+
+## 2. Authorization checks and ordering
+
+Before dispatching the action, DRF performs authentication, global permission checks, and throttling (`framework/rest_framework-3.18.1/rest_framework/views.py:404-421`). `DocumentViewSet` configures `IsAuthenticated` and `PaperlessObjectPermissions`; GET maps to `documents.view_document` (`src/documents/views.py:1008-1022`, `src/documents/permissions.py:30-44`).
+
+Inside the file path:
+
+1. Resolve requested document and root.
+2. If `request.user` is non-null, call owner-aware `view_document` authorization on the **root**.
+3. Owner-aware authorization allows when:
+   - root owner is null;
+   - root owner equals the user;
+   - otherwise Guardian’s `ObjectPermissionChecker.has_perm("view_document", root)` returns truthy.
+4. Failure returns HTTP 403.
+5. Only then select the effective version, original/archive representation, and file handle.
+
+The checker is constructed before that owner/grant expression. No later owner-aware or inherited DRF object-permission check is performed on the selected `file_doc` (`src/documents/permissions.py:624-635`, `src/documents/views.py:1421-1448`).
+
+## 3. Alternate version versus authorized resource
+
+Selecting a different version does **not** replace the authorization target. Authorization remains against the root resolved from the initial `pk`; the effective version is chosen afterward.
+
+Consequently:
+
+- A root request may authorize root `10` and later serve related version `11` or `12`.
+- A request whose `pk` is itself a version normally resolves its root and authorizes that root, then returns the requested version when no `version` parameter exists.
+- An explicit `version` may select only the root itself or a related version; unrelated IDs result in 404.
+- `original=true` versus archive selection changes only the file representation and response metadata, never the authorization resource.
+- The source performs no selected-version ownership/grant recheck after root authorization.
+
+In the supplied fixture this distinction is observable: actor `7` authorizes owned root `10`, after which version `11`, owned by `9`, is selected and served without a second authorization check. This states source behavior, not whether any real deployment grant exists.
+
+## 4. Missing facts and conditional conclusions
+
+| Missing fact | Conclusion blocked |
+|---|---|
+| Actual authentication, model-permission, negotiation, and throttle outcomes | Whether a real HTTP request reaches `download` at all |
+| Actual root ownership | Whether the owner/unowned fast path authorizes |
+| Exact Guardian object grant for user, root, and `view_document` | Whether a non-owner request succeeds or receives 403 |
+| Actual database rows, deletion state, root relations, and version indexes | Which root/version is selected in deployment |
+| Storage-object existence, readability, and backend behavior | Whether the selected file can actually be streamed |
+| Runtime filename and MIME fields | Exact final filename, MIME header, and charset |
+| External routing/proxy/base-URL configuration | Exact deployed URL and upstream admission behavior |
+
+The supplied scenarios and external assumptions are development fixtures only. They demonstrate finite branches but do not establish real ownership, grants, deployment admission, storage availability, or successful HTTP delivery.

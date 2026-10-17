@@ -1,0 +1,224 @@
+{
+  "schemaVersion": "authorization-executable-contract/v1",
+  "id": "document-download-selection",
+  "description": "Source-supported document and root selection at the Download file-response path; authorization and representation branches will be added from cited source.",
+  "scope": {
+    "kind": "function-contract",
+    "questionId": "requested-document-and-returned-file",
+    "root": {
+      "path": "src/documents/views.py",
+      "symbol": "documents.views.DocumentViewSet.file_response"
+    },
+    "upstream": [
+      "HTTP route admission, authentication, deployment configuration, actual ownership and object grants remain unresolved"
+    ]
+  },
+  "inputBinding": {
+    "questionId": "requested-document-and-returned-file"
+  },
+  "sourceDeclarations": [
+    {
+      "source": {
+        "path": "src/documents/views.py",
+        "symbol": "documents.views.DocumentViewSet.file_response"
+      },
+      "statements": []
+    },
+    {
+      "source": {
+        "path": "src/documents/views.py",
+        "symbol": "documents.views.DocumentViewSet._resolve_request_and_root_doc"
+      },
+      "statements": []
+    }
+  ],
+  "queries": [
+    {
+      "property": "request document and root document selection before authorization",
+      "effect": {
+        "path": "src/documents/views.py",
+        "startLine": 1408,
+        "endLine": 1427
+      }
+    }
+  ],
+  "assumptions": [
+    {
+      "origin": "user",
+      "text": "The operation under investigation is the document Download operation in this Paperless revision."
+    }
+  ],
+  "resourceWorkflow": {
+    "inputs": [
+      "actor",
+      "documents",
+      "related_root",
+      "request"
+    ],
+    "steps": [
+      {
+        "id": "requested_pk",
+        "op": "value",
+        "value": {
+          "field": {
+            "of": {
+              "ref": "request"
+            },
+            "key": "pk"
+          }
+        },
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1408,
+          "endLine": 1415
+        },
+        "because": "The request path pk is used to fetch request_doc by id."
+      },
+      {
+        "id": "request_doc",
+        "op": "select",
+        "from": "documents",
+        "where": {
+          "op": "eq",
+          "left": {
+            "binding": "row.id"
+          },
+          "right": {
+            "binding": "requested_pk"
+          }
+        },
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1408,
+          "endLine": 1415
+        }
+      },
+      {
+        "id": "root_key",
+        "op": "value",
+        "value": {
+          "coalesce": [
+            {
+              "field": {
+                "of": {
+                  "ref": "request_doc"
+                },
+                "key": "root_document_id"
+              }
+            },
+            {
+              "field": {
+                "of": {
+                  "ref": "request_doc"
+                },
+                "key": "id"
+              }
+            }
+          ]
+        },
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1417,
+          "endLine": 1420
+        }
+      },
+      {
+        "id": "root_doc",
+        "op": "select",
+        "from": "documents",
+        "where": {
+          "op": "eq",
+          "left": {
+            "binding": "row.id"
+          },
+          "right": {
+            "binding": "root_key"
+          }
+        },
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1417,
+          "endLine": 1420
+        }
+      },
+      {
+        "id": "result",
+        "op": "return",
+        "value": {
+          "record": {
+            "request_document_id": {
+              "field": {
+                "of": {
+                  "ref": "request_doc"
+                },
+                "key": "id"
+              }
+            },
+            "authorization_document_id": {
+              "field": {
+                "of": {
+                  "ref": "root_doc"
+                },
+                "key": "id"
+              }
+            }
+          }
+        },
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1417,
+          "endLine": 1427
+        }
+      }
+    ],
+    "gaps": [
+      "Authorization outcome is not yet modeled.",
+      "Version selection and original/archive representation are not yet modeled.",
+      "Routing, framework authentication, and final serve_file behavior remain to be inspected."
+    ]
+  },
+  "authoringTarget": {
+    "mode": "reusable",
+    "coverage": [
+      {
+        "id": "request-root-selection",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1408,
+          "endLine": 1420
+        },
+        "stepIds": [
+          "requested_pk",
+          "request_doc",
+          "root_key",
+          "root_doc"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "root-authorization",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1421,
+          "endLine": 1426
+        },
+        "stepIds": [],
+        "disposition": "unwritten",
+        "reason": "Permission helper semantics not yet read."
+      },
+      {
+        "id": "effective-file-and-response",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1429,
+          "endLine": 1448
+        },
+        "stepIds": [
+          "result"
+        ],
+        "disposition": "unwritten",
+        "reason": "Effective version and representation selection not yet modeled."
+      }
+    ]
+  }
+}

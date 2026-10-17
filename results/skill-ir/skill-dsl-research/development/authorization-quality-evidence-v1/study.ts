@@ -22,6 +22,18 @@ const ledgerFile = path.join(base, "attempts.json"), skillFile = path.resolve(ba
 export const boRaw = path.resolve(base, "../authorization-call-semantics-v1/authoring/automatic-program.json")
 const fixedFile = (share = false) => path.join(base, `authoring/${share ? "sharelink-" : ""}automatic-program.json`)
 const selectionFile = (share = false) => path.join(base, `authoring/${share ? "sharelink-" : ""}frozen-selection.json`)
+export function verifyRegisteredPairBinding(previous: any, current: any, transitions: any[]) {
+  if (previous.codeEpoch?.sourceTree === current.codeEpoch?.sourceTree) {
+    verifyPairBinding(previous, current)
+    return { sameEpoch: true, causalComparisonEligible: true }
+  }
+  const transition = transitions.find(t => t.fromSourceTree === previous.codeEpoch?.sourceTree && t.toSourceTree === current.codeEpoch?.sourceTree && t.reason && t.evidence)
+  if (!transition) throw new Error("pair-binding-unregistered-epoch-transition")
+  // Only the explicitly recorded implementation tree may differ. Inputs,
+  // model, source, budget and clean working-tree state retain strict binding.
+  verifyPairBinding(previous, { ...current, codeEpoch: { ...current.codeEpoch, sourceTree: previous.codeEpoch.sourceTree } })
+  return { sameEpoch: false, causalComparisonEligible: false, transition }
+}
 async function sourceBinding(inputFile: string) {
   const input = await load(inputFile), root = path.resolve(path.dirname(inputFile), input.sourceRoot), files: Array<[string, string]> = []
   const visit = async (name: string) => { const file = path.join(root, name); if ((await stat(file)).isDirectory()) for (const child of (await readdir(file)).sort()) await visit(path.join(name, child)); else files.push([name.split(path.sep).join("/"), hash(await readFile(file))]) }
@@ -104,7 +116,11 @@ export async function run(position: string, attempt: string) {
   if (needsRaw && hash(await readFile(domainProgramFile!)) !== selection.programSha256) throw new Error("Fixed model raw changed")
   if (repair?.previous && !ledger.some(e => e.position === position && e.session === repair.previous && e.lifecycle?.localExecution === "closed" && e.terminalStatus === "completed")) throw new Error("Repair can restore only its own known closed purpose")
   const output = path.join(base, "runs", `${position}-${attempt}`), entry: any = { position, attempt, status: "running", startedAt: new Date().toISOString(), pid: process.pid, model: "gpt-5.6-sol", effort: "high", ...options, programMode: options.author ? "edit" : "consume", input: relative(inputFile), inputSha256: hash(await readFile(inputFile)), program: domainProgramFile && relative(domainProgramFile), programSha256: domainProgramFile && hash(await readFile(domainProgramFile)), limits, admission: decision, codeEpoch: { commit: git("rev-parse", "HEAD"), sourceTree: git("rev-parse", "HEAD:src"), sourceDiffSha256: hash(git("diff", "HEAD", "--", "src")) }, actualUsd: null, binding: await sourceBinding(inputFile), repairCause: repair?.cause }
-  if (index >= 0) { const match = /^(Q\d)-R\d-(\d)$/.exec(position)!, siblings = ledger.filter(e => e.attempt === "first" && new RegExp(`^${match[1]}-R\\d-${match[2]}$`).test(e.position)); for (const other of siblings) verifyPairBinding(other, entry) }
+  if (index >= 0) {
+    const match = /^(Q\d)-R\d-(\d)$/.exec(position)!, siblings = ledger.filter(e => e.attempt === "first" && new RegExp(`^${match[1]}-R\\d-${match[2]}$`).test(e.position))
+    const transitions = await load(path.join(base, "implementation-transitions.json")).catch(() => [])
+    entry.pairBindings = siblings.map(other => ({ position: other.position, attempt: other.attempt, ...verifyRegisteredPairBinding(other, entry, transitions) }))
+  }
   await mkdir(output, { recursive: true }); const leasePath = path.join(output, "local-owner.json"), lease = await open(leasePath, "wx"); await lease.writeFile(JSON.stringify({ pid: process.pid, position, attempt })); await lease.close()
   ledger.push(entry); await save(ledgerFile, ledger)
   try {
@@ -148,17 +164,40 @@ export async function freeze(position: string, attempt: string) {
   await once(path.join(base, `authoring/${share ? "sharelink-" : ""}rule-document.json`), renderProgramRuleDocument(adopted.raw))
   return load(selectionFile(share))
 }
+export function qualityPairIdentity(entry: any) {
+  const values = [entry.codeEpoch?.sourceTree, entry.codeEpoch?.sourceDiffSha256, entry.model, entry.effort, entry.inputSha256, entry.limits, entry.binding?.source, entry.binding?.skill, entry.binding?.accountBoundary]
+  return values.some(value => value === undefined || value === null) ? undefined : hash(JSON.stringify(values))
+}
 export async function summarize() {
   const attempts: any[] = await load(ledgerFile), state = await load(path.join(base, "status.json")), reviews = await load(path.join(base, "evaluation/quality-reviews.json")).catch(() => undefined)
-  const summary = { identity, updatedAt: new Date().toISOString(), attempts, ...observedUsageSummary(attempts), observedTurns: attempts.reduce((n, a) => n + (a.turns?.filter((t: any) => t.inferenceDispatched).length ?? 0), 0), active: attempts.filter(a => a.status === "running").length, finiteQueueComplete: positions.every(p => attempts.some(a => a.position === p && a.status !== "running") || state.dispositions?.[p]?.status === "not-run"), engineeringComplete: state.engineeringComplete, automaticProgramComplete: state.automaticProgramComplete ?? false, quality: reviews ? summarizeQuality(reviews) : null, targetExecutions: 0, researchGoalAchieved: false }
+  const firstReviews = await load(path.join(base, "evaluation/first-quality-reviews.json")).catch(() => undefined)
+  const sourceEpochs = Object.fromEntries(attempts.filter(a => a.attempt === "first").map(a => [a.position, qualityPairIdentity(a)]))
+  const summary = { identity, updatedAt: new Date().toISOString(), attempts, ...observedUsageSummary(attempts), observedTurns: attempts.reduce((n, a) => n + (a.turns?.filter((t: any) => t.inferenceDispatched).length ?? 0), 0), active: attempts.filter(a => a.status === "running").length, finiteQueueComplete: positions.every(p => attempts.some(a => a.position === p && a.status !== "running") || state.dispositions?.[p]?.status === "not-run"), engineeringComplete: state.engineeringComplete, automaticProgramComplete: state.automaticProgramComplete ?? false, quality: reviews ? summarizeQuality(reviews, sourceEpochs) : null, targetExecutions: 0, researchGoalAchieved: false }
+  Object.assign(summary, { firstQuality: firstReviews ? summarizeQuality(firstReviews, sourceEpochs) : null, costGroups: Object.fromEntries(["A", "R0", "R1", "R2", "S", "T"].map(group => [group, observedUsageSummary(attempts.filter(a => group.startsWith("R") ? a.position.startsWith("Q") && a.position.includes(group) : a.position.startsWith(group)))])) })
+  await save(path.join(base, "accounting.json"), { identity, knownExperimentalUsage: summary.knownUsage, experimentalAttempts: attempts.length, activeAttempts: summary.active, usageUnknownAttempts: summary.usageUnknownAttempts, cacheIncludedInInput: true, actualUsd: null, developmentAndReviewerCost: null, humanMinutes: null, hiddenRequests: null, historicalUnknownUnchanged: true })
   await save(path.join(base, "summary.json"), summary); return summary
+}
+export function verifyPartialArchive(entry: any, lifecycleBytes: string | Buffer, evidence: any) {
+  if (entry.lifecycle?.persistence !== "partial" || entry.lifecycle?.localExecution !== "closed") throw new Error("Partial archive must be locally closed")
+  if (hash(lifecycleBytes) !== entry.reconciliation?.lifecycleSha256) throw new Error("Partial lifecycle digest mismatch")
+  if (evidence.threadId !== entry.lifecycle.threadId || evidence.turnId !== entry.lifecycle.turnId) throw new Error("Readonly reconciliation identity mismatch")
+  const terminal = evidence.events?.filter((e: any) => e.direction === "server").flatMap((e: any) => e.result?.thread?.id === evidence.threadId ? e.result.thread.turns ?? [] : []).find((t: any) => t.id === evidence.turnId)?.status
+  if (evidence.status !== "terminal-found" || !["completed", "interrupted", "failed"].includes(terminal) || terminal !== evidence.terminalStatus || terminal !== entry.reconciliation?.terminalStatus) throw new Error("Readonly terminal evidence missing or inconsistent")
+  if (evidence.events?.some((e: any) => e.direction === "client" && !["initialize", "thread/read"].includes(e.method))) throw new Error("Reconciliation was not readonly")
+  return { completeArchive: false, retainedLifecycleVerified: true, reconciledTerminal: terminal, originalTerminal: entry.terminalStatus, finalUsageUnknown: entry.reconciliation.finalUsageUnknown === true }
 }
 export async function verify() {
   await prepare(); const summary = await summarize()
   if (summary.active || new Set(summary.attempts.map(a => `${a.position}/${a.attempt}`)).size !== summary.attempts.length) throw new Error("Active or duplicate identity")
-  for (const a of summary.attempts.filter(a => a.session)) await inspectLocalInquiry(path.resolve(repo, a.session))
+  const archives = []
+  for (const a of summary.attempts.filter(a => a.session)) {
+    if (a.lifecycle?.persistence === "partial") {
+      const evidence = await load(path.join(base, a.reconciliation.readonlyEvidence))
+      archives.push({ position: a.position, attempt: a.attempt, ...verifyPartialArchive(a, await readFile(path.resolve(repo, a.session, "raw/lifecycle.jsonl")), evidence) })
+    } else { await inspectLocalInquiry(path.resolve(repo, a.session)); archives.push({ position: a.position, attempt: a.attempt, completeArchive: true }) }
+  }
   for (const share of [false, true]) { const selection = await load(selectionFile(share)).catch(() => undefined); if (selection && hash(await readFile(fixedFile(share))) !== selection.programSha256) throw new Error("Selected raw changed") }
-  const result = { checkedAt: new Date().toISOString(), attempts: summary.attempts.length, archivesVerified: true, active: 0, researchGoalAchieved: false }; await save(path.join(base, "verification/study-integrity.json"), result); return result
+  const result = { checkedAt: new Date().toISOString(), attempts: summary.attempts.length, archives, completeArchives: archives.filter(a => a.completeArchive).length, reconciledPartialArchives: archives.filter(a => !a.completeArchive).length, active: 0, researchGoalAchieved: false }; await save(path.join(base, "verification/study-integrity.json"), result); return result
 }
 if (import.meta.main) {
   const [command, position, attempt] = process.argv.slice(2)

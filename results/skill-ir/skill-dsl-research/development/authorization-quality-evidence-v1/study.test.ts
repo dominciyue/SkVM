@@ -1,5 +1,37 @@
 import { expect, test } from "bun:test"
 const panel: any = await import("./panel.ts").catch(() => ({}))
+test("quality epoch identity retains working source diff and common experimental binding", async () => {
+  const study: any = await import("./study.ts")
+  expect(typeof study.qualityPairIdentity).toBe("function")
+  const row = { model: "m", effort: "high", inputSha256: "input", limits: { max: 64 }, binding: { source: "s", skill: "k", accountBoundary: "a" }, codeEpoch: { sourceTree: "tree", sourceDiffSha256: "clean" } }
+  expect(study.qualityPairIdentity(row)).toBe(study.qualityPairIdentity({ ...row, position: "different-arm" }))
+  expect(study.qualityPairIdentity(row)).not.toBe(study.qualityPairIdentity({ ...row, codeEpoch: { ...row.codeEpoch, sourceDiffSha256: "changed" } }))
+  expect(study.qualityPairIdentity(row)).not.toBe(study.qualityPairIdentity({ ...row, inputSha256: "other" }))
+  expect(study.qualityPairIdentity({ ...row, codeEpoch: {} })).toBeUndefined()
+})
+test("partial archive verification binds retained bytes and readonly terminal without inventing complete persistence", async () => {
+  const study: any = await import("./study.ts")
+  expect(typeof study.verifyPartialArchive).toBe("function")
+  const bytes = "retained lifecycle", entry = { status: "unknown", terminalStatus: "completion-unknown", lifecycle: { persistence: "partial", localExecution: "closed", threadId: "thread", turnId: "turn" }, reconciliation: { lifecycleSha256: study.hash(bytes), terminalStatus: "interrupted", finalUsageUnknown: true } }
+  const evidence = { status: "terminal-found", terminalStatus: "interrupted", threadId: "thread", turnId: "turn", events: [{ direction: "client", method: "thread/read" }, { direction: "server", result: { thread: { id: "thread", turns: [{ id: "turn", status: "interrupted" }] } } }] }
+  expect(study.verifyPartialArchive(entry, bytes, evidence)).toMatchObject({ completeArchive: false, retainedLifecycleVerified: true, reconciledTerminal: "interrupted", finalUsageUnknown: true })
+  expect(() => study.verifyPartialArchive(entry, bytes + "changed", evidence)).toThrow("digest")
+  expect(() => study.verifyPartialArchive(entry, bytes, { ...evidence, turnId: "other" })).toThrow("identity")
+  expect(() => study.verifyPartialArchive(entry, bytes, { ...evidence, events: [] })).toThrow("terminal")
+  expect(() => study.verifyPartialArchive({ ...entry, lifecycle: { ...entry.lifecycle, localExecution: "active" } }, bytes, evidence)).toThrow("closed")
+})
+test("registered implementation transition retains input binding but cannot claim same-epoch pairing", async () => {
+  const study: any = await import("./study.ts")
+  expect(typeof study.verifyRegisteredPairBinding).toBe("function")
+  const old = { model: "model", effort: "high", inputSha256: "input", limits: { max: 64 }, binding: { source: "source" }, codeEpoch: { sourceTree: "old", sourceDiffSha256: "clean" } }
+  const current = { ...old, codeEpoch: { sourceTree: "new", sourceDiffSha256: "clean" } }
+  const transition = { fromSourceTree: "old", toSourceTree: "new", reason: "Inspected exact CLI version", evidence: "verification/cli-protocol-review.json" }
+  expect(() => study.verifyRegisteredPairBinding(old, current, [])).toThrow("unregistered")
+  expect(study.verifyRegisteredPairBinding(old, current, [transition])).toMatchObject({ sameEpoch: false, causalComparisonEligible: false })
+  expect(() => study.verifyRegisteredPairBinding(old, { ...current, inputSha256: "other" }, [transition])).toThrow("inputSha256")
+  expect(() => study.verifyRegisteredPairBinding(old, { ...current, codeEpoch: { sourceTree: "new", sourceDiffSha256: "dirty" } }, [transition])).toThrow("sourceDiffSha256")
+  expect(study.verifyRegisteredPairBinding(current, current, [])).toMatchObject({ sameEpoch: true, causalComparisonEligible: true })
+})
 test("BP oracle treats supplied None constructor as normal completion for values and trace", async () => {
   const { finiteExpectation }: any = await import("./offline.ts")
   expect(typeof finiteExpectation).toBe("function")
@@ -39,9 +71,25 @@ test("semantic review labels retain correct object, wrong authorization, omissio
   row.facts[2] = { id: row.facts[2].id, label: "appropriately-unknown", evidence: "Answer names missing constructor completion and the blocked local continuation" }
   row.facts[3] = { id: row.facts[3].id, label: "over-abstained", evidence: "Answer calls source-visible authorization object unknowable" }
   expect(panel.validateReview(row)).toBe(true)
+  row.wholeAnswer = "full"
+  expect(() => panel.validateReview(row)).toThrow("whole")
+  row.wholeAnswer = "incorrect"
   row.facts[0].label = "undelivered"
   expect(() => panel.validateReview(row)).toThrow("delivery")
   row.facts[0].label = "correct"
   row.facts[0].evidence = ""
   expect(() => panel.validateReview(row)).toThrow("evidence")
+})
+test("cross-epoch primary rows remain in denominator but cannot create paired quality evidence", () => {
+  const rows = panel.panelOrder.map((position: string) => ({ position, delivery: "undelivered", facts: panel.rubric.facts.map((f: any) => ({ id: f.id, label: "undelivered", evidence: "No answer" })), questions: ["partial", "partial", "partial", "partial"], wholeAnswer: "partial", answer: `${position}.txt` }))
+  const epochs = Object.fromEntries(panel.panelOrder.map((p: string) => [p, "new"]))
+  epochs["Q0-R1-0"] = "old"
+  const summary = panel.summarizeQuality(rows, epochs), comparison = summary.domains["object-relations"].comparisons["R2-R1"]
+  expect(summary.primaryDenominator).toBe(36)
+  expect(summary.rows).toHaveLength(36)
+  expect(comparison.unpaired).toBe(1)
+  expect(comparison.pairs[0]).toMatchObject({ result: "unpaired", reason: "implementation-epoch-mismatch", descriptiveResult: "tie" })
+  expect(comparison.repeats[0]).toMatchObject({ plannedPairs: 6, eligiblePairs: 5 })
+  expect(summary.domains["object-relations"].qualityEvidenceStatus).toBe("incomplete-pairing")
+  expect(summary.localQualityGoalAchieved).toBe(false)
 })
