@@ -2,7 +2,7 @@
 
 更新于2026-10-18。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BQ0–BQ17](../superpowers/plans/2026-10-18-authorization-source-program-consistency-and-task-execution.md)，状态 planned-not-started。用户要求先解决共享缺陷，再进行一次参与真实任务的实验。本次只完成计划登记，尚无 BQ 代码或模型结果。
+- 当前任务书：[BQ0–BQ17](../superpowers/plans/2026-10-18-authorization-source-program-consistency-and-task-execution.md)，状态 in-progress。BQ0–BQ7 的共享结构投影、缺键合同、当前试跑反馈和普通入口接线已完成，35 个有限输入及量规已在首次调用前登记。下一步按 T-R、T-E、U-E 执行，尚无模型结果。
 - 方法合同：[spec §14.56](skill-ir-aot-optimization-spec.md#1456-bq-source-program-consistency-and-real-task-use)；复核与开发过程统一在[研究 §7.78](skill-dsl-research.md#778-bp-复核与-bq-先修复后实际使用)。BP结果与合同保留在§7.77/§14.55。
 - identity：`authorization-source-program-consistency-v1`，规划基线`27d59677f8a3257d1a4e0ee687519ad518306aba`。继续`skill-ir-aot`，只推用户origin，不建分支/worktree；新开发线程独占代码、共享方法文档与Git写入。
 - 开发`gpt-6-astra/high`，按用户指定；实验沿已授权官方账号`gpt-5.6-sol/high`。第三方暂停；旧未知与保护证据保持。接管时tracked干净，原有未跟踪`.tmp/`不清理。

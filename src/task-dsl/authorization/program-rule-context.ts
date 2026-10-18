@@ -62,11 +62,12 @@ export function createProgramRulesContext(tools: InquiryTools, mode: ProgramMode
         return { status: "catalog", items: items.slice(args.offset, args.offset + args.limit), total: items.length, nextOffset: args.offset + args.limit < items.length ? args.offset + args.limit : undefined }
       }
       const steps = draft?.raw?.resourceWorkflow?.steps
-      return { ...project(), view: args.view, raw: draft?.raw, steps: (Array.isArray(steps) ? steps : []).filter((s: any) => (!args.stepId || s?.id === args.stepId) && (!args.questionId || draft?.raw?.scope?.questionId === args.questionId)) }
+      const catalog = await collectProgramObligations(tools, draft?.raw)
+      return { ...project(), view: args.view, raw: draft?.raw, callRelations: projectProgramCallRelations(draft?.raw, undefined, [], catalog).map(({ event: _event, trials: _trials, ...row }) => row).filter(r => !args.stepId || r.stepId === args.stepId), steps: (Array.isArray(steps) ? steps : []).filter((s: any) => (!args.stepId || s?.id === args.stepId) && (!args.questionId || draft?.raw?.scope?.questionId === args.questionId)) }
     },
     async context() {
       const state = project(), candidates = mode === "edit" ? await collectProgramObligations(tools, draft?.raw) : []
-      const relations = projectProgramCallRelations(draft?.raw).map(({ event: _event, trials: _trials, completionGuard, ...row }) => ({ ...row, ...(completionGuard ? { completionGuard: { id: completionGuard.id, test: completionGuard.test } } : {}) }))
+      const relations = projectProgramCallRelations(draft?.raw, undefined, [], candidates).map(({ event: _event, trials: _trials, completionGuard, ...row }) => ({ ...row, ...(completionGuard ? { completionGuard: { id: completionGuard.id, test: completionGuard.test } } : {}) }))
       const target = mode === "edit" ? projectAuthoringTarget(draft?.raw, authoringTargetMode, "rules") : undefined
       return { ...state, ...(target ? { authoring: { goal: PROGRAM_AUTHORING_GOAL, target, draftRevision: draft?.revision, phase: draft ? "review" : "draft", progressKey: draft?.revision, feedbackGroups: { inputStructure: diagnostics, callRelations: relations.filter(r => r.diagnostics.length), sourceCandidates: candidates, coverage: target.mode === "reusable" ? target.coverage.filter(c => c.disposition === "unwritten" || c.missingStepIds.length || c.disposition === "implemented" && !c.stepIds.length) : [] }, tools: ["authorization_program", "authorization_program_patch", "authorization_program_details"] } } : {}), instruction: programRulesInstruction(mode) }
     },

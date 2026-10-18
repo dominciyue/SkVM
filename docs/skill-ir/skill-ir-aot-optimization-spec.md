@@ -5,7 +5,7 @@
 
 **最后更新：** 2026-10-18
 
-**当前已确认路线：** 按 skill/task 范围设计领域表达并验证实际价值，复用既有授权 DSL 执行与 SkVM 入口。BP已形成规则准备的局部帮助和有限自动程序，但调用者条件、缺键语义仍遗漏，重复执行质量优势未达。用户授权 [BQ先修复后实际使用](../superpowers/plans/2026-10-18-authorization-source-program-consistency-and-task-execution.md)：补共享源码关联与修稿反馈，随后完成真实项目产物的排障、程序交付及普通消费。完整原skill/四问、旧协议及默认保持；源码判断、实际程序、抽象说明和成本分别评价。BQ当前为planned-not-started，合同见§14.56；BP保留§14.55。研究过程统一[研究总文档](skill-dsl-research.md)，当前顺序见[执行计划](skill-ir-aot-optimization-plan.md)，I1保留后备。
+**当前已确认路线：** 按 skill/task 范围设计领域表达并验证实际价值，复用既有授权 DSL 执行与 SkVM 入口。BP已形成规则准备的局部帮助和有限自动程序，但调用者条件、缺键语义仍遗漏，重复执行质量优势未达。用户授权 [BQ先修复后实际使用](../superpowers/plans/2026-10-18-authorization-source-program-consistency-and-task-execution.md)：补共享源码关联与修稿反馈，随后完成真实项目产物的排障、程序交付及普通消费。完整原skill/四问、旧协议及默认保持；源码判断、实际程序、抽象说明和成本分别评价。BQ当前为in-progress，合同见§14.56；BP保留§14.55。研究过程统一[研究总文档](skill-dsl-research.md)，当前顺序见[执行计划](skill-ir-aot-optimization-plan.md)，I1保留后备。
 
 本文保留旧研究阶段的标题与章节定位。下文有关统一 IR、AOT 优先、“不新建 DSL”和旧队列先后关系的限定，适用于各自阶段；总体方向以第14.34节为准，当前增量合同以第14.56节及任务书为准。已有 IR、接口、冻结结果和版本化材料不因路线变化而删除或改写。
 
@@ -3178,7 +3178,7 @@ BM8实施细节：当前协议只在thread/start注册dynamicTools。宿主预�
 
 ### 14.56 BQ source program consistency and real task use
 
-2026-10-18用户授权[BQ0–BQ17](../superpowers/plans/2026-10-18-authorization-source-program-consistency-and-task-execution.md)，从BP最终27d59677接续，identity为`authorization-source-program-consistency-v1`。当前仅计划，开发gpt-6-astra/high，实验沿官方gpt-5.6-sol/high；第三方暂停。先修共享问题，再进行一次真实项目产物排障研究，不追加BP大面板。
+2026-10-18用户授权[BQ0–BQ17](../superpowers/plans/2026-10-18-authorization-source-program-consistency-and-task-execution.md)，从BP最终27d59677接续，identity为`authorization-source-program-consistency-v1`。共享结构投影、当前试跑反馈及35输入预注册已实现，真实用途待运行；开发gpt-6-astra/high，实验沿官方gpt-5.6-sol/high；第三方暂停。先修共享问题，再进行一次真实项目产物排障研究，不追加BP大面板。
 
 **共享责任。** 现有when、field.default和trial已足以表达两个已知缺口。复用当前源码SourceFlow、调用边和精确引用，为已映射调用显示caller外层结构及未核对范围；没有coverage.call也应有相关结构提示。词法事实不是授权判断，caller未读/歧义/过期需明示，不能猜正确谓词。完整映射缺键、null、空串、未知分别保留；不从名为get的方法推导默认值。模型修改程序，宿主负责当前revision、来源、实际事件和试跑采用，不手工回填自动原稿。
 

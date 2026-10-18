@@ -6,6 +6,30 @@ import { runAuthorizationInquiryCli } from "../../cli/authorization-inquiry.ts"
 import { checkAuthorizationInquiry, inspectLocalInquiry, compareLocalInquiry, executeLocalInquiryRun } from "./inquiry-local.ts"
 import { createNativeInquiryRuntime } from "./inquiry-native.ts"
 
+test("ordinary rules and execute details share newly read caller structure without running rules", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "bq-ordinary-"))
+  const at = { path: "app.py", startLine: 1, endLine: 2 }, inputFile = path.join(root, "input.json"), rawFile = path.join(root, "raw.json")
+  await writeFile(path.join(root, "app.py"), "def helper(actor):\n    remote(actor)\n\ndef entry(actor):\n    if actor is not None:\n        helper(actor)\n")
+  await writeFile(inputFile, JSON.stringify({ schemaVersion: "authorization-inquiry-input/v1", taskId: "structure", repository: "anonymous", sourceRef: "r", sourceRoot: ".", allowedPaths: ["app.py"], inquiry: { schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Maintain the program and explain source branches", premises: [] }] } }))
+  await writeFile(rawFile, JSON.stringify({ schemaVersion: "authorization-executable-contract/v1", id: "work", scope: { kind: "function-contract", questionId: "q", root: at, upstream: [] }, sourceDeclarations: [{ source: at, statements: [] }], queries: [], assumptions: [], resourceWorkflow: { inputs: [], steps: [{ id: "remote", op: "external", name: "remote", arguments: {}, source: { ...at, startLine: 2 } }] } }))
+  const contexts: any[] = []
+  for (const programSupport of ["rules", "execute"] as const) {
+    const runtime = await createNativeInquiryRuntime({ inputFile, domainProgramFile: rawFile, workDir: root, sourceStructure: true, domainTools: true, strategy: "question-checked-v1", programSupport, programMode: "edit", authoringTargetMode: "reusable", programContext: "directed", executionPolicy: "progressive", maxToolCalls: 16 })
+    try {
+      await runtime.execute({ id: "read", name: "source_read", arguments: { path: "app.py", startLine: 4, endLine: 6 } })
+      const output = JSON.parse((await runtime.execute({ id: "details", name: "authorization_program_details", arguments: { view: "draft", stepId: "remote" } })).output)
+      contexts.push(output.callRelations[0].sourceContext)
+      expect(output.callRelations[0].sourceContext.calls[0].callers[0].state).toBe("current")
+      expect(output.callRelations[0].sourceContext.calls[0].callers[0].enclosingBranches[0].text).toBe("actor is not None")
+      if (programSupport === "rules") {
+        expect(runtime.definitions.some(t => t.name === "authorization_program_trial")).toBe(false)
+        expect(JSON.stringify(output)).not.toMatch(/"(?:resourceExecution|returned|events)":/)
+      }
+    } finally { await runtime.close() }
+  }
+  expect(contexts[0]).toEqual(contexts[1])
+})
+
 test("baseline can share checked source tools and structural results without domain tools", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "source-parity-"))
   const runtimes: Awaited<ReturnType<typeof createNativeInquiryRuntime>>[] = []

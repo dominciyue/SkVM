@@ -1,6 +1,10 @@
 import { expect, test } from "bun:test"
 import { executeResourceWorkflow } from "./resource-relations.ts"
 import { AuthoringTargetSchema } from "./program-coverage.ts"
+import { mkdtemp, writeFile } from "node:fs/promises"
+import path from "node:path"
+import os from "node:os"
+import { createInquiryTools } from "../../benchmarks/authorization-dsl/inquiry-tools.ts"
 const api: any = await import("./program-obligations.ts").catch(() => ({}))
 const source = { id: "unit", path: "anonymous.py", sha256: "current", startLine: 1, endLine: 20 }
 const skeleton: any = { sourceId: "unit", source, revision: "r", modelCovered: true, anchors: [
@@ -141,4 +145,50 @@ test("directed frontier selects a bounded related function while the full catalo
   expect(catalog.length).toBe(22)
   const declarationOnly = api.projectProgramCandidateFrontier(catalog, { sourceDeclarations: [{ source: raw.scope.entry }] })
   expect(declarationOnly.items).toEqual(frontier.items)
+})
+
+test("mapped external calls expose actual caller branches even without coverage.call", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "bq-call-context-"))
+  await writeFile(path.join(root, "app.py"), "def helper(actor):\n    if actor.ready:\n        remote(actor)\n\ndef entry(actor):\n    if actor is not None:\n        helper(actor)\n    else:\n        fallback(actor)\n")
+  const tools = await createInquiryTools({ sourceRoot: root, repository: "anonymous", sourceRef: "r", allowedPaths: ["app.py"], structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true })
+  await tools.execute("source_read", { path: "app.py", startLine: 1, endLine: 9 })
+  const at = { path: "app.py", startLine: 3, endLine: 3 }
+  const raw = rawFor([{ id: "inner", op: "value", source: { ...at, startLine: 2, endLine: 2 }, value: { literal: true } }, { ...call, source: at, when: truth("inner") }, out])
+  const catalog = await api.collectProgramObligations(tools, raw)
+  const row = api.projectProgramCallRelations(raw, undefined, [], catalog)[0]
+  expect(row.sourceContext.status).toBe("current")
+  expect(row.sourceContext.calls[0].enclosingBranches).toEqual(expect.arrayContaining([expect.objectContaining({ text: "actor.ready", branch: "true", activationStepIds: ["inner"] })]))
+  expect(row.sourceContext.calls[0].callers).toEqual(expect.arrayContaining([expect.objectContaining({ state: "current", source: expect.objectContaining({ startLine: 7 }), enclosingBranches: expect.arrayContaining([expect.objectContaining({ text: "actor is not None", branch: "true", activationStepIds: [] })]) })]))
+  expect(row.diagnostics).toContain("source-enclosing-branch-unconnected")
+  const fallback = catalog.find((o: any) => o.text === "fallback(actor)")
+  expect(fallback.enclosingBranches[0].branch).toBe("false")
+  expect(row.semanticSupport).toBe("unreviewed")
+  const stale = structuredClone(raw); stale.resourceWorkflow.steps[1].source.sha256 = "old"
+  expect(api.projectProgramCallRelations(stale, undefined, [], catalog)[0].sourceContext.status).toBe("source-stale")
+})
+
+test("unread and ambiguous callers remain explicit and never borrow an unrelated guard", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "bq-unread-caller-"))
+  await writeFile(path.join(root, "app.py"), "def helper(actor):\n    remote(actor)\n\ndef entry(actor):\n    if actor is not None:\n        helper(actor)\n")
+  const tools = await createInquiryTools({ sourceRoot: root, repository: "anonymous", sourceRef: "r", allowedPaths: ["app.py"], structure: true, controlSemantics: "finite-control/v1" })
+  await tools.execute("source_read", { path: "app.py", startLine: 1, endLine: 2 })
+  const raw = rawFor([{ ...call, source: { path: "app.py", startLine: 2, endLine: 2 } }])
+  const catalog = await api.collectProgramObligations(tools, raw)
+  const row = api.projectProgramCallRelations(raw, undefined, [], catalog)[0]
+  expect(row.sourceContext.calls[0].callers[0]).toMatchObject({ state: "caller-unread", enclosingBranches: [] })
+  expect(row.diagnostics).toContain("source-caller-unread")
+  const owner = tools.structure!.symbols.find(s => s.name === "helper")!
+  const ambiguous = { ...tools.structure!.calls.find(c => c.candidateIds.includes(owner.id))!, candidateIds: [owner.id, "another-function"], resolution: "ambiguous" }
+  const skeleton = await tools.sourceSkeleton(owner.id)
+  const candidates = api.projectProgramObligations([skeleton], raw, [ambiguous])
+  expect(api.projectProgramCallRelations(raw, undefined, [], candidates)[0].sourceContext.calls[0].callers[0].state).toBe("ambiguous")
+  expect(api.projectProgramObligations([skeleton], raw, [{ ...ambiguous, candidateIds: ["unrelated"] }])[0].callers).toEqual([])
+  expect(await api.collectProgramObligations({ ...tools, snapshotVerification: { valid: false } }, raw)).toEqual([])
+})
+test("same-span calls retain distinct anchor identities and report ambiguity instead of selecting first", () => {
+  const s = { ...skeleton, anchors: ["first", "second"].map(id => ({ ...skeleton.anchors[3], id, call: { sourceCallId: id, candidateIds: [id] } })) }
+  const catalog = api.projectProgramObligations([s], rawFor([call]))
+  const context = api.projectProgramCallRelations(rawFor([call]), undefined, [], catalog)[0].sourceContext
+  expect(context.status).toBe("ambiguous-call-span")
+  expect(context.calls.map((c: any) => c.call.sourceCallId)).toEqual(["first", "second"])
 })

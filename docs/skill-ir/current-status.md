@@ -4,9 +4,9 @@
 
 ## 当前工作
 
-**BQ0–BQ17 已获用户授权，当前为 planned-not-started。** [当前任务书](../superpowers/plans/2026-10-18-authorization-source-program-consistency-and-task-execution.md)先修源码外层调用条件、缺键语义和当前修稿反馈，再做一项真实项目排障任务：维护 SkVM 自动生成的 Paperless Download 辅助程序，交付可运行原稿和回归输入，并经普通入口消费。identity 为 `authorization-source-program-consistency-v1`，规划基线为 BP 最终提交 `27d59677`；开发 `gpt-6-astra/high`，实验官方账号 `gpt-5.6-sol/high`，第三方暂停。
+**BQ0–BQ17 已获用户授权，当前为 in-progress。** [当前任务书](../superpowers/plans/2026-10-18-authorization-source-program-consistency-and-task-execution.md)先修源码外层调用条件、缺键语义和当前修稿反馈，再做一项真实项目排障任务：维护 SkVM 自动生成的 Paperless Download 辅助程序，交付可运行原稿和回归输入，并经普通入口消费。identity 为 `authorization-source-program-consistency-v1`，规划基线为 BP 最终提交 `27d59677`；开发 `gpt-6-astra/high`，实验官方账号 `gpt-5.6-sol/high`，第三方暂停。
 
-正常模型用途仅 T-R（rules/edit）、T-E（execute/edit）、U-E（固定 T-E 原稿消费）三个，最多三个具名修复确认。两臂共用任务、完整原 skill/四问、初始 BP 原稿、源码与静态反馈；执行臂的实际多输入试跑与修稿单列。有限 fixture 不冒充真实 HTTP/数据库运行。先完成共享红绿和普通接线，不扩语言层或重复大面板；失败当场诊断，首件与修订分存。方法见 [spec §14.56](skill-ir-aot-optimization-spec.md#1456-bq-source-program-consistency-and-real-task-use)、[研究 §7.78](skill-dsl-research.md#778-bp-复核与-bq-先修复后实际使用)。本次只登记计划，尚无 BQ 实现或实验结果。
+正常模型用途仅 T-R（rules/edit）、T-E（execute/edit）、U-E（固定 T-E 原稿消费）三个，最多三个具名修复确认。两臂共用任务、完整原 skill/四问、初始 BP 原稿、源码与静态反馈；执行臂的实际多输入试跑与修稿单列。有限 fixture 不冒充真实 HTTP/数据库运行。先完成共享红绿和普通接线，不扩语言层或重复大面板；失败当场诊断，首件与修订分存。方法见 [spec §14.56](skill-ir-aot-optimization-spec.md#1456-bq-source-program-consistency-and-real-task-use)、[研究 §7.78](skill-dsl-research.md#778-bp-复核与-bq-先修复后实际使用)。接管 a0e306cb 后，已实现共享源码调用/包围分支投影、当前 revision 试跑标识与普通 rules/execute 接线，35 个有限输入及评价合同已在首次调用前登记。匿名红绿和零模型初稿复现已完成，真实用途待执行；不将工程通过当作自动修稿成功。
 
 ## BP 已结束的实际结果
 
@@ -154,7 +154,7 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 
 | 阶段 | 保留记录 |
 |---|---|
-| 当前BQ | [任务书](../superpowers/plans/2026-10-18-authorization-source-program-consistency-and-task-execution.md)、spec§14.56、研究§7.78；planned-not-started，先共享修复，再真实排障与普通消费 |
+| 当前BQ | [任务书](../superpowers/plans/2026-10-18-authorization-source-program-consistency-and-task-execution.md)、spec§14.56、研究§7.78；in-progress，共享修复与登记完成，真实用途待运行 |
 | BP | [任务书](../superpowers/plans/2026-10-16-authorization-quality-evidence-and-branch-reliability.md)、spec§14.55、研究§7.77；最终27d59677，有限队列完成，完整语义和重复执行质量优势未达 |
 | BO | [任务书](../superpowers/plans/2026-10-16-authorization-call-semantics-and-program-repair.md)、spec§14.54、研究§7.76；有限自动调用语义与维护结果保留 |
 | BN | [任务书](../superpowers/plans/2026-10-15-authorization-purpose-scoped-authoring-and-consumption.md)、spec§14.53、研究§7.75；有限队列已发布，完整程序/整题质量/净收益未达，实质成果bd613fc2 |

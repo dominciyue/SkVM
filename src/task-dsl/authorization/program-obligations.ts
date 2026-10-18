@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto"
-import type { SourceSkeleton } from "../../benchmarks/authorization-dsl/evidence-preparation/source-skeleton.ts"
+import type { SourceSkeleton, SourceFlow } from "../../benchmarks/authorization-dsl/evidence-preparation/source-skeleton.ts"
+import type { StructureCall } from "../../benchmarks/authorization-dsl/evidence-preparation/structure-index.ts"
 import type { InquiryTools } from "../../benchmarks/authorization-dsl/inquiry-tools.ts"
 import { partialEvaluate, finiteValue, scalar, type FiniteValue } from "./control-evaluation.ts"
 import { ProgramCallRelationSchema } from "./program-coverage.ts"
@@ -16,7 +17,7 @@ const uses = (value: any, id: string) => references(value).some(r => r.name === 
 
 /** Review only calls already adopted by this draft or explicitly declared. No
  * function-name rules, source-inferred predicates or default authorization guard. */
-export function projectProgramCallRelations(raw: any, execution?: any, trials: readonly any[] = []) {
+export function projectProgramCallRelations(raw: any, execution?: any, trials: readonly any[] = [], catalog?: readonly ProgramObligation[]) {
   const steps: any[] = Array.isArray(raw?.resourceWorkflow?.steps) ? raw.resourceWorkflow.steps.filter((s: any) => s && typeof s === "object") : []
   const claims: any[] = (Array.isArray(raw?.authoringTarget?.coverage) ? raw.authoringTarget.coverage : []).filter((c: any) => c?.call && typeof c.call.stepId === "string")
   const ids = new Set([...steps.filter(s => s.op === "external").map(s => s.id), ...claims.map(c => c.call.stepId)])
@@ -52,7 +53,7 @@ export function projectProgramCallRelations(raw: any, execution?: any, trials: r
         visitActivation(executable(dependency), dependency.id, dependencyIndex)
       }
     }
-    if (relation?.activationDependencyIds?.length) visitActivation(step?.when, id, index)
+    visitActivation(step?.when, id, index)
     const activationDependencies = (relation?.activationDependencyIds ?? []).map(dependencyId => {
       const dependency = steps.find(s => s.id === dependencyId), dependencyIndex = steps.indexOf(dependency)
       const connected = activationAncestors.has(dependencyId)
@@ -90,7 +91,19 @@ export function projectProgramCallRelations(raw: any, execution?: any, trials: r
         }
       }
     }
-    return { stepId: id, source: step?.source, declarationId: claim?.id, relation, activation: step?.when ?? "unconditional", activationDependencies, activationPaths, activationReview: relation?.activationDependencyIds?.length ? "structural-reference-review" : "dependencies-unreviewed", valueConsumers, controlConsumers, dependencyPaths,
+    const matches = (catalog ?? []).filter(o => o.kind === "call-completion" && target?.path === o.source.path && target.startLine <= o.source.startLine && (target.endLine ?? target.startLine) >= o.source.endLine)
+    const current = matches.filter(o => !target.sha256 || target.sha256 === o.source.sha256)
+    const branch = (b: SourceBranch) => ({ ...b, activationStepIds: b.stepIds.filter(stepId => activationAncestors.has(stepId)) })
+    const sourceContext = catalog && { status: !matches.length ? "source-unread-or-unmapped" : !current.length ? "source-stale" : current.length > 1 ? "ambiguous-call-span" : "current", remainingCalls: Math.max(0, current.length - 8), calls: current.slice(0, 8).map(o => ({ source: o.source, sourceRevision: o.sourceRevision, text: o.text, call: o.call, enclosingBranches: (o.enclosingBranches ?? []).map(branch), remainingCallers: Math.max(0, (o.callers?.length ?? 0) - 8), callers: (o.callers ?? []).slice(0, 8).map(c => ({ ...c, enclosingBranches: c.enclosingBranches.map(branch) })), scope: "lexical-call-and-one-indexed-caller-hop; caller choice and source meaning unreviewed; full catalog available in source-candidates details" })) }
+    if (sourceContext) {
+      if (sourceContext.status !== "current") diagnostics.push(sourceContext.status)
+      if (sourceContext.remainingCalls || sourceContext.calls.some(c => c.remainingCallers)) diagnostics.push("source-context-more-candidates")
+      for (const c of sourceContext.calls) {
+        for (const caller of c.callers) if (caller.state !== "current") diagnostics.push(`source-${caller.state}`)
+        if ([...c.enclosingBranches, ...c.callers.filter(caller => caller.state === "current").flatMap(caller => caller.enclosingBranches)].some(b => !b.activationStepIds.length)) diagnostics.push("source-enclosing-branch-unconnected")
+      }
+    }
+    return { stepId: id, source: step?.source, sourceContext, declarationId: claim?.id, relation, activation: step?.when ?? "unconditional", activationDependencies, activationPaths, activationReview: relation?.activationDependencyIds?.length ? "structural-reference-review" : "dependencies-unreviewed", valueConsumers, controlConsumers, dependencyPaths,
       event: event && { outcome: event.outcome, value: event.outputs?.value, arguments: event.inputs?.arguments, gaps: event.gaps },
       completionGuard: guard && { id: guard.id, test: guard.test, outcome: guardEvent?.outcome },
       trials: trials.map(t => { const e = t.execution?.events?.find((e: any) => e.id === id); return { id: t.id, outcome: e?.outcome ?? "not-reached", gaps: e?.gaps ?? [] } }), diagnostics: [...new Set(diagnostics)], semanticSupport: "unreviewed" as const,
@@ -98,16 +111,21 @@ export function projectProgramCallRelations(raw: any, execution?: any, trials: r
   })
 }
 
+type SourceSpan = { path: string; startLine: number; endLine: number; sha256: string }
+type SourceBranch = { source: SourceSpan; anchorId: string; text: string; branch: string; stepIds: string[] }
+type SourceCaller = { source: SourceSpan; sourceCallId: string; candidateIds: string[]; state: "current" | "caller-unread" | "ambiguous"; enclosingBranches: SourceBranch[] }
 export type ProgramObligation = {
   id: string; source: { path: string; startLine: number; endLine: number; sha256: string }; text: string
   function?: { id: string; path: string; startLine: number; endLine: number; sha256: string }
   kind: "branch-exit" | "error-exit" | "return-exit" | "call-completion"
   origin: "source-structure"; stepIds: string[]; declarationIds: string[]
   state: "unmapped" | "mapped-unreviewed" | "external"; diagnostics: string[]
+  sourceRevision?: string; anchorId?: string; call?: SourceSkeleton["anchors"][number]["call"]
+  enclosingBranches?: SourceBranch[]; callers?: SourceCaller[]
 }
 /** Syntax candidates, never inferred authorization conditions or required calls.
  * Only an exact current span maps a candidate; broad author claims remain separate. */
-export function projectProgramObligations(skeletons: readonly SourceSkeleton[], raw: any): ProgramObligation[] {
+export function projectProgramObligations(skeletons: readonly SourceSkeleton[], raw: any, indexedCalls: readonly StructureCall[] = []): ProgramObligation[] {
   const kinds = { condition: "branch-exit", raise: "error-exit", return: "return-exit", call: "call-completion" } as const
   const steps = new Set((Array.isArray(raw?.resourceWorkflow?.steps) ? raw.resourceWorkflow.steps : []).map((s: any) => s?.id))
   const seen = new Set<string>(), result: ProgramObligation[] = []
@@ -120,9 +138,39 @@ export function projectProgramObligations(skeletons: readonly SourceSkeleton[], 
     const claims: any[] = (raw?.authoringTarget?.coverage ?? []).filter((c: any) => c.source?.path === source.path && c.source.startLine === source.startLine && (c.source.endLine ?? c.source.startLine) === source.endLine)
     const current = claims.filter(c => (!c.source.sha256 || c.source.sha256 === source.sha256) && c.stepIds?.every((id: string) => steps.has(id)))
     const mapped = current.filter(c => c.disposition === "implemented" && c.stepIds.length), external = current.filter(c => c.disposition === "external")
-    result.push({ id, source, text: anchor.text, kind, origin: "source-structure", stepIds: [...new Set<string>(mapped.flatMap(c => c.stepIds))], declarationIds: current.map(c => c.id), state: mapped.length ? "mapped-unreviewed" : external.length ? "external" : "unmapped", diagnostics: [...(claims.length > 1 ? ["duplicate-author-mapping"] : []), ...(claims.some(c => c.source.sha256 && c.source.sha256 !== source.sha256) ? ["stale-author-reference"] : []), ...(claims.some(c => c.stepIds?.some((id: string) => !steps.has(id))) ? ["missing-author-step"] : [])] })
+    result.push({ id, anchorId: anchor.id, source, text: anchor.text, kind, origin: "source-structure", stepIds: [...new Set<string>(mapped.flatMap(c => c.stepIds))], declarationIds: current.map(c => c.id), state: mapped.length ? "mapped-unreviewed" : external.length ? "external" : "unmapped", diagnostics: [...(claims.length > 1 ? ["duplicate-author-mapping"] : []), ...(claims.some(c => c.source.sha256 && c.source.sha256 !== source.sha256) ? ["stale-author-reference"] : []), ...(claims.some(c => c.stepIds?.some((id: string) => !steps.has(id))) ? ["missing-author-step"] : [])] })
   }
-  return result.map(o => ({ ...o, function: skeletons.find(s => s.source.path === o.source.path && s.source.startLine <= o.source.startLine && s.source.endLine >= o.source.endLine)?.source }))
+  const sourceAt = (s: SourceSkeleton, a: SourceSkeleton["anchors"][number]): SourceSpan => ({ path: s.source.path, sha256: s.source.sha256, startLine: a.selector.startLine!, endLine: a.selector.endLine ?? a.selector.startLine! })
+  const enclosing = (s: SourceSkeleton, anchorId: string): SourceBranch[] => {
+    let found: SourceBranch[] = []
+    const walk = (flow: SourceFlow[], parents: SourceBranch[]) => {
+      for (const node of flow) {
+        if (node.anchorId === anchorId) found = parents
+        const a = s.anchors.find(a => a.id === node.anchorId)
+        const nested = (children: SourceFlow[] | undefined, edge: string) => {
+          const source = a && sourceAt(s, a)
+          const refs: any[] = Array.isArray(raw?.resourceWorkflow?.steps) ? raw.resourceWorkflow.steps : []
+          const stepIds = source ? refs.filter(step => [step?.source, ...(step?.sources ?? [])].some(at => at?.path === source.path && at.startLine === source.startLine && (at.endLine ?? at.startLine) === source.endLine && (!at.sha256 || at.sha256 === source.sha256))).map(step => step.id) : []
+          walk(children ?? [], a && source && ["branch", "short-circuit", "loop"].includes(node.kind) ? [...parents, { source, anchorId: a.id, text: a.text, branch: edge, stepIds }] : parents)
+        }
+        nested(node.then, "true"); nested(node.otherwise, "false"); nested(node.body, node.kind === "short-circuit" ? `${node.operator}-right` : "body")
+        nested(node.enter, "enter"); nested(node.finally, "finally")
+        for (const h of node.handlers ?? []) nested(h.body, "handler")
+      }
+    }
+    walk(s.flow, []); return found
+  }
+  return result.map(o => {
+    const s = skeletons.filter(s => s.modelCovered && s.source.path === o.source.path && s.source.startLine <= o.source.startLine && s.source.endLine >= o.source.endLine).sort((a, b) => a.source.endLine - a.source.startLine - (b.source.endLine - b.source.startLine))[0]!
+    const a = s.anchors.find(a => a.id === o.anchorId)!
+    const callers: SourceCaller[] = indexedCalls.filter(c => c.candidateIds.includes(s.sourceId)).map(c => {
+      const caller = skeletons.find(owner => owner.modelCovered && owner.sourceId === c.ownerId && owner.source.sha256 === c.sha256)
+      const anchor = caller?.anchors.find(a => a.call?.sourceCallId === c.id)
+      const state = c.resolution !== "resolved" || c.candidateIds.length !== 1 ? "ambiguous" : !caller || !anchor ? "caller-unread" : "current"
+      return { source: { path: c.path, sha256: c.sha256, startLine: c.startLine, endLine: c.endLine }, sourceCallId: c.id, candidateIds: c.candidateIds, state, enclosingBranches: state === "current" ? enclosing(caller!, anchor!.id) : [] }
+    })
+    return { ...o, function: s.source, sourceRevision: s.revision, anchorId: a.id, call: a.call, enclosingBranches: enclosing(s, a.id), callers }
+  })
 }
 /** Function containment is routing evidence only, never exact mapping or proof. */
 export function projectProgramCandidateFrontier(catalog: readonly ProgramObligation[], raw: any, dependencies: readonly any[] = []) {
@@ -145,5 +193,5 @@ export async function collectProgramObligations(tools: InquiryTools, raw?: unkno
     const skeleton = await tools.sourceSkeleton(s.id)
     if (skeleton?.modelCovered) skeletons.push(skeleton)
   }
-  return projectProgramObligations(skeletons, raw)
+  return projectProgramObligations(skeletons, raw, tools.structure?.calls)
 }

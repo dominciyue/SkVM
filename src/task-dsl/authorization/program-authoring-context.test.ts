@@ -4,6 +4,17 @@ import * as author from "./program-authoring-context.ts"
 const at = { path: "app.py", startLine: 1, endLine: 8 }
 const questions = [{ id: "meaning", request: "Retain all requested meanings" }, { id: "data" }]
 const operationQuestions = questions.map(q => ({ questionId: q.id, operationId: "same" }))
+test("current revision explicitly separates old trials and source invalidation from current verification", () => {
+  const raw = { scope: { questionId: "meaning" }, resourceWorkflow: { inputs: [], steps: [] } }
+  const report: any = { currentDraft: { revision: "r2", raw }, trials: [{ revision: "r1", status: "completed", cases: [{ id: "old", execution: { returned: 7 } }] }] }
+  const first: any = author.projectProgramAuthoring(report, questions)
+  expect(first.trialVerification).toEqual({ revision: "r2", status: "unverified", currentCaseIds: [] })
+  expect(first.trials[0].current).toBe(false)
+  report.trials.push({ revision: "r2", status: "completed", cases: [{ id: "new", execution: { returned: 8 } }] })
+  expect((author.projectProgramAuthoring(report, questions) as any).trialVerification).toEqual({ revision: "r2", status: "observed-unreviewed", currentCaseIds: ["new"] })
+  report.sourcesCurrent = false
+  expect((author.projectProgramAuthoring(report, questions) as any).trialVerification.status).toBe("source-invalidated")
+})
 test("current author frontier reports known unused calls and removes repaired relations after patch", () => {
   const call = { id: "init", op: "external", name: "prepare", arguments: {}, source: at }
   const output = { id: "result", op: "return", value: { literal: 7 }, source: at }

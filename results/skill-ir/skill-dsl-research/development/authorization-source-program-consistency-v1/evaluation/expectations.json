@@ -1,0 +1,1128 @@
+[
+  {
+    "group": "historical18",
+    "name": "root-default",
+    "expected": {
+      "requestedDocument": 10,
+      "authorizedResource": 10,
+      "kind": "computed",
+      "conditions": [],
+      "returned": {
+        "requested_document": 10,
+        "authorized_resource": 10,
+        "file_document": 11,
+        "archive_selected": true,
+        "selected_file": "v1-archive.pdf"
+      }
+    },
+    "traceExpected": {
+      "calls": [
+        {
+          "name": "ObjectPermissionChecker.construct",
+          "arguments": {
+            "user": 7
+          }
+        }
+      ],
+      "requiredConditionCalls": [],
+      "rejected": false,
+      "conditional": false,
+      "termination": "return"
+    }
+  },
+  {
+    "group": "historical18",
+    "name": "empty-version",
+    "expected": {
+      "requestedDocument": 10,
+      "authorizedResource": 10,
+      "kind": "computed",
+      "conditions": [],
+      "returned": {
+        "requested_document": 10,
+        "authorized_resource": 10,
+        "file_document": 12,
+        "archive_selected": false,
+        "selected_file": "v2-original.txt"
+      }
+    },
+    "traceExpected": {
+      "calls": [
+        {
+          "name": "ObjectPermissionChecker.construct",
+          "arguments": {
+            "user": 7
+          }
+        }
+      ],
+      "requiredConditionCalls": [],
+      "rejected": false,
+      "conditional": false,
+      "termination": "return"
+    }
+  },
+  {
+    "group": "historical18",
+    "name": "explicit-version",
+    "expected": {
+      "requestedDocument": 10,
+      "authorizedResource": 10,
+      "kind": "computed",
+      "conditions": [],
+      "returned": {
+        "requested_document": 10,
+        "authorized_resource": 10,
+        "file_document": 11,
+        "archive_selected": true,
+        "selected_file": "v1-archive.pdf"
+      }
+    },
+    "traceExpected": {
+      "calls": [
+        {
+          "name": "ObjectPermissionChecker.construct",
+          "arguments": {
+            "user": 7
+          }
+        }
+      ],
+      "requiredConditionCalls": [],
+      "rejected": false,
+      "conditional": false,
+      "termination": "return"
+    }
+  },
+  {
+    "group": "historical18",
+    "name": "explicit-deleted-version",
+    "expected": {
+      "requestedDocument": 10,
+      "authorizedResource": 10,
+      "kind": "computed",
+      "conditions": [],
+      "returned": {
+        "requested_document": 10,
+        "authorized_resource": 10,
+        "file_document": 12,
+        "archive_selected": false,
+        "selected_file": "v2-original.txt"
+      }
+    },
+    "traceExpected": {
+      "calls": [
+        {
+          "name": "ObjectPermissionChecker.construct",
+          "arguments": {
+            "user": 7
+          }
+        }
+      ],
+      "requiredConditionCalls": [],
+      "rejected": false,
+      "conditional": false,
+      "termination": "return"
+    }
+  },
+  {
+    "group": "historical18",
+    "name": "invalid-version",
+    "expected": {
+      "requestedDocument": 10,
+      "authorizedResource": 10,
+      "kind": "rejected",
+      "rejection": "invalid-version",
+      "conditions": []
+    },
+    "traceExpected": {
+      "calls": [
+        {
+          "name": "ObjectPermissionChecker.construct",
+          "arguments": {
+            "user": 7
+          }
+        }
+      ],
+      "requiredConditionCalls": [],
+      "rejected": true,
+      "conditional": false
+    }
+  },
+  {
+    "group": "historical18",
+    "name": "other-root-version",
+    "expected": {
+      "requestedDocument": 10,
+      "authorizedResource": 10,
+      "kind": "rejected",
+      "rejection": "unrelated-version",
+      "conditions": []
+    },
+    "traceExpected": {
+      "calls": [
+        {
+          "name": "ObjectPermissionChecker.construct",
+          "arguments": {
+            "user": 7
+          }
+        }
+      ],
+      "requiredConditionCalls": [],
+      "rejected": true,
+      "conditional": false
+    }
+  },
+  {
+    "group": "historical18",
+    "name": "ordering",
+    "expected": {
+      "requestedDocument": 10,
+      "authorizedResource": 10,
+      "kind": "computed",
+      "conditions": [],
+      "returned": {
+        "requested_document": 10,
+        "authorized_resource": 10,
+        "file_document": 12,
+        "archive_selected": false,
+        "selected_file": "v2-original.txt"
+      }
+    },
+    "traceExpected": {
+      "calls": [
+        {
+          "name": "ObjectPermissionChecker.construct",
+          "arguments": {
+            "user": 7
+          }
+        }
+      ],
+      "requiredConditionCalls": [],
+      "rejected": false,
+      "conditional": false,
+      "termination": "return"
+    }
+  },
+  {
+    "group": "historical18",
+    "name": "ordering-tie",
+    "expected": {
+      "requestedDocument": 10,
+      "authorizedResource": 10,
+      "kind": "computed",
+      "conditions": [],
+      "returned": {
+        "requested_document": 10,
+        "authorized_resource": 10,
+        "file_document": 21,
+        "archive_selected": false,
+        "selected_file": "additional-version.txt"
+      }
+    },
+    "traceExpected": {
+      "calls": [
+        {
+          "name": "ObjectPermissionChecker.construct",
+          "arguments": {
+            "user": 7
+          }
+        }
+      ],
+      "requiredConditionCalls": [],
+      "rejected": false,
+      "conditional": false,
+      "termination": "return"
+    }
+  },
+  {
+    "group": "historical18",
+    "name": "denied",
+    "expected": {
+      "requestedDocument": 10,
+      "authorizedResource": 10,
+      "kind": "denied",
+      "conditions": []
+    },
+    "traceExpected": {
+      "calls": [
+        {
+          "name": "ObjectPermissionChecker.construct",
+          "arguments": {
+            "user": 9
+          }
+        },
+        {
+          "name": "ObjectPermissionChecker.has_perm",
+          "arguments": {
+            "user": 9,
+            "resource": 10,
+            "permission": "view_document"
+          }
+        }
+      ],
+      "requiredConditionCalls": [],
+      "rejected": true,
+      "conditional": false
+    }
+  },
+  {
+    "group": "historical18",
+    "name": "granted",
+    "expected": {
+      "requestedDocument": 10,
+      "authorizedResource": 10,
+      "kind": "computed",
+      "conditions": [],
+      "returned": {
+        "requested_document": 10,
+        "authorized_resource": 10,
+        "file_document": 11,
+        "archive_selected": true,
+        "selected_file": "v1-archive.pdf"
+      }
+    },
+    "traceExpected": {
+      "calls": [
+        {
+          "name": "ObjectPermissionChecker.construct",
+          "arguments": {
+            "user": 9
+          }
+        },
+        {
+          "name": "ObjectPermissionChecker.has_perm",
+          "arguments": {
+            "user": 9,
+            "resource": 10,
+            "permission": "view_document"
+          }
+        }
+      ],
+      "requiredConditionCalls": [],
+      "rejected": false,
+      "conditional": false,
+      "termination": "return"
+    }
+  },
+  {
+    "group": "historical18",
+    "name": "root-fallback",
+    "expected": {
+      "requestedDocument": 11,
+      "authorizedResource": 11,
+      "kind": "computed",
+      "conditions": [],
+      "returned": {
+        "requested_document": 11,
+        "authorized_resource": 11,
+        "file_document": 11,
+        "archive_selected": true,
+        "selected_file": "v1-archive.pdf"
+      }
+    },
+    "traceExpected": {
+      "calls": [
+        {
+          "name": "ObjectPermissionChecker.construct",
+          "arguments": {
+            "user": 9
+          }
+        }
+      ],
+      "requiredConditionCalls": [],
+      "rejected": false,
+      "conditional": false,
+      "termination": "return"
+    }
+  },
+  {
+    "group": "historical18",
+    "name": "no-external",
+    "expected": {
+      "requestedDocument": 10,
+      "authorizedResource": 10,
+      "kind": "conditional",
+      "conditions": [
+        "ObjectPermissionChecker.construct completion is unspecified"
+      ],
+      "returned": {
+        "requested_document": 10,
+        "authorized_resource": 10,
+        "file_document": 11,
+        "archive_selected": true,
+        "selected_file": "v1-archive.pdf"
+      }
+    },
+    "traceExpected": {
+      "calls": [
+        {
+          "name": "ObjectPermissionChecker.construct",
+          "arguments": {
+            "user": 7
+          }
+        }
+      ],
+      "requiredConditionCalls": [
+        "ObjectPermissionChecker.construct"
+      ],
+      "rejected": false,
+      "conditional": true,
+      "termination": "return"
+    }
+  },
+  {
+    "group": "historical18",
+    "name": "reordered",
+    "expected": {
+      "requestedDocument": 10,
+      "authorizedResource": 10,
+      "kind": "computed",
+      "conditions": [],
+      "returned": {
+        "requested_document": 10,
+        "authorized_resource": 10,
+        "file_document": 11,
+        "archive_selected": true,
+        "selected_file": "v1-archive.pdf"
+      }
+    },
+    "traceExpected": {
+      "calls": [
+        {
+          "name": "ObjectPermissionChecker.construct",
+          "arguments": {
+            "user": 7
+          }
+        }
+      ],
+      "requiredConditionCalls": [],
+      "rejected": false,
+      "conditional": false,
+      "termination": "return"
+    }
+  },
+  {
+    "group": "historical18",
+    "name": "unrelated-document",
+    "expected": {
+      "requestedDocument": 10,
+      "authorizedResource": 10,
+      "kind": "computed",
+      "conditions": [],
+      "returned": {
+        "requested_document": 10,
+        "authorized_resource": 10,
+        "file_document": 11,
+        "archive_selected": true,
+        "selected_file": "v1-archive.pdf"
+      }
+    },
+    "traceExpected": {
+      "calls": [
+        {
+          "name": "ObjectPermissionChecker.construct",
+          "arguments": {
+            "user": 7
+          }
+        }
+      ],
+      "requiredConditionCalls": [],
+      "rejected": false,
+      "conditional": false,
+      "termination": "return"
+    }
+  },
+  {
+    "group": "historical18",
+    "name": "root-query-hit",
+    "expected": {
+      "requestedDocument": 11,
+      "authorizedResource": 10,
+      "kind": "computed",
+      "conditions": [],
+      "returned": {
+        "requested_document": 11,
+        "authorized_resource": 10,
+        "file_document": 11,
+        "archive_selected": true,
+        "selected_file": "v1-archive.pdf"
+      }
+    },
+    "traceExpected": {
+      "calls": [
+        {
+          "name": "ObjectPermissionChecker.construct",
+          "arguments": {
+            "user": 7
+          }
+        }
+      ],
+      "requiredConditionCalls": [],
+      "rejected": false,
+      "conditional": false,
+      "termination": "return"
+    }
+  },
+  {
+    "group": "historical18",
+    "name": "renamed-and-reordered",
+    "expected": {
+      "requestedDocument": 1010,
+      "authorizedResource": 1010,
+      "kind": "computed",
+      "conditions": [],
+      "returned": {
+        "requested_document": 1010,
+        "authorized_resource": 1010,
+        "file_document": 1011,
+        "archive_selected": true,
+        "selected_file": "v1-archive.pdf"
+      }
+    },
+    "traceExpected": {
+      "calls": [
+        {
+          "name": "ObjectPermissionChecker.construct",
+          "arguments": {
+            "user": 7
+          }
+        }
+      ],
+      "requiredConditionCalls": [],
+      "rejected": false,
+      "conditional": false,
+      "termination": "return"
+    }
+  },
+  {
+    "group": "historical18",
+    "name": "explicit-false",
+    "expected": {
+      "requestedDocument": 10,
+      "authorizedResource": 10,
+      "kind": "denied",
+      "conditions": []
+    },
+    "traceExpected": {
+      "calls": [
+        {
+          "name": "ObjectPermissionChecker.construct",
+          "arguments": {
+            "user": 9
+          }
+        },
+        {
+          "name": "ObjectPermissionChecker.has_perm",
+          "arguments": {
+            "user": 9,
+            "resource": 10,
+            "permission": "view_document"
+          }
+        }
+      ],
+      "requiredConditionCalls": [],
+      "rejected": true,
+      "conditional": false
+    }
+  },
+  {
+    "group": "historical18",
+    "name": "explicit-false-absent",
+    "expected": {
+      "requestedDocument": 10,
+      "authorizedResource": 10,
+      "kind": "conditional",
+      "conditions": [
+        "ObjectPermissionChecker.has_perm on resolved root is unspecified"
+      ],
+      "returned": {
+        "requested_document": 10,
+        "authorized_resource": 10,
+        "file_document": 11,
+        "archive_selected": true,
+        "selected_file": "v1-archive.pdf"
+      }
+    },
+    "traceExpected": {
+      "calls": [
+        {
+          "name": "ObjectPermissionChecker.construct",
+          "arguments": {
+            "user": 9
+          }
+        },
+        {
+          "name": "ObjectPermissionChecker.has_perm",
+          "arguments": {
+            "user": 9,
+            "resource": 10,
+            "permission": "view_document"
+          }
+        }
+      ],
+      "requiredConditionCalls": [],
+      "rejected": false,
+      "conditional": true,
+      "termination": "return"
+    }
+  },
+  {
+    "group": "trace8",
+    "name": "null-owner-shortcut",
+    "expected": {
+      "requestedDocument": 10,
+      "authorizedResource": 10,
+      "kind": "computed",
+      "conditions": [],
+      "returned": {
+        "requested_document": 10,
+        "authorized_resource": 10,
+        "file_document": 11,
+        "archive_selected": true,
+        "selected_file": "v1-archive.pdf"
+      }
+    },
+    "traceExpected": {
+      "calls": [
+        {
+          "name": "ObjectPermissionChecker.construct",
+          "arguments": {
+            "user": 7
+          }
+        }
+      ],
+      "requiredConditionCalls": [],
+      "rejected": false,
+      "conditional": false,
+      "termination": "return"
+    }
+  },
+  {
+    "group": "trace8",
+    "name": "anonymous-skip-checker",
+    "expected": {
+      "requestedDocument": 10,
+      "authorizedResource": 10,
+      "kind": "computed",
+      "conditions": [],
+      "returned": {
+        "requested_document": 10,
+        "authorized_resource": 10,
+        "file_document": 11,
+        "archive_selected": true,
+        "selected_file": "v1-archive.pdf"
+      }
+    },
+    "traceExpected": {
+      "calls": [],
+      "requiredConditionCalls": [],
+      "rejected": false,
+      "conditional": false,
+      "termination": "return"
+    }
+  },
+  {
+    "group": "trace8",
+    "name": "missing-constructor-only",
+    "expected": {
+      "requestedDocument": 10,
+      "authorizedResource": 10,
+      "kind": "conditional",
+      "conditions": [
+        "ObjectPermissionChecker.construct completion is unspecified"
+      ],
+      "returned": {
+        "requested_document": 10,
+        "authorized_resource": 10,
+        "file_document": 11,
+        "archive_selected": true,
+        "selected_file": "v1-archive.pdf"
+      }
+    },
+    "traceExpected": {
+      "calls": [
+        {
+          "name": "ObjectPermissionChecker.construct",
+          "arguments": {
+            "user": 7
+          }
+        }
+      ],
+      "requiredConditionCalls": [
+        "ObjectPermissionChecker.construct"
+      ],
+      "rejected": false,
+      "conditional": true,
+      "termination": "return"
+    }
+  },
+  {
+    "group": "trace8",
+    "name": "latest-fallback-root",
+    "expected": {
+      "requestedDocument": 10,
+      "authorizedResource": 10,
+      "kind": "computed",
+      "conditions": [],
+      "returned": {
+        "requested_document": 10,
+        "authorized_resource": 10,
+        "file_document": 10,
+        "archive_selected": true,
+        "selected_file": "root-archive.pdf"
+      }
+    },
+    "traceExpected": {
+      "calls": [
+        {
+          "name": "ObjectPermissionChecker.construct",
+          "arguments": {
+            "user": 7
+          }
+        }
+      ],
+      "requiredConditionCalls": [],
+      "rejected": false,
+      "conditional": false,
+      "termination": "return"
+    }
+  },
+  {
+    "group": "trace8",
+    "name": "nulls-last",
+    "expected": {
+      "requestedDocument": 10,
+      "authorizedResource": 10,
+      "kind": "computed",
+      "conditions": [],
+      "returned": {
+        "requested_document": 10,
+        "authorized_resource": 10,
+        "file_document": 11,
+        "archive_selected": true,
+        "selected_file": "v1-archive.pdf"
+      }
+    },
+    "traceExpected": {
+      "calls": [
+        {
+          "name": "ObjectPermissionChecker.construct",
+          "arguments": {
+            "user": 7
+          }
+        }
+      ],
+      "requiredConditionCalls": [],
+      "rejected": false,
+      "conditional": false,
+      "termination": "return"
+    }
+  },
+  {
+    "group": "trace8",
+    "name": "original-true",
+    "expected": {
+      "requestedDocument": 10,
+      "authorizedResource": 10,
+      "kind": "computed",
+      "conditions": [],
+      "returned": {
+        "requested_document": 10,
+        "authorized_resource": 10,
+        "file_document": 11,
+        "archive_selected": false,
+        "selected_file": "v1-original.pdf"
+      }
+    },
+    "traceExpected": {
+      "calls": [
+        {
+          "name": "ObjectPermissionChecker.construct",
+          "arguments": {
+            "user": 7
+          }
+        }
+      ],
+      "requiredConditionCalls": [],
+      "rejected": false,
+      "conditional": false,
+      "termination": "return"
+    }
+  },
+  {
+    "group": "trace8",
+    "name": "permission-wrong-resource",
+    "expected": {
+      "requestedDocument": 10,
+      "authorizedResource": 10,
+      "kind": "conditional",
+      "conditions": [
+        "ObjectPermissionChecker.has_perm on resolved root is unspecified"
+      ],
+      "returned": {
+        "requested_document": 10,
+        "authorized_resource": 10,
+        "file_document": 11,
+        "archive_selected": true,
+        "selected_file": "v1-archive.pdf"
+      }
+    },
+    "traceExpected": {
+      "calls": [
+        {
+          "name": "ObjectPermissionChecker.construct",
+          "arguments": {
+            "user": 7
+          }
+        },
+        {
+          "name": "ObjectPermissionChecker.has_perm",
+          "arguments": {
+            "user": 7,
+            "resource": 10,
+            "permission": "view_document"
+          }
+        }
+      ],
+      "requiredConditionCalls": [],
+      "rejected": false,
+      "conditional": true,
+      "termination": "return"
+    }
+  },
+  {
+    "group": "trace8",
+    "name": "permission-wrong-name",
+    "expected": {
+      "requestedDocument": 10,
+      "authorizedResource": 10,
+      "kind": "conditional",
+      "conditions": [
+        "ObjectPermissionChecker.has_perm on resolved root is unspecified"
+      ],
+      "returned": {
+        "requested_document": 10,
+        "authorized_resource": 10,
+        "file_document": 11,
+        "archive_selected": true,
+        "selected_file": "v1-archive.pdf"
+      }
+    },
+    "traceExpected": {
+      "calls": [
+        {
+          "name": "ObjectPermissionChecker.construct",
+          "arguments": {
+            "user": 7
+          }
+        },
+        {
+          "name": "ObjectPermissionChecker.has_perm",
+          "arguments": {
+            "user": 7,
+            "resource": 10,
+            "permission": "view_document"
+          }
+        }
+      ],
+      "requiredConditionCalls": [],
+      "rejected": false,
+      "conditional": true,
+      "termination": "return"
+    }
+  },
+  {
+    "group": "perturbations",
+    "name": "reordered",
+    "expected": {
+      "requestedDocument": 10,
+      "authorizedResource": 10,
+      "kind": "computed",
+      "conditions": [],
+      "returned": {
+        "requested_document": 10,
+        "authorized_resource": 10,
+        "file_document": 11,
+        "archive_selected": true,
+        "selected_file": "v1-archive.pdf"
+      }
+    },
+    "traceExpected": {
+      "calls": [
+        {
+          "name": "ObjectPermissionChecker.construct",
+          "arguments": {
+            "user": 7
+          }
+        }
+      ],
+      "requiredConditionCalls": [],
+      "rejected": false,
+      "conditional": false,
+      "termination": "return"
+    }
+  },
+  {
+    "group": "perturbations",
+    "name": "unrelated-document",
+    "expected": {
+      "requestedDocument": 10,
+      "authorizedResource": 10,
+      "kind": "computed",
+      "conditions": [],
+      "returned": {
+        "requested_document": 10,
+        "authorized_resource": 10,
+        "file_document": 11,
+        "archive_selected": true,
+        "selected_file": "v1-archive.pdf"
+      }
+    },
+    "traceExpected": {
+      "calls": [
+        {
+          "name": "ObjectPermissionChecker.construct",
+          "arguments": {
+            "user": 7
+          }
+        }
+      ],
+      "requiredConditionCalls": [],
+      "rejected": false,
+      "conditional": false,
+      "termination": "return"
+    }
+  },
+  {
+    "group": "perturbations",
+    "name": "renamed-and-reordered",
+    "expected": {
+      "requestedDocument": 1010,
+      "authorizedResource": 1010,
+      "kind": "computed",
+      "conditions": [],
+      "returned": {
+        "requested_document": 1010,
+        "authorized_resource": 1010,
+        "file_document": 1011,
+        "archive_selected": true,
+        "selected_file": "v1-archive.pdf"
+      }
+    },
+    "traceExpected": {
+      "calls": [
+        {
+          "name": "ObjectPermissionChecker.construct",
+          "arguments": {
+            "user": 7
+          }
+        }
+      ],
+      "requiredConditionCalls": [],
+      "rejected": false,
+      "conditional": false,
+      "termination": "return"
+    }
+  },
+  {
+    "group": "perturbations",
+    "name": "explicit-false",
+    "expected": {
+      "requestedDocument": 10,
+      "authorizedResource": 10,
+      "kind": "denied",
+      "conditions": []
+    },
+    "traceExpected": {
+      "calls": [
+        {
+          "name": "ObjectPermissionChecker.construct",
+          "arguments": {
+            "user": 9
+          }
+        },
+        {
+          "name": "ObjectPermissionChecker.has_perm",
+          "arguments": {
+            "user": 9,
+            "resource": 10,
+            "permission": "view_document"
+          }
+        }
+      ],
+      "requiredConditionCalls": [],
+      "rejected": true,
+      "conditional": false
+    }
+  },
+  {
+    "group": "perturbations",
+    "name": "explicit-false-absent",
+    "expected": {
+      "requestedDocument": 10,
+      "authorizedResource": 10,
+      "kind": "conditional",
+      "conditions": [
+        "ObjectPermissionChecker.has_perm on resolved root is unspecified"
+      ],
+      "returned": {
+        "requested_document": 10,
+        "authorized_resource": 10,
+        "file_document": 11,
+        "archive_selected": true,
+        "selected_file": "v1-archive.pdf"
+      }
+    },
+    "traceExpected": {
+      "calls": [
+        {
+          "name": "ObjectPermissionChecker.construct",
+          "arguments": {
+            "user": 9
+          }
+        },
+        {
+          "name": "ObjectPermissionChecker.has_perm",
+          "arguments": {
+            "user": 9,
+            "resource": 10,
+            "permission": "view_document"
+          }
+        }
+      ],
+      "requiredConditionCalls": [],
+      "rejected": false,
+      "conditional": true,
+      "termination": "return"
+    }
+  },
+  {
+    "group": "perturbations",
+    "name": "version-key-absent",
+    "expected": {
+      "requestedDocument": 10,
+      "authorizedResource": 10,
+      "kind": "computed",
+      "conditions": [],
+      "returned": {
+        "requested_document": 10,
+        "authorized_resource": 10,
+        "file_document": 11,
+        "archive_selected": true,
+        "selected_file": "v1-archive.pdf"
+      }
+    },
+    "traceExpected": {
+      "calls": [
+        {
+          "name": "ObjectPermissionChecker.construct",
+          "arguments": {
+            "user": 7
+          }
+        }
+      ],
+      "requiredConditionCalls": [],
+      "rejected": false,
+      "conditional": false,
+      "termination": "return"
+    }
+  },
+  {
+    "group": "perturbations",
+    "name": "constructor-normal-none",
+    "expected": {
+      "requestedDocument": 10,
+      "authorizedResource": 10,
+      "kind": "computed",
+      "conditions": [],
+      "returned": {
+        "requested_document": 10,
+        "authorized_resource": 10,
+        "file_document": 11,
+        "archive_selected": true,
+        "selected_file": "v1-archive.pdf"
+      }
+    },
+    "traceExpected": {
+      "calls": [
+        {
+          "name": "ObjectPermissionChecker.construct",
+          "arguments": {
+            "user": 7
+          }
+        }
+      ],
+      "requiredConditionCalls": [],
+      "rejected": false,
+      "conditional": false,
+      "termination": "return"
+    }
+  },
+  {
+    "group": "boundaries",
+    "name": "none-and-absent-version-original",
+    "expected": {
+      "requestedDocument": 10,
+      "authorizedResource": 10,
+      "kind": "computed",
+      "conditions": [],
+      "returned": {
+        "requested_document": 10,
+        "authorized_resource": 10,
+        "file_document": 11,
+        "archive_selected": false,
+        "selected_file": "v1-original.pdf"
+      }
+    },
+    "traceExpected": {
+      "calls": [],
+      "requiredConditionCalls": [],
+      "rejected": false,
+      "conditional": false,
+      "termination": "return"
+    }
+  },
+  {
+    "group": "boundaries",
+    "name": "non-owner-no-external",
+    "expected": {
+      "requestedDocument": 10,
+      "authorizedResource": 10,
+      "kind": "conditional",
+      "conditions": [
+        "ObjectPermissionChecker.construct completion is unspecified",
+        "ObjectPermissionChecker.has_perm on resolved root is unspecified"
+      ],
+      "returned": {
+        "requested_document": 10,
+        "authorized_resource": 10,
+        "file_document": 11,
+        "archive_selected": true,
+        "selected_file": "v1-archive.pdf"
+      }
+    },
+    "traceExpected": {
+      "calls": [
+        {
+          "name": "ObjectPermissionChecker.construct",
+          "arguments": {
+            "user": 7
+          }
+        },
+        {
+          "name": "ObjectPermissionChecker.has_perm",
+          "arguments": {
+            "user": 7,
+            "resource": 10,
+            "permission": "view_document"
+          }
+        }
+      ],
+      "requiredConditionCalls": [
+        "ObjectPermissionChecker.construct"
+      ],
+      "rejected": false,
+      "conditional": true,
+      "termination": "return"
+    }
+  }
+]

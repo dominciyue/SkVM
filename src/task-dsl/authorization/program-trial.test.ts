@@ -37,6 +37,8 @@ test("trial recompiles current candidate for bounded inputs without mutating act
   expect(result.cases[1].execution.returned).toBeUndefined()
   expect(result.cases[2].execution.conditions.length).toBeGreaterThan(0)
   expect(result.cases[0].inputOrigin).toBe("unreviewed-trial-facts")
+  expect(result.cases[0].resourceInputs).toEqual({ flag: true, item: 19 })
+  expect(result.cases[0].externalAssumptions).toEqual([])
   expect(result.requestOperationCertified).toBe(false)
   expect(JSON.stringify([f.draft, f.candidate, f.compileOptions.resourceInputs])).toBe(before)
   expect(f.compileOptions.tools.ioReadBytes - reads).toBe(Buffer.byteLength(await Bun.file(path.join(f.root, "app.py")).text()))

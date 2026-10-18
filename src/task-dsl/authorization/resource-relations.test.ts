@@ -1,6 +1,16 @@
 import { expect, test } from "bun:test"
 const api = await import("./resource-relations.ts").catch(() => ({} as any))
 const source = { path: "app.py", startLine: 1, endLine: 8, sha256: "current" }
+test("explicit field defaults preserve missing key null empty string and unknown parent distinctions", () => {
+  const workflow = { inputs: ["mapping"], steps: [{ id: "read", op: "return", value: { field: { of: { ref: "mapping" }, key: "option", default: { literal: 17 } } }, source }] }
+  for (const [input, expected] of [[{ mapping: {} }, 17], [{ mapping: { option: null } }, null], [{ mapping: { option: "" } }, ""], [{}, undefined], [{ mapping: null }, undefined]] as any[]) {
+    expect(api.executeResourceWorkflow(workflow, input).returned).toEqual(expected)
+  }
+  const external = { inputs: [], steps: [{ id: "mapping", op: "external", name: "get", arguments: {}, source }, ...workflow.steps] }
+  const run = api.executeResourceWorkflow(external, {})
+  expect(run.returned).toBeUndefined()
+  expect(run.gaps).toContain("external:get")
+})
 test("ambiguous input identity is unavailable even before its conflicting step", () => {
   for (const inputs of [["actor"], ["actor", "actor"]]) {
     const run = api.executeResourceWorkflow({ inputs, steps: [

@@ -60,7 +60,7 @@ export function programConsumptionDetails(report: any, query: z.input<typeof Pro
   const relevant = !args.questionId || program?.scope?.questionId === args.questionId
   const match = (s: any) => relevant && (!args.stepId || s?.id === args.stepId)
   const steps = (Array.isArray(program?.resourceWorkflow?.steps) ? program.resourceWorkflow.steps : []).filter(match), events = (execution?.events ?? []).filter(match)
-  const callRelations = args.view === "draft" ? projectProgramCallRelations(program, execution, (report.trials ?? []).filter((t: any) => t.revision === currentRevision).flatMap((t: any) => t.cases ?? [])).filter(r => relevant && (!args.stepId || r.stepId === args.stepId)) : undefined
+  const callRelations = args.view === "draft" ? projectProgramCallRelations(program, execution, (report.trials ?? []).filter((t: any) => t.revision === currentRevision).flatMap((t: any) => t.cases ?? []), catalogs?.sourceCandidates ?? report.obligations).filter(r => relevant && (!args.stepId || r.stepId === args.stepId)) : undefined
   const format = args.format ?? (catalogs?.programContext === "directed" && args.view === "active" && !args.stepId ? "overview" : "raw")
   if (format === "overview" && args.view === "active") {
     const context = projectProgramConsumption({ ...report, resourceExecution: execution }, [], "directed")
