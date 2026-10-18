@@ -1,8 +1,14 @@
 # Skill IR 当前状态
 
-更新于2026-10-18（Asia/Shanghai）。工作分支为 `skill-ir-aot`，仅发布到用户 `origin`。本页是唯一实时状态入口；历史任务书与结果保留当时记录。
+更新于2026-10-19（Asia/Shanghai）。工作分支为 `skill-ir-aot`，仅发布到用户 `origin`。本页是唯一实时状态入口；历史任务书与结果保留当时记录。
 
 ## 当前工作
+
+**BR0–BR21已登记，planned-not-started，准备派发gpt-6-astra/high。** 用户要求减少重复填字段、检验同类不同task的共享解法，并明确真实skill/源码与研究任务/合成输入的区别。[任务书](../superpowers/plans/2026-10-19-authorization-evidence-backed-answers-and-task-transfer.md) identity为`authorization-answer-transfer-v1`，规划基线为BQ最终3c3059a8。先诊断已有outcome/消费/最终交接为何没有支持准确回答，再复用公共工具从空稿处理Memos GetSharedMemo；Download仅做固定稿回归和两臂消费。
+
+正常用途9个：Download rules/execute两项、Memos空稿作者一项、同稿原/变输入N/R/E六项；至多4个具名确认。实验仍用官方gpt-5.6-sol/high，第三方暂停。Memos为已暴露公开源码，输入为显式有限合成事实，不称新held-out或liveAPI；开发者不修自动稿业务含义，原题及全部失败保留。合同见[spec§14.57](skill-ir-aot-optimization-spec.md#1457-br-evidence-backed-answers-and-task-transfer)及[研究§7.79](skill-dsl-research.md#779-bq-复核与-br-回答依据和跨任务检验)。目前只有计划，没有BR新实现、模型调用或效果结果。
+
+## BQ 已结束的实际结果
 
 **BQ0–BQ17已执行并发布，以completed-with-unmet-criteria收束；实质成果34ed287e已核对用户origin同SHA。** 两个已知缺陷已在模型实际原稿中修复，真实试跑参与和普通固定稿消费成立；完整自然质量与稳定执行增量未达。[任务书](../superpowers/plans/2026-10-18-authorization-source-program-consistency-and-task-execution.md) identity为`authorization-source-program-consistency-v1`，从a0e306cb接管，共享工程c0b5ccf8。开发gpt-6-astra/high，实验官方gpt-5.6-sol/high，第三方暂停。
 
@@ -131,11 +137,11 @@ BB先保留effect/context标注下的源码调用，沿真实调用实例连接�
 - 两作者包已按原字节实际消费。Download消费者源码评阅full但机器partial；OWUI消费者仍有决定性helper未读。变化中policy-fresh、premise-fresh/previous已有运行；policy-previous路由失败、source-fresh额度拒绝，source-previous及质量位置保留未运行。
 - 原件、计量及验收以 [最终收束](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/final-closure-v35.json)、[manifest](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/manifest.json)、[状态](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/status.json) 为准。历史 `acceptance` 字段表达要求，不代表实际通过。
 
-AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有有界修复，形成过程保留在研究§7.61。当前新增责任以§7.78和BQ任务书为准；既有严格路径保留，渐进执行继续按实际结果标注。
+AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有有界修复，形成过程保留在研究§7.61。当前新增责任以§7.79和BR任务书为准；既有严格路径保留，渐进执行继续按实际结果标注。
 
 ## 账号、运行和继承边界
 
-- BQ开发 `gpt-6-astra/high`，按用户指定派发；实验沿用已授权的当前官方账号 `gpt-5.6-sol/high`，无需再次确认。第三方API和AV旧位置继续暂停。BQ共享实现和三项正常用途已完成，未用额外确认；BP及更早旧队列保持结束，不向旧结果补行。
+- BR开发 `gpt-6-astra/high`，按用户指定派发；实验沿用已授权的当前官方账号 `gpt-5.6-sol/high`，无需再次确认。第三方API和AV旧位置继续暂停。BQ共享实现和三项正常用途已完成，未用额外确认；BQ及更早旧队列保持结束，不向旧结果补行。
 - BG有限执行已收束，无活动或未知请求；自动编写与重复上下文成本为未达项，不自动增加样本。后续新任务继续遵守具名恢复、账号未知和成本记录边界。
 - BF六首位置及三具名修订已处置，可选反序第二对因自动R1未达未运行。自动编写、作者给定程序消费及变化复用各自分母；不会自动追加模型。新范围不升级旧readiness或改变项目默认。
 - BE六质量首位置和六变化逻辑位置已完成，保持完整原skill/四问及失败分母。source-previous两件确定未派发，仅一个同输入/epoch的登记恢复交付；原件和79,770ms本地开销保留。R0/R1资格、恢复和实际使用分列，旧答案/评阅/verdict不进入previous；R2缺失使实际R2撤回实验未执行。旧BD六未运行不补行，OWUI继续仅离线。
@@ -158,7 +164,8 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 
 | 阶段 | 保留记录 |
 |---|---|
-| 当前BQ | [任务书](../superpowers/plans/2026-10-18-authorization-source-program-consistency-and-task-execution.md)、spec§14.56、研究§7.78；实质成果34ed287e已发布，两个缺陷修复，完整自然质量与稳定增量未达 |
+| 当前BR | [任务书](../superpowers/plans/2026-10-19-authorization-evidence-backed-answers-and-task-transfer.md)、spec§14.57、研究§7.79；planned-not-started，共享交接修复及跨任务自动编写/消费待执行 |
+| BQ | [任务书](../superpowers/plans/2026-10-18-authorization-source-program-consistency-and-task-execution.md)、spec§14.56、研究§7.78；最终3c3059a8已发布，两个缺陷修复，完整自然质量与稳定增量未达 |
 | BP | [任务书](../superpowers/plans/2026-10-16-authorization-quality-evidence-and-branch-reliability.md)、spec§14.55、研究§7.77；最终27d59677，有限队列完成，完整语义和重复执行质量优势未达 |
 | BO | [任务书](../superpowers/plans/2026-10-16-authorization-call-semantics-and-program-repair.md)、spec§14.54、研究§7.76；有限自动调用语义与维护结果保留 |
 | BN | [任务书](../superpowers/plans/2026-10-15-authorization-purpose-scoped-authoring-and-consumption.md)、spec§14.53、研究§7.75；有限队列已发布，完整程序/整题质量/净收益未达，实质成果bd613fc2 |
