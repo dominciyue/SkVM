@@ -2,7 +2,7 @@
 
 > **For agentic workers:** 使用 executing-plans；定位缺陷使用 systematic-debugging，生产修改使用 test-driven-development。用户已授权直接执行、有限官方账号实验及发布。开发线程使用 `gpt-6-astra/high`，独占生产代码、当前方法文档和 Git 写入。常规检查点不等确认；探子仅做独立、窄范围只读检索或核验。
 
-**状态：** completed-with-unmet-criteria，2026-10-19；有限队列完成，最终核验与发布收尾。从4216358f接管，9用途、10attempt、17观察turn全部交付关闭，1/4具名确认。Download原四问两答full，Memos六消费者27/36维full、整题0/6；E/R原输入持平，变化输入E漏R已说明的转换错误。A-M首件五raw和确认七raw保留，最后25步原稿固定；20已知结果案例匹配、2缺输入保留条件，完整源码顺序/转换未达。普通CLI、搬移及源码撤回通过。勾选表示工作完成，不表示研究指标均达成；分轴见BR目录summary.json、verification/acceptance-matrix.json及execution.md。
+**状态：** completed-with-unmet-criteria，2026-10-19；BR0–BR21工作完成，实质成果e501c136已推用户origin并核对同SHA。从4216358f接管，9用途、10attempt、17观察turn全部交付关闭，1/4具名确认。Download原四问两答full，Memos六消费者27/36维full、整题0/6；E/R原输入持平，变化输入E漏R已说明的转换错误。A-M首件五raw和确认七raw保留，最后25步原稿固定；20已知结果案例匹配、2缺输入保留条件，完整源码顺序/转换未达。普通CLI、搬移及源码撤回通过。勾选表示工作完成，不表示研究指标均达成；分轴见BR目录summary.json、verification/acceptance-matrix.json、publication.json及execution.md。本轮停止，不自动BS。
 
 **Goal：** 让已有 DSL 的计算、来源和缺口可靠地支持完整自然回答；用另一个真实仓库中的不同授权任务，从空稿检验同一套编写、执行和变化消费机制。交付实际程序、普通使用过程与可核对的正负结果。
 
@@ -204,9 +204,9 @@ BR10中已复现工具说明遗漏：执行器支持数值比较，而A-M实际�
 - [x] 每个问题写触发→实际根因→共享修改→真实采用→效果或未达；本地handoff/communication/conversation_log同步恢复入口。保留BQ与更早历史结论。
 
 ### BR21 发布与停止
-- [ ] 白名单暂存本轮实现/证据/文档，凭据及差异检查，聚焦提交并推用户origin，核对远端SHA。原`.tmp/`和他人内容保持。
-- [ ] 交付可运行命令、逐步过程、源码与fixture出处、所有首件/修订结果、未达责任及成本未知项。有限队列、工程完成、真实采用、质量收益分别列出。
-- [ ] 停止本轮，不自动派发BS或重开旧实验。
+- [x] 白名单暂存本轮实现/证据/文档，凭据及差异检查，聚焦提交并推用户origin，核对远端SHA。原`.tmp/`和他人内容保持。
+- [x] 交付可运行命令、逐步过程、源码与fixture出处、所有首件/修订结果、未达责任及成本未知项。有限队列、工程完成、真实采用、质量收益分别列出。
+- [x] 停止本轮，不自动派发BS或重开旧实验。
 
 ## 六、文件责任与验证命令
 

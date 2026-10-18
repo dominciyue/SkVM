@@ -2,7 +2,7 @@
 
 更新于2026-10-19。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BR0–BR21](../superpowers/plans/2026-10-19-authorization-evidence-backed-answers-and-task-transfer.md)，有限队列以completed-with-unmet-criteria收束。9用途、10attempt、17观察turn全部交付关闭，1/4具名确认；完成最终核验和origin发布后停止，不自动BS。
+- 当前任务书：[BR0–BR21](../superpowers/plans/2026-10-19-authorization-evidence-backed-answers-and-task-transfer.md)，以completed-with-unmet-criteria完成并发布实质成果e501c136，已核对origin同SHA。9用途、10attempt、17观察turn全部交付关闭，1/4具名确认；本轮停止，不自动BS。
 - 方法合同：[spec §14.57](skill-ir-aot-optimization-spec.md#1457-br-evidence-backed-answers-and-task-transfer)；复核与开发过程统一在[研究 §7.79](skill-dsl-research.md#779-bq-复核与-br-回答依据和跨任务检验)。BQ/BP历史结论保持。
 - identity：`authorization-answer-transfer-v1`，规划基线`3c3059a8867ff7bd666b4d014b3d909e74f13e21`。继续`skill-ir-aot`，只推用户origin，不建分支/worktree；新开发线程独占代码、共享方法文档与Git写入。
 - 开发`gpt-6-astra/high`，按用户指定；实验沿已授权官方账号`gpt-5.6-sol/high`。第三方暂停；旧未知与保护证据保持。接管时tracked干净，原有未跟踪`.tmp/`不清理。
@@ -18,7 +18,7 @@ BR不再派发实验请求。Memos25步最后原稿20已知结果案例匹配、
 | 跨任务 | Memos空稿确认得到25步有限程序，同通用工具 | 另一结构的有限采用成立，源码调用顺序和完整响应未达 |
 | 自动与复用 | 12个原始版本保留，最后稿原/变输入及搬移可用 | 不按最高分选稿，不替换为开发者业务稿 |
 | 评价 | Memos整题0/6，成本方向不一致 | 保留评审分歧、真实遗漏及unknown成本，不声称稳定增益 |
-| 交付 | 普通check/rules/inspect/init/compare已运行；972原件打包读回 | 最终文档检查、白名单提交并仅推用户origin，停止有限队列 |
+| 交付 | 普通check/rules/inspect/init/compare已运行；972原件打包读回，95源码依赖可恢复 | 修改文档链接通过；旧结果10链接失效保留。已白名单提交并推用户origin，有限队列停止 |
 
 普通入口保留现有默认，[Download说明](../../examples/authorization-assessment/download-workflow/README.md#current-bq-explicit-program)提供固定BQ55步稿显式命令，[Memos说明](../../examples/authorization-assessment/shared-link-workflow/README.md)提供BR同稿变化和恢复命令。六Memos消费者同生产epoch，rules结构检查无执行泄漏。原件、失败、首件和确认分别保留，未使用的3次确认不消耗。
 
