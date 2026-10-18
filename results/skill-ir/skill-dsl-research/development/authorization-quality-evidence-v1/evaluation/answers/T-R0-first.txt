@@ -1,0 +1,55 @@
+## Conclusion
+
+**Source-level result: conforms for the stated, foreign-owned document scenario**, provided the request supplies the serializer’s `document` field and the stated permissions are effective at request time.
+
+`documents.add_sharelink` alone—or that permission plus knowledge of document ID 10—does **not** authorize creation. The serializer separately checks access to the resolved `Document` object.
+
+## Authorization path
+
+1. **Endpoint:** app-relative `POST /api/share_links/`.
+   - The router registers `share_links` to `ShareLinkViewSet`: `src/paperless/urls.py:74-88`.
+   - Router URLs are mounted under `^api/`: `src/paperless/urls.py:97-100`, `src/paperless/urls.py:297`.
+
+2. **Endpoint-level controls:**
+   - `ShareLinkViewSet` inherits `CreateModelMixin` and uses `ShareLinkSerializer`: `src/documents/views.py:4696-4708`.
+   - It requires `IsAuthenticated` and `PaperlessObjectPermissions`: `src/documents/views.py:4710`.
+   - `PaperlessObjectPermissions` inherits `DjangoObjectPermissions`; its POST mapping requires model permission `documents.add_sharelink`: `src/documents/permissions.py:30-44`.
+   - Because POST creates a new object, there is no existing `ShareLink` on which to run its object-permission method. The configured `PermittedObjectsFilter` filters `ShareLink` querysets; it is not the selected-document authorization check: `src/documents/views.py:4711-4715`, `src/documents/filters.py:1060-1094`.
+
+3. **Serializer/user propagation:**
+   - `PassUserMixin.get_serializer()` passes `request.user` to serializers derived from `SerializerWithPerms`: `src/documents/views.py:406-428`.
+   - `ShareLinkSerializer → OwnedObjectSerializer → SerializerWithPerms`, whose constructor stores that user: `src/documents/serialisers.py:260-265`, `src/documents/serialisers.py:295-299`, `src/documents/serialisers.py:2851`.
+
+4. **Exact-document control:**
+   - The wire serializer field is named **`document`**, not `document_id`: `src/documents/serialisers.py:2857-2867`.
+   - After the relationship field resolves that primary key to a `Document`, `validate_document(document)` requires both:
+     - global `documents.view_document`; and
+     - `has_perms_owner_aware(user, "view_document", document)` for that exact object.
+   - Failure raises `PermissionDenied`: `src/documents/serialisers.py:2873-2886`.
+   - The owner-aware check succeeds only if that exact document is unowned, is owned by the caller, or Guardian reports the requested object permission on it: `src/documents/permissions.py:624-635`.
+   - Only after validation does creation generate the slug and save. The inherited serializer also defaults the new share link’s owner to the caller: `src/documents/serialisers.py:2869-2871`, `src/documents/serialisers.py:486-501`.
+
+## Supplied scenario
+
+Assuming `request.document_id: 10` is conceptual input mapped to JSON `"document": 10`, actor 7 is active, and the listed grants are effective:
+
+- authenticated: endpoint authentication passes;
+- `documents.add_sharelink`: POST model gate passes;
+- global `documents.view_document`: first serializer condition passes;
+- document 10 is owned by user 9, so actor 7 is neither owner nor using the unowned branch;
+- actor 7’s exact object grant for document 10 satisfies the Guardian check.
+
+Therefore, the share can be created. The same actor attempting document 20 would be denied by `validate_document` absent some additional group/object grant, ownership, unowned status, or superuser authority.
+
+## Qualification and missing facts
+
+The supplied scenario is developmental, not evidence of current deployment state. An actual outcome requires:
+
+- the literal request payload—this serializer expects `"document": 10`; if `"document_id": 10` is sent literally, it does not represent the validated field;
+- the principal’s active/authenticated/superuser state;
+- effective `add_sharelink` and global `view_document` grants, including group/backend effects;
+- the current document’s existence and owner at request time;
+- the current direct or group Guardian permission for that exact document;
+- confirmation whether the independent policy treats owner/unowned access as valid exact-document authorization. Source intentionally treats both as authorized without an explicit object-ACL row.
+
+If the policy requires an **explicit Guardian object grant in every case**, including owner-owned and unowned documents, the implementation is not fully conformant. If “permission for the exact document” means effective owner-aware object access, it conforms.

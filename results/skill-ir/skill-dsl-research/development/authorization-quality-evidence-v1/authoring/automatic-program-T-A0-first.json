@@ -1,0 +1,658 @@
+{
+  "schemaVersion": "authorization-executable-contract/v1",
+  "id": "share-link-create-document-check",
+  "scope": {
+    "kind": "function-contract",
+    "questionId": "share-create",
+    "root": {
+      "path": "src/documents/serialisers.py",
+      "startLine": 2873,
+      "endLine": 2886
+    },
+    "upstream": [
+      "The serializer field database lookup and not-found behavior occur before validate_document",
+      "Actual Django authentication and permission-backend facts remain external to the source-only program"
+    ]
+  },
+  "sourceDeclarations": [
+    {
+      "source": {
+        "path": "src/documents/serialisers.py",
+        "startLine": 295,
+        "endLine": 520
+      },
+      "statements": []
+    },
+    {
+      "source": {
+        "path": "src/documents/serialisers.py",
+        "startLine": 2873,
+        "endLine": 2886
+      },
+      "statements": []
+    },
+    {
+      "source": {
+        "path": "src/documents/views.py",
+        "startLine": 406,
+        "endLine": 428
+      },
+      "statements": []
+    },
+    {
+      "source": {
+        "path": "src/documents/views.py",
+        "startLine": 4696,
+        "endLine": 4717
+      },
+      "statements": []
+    },
+    {
+      "source": {
+        "path": "src/documents/permissions.py",
+        "startLine": 30,
+        "endLine": 53
+      },
+      "statements": []
+    },
+    {
+      "source": {
+        "path": "src/documents/permissions.py",
+        "startLine": 624,
+        "endLine": 635
+      },
+      "statements": []
+    },
+    {
+      "source": {
+        "path": "src/paperless/urls.py",
+        "startLine": 88,
+        "endLine": 88
+      },
+      "statements": []
+    }
+  ],
+  "queries": [],
+  "assumptions": [],
+  "inputBinding": {
+    "questionId": "share-create"
+  },
+  "resourceWorkflow": {
+    "inputs": [
+      "actor",
+      "request",
+      "documents",
+      "model_grants",
+      "object_grants"
+    ],
+    "steps": [
+      {
+        "id": "endpoint_route",
+        "op": "value",
+        "value": {
+          "literal": "share_links"
+        },
+        "source": {
+          "path": "src/paperless/urls.py",
+          "startLine": 88,
+          "endLine": 88
+        },
+        "because": "The router registers ShareLinkViewSet under the share_links route."
+      },
+      {
+        "id": "endpoint_add_grant",
+        "op": "select",
+        "from": "model_grants",
+        "where": {
+          "op": "all",
+          "args": [
+            {
+              "op": "eq",
+              "left": {
+                "binding": "row.actor_id"
+              },
+              "right": {
+                "binding": "actor.id"
+              }
+            },
+            {
+              "op": "eq",
+              "left": {
+                "binding": "row.permission"
+              },
+              "right": {
+                "literal": "documents.add_sharelink"
+              }
+            }
+          ]
+        },
+        "source": {
+          "path": "src/documents/permissions.py",
+          "startLine": 30,
+          "endLine": 44
+        }
+      },
+      {
+        "id": "require_endpoint_create",
+        "op": "guard",
+        "test": {
+          "op": "all",
+          "args": [
+            {
+              "op": "truthy",
+              "language": "python",
+              "value": {
+                "binding": "actor.authenticated"
+              }
+            },
+            {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "endpoint_add_grant"
+                }
+              }
+            }
+          ]
+        },
+        "failure": "Endpoint authentication or add_sharelink permission denied.",
+        "principal": {
+          "ref": "actor"
+        },
+        "resource": {
+          "literal": "ShareLink"
+        },
+        "permission": "documents.add_sharelink",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 4696,
+          "endLine": 4710
+        }
+      },
+      {
+        "id": "serializer_user",
+        "op": "value",
+        "value": {
+          "ref": "actor"
+        },
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 406,
+          "endLine": 428
+        }
+      },
+      {
+        "id": "document",
+        "op": "select",
+        "from": "documents",
+        "where": {
+          "op": "eq",
+          "left": {
+            "binding": "row.id"
+          },
+          "right": {
+            "binding": "request.document_id"
+          }
+        },
+        "source": {
+          "path": "src/documents/serialisers.py",
+          "startLine": 2873,
+          "endLine": 2886
+        }
+      },
+      {
+        "id": "model_view_grant",
+        "op": "select",
+        "from": "model_grants",
+        "where": {
+          "op": "all",
+          "args": [
+            {
+              "op": "eq",
+              "left": {
+                "binding": "row.actor_id"
+              },
+              "right": {
+                "binding": "serializer_user.id"
+              }
+            },
+            {
+              "op": "eq",
+              "left": {
+                "binding": "row.permission"
+              },
+              "right": {
+                "literal": "documents.view_document"
+              }
+            }
+          ]
+        },
+        "source": {
+          "path": "src/documents/serialisers.py",
+          "startLine": 2876,
+          "endLine": 2876
+        }
+      },
+      {
+        "id": "require_user_and_model_view",
+        "op": "guard",
+        "test": {
+          "op": "all",
+          "args": [
+            {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "serializer_user"
+                }
+              }
+            },
+            {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "model_view_grant"
+                }
+              }
+            }
+          ]
+        },
+        "failure": "Insufficient permissions.",
+        "principal": {
+          "ref": "serializer_user"
+        },
+        "resource": {
+          "ref": "document"
+        },
+        "permission": "documents.view_document",
+        "source": {
+          "path": "src/documents/serialisers.py",
+          "startLine": 2874,
+          "endLine": 2877
+        }
+      },
+      {
+        "id": "object_view_grant",
+        "op": "select",
+        "from": "object_grants",
+        "where": {
+          "op": "all",
+          "args": [
+            {
+              "op": "eq",
+              "left": {
+                "binding": "row.actor_id"
+              },
+              "right": {
+                "binding": "serializer_user.id"
+              }
+            },
+            {
+              "op": "eq",
+              "left": {
+                "binding": "row.document_id"
+              },
+              "right": {
+                "binding": "document.id"
+              }
+            },
+            {
+              "op": "eq",
+              "left": {
+                "binding": "row.permission"
+              },
+              "right": {
+                "literal": "view_document"
+              }
+            }
+          ]
+        },
+        "source": {
+          "path": "src/documents/permissions.py",
+          "startLine": 634,
+          "endLine": 635
+        }
+      },
+      {
+        "id": "require_exact_document_view",
+        "op": "guard",
+        "test": {
+          "op": "any",
+          "args": [
+            {
+              "op": "is-null",
+              "value": {
+                "binding": "document.owner_id"
+              }
+            },
+            {
+              "op": "eq",
+              "left": {
+                "binding": "document.owner_id"
+              },
+              "right": {
+                "binding": "serializer_user.id"
+              }
+            },
+            {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "object_view_grant"
+                }
+              }
+            }
+          ]
+        },
+        "failure": "Insufficient permissions.",
+        "principal": {
+          "ref": "serializer_user"
+        },
+        "resource": {
+          "ref": "document"
+        },
+        "permission": "view_document",
+        "source": {
+          "path": "src/documents/permissions.py",
+          "startLine": 635,
+          "endLine": 635
+        }
+      },
+      {
+        "id": "result",
+        "op": "return",
+        "value": {
+          "record": {
+            "endpoint_route": {
+              "ref": "endpoint_route"
+            },
+            "document_id": {
+              "field": {
+                "of": {
+                  "ref": "document"
+                },
+                "key": "id"
+              }
+            },
+            "endpoint_permission": {
+              "literal": "documents.add_sharelink"
+            },
+            "model_view_permission": {
+              "literal": "documents.view_document"
+            },
+            "object_view_permission": {
+              "literal": "view_document"
+            },
+            "exact_object_basis": {
+              "choose": {
+                "test": {
+                  "op": "is-null",
+                  "value": {
+                    "binding": "document.owner_id"
+                  }
+                },
+                "then": {
+                  "literal": "unowned"
+                },
+                "else": {
+                  "choose": {
+                    "test": {
+                      "op": "eq",
+                      "left": {
+                        "binding": "document.owner_id"
+                      },
+                      "right": {
+                        "binding": "serializer_user.id"
+                      }
+                    },
+                    "then": {
+                      "literal": "owner"
+                    },
+                    "else": {
+                      "literal": "object_grant"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "source": {
+          "path": "src/documents/serialisers.py",
+          "startLine": 2877,
+          "endLine": 2886
+        },
+        "because": "Return the registered route and both the global and exact-document permission names after all create guards pass."
+      }
+    ],
+    "gaps": [
+      "Actual request identity, requested document, and current Django/guardian grants must be supplied for a real decision",
+      "model_grants does not derive superuser, group, custom-backend, or other has_perm behavior",
+      "object_grants abstracts guardian checker results and does not derive group-object or backend resolution",
+      "Primary-key conversion and document-not-found handling are upstream of validate_document"
+    ]
+  },
+  "authoringTarget": {
+    "mode": "reusable",
+    "coverage": [
+      {
+        "id": "endpoint-route",
+        "source": {
+          "path": "src/paperless/urls.py",
+          "startLine": 88,
+          "endLine": 88
+        },
+        "stepIds": [
+          "endpoint_route"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "share-viewset-create-controls",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 4696,
+          "endLine": 4710
+        },
+        "stepIds": [
+          "endpoint_add_grant",
+          "require_endpoint_create",
+          "serializer_user"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "post-permission-map",
+        "source": {
+          "path": "src/documents/permissions.py",
+          "startLine": 30,
+          "endLine": 44
+        },
+        "stepIds": [
+          "endpoint_add_grant",
+          "require_endpoint_create"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "paperless-object-owner-presence",
+        "source": {
+          "path": "src/documents/permissions.py",
+          "startLine": 47,
+          "endLine": 47
+        },
+        "stepIds": [],
+        "disposition": "unwritten",
+        "reason": "This inherited object hook applies when the endpoint checks an existing ShareLink object; POST creation has no ShareLink instance yet and is represented by model add plus document validation."
+      },
+      {
+        "id": "paperless-object-owner-match",
+        "source": {
+          "path": "src/documents/permissions.py",
+          "startLine": 48,
+          "endLine": 49
+        },
+        "stepIds": [],
+        "disposition": "unwritten",
+        "reason": "The branch authorizes an existing ShareLink owner and is not an object check on the document submitted to create."
+      },
+      {
+        "id": "paperless-object-super-delegation",
+        "source": {
+          "path": "src/documents/permissions.py",
+          "startLine": 51,
+          "endLine": 51
+        },
+        "stepIds": [],
+        "disposition": "unwritten",
+        "reason": "Delegation checks permissions on an existing ShareLink object; it is not reached as a pre-create exact-document control."
+      },
+      {
+        "id": "paperless-object-unowned-return",
+        "source": {
+          "path": "src/documents/permissions.py",
+          "startLine": 53,
+          "endLine": 53
+        },
+        "stepIds": [],
+        "disposition": "unwritten",
+        "reason": "This existing-ShareLink fallback is not part of POST creation before a ShareLink exists."
+      },
+      {
+        "id": "serializer-user-injection",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 411,
+          "endLine": 428
+        },
+        "stepIds": [
+          "serializer_user"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "serializer-inheritance",
+        "source": {
+          "path": "src/documents/serialisers.py",
+          "startLine": 295,
+          "endLine": 299
+        },
+        "stepIds": [
+          "serializer_user"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "validate-has-perm-call",
+        "source": {
+          "path": "src/documents/serialisers.py",
+          "startLine": 2876,
+          "endLine": 2876
+        },
+        "stepIds": [
+          "model_view_grant",
+          "require_user_and_model_view"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "validate-owner-aware-call",
+        "source": {
+          "path": "src/documents/serialisers.py",
+          "startLine": 2877,
+          "endLine": 2881
+        },
+        "stepIds": [
+          "object_view_grant",
+          "require_exact_document_view"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "validate-condition",
+        "source": {
+          "path": "src/documents/serialisers.py",
+          "startLine": 2874,
+          "endLine": 2882
+        },
+        "stepIds": [
+          "serializer_user",
+          "document",
+          "model_view_grant",
+          "require_user_and_model_view",
+          "object_view_grant",
+          "require_exact_document_view"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "validate-return",
+        "source": {
+          "path": "src/documents/serialisers.py",
+          "startLine": 2883,
+          "endLine": 2883
+        },
+        "stepIds": [
+          "result"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "validate-denial",
+        "source": {
+          "path": "src/documents/serialisers.py",
+          "startLine": 2884,
+          "endLine": 2886
+        },
+        "stepIds": [
+          "require_user_and_model_view",
+          "require_exact_document_view"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "validate-message",
+        "source": {
+          "path": "src/documents/serialisers.py",
+          "startLine": 2885,
+          "endLine": 2885
+        },
+        "stepIds": [
+          "require_user_and_model_view",
+          "require_exact_document_view"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "owner-aware-checker",
+        "source": {
+          "path": "src/documents/permissions.py",
+          "startLine": 634,
+          "endLine": 634
+        },
+        "stepIds": [
+          "object_view_grant"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "owner-aware-result",
+        "source": {
+          "path": "src/documents/permissions.py",
+          "startLine": 635,
+          "endLine": 635
+        },
+        "stepIds": [
+          "object_view_grant",
+          "require_exact_document_view",
+          "result"
+        ],
+        "disposition": "implemented"
+      }
+    ]
+  }
+}

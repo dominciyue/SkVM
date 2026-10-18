@@ -1,0 +1,173 @@
+以下结论基于 `paperless-ngx@126ec414a8b65158368653a2604ae58415e43103` 的允许源码范围；这是行为追踪，不是漏洞认定。
+
+## 1. 请求如何定位文档并决定返回文件
+
+### 入口
+
+- `DefaultRouter` 将 `documents` 注册到 `UnifiedSearchViewSet`：`src/paperless/urls.py:74-78`。
+- `UnifiedSearchViewSet` 继承 `DocumentViewSet`：`src/documents/views.py:2503-2507`。
+- DRF 的 detail action 生成 `documents/{lookup}/{url_path}/` 路由，因此 `download` 对应：
+  `GET /api/documents/{pk}/download/`。`framework/.../routers.py:128-135`
+- `/fetch/doc/{pk}` 只是重定向到该 API 地址：`src/paperless/urls.py:304-313`。
+- `download()` 调用 `file_response(pk, request, "attachment")`；文件不存在时转为 404：`src/documents/views.py:1834-1839`。
+
+### 文档和版本选择
+
+`file_response()` 的顺序是：
+
+1. 用 URL 的 `pk` 查询 `request_doc`；
+2. 得到它所属的 `root_doc`；
+3. 对 `root_doc` 做查看授权；
+4. 授权通过后才选择最终 `file_doc`；
+5. 最后选择 original/archive 表示并构造响应。  
+   `src/documents/views.py:1401-1448`
+
+具体分支：
+
+- 请求查询采用 `Document.global_objects`，因为 Download 传入 `include_deleted=True`。不存在则 404：`views.py:1408-1415`。
+- 若 `pk` 指向根文档，`root_doc` 就是自身；若指向版本，则取其 `root_document`：`versioning.py:146-156`。
+- 若 URL 直接指向一个版本，并且**完全没有** `version` 参数，最终文件就是这个 URL 指向的版本：`views.py:1388-1399`。
+- 其他情况按根文档解析：
+  - 没有 `version`，或者值为空字符串：选择该根文档的最新版本；没有版本才回退到根文档。
+  - 非空 `version` 必须能转为整数。
+  - 该 ID 必须是根文档本身，或者是其直接版本。
+  - 非整数产生 `"Invalid version parameter"` 404；不存在或属于其他根文档也产生 404。  
+    `versioning.py:159-195`、`views.py:1375-1386`
+- 因 Download 使用 `include_deleted=True`，版本查询走 `global_objects`，因此源码意图是允许解析已删除记录：`versioning.py:136-137,169-190`。
+
+一个细微区别：当 URL 指向版本时，`?version=` 的空值不是“参数不存在”；它会进入版本解析，然后因值为空而选择最新版本，而不是 URL 指向的那个版本。
+
+### original/archive 选择
+
+选择完 `file_doc` 后：
+
+- 只有参数值**严格等于字符串** `original=true` 才请求原始文件；`1`、`True`、`false`、缺省等都不算：`views.py:1368-1373`。
+- 若没有严格请求 original，并且该版本有 archive，则返回 archive。
+- 否则返回 original/source。  
+  `views.py:1442-1447`
+- `has_archive_version` 仅判断 `archive_filename is not None`：`models.py:462-475`。
+- archive 分支打开 `archive_file`、MIME 固定为 `application/pdf`；source 分支打开 `source_file`、使用文档自身 MIME：`views.py:4948-4973`。
+- Download 的 disposition 为 `attachment`，并设置 `Content-Disposition`：`views.py:1835-1837,4973-4995`。
+- `follow_formatting` 只改变下载文件名，不改变文件内容。代码直接使用查询值的 Python 真值，因此非空字符串 `"false"` 也会被当作真：`views.py:1447`、`views.py:4952-4965`。
+
+## 2. 授权检查及其相对顺序
+
+存在两层检查。
+
+### A. DRF 请求级检查
+
+`DocumentViewSet` 配置：
+
+```python
+permission_classes = (IsAuthenticated, PaperlessObjectPermissions)
+```
+
+见 `src/documents/views.py:1008-1027`。
+
+DRF 在调用 `download()` 前依次执行认证、权限和节流检查：`framework/.../views.py:404-421`。
+
+`PaperlessObjectPermissions` 把 GET 映射为模型权限 `documents.view_document`：`src/documents/permissions.py:30-44`。其继承的 `has_permission()` 要求用户已认证并具有该模型级权限：`framework/.../permissions.py:233-246`。
+
+因此，单凭“用户已认证”还不能证明请求能到达 Download handler；实际用户是否有全局 `documents.view_document` 没有给出。
+
+### B. Download 自己的根文档检查
+
+通过上述入口检查后，Download：
+
+1. 先按 `pk` 查询 `request_doc`；
+2. 解析 `root_doc`；
+3. 调用：
+
+```python
+has_perms_owner_aware(
+    request.user,
+    "view_document",
+    root_doc,
+)
+```
+
+失败直接返回 `403 Insufficient permissions`：`views.py:1408-1427`。
+
+该辅助函数允许三种情况：
+
+- 根文档无 owner；
+- 当前用户就是根文档 owner；
+- Guardian `ObjectPermissionChecker` 对根文档返回相应权限。  
+  `permissions.py:624-635`
+
+随后才执行版本和 original/archive 选择。因此：
+
+- 授权对象是 `root_doc`；
+- 不是 URL 指向的版本；
+- 不是 `?version=` 选出的版本；
+- 也不是 archive/source 文件对象。
+
+### 为什么不是普通 DRF 对象权限检查
+
+普通 `GenericAPIView.get_object()` 会先过滤 queryset，再调用 `check_object_permissions()`：`framework/.../generics.py:79-104`。但 Download 没有调用 `get_object()`，而是直接通过 `_resolve_request_and_root_doc()` 查询模型。
+
+因此本路径不会通过 `PermittedObjectsFilter` 或 DRF 的普通对象权限流程；其本地对象授权由上述显式的 `has_perms_owner_aware(root_doc)` 完成。
+
+## 3. 改选版本或 original/archive 是否改变授权资源
+
+**不会。**
+
+所有相关分支都维持同一授权资源——根文档：
+
+| 请求形式 | 授权对象 | 授权后返回的文件文档 |
+|---|---|---|
+| 根文档 `pk`，无 `version` | 根文档 | 最新版本，没有版本则根文档 |
+| 版本 `pk`，无 `version` 参数 | 该版本的根文档 | URL 指向的版本 |
+| 任意相关 `pk`，指定有效 `version` | 根文档 | 指定的根文档或其版本 |
+| `original=true` | 不变，仍为根文档 | 已选版本的 source 文件 |
+| 缺省/非严格 original，且有 archive | 不变，仍为根文档 | 已选版本的 archive 文件 |
+| 无 archive | 不变，仍为根文档 | 已选版本的 source 文件 |
+
+换言之，版本和 original/archive 是**授权完成后的表示/文件选择**，不会触发对所选版本 owner 或文件表示的第二次授权。
+
+## 4. 给定开发场景的结果
+
+给定：
+
+- actor `id=9`
+- URL `pk=10`
+- 根文档 10 的 owner 为 7
+- `ObjectPermissionChecker.has_perm(user=9, resource=10, "view_document") = false`
+
+若请求已经通过 DRF 的入口级认证和模型权限检查，则：
+
+1. `request_doc = document 10`
+2. `root_doc = document 10`
+3. 文档不是无主；
+4. actor 9 不是 owner 7；
+5. 外部假设明确令对象权限检查为 false；
+6. `has_perms_owner_aware()` 返回 false；
+7. 响应为 **403 `Insufficient permissions`**。
+
+因此在这个开发夹具中，代码不会继续选择版本，也不会打开任何 original/archive 文件。`ObjectPermissionChecker.construct=true` 只表示检查器构造成功，并不代表授予权限。
+
+仅作反事实说明：如果根文档检查通过，`pk=10` 且没有有效 `version` 参数会选择最新版本。按给定版本索引，候选会是已删除的版本 12；由于它没有 archive，最终会打开 `v2-original.txt`。但这不是当前拒绝场景的实际返回结果。
+
+## 5. 尚缺事实及其阻断的结论
+
+1. **实际用户是否具有模型级 `documents.view_document`**
+   - 阻断：请求是否能到达 `download()`；若不能，不能仅凭源码确定最终认证/权限错误形式。
+
+2. **实际身份认证、用户 active 状态及认证后端配置**
+   - 阻断：实际 HTTP 请求的入口准入结果。给定说明明确不证明请求已通过上游准入。
+
+3. **真实数据库中的 owner、对象授权和组授权**
+   - 阻断：真实用户是否通过根文档的 `has_perms_owner_aware()`。
+   - 开发夹具中的 `has_perm=false` 不能外推到部署环境。
+
+4. **实际 URL、参数是否存在以及原始字符串值**
+   - 阻断：具体版本和 original/archive 分支，尤其是“缺少 `version`”与空 `?version=`、以及严格的 `original=true`。
+
+5. **真实版本关系、删除状态和版本索引**
+   - 阻断：默认“最新版本”究竟是哪一条记录，以及指定 ID 是否属于该根文档。
+
+6. **真实文件字段、文件存在性和存储可读性**
+   - 阻断：授权后能否真正返回文件；打开失败会成为 404。
+
+7. **反向代理、外部访问策略和部署路由**
+   - 阻断：外部请求是否能抵达 Django/DRF。允许源码只能确认应用内路由和 `/fetch/doc/{pk}` 重定向，不能证明实际部署暴露情况。

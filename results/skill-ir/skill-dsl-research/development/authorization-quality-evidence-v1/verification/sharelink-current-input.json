@@ -1,0 +1,1301 @@
+{
+  "providerCalls": 0,
+  "targetExecutions": 0,
+  "input": "results/skill-ir/skill-dsl-research/development/authorization-quality-evidence-v1/inputs/sharelink.json",
+  "inputSha256": "05420468f7649eebad00236cdbba946438f36426d66be04fa1868efc2c2f4ed4",
+  "developerSemanticEdits": false,
+  "rows": [
+    {
+      "version": "first",
+      "program": "results/skill-ir/skill-dsl-research/development/authorization-quality-evidence-v1/authoring/first-program-T-A0-first.json",
+      "programSha256": "16436c200a81b45e124e2718a7b82c1d7ffe8214cf1499e048001afbdabe7c6e",
+      "steps": 4,
+      "status": "invalid",
+      "actual": null,
+      "diagnostics": [
+        {
+          "code": "contract-local-shape",
+          "path": "sourceDeclarations.0.source.startLine",
+          "message": "Required",
+          "severity": "error"
+        },
+        {
+          "code": "contract-local-shape",
+          "path": "sourceDeclarations.0.source",
+          "message": "Unrecognized key(s) in object: 'symbol'",
+          "severity": "error"
+        },
+        {
+          "code": "contract-local-shape",
+          "path": "sourceDeclarations.1.source.startLine",
+          "message": "Required",
+          "severity": "error"
+        },
+        {
+          "code": "contract-local-shape",
+          "path": "sourceDeclarations.1.source",
+          "message": "Unrecognized key(s) in object: 'symbol'",
+          "severity": "error"
+        },
+        {
+          "code": "contract-shape",
+          "path": "scope.root.startLine",
+          "message": "Required",
+          "severity": "error"
+        },
+        {
+          "code": "contract-shape",
+          "path": "scope.root",
+          "message": "Unrecognized key(s) in object: 'symbol'",
+          "severity": "error"
+        }
+      ],
+      "scope": "Finite registered current input only; no backend or constructor completion/persistence certification"
+    },
+    {
+      "version": "final",
+      "program": "results/skill-ir/skill-dsl-research/development/authorization-quality-evidence-v1/authoring/automatic-program-T-A0-first.json",
+      "programSha256": "7078e8c71a9ef7bb6c452a11a07e72861427521bb3ecb9e7ea65d1ae8f2c1025",
+      "steps": 10,
+      "status": "valid",
+      "actual": {
+        "status": "conditional",
+        "inputs": {
+          "actor": {
+            "id": 7,
+            "authenticated": true
+          },
+          "request": {
+            "document_id": 10
+          },
+          "documents": [
+            {
+              "id": 10,
+              "owner_id": 9
+            },
+            {
+              "id": 20,
+              "owner_id": 8
+            }
+          ],
+          "model_grants": [
+            {
+              "actor_id": 7,
+              "permission": "documents.add_sharelink"
+            },
+            {
+              "actor_id": 7,
+              "permission": "documents.view_document"
+            }
+          ],
+          "object_grants": [
+            {
+              "actor_id": 7,
+              "document_id": 10,
+              "permission": "view_document"
+            }
+          ]
+        },
+        "values": {
+          "endpoint_route": "share_links",
+          "endpoint_add_grant": {
+            "actor_id": 7,
+            "permission": "documents.add_sharelink"
+          },
+          "require_endpoint_create": true,
+          "serializer_user": {
+            "id": 7,
+            "authenticated": true
+          },
+          "document": {
+            "id": 10,
+            "owner_id": 9
+          },
+          "model_view_grant": {
+            "actor_id": 7,
+            "permission": "documents.view_document"
+          },
+          "require_user_and_model_view": true,
+          "object_view_grant": {
+            "actor_id": 7,
+            "document_id": 10,
+            "permission": "view_document"
+          },
+          "require_exact_document_view": true,
+          "result": {
+            "endpoint_route": "share_links",
+            "document_id": 10,
+            "endpoint_permission": "documents.add_sharelink",
+            "model_view_permission": "documents.view_document",
+            "object_view_permission": "view_document",
+            "exact_object_basis": "object_grant"
+          }
+        },
+        "events": [
+          {
+            "sequence": 1,
+            "id": "endpoint_route",
+            "op": "value",
+            "executor": "host",
+            "meaningOrigin": "authored-program",
+            "source": {
+              "path": "src/paperless/urls.py",
+              "startLine": 88,
+              "endLine": 88,
+              "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305"
+            },
+            "inputs": {
+              "expression": {
+                "literal": "share_links"
+              }
+            },
+            "outputs": {
+              "value": "share_links",
+              "known": true
+            },
+            "outcome": "computed",
+            "gaps": [],
+            "because": "The router registers ShareLinkViewSet under the share_links route."
+          },
+          {
+            "sequence": 2,
+            "id": "endpoint_add_grant",
+            "op": "select",
+            "executor": "host",
+            "meaningOrigin": "authored-program",
+            "source": {
+              "path": "src/documents/permissions.py",
+              "startLine": 30,
+              "endLine": 44,
+              "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+            },
+            "inputs": {
+              "from": "model_grants",
+              "rows": {
+                "known": true,
+                "value": [
+                  {
+                    "actor_id": 7,
+                    "permission": "documents.add_sharelink"
+                  },
+                  {
+                    "actor_id": 7,
+                    "permission": "documents.view_document"
+                  }
+                ],
+                "gaps": []
+              },
+              "where": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "row.actor_id"
+                    },
+                    "right": {
+                      "binding": "actor.id"
+                    }
+                  },
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "row.permission"
+                    },
+                    "right": {
+                      "literal": "documents.add_sharelink"
+                    }
+                  }
+                ]
+              },
+              "candidates": [
+                {
+                  "row": {
+                    "actor_id": 7,
+                    "permission": "documents.add_sharelink"
+                  },
+                  "predicate": {
+                    "truth": "true",
+                    "residual": null,
+                    "missingBindings": [],
+                    "trace": [
+                      {
+                        "op": "eq",
+                        "truth": "true"
+                      },
+                      {
+                        "op": "eq",
+                        "truth": "true"
+                      },
+                      {
+                        "op": "all",
+                        "truth": "true"
+                      }
+                    ],
+                    "diagnostics": [],
+                    "valueTrace": [
+                      {
+                        "known": true,
+                        "value": 7,
+                        "residual": {
+                          "literal": 7
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      },
+                      {
+                        "known": true,
+                        "value": 7,
+                        "residual": {
+                          "literal": 7
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      },
+                      {
+                        "known": true,
+                        "value": "documents.add_sharelink",
+                        "residual": {
+                          "literal": "documents.add_sharelink"
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      },
+                      {
+                        "known": true,
+                        "value": "documents.add_sharelink",
+                        "residual": {
+                          "literal": "documents.add_sharelink"
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "literal"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "row": {
+                    "actor_id": 7,
+                    "permission": "documents.view_document"
+                  },
+                  "predicate": {
+                    "truth": "false",
+                    "residual": null,
+                    "missingBindings": [],
+                    "trace": [
+                      {
+                        "op": "eq",
+                        "truth": "true"
+                      },
+                      {
+                        "op": "eq",
+                        "truth": "false"
+                      },
+                      {
+                        "op": "all",
+                        "truth": "false"
+                      }
+                    ],
+                    "diagnostics": [],
+                    "valueTrace": [
+                      {
+                        "known": true,
+                        "value": 7,
+                        "residual": {
+                          "literal": 7
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      },
+                      {
+                        "known": true,
+                        "value": 7,
+                        "residual": {
+                          "literal": 7
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      },
+                      {
+                        "known": true,
+                        "value": "documents.view_document",
+                        "residual": {
+                          "literal": "documents.view_document"
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      },
+                      {
+                        "known": true,
+                        "value": "documents.add_sharelink",
+                        "residual": {
+                          "literal": "documents.add_sharelink"
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "literal"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "selection": {
+                "mode": "unique",
+                "matchedCount": 1,
+                "order": [],
+                "guidance": "unique defaults to true and rejects multiple matches. Use unique:false with explicit order for ordered first; numeric null keys need nulls:first|last or nullAs. Equal keys use the next order key; otherwise input order is retained."
+              }
+            },
+            "outputs": {
+              "value": {
+                "actor_id": 7,
+                "permission": "documents.add_sharelink"
+              },
+              "known": true
+            },
+            "outcome": "computed",
+            "gaps": [],
+            "because": "Author explanation not supplied."
+          },
+          {
+            "sequence": 3,
+            "id": "require_endpoint_create",
+            "op": "guard",
+            "executor": "host",
+            "meaningOrigin": "authored-program",
+            "source": {
+              "path": "src/documents/views.py",
+              "startLine": 4696,
+              "endLine": 4710,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "inputs": {
+              "test": {
+                "truth": "true",
+                "residual": null,
+                "missingBindings": [],
+                "trace": [
+                  {
+                    "op": "truthy",
+                    "truth": "true"
+                  },
+                  {
+                    "op": "is-null",
+                    "truth": "false"
+                  },
+                  {
+                    "op": "not",
+                    "truth": "true"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "true"
+                  }
+                ],
+                "diagnostics": [],
+                "valueTrace": [
+                  {
+                    "known": true,
+                    "value": true,
+                    "residual": {
+                      "literal": true
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  },
+                  {
+                    "known": true,
+                    "value": {
+                      "actor_id": 7,
+                      "permission": "documents.add_sharelink"
+                    },
+                    "residual": {
+                      "literal": {
+                        "actor_id": 7,
+                        "permission": "documents.add_sharelink"
+                      }
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  }
+                ]
+              },
+              "permission": "documents.add_sharelink",
+              "principal": {
+                "id": 7,
+                "authenticated": true
+              },
+              "resource": "ShareLink"
+            },
+            "outputs": {
+              "value": true,
+              "known": true
+            },
+            "outcome": "computed",
+            "gaps": [],
+            "because": "Author explanation not supplied."
+          },
+          {
+            "sequence": 4,
+            "id": "serializer_user",
+            "op": "value",
+            "executor": "host",
+            "meaningOrigin": "authored-program",
+            "source": {
+              "path": "src/documents/views.py",
+              "startLine": 406,
+              "endLine": 428,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "inputs": {
+              "expression": {
+                "ref": "actor"
+              }
+            },
+            "outputs": {
+              "value": {
+                "id": 7,
+                "authenticated": true
+              },
+              "known": true
+            },
+            "outcome": "computed",
+            "gaps": [],
+            "because": "Author explanation not supplied."
+          },
+          {
+            "sequence": 5,
+            "id": "document",
+            "op": "select",
+            "executor": "host",
+            "meaningOrigin": "authored-program",
+            "source": {
+              "path": "src/documents/serialisers.py",
+              "startLine": 2873,
+              "endLine": 2886,
+              "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266"
+            },
+            "inputs": {
+              "from": "documents",
+              "rows": {
+                "known": true,
+                "value": [
+                  {
+                    "id": 10,
+                    "owner_id": 9
+                  },
+                  {
+                    "id": 20,
+                    "owner_id": 8
+                  }
+                ],
+                "gaps": []
+              },
+              "where": {
+                "op": "eq",
+                "left": {
+                  "binding": "row.id"
+                },
+                "right": {
+                  "binding": "request.document_id"
+                }
+              },
+              "candidates": [
+                {
+                  "row": {
+                    "id": 10,
+                    "owner_id": 9
+                  },
+                  "predicate": {
+                    "truth": "true",
+                    "residual": null,
+                    "missingBindings": [],
+                    "trace": [
+                      {
+                        "op": "eq",
+                        "truth": "true"
+                      }
+                    ],
+                    "diagnostics": [],
+                    "valueTrace": [
+                      {
+                        "known": true,
+                        "value": 10,
+                        "residual": {
+                          "literal": 10
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      },
+                      {
+                        "known": true,
+                        "value": 10,
+                        "residual": {
+                          "literal": 10
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "row": {
+                    "id": 20,
+                    "owner_id": 8
+                  },
+                  "predicate": {
+                    "truth": "false",
+                    "residual": null,
+                    "missingBindings": [],
+                    "trace": [
+                      {
+                        "op": "eq",
+                        "truth": "false"
+                      }
+                    ],
+                    "diagnostics": [],
+                    "valueTrace": [
+                      {
+                        "known": true,
+                        "value": 20,
+                        "residual": {
+                          "literal": 20
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      },
+                      {
+                        "known": true,
+                        "value": 10,
+                        "residual": {
+                          "literal": 10
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "selection": {
+                "mode": "unique",
+                "matchedCount": 1,
+                "order": [],
+                "guidance": "unique defaults to true and rejects multiple matches. Use unique:false with explicit order for ordered first; numeric null keys need nulls:first|last or nullAs. Equal keys use the next order key; otherwise input order is retained."
+              }
+            },
+            "outputs": {
+              "value": {
+                "id": 10,
+                "owner_id": 9
+              },
+              "known": true
+            },
+            "outcome": "computed",
+            "gaps": [],
+            "because": "Author explanation not supplied."
+          },
+          {
+            "sequence": 6,
+            "id": "model_view_grant",
+            "op": "select",
+            "executor": "host",
+            "meaningOrigin": "authored-program",
+            "source": {
+              "path": "src/documents/serialisers.py",
+              "startLine": 2876,
+              "endLine": 2876,
+              "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266"
+            },
+            "inputs": {
+              "from": "model_grants",
+              "rows": {
+                "known": true,
+                "value": [
+                  {
+                    "actor_id": 7,
+                    "permission": "documents.add_sharelink"
+                  },
+                  {
+                    "actor_id": 7,
+                    "permission": "documents.view_document"
+                  }
+                ],
+                "gaps": []
+              },
+              "where": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "row.actor_id"
+                    },
+                    "right": {
+                      "binding": "serializer_user.id"
+                    }
+                  },
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "row.permission"
+                    },
+                    "right": {
+                      "literal": "documents.view_document"
+                    }
+                  }
+                ]
+              },
+              "candidates": [
+                {
+                  "row": {
+                    "actor_id": 7,
+                    "permission": "documents.add_sharelink"
+                  },
+                  "predicate": {
+                    "truth": "false",
+                    "residual": null,
+                    "missingBindings": [],
+                    "trace": [
+                      {
+                        "op": "eq",
+                        "truth": "true"
+                      },
+                      {
+                        "op": "eq",
+                        "truth": "false"
+                      },
+                      {
+                        "op": "all",
+                        "truth": "false"
+                      }
+                    ],
+                    "diagnostics": [],
+                    "valueTrace": [
+                      {
+                        "known": true,
+                        "value": 7,
+                        "residual": {
+                          "literal": 7
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      },
+                      {
+                        "known": true,
+                        "value": 7,
+                        "residual": {
+                          "literal": 7
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      },
+                      {
+                        "known": true,
+                        "value": "documents.add_sharelink",
+                        "residual": {
+                          "literal": "documents.add_sharelink"
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      },
+                      {
+                        "known": true,
+                        "value": "documents.view_document",
+                        "residual": {
+                          "literal": "documents.view_document"
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "literal"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "row": {
+                    "actor_id": 7,
+                    "permission": "documents.view_document"
+                  },
+                  "predicate": {
+                    "truth": "true",
+                    "residual": null,
+                    "missingBindings": [],
+                    "trace": [
+                      {
+                        "op": "eq",
+                        "truth": "true"
+                      },
+                      {
+                        "op": "eq",
+                        "truth": "true"
+                      },
+                      {
+                        "op": "all",
+                        "truth": "true"
+                      }
+                    ],
+                    "diagnostics": [],
+                    "valueTrace": [
+                      {
+                        "known": true,
+                        "value": 7,
+                        "residual": {
+                          "literal": 7
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      },
+                      {
+                        "known": true,
+                        "value": 7,
+                        "residual": {
+                          "literal": 7
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      },
+                      {
+                        "known": true,
+                        "value": "documents.view_document",
+                        "residual": {
+                          "literal": "documents.view_document"
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      },
+                      {
+                        "known": true,
+                        "value": "documents.view_document",
+                        "residual": {
+                          "literal": "documents.view_document"
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "literal"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "selection": {
+                "mode": "unique",
+                "matchedCount": 1,
+                "order": [],
+                "guidance": "unique defaults to true and rejects multiple matches. Use unique:false with explicit order for ordered first; numeric null keys need nulls:first|last or nullAs. Equal keys use the next order key; otherwise input order is retained."
+              }
+            },
+            "outputs": {
+              "value": {
+                "actor_id": 7,
+                "permission": "documents.view_document"
+              },
+              "known": true
+            },
+            "outcome": "computed",
+            "gaps": [],
+            "because": "Author explanation not supplied."
+          },
+          {
+            "sequence": 7,
+            "id": "require_user_and_model_view",
+            "op": "guard",
+            "executor": "host",
+            "meaningOrigin": "authored-program",
+            "source": {
+              "path": "src/documents/serialisers.py",
+              "startLine": 2874,
+              "endLine": 2877,
+              "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266"
+            },
+            "inputs": {
+              "test": {
+                "truth": "true",
+                "residual": null,
+                "missingBindings": [],
+                "trace": [
+                  {
+                    "op": "is-null",
+                    "truth": "false"
+                  },
+                  {
+                    "op": "not",
+                    "truth": "true"
+                  },
+                  {
+                    "op": "is-null",
+                    "truth": "false"
+                  },
+                  {
+                    "op": "not",
+                    "truth": "true"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "true"
+                  }
+                ],
+                "diagnostics": [],
+                "valueTrace": [
+                  {
+                    "known": true,
+                    "value": {
+                      "id": 7,
+                      "authenticated": true
+                    },
+                    "residual": {
+                      "literal": {
+                        "id": 7,
+                        "authenticated": true
+                      }
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  },
+                  {
+                    "known": true,
+                    "value": {
+                      "actor_id": 7,
+                      "permission": "documents.view_document"
+                    },
+                    "residual": {
+                      "literal": {
+                        "actor_id": 7,
+                        "permission": "documents.view_document"
+                      }
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  }
+                ]
+              },
+              "permission": "documents.view_document",
+              "principal": {
+                "id": 7,
+                "authenticated": true
+              },
+              "resource": {
+                "id": 10,
+                "owner_id": 9
+              }
+            },
+            "outputs": {
+              "value": true,
+              "known": true
+            },
+            "outcome": "computed",
+            "gaps": [],
+            "because": "Author explanation not supplied."
+          },
+          {
+            "sequence": 8,
+            "id": "object_view_grant",
+            "op": "select",
+            "executor": "host",
+            "meaningOrigin": "authored-program",
+            "source": {
+              "path": "src/documents/permissions.py",
+              "startLine": 634,
+              "endLine": 635,
+              "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+            },
+            "inputs": {
+              "from": "object_grants",
+              "rows": {
+                "known": true,
+                "value": [
+                  {
+                    "actor_id": 7,
+                    "document_id": 10,
+                    "permission": "view_document"
+                  }
+                ],
+                "gaps": []
+              },
+              "where": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "row.actor_id"
+                    },
+                    "right": {
+                      "binding": "serializer_user.id"
+                    }
+                  },
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "row.document_id"
+                    },
+                    "right": {
+                      "binding": "document.id"
+                    }
+                  },
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "row.permission"
+                    },
+                    "right": {
+                      "literal": "view_document"
+                    }
+                  }
+                ]
+              },
+              "candidates": [
+                {
+                  "row": {
+                    "actor_id": 7,
+                    "document_id": 10,
+                    "permission": "view_document"
+                  },
+                  "predicate": {
+                    "truth": "true",
+                    "residual": null,
+                    "missingBindings": [],
+                    "trace": [
+                      {
+                        "op": "eq",
+                        "truth": "true"
+                      },
+                      {
+                        "op": "eq",
+                        "truth": "true"
+                      },
+                      {
+                        "op": "eq",
+                        "truth": "true"
+                      },
+                      {
+                        "op": "all",
+                        "truth": "true"
+                      }
+                    ],
+                    "diagnostics": [],
+                    "valueTrace": [
+                      {
+                        "known": true,
+                        "value": 7,
+                        "residual": {
+                          "literal": 7
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      },
+                      {
+                        "known": true,
+                        "value": 7,
+                        "residual": {
+                          "literal": 7
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      },
+                      {
+                        "known": true,
+                        "value": 10,
+                        "residual": {
+                          "literal": 10
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      },
+                      {
+                        "known": true,
+                        "value": 10,
+                        "residual": {
+                          "literal": 10
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      },
+                      {
+                        "known": true,
+                        "value": "view_document",
+                        "residual": {
+                          "literal": "view_document"
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      },
+                      {
+                        "known": true,
+                        "value": "view_document",
+                        "residual": {
+                          "literal": "view_document"
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "literal"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "selection": {
+                "mode": "unique",
+                "matchedCount": 1,
+                "order": [],
+                "guidance": "unique defaults to true and rejects multiple matches. Use unique:false with explicit order for ordered first; numeric null keys need nulls:first|last or nullAs. Equal keys use the next order key; otherwise input order is retained."
+              }
+            },
+            "outputs": {
+              "value": {
+                "actor_id": 7,
+                "document_id": 10,
+                "permission": "view_document"
+              },
+              "known": true
+            },
+            "outcome": "computed",
+            "gaps": [],
+            "because": "Author explanation not supplied."
+          },
+          {
+            "sequence": 9,
+            "id": "require_exact_document_view",
+            "op": "guard",
+            "executor": "host",
+            "meaningOrigin": "authored-program",
+            "source": {
+              "path": "src/documents/permissions.py",
+              "startLine": 635,
+              "endLine": 635,
+              "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+            },
+            "inputs": {
+              "test": {
+                "truth": "true",
+                "residual": null,
+                "missingBindings": [],
+                "trace": [
+                  {
+                    "op": "is-null",
+                    "truth": "false"
+                  },
+                  {
+                    "op": "eq",
+                    "truth": "false"
+                  },
+                  {
+                    "op": "is-null",
+                    "truth": "false"
+                  },
+                  {
+                    "op": "not",
+                    "truth": "true"
+                  },
+                  {
+                    "op": "any",
+                    "truth": "true"
+                  }
+                ],
+                "diagnostics": [],
+                "valueTrace": [
+                  {
+                    "known": true,
+                    "value": 9,
+                    "residual": {
+                      "literal": 9
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  },
+                  {
+                    "known": true,
+                    "value": 9,
+                    "residual": {
+                      "literal": 9
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  },
+                  {
+                    "known": true,
+                    "value": 7,
+                    "residual": {
+                      "literal": 7
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  },
+                  {
+                    "known": true,
+                    "value": {
+                      "actor_id": 7,
+                      "document_id": 10,
+                      "permission": "view_document"
+                    },
+                    "residual": {
+                      "literal": {
+                        "actor_id": 7,
+                        "document_id": 10,
+                        "permission": "view_document"
+                      }
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  }
+                ]
+              },
+              "permission": "view_document",
+              "principal": {
+                "id": 7,
+                "authenticated": true
+              },
+              "resource": {
+                "id": 10,
+                "owner_id": 9
+              }
+            },
+            "outputs": {
+              "value": true,
+              "known": true
+            },
+            "outcome": "computed",
+            "gaps": [],
+            "because": "Author explanation not supplied."
+          },
+          {
+            "sequence": 10,
+            "id": "result",
+            "op": "return",
+            "executor": "host",
+            "meaningOrigin": "authored-program",
+            "source": {
+              "path": "src/documents/serialisers.py",
+              "startLine": 2877,
+              "endLine": 2886,
+              "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266"
+            },
+            "inputs": {
+              "expression": {
+                "record": {
+                  "endpoint_route": {
+                    "ref": "endpoint_route"
+                  },
+                  "document_id": {
+                    "field": {
+                      "of": {
+                        "ref": "document"
+                      },
+                      "key": "id"
+                    }
+                  },
+                  "endpoint_permission": {
+                    "literal": "documents.add_sharelink"
+                  },
+                  "model_view_permission": {
+                    "literal": "documents.view_document"
+                  },
+                  "object_view_permission": {
+                    "literal": "view_document"
+                  },
+                  "exact_object_basis": {
+                    "choose": {
+                      "test": {
+                        "op": "is-null",
+                        "value": {
+                          "binding": "document.owner_id"
+                        }
+                      },
+                      "then": {
+                        "literal": "unowned"
+                      },
+                      "else": {
+                        "choose": {
+                          "test": {
+                            "op": "eq",
+                            "left": {
+                              "binding": "document.owner_id"
+                            },
+                            "right": {
+                              "binding": "serializer_user.id"
+                            }
+                          },
+                          "then": {
+                            "literal": "owner"
+                          },
+                          "else": {
+                            "literal": "object_grant"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "outputs": {
+              "value": {
+                "endpoint_route": "share_links",
+                "document_id": 10,
+                "endpoint_permission": "documents.add_sharelink",
+                "model_view_permission": "documents.view_document",
+                "object_view_permission": "view_document",
+                "exact_object_basis": "object_grant"
+              },
+              "known": true
+            },
+            "outcome": "computed",
+            "gaps": [],
+            "because": "Return the registered route and both the global and exact-document permission names after all create guards pass."
+          }
+        ],
+        "returned": {
+          "endpoint_route": "share_links",
+          "document_id": 10,
+          "endpoint_permission": "documents.add_sharelink",
+          "model_view_permission": "documents.view_document",
+          "object_view_permission": "view_document",
+          "exact_object_basis": "object_grant"
+        },
+        "termination": "return",
+        "conditions": [],
+        "gaps": [
+          "Actual request identity, requested document, and current Django/guardian grants must be supplied for a real decision",
+          "model_grants does not derive superuser, group, custom-backend, or other has_perm behavior",
+          "object_grants abstracts guardian checker results and does not derive group-object or backend resolution",
+          "Primary-key conversion and document-not-found handling are upstream of validate_document"
+        ],
+        "semanticSupport": "unreviewed",
+        "requestOperationCertified": false
+      },
+      "diagnostics": [],
+      "scope": "Finite registered current input only; no backend or constructor completion/persistence certification"
+    }
+  ]
+}

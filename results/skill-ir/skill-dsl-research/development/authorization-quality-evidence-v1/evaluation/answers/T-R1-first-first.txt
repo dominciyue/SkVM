@@ -1,0 +1,59 @@
+## `share-create`
+
+**Source-level verdict:** For an owned document whose owner is not the caller, creation is gated by an exact-document permission check before `ShareLink` creation. Authentication and global permissions alone are insufficient. Actual authorization remains unproven because no request or permission-backend execution was supplied.
+
+### Authorization path
+
+1. **Endpoint:** `POST /api/share_links/`
+   - API prefix: `src/paperless/urls.py:97-100`
+   - Router registration: `src/paperless/urls.py:88`
+
+2. **Endpoint controls**
+   - `ShareLinkViewSet` includes `CreateModelMixin` and uses `ShareLinkSerializer`.
+   - Its permission classes are `IsAuthenticated` and `PaperlessObjectPermissions`: `src/documents/views.py:4696-4710`.
+   - `PaperlessObjectPermissions` inherits `DjangoObjectPermissions`; its POST mapping requires `documents.add_sharelink`: `src/documents/permissions.py:30-44`.
+   - The inherited object hook at lines 46-53 concerns an already-existing object. Before POST creation there is no `ShareLink` instance, so this is not the submitted document’s object check.
+
+3. **Request user propagation**
+   - `ShareLinkViewSet` inherits `PassUserMixin`.
+   - That mixin passes `request.user` when the serializer derives from `SerializerWithPerms`: `src/documents/views.py:406-428`.
+   - The inheritance chain is:
+     `ShareLinkSerializer → OwnedObjectSerializer → SerializerWithPerms`.
+   - `SerializerWithPerms` stores the supplied user in `self.user`: `src/documents/serialisers.py:260-265`, `295-299`, `2851`.
+
+4. **Exact document validation**
+   - `document` is a serializer field for the `ShareLink` model: `src/documents/serialisers.py:2857-2867`.
+   - `validate_document(document)` requires all of:
+     - a serializer user;
+     - global `documents.view_document`;
+     - `has_perms_owner_aware(user, "view_document", document)`.
+   - Failure raises `PermissionDenied("Insufficient permissions.")`; only success returns the document: `src/documents/serialisers.py:2873-2886`.
+   - The owner-aware check evaluates this exact `document` and accepts it when:
+     - it is unowned;
+     - the caller owns it; or
+     - Guardian’s `ObjectPermissionChecker` reports `view_document` on that object: `src/documents/permissions.py:624-635`.
+
+Consequently, merely knowing a document ID does not bypass validation, and `documents.add_sharelink` alone is insufficient.
+
+### Policy compliance
+
+For the supplied development example—actor `7`, document `10` owned by `9`—the owner and unowned shortcuts do not apply. The controlling branch is therefore the object checker for **document 10**, and the example supplies a matching `view_document` object grant. It also supplies both global permissions. This illustrates a policy-compliant path, but it is not proof of an actual request outcome.
+
+There is one policy-interpretation caveat: the helper authorizes owned and unowned documents without an explicit object-checker grant. Therefore:
+
+- if ownership/unowned visibility counts as exact-document authorization, the source behavior conforms;
+- if the policy literally requires a backend object-level `view_document` grant in every case, the owner and unowned branches are nonconforming.
+
+### Missing facts
+
+A real decision still requires:
+
+- the actual authenticated `request.user`;
+- the submitted document ID and whether serializer relation lookup resolves it;
+- the document’s current owner;
+- actual results of `has_perm("documents.add_sharelink")` and `has_perm("documents.view_document")`;
+- Guardian user/group object grants and superuser/custom-backend behavior for that exact document;
+- confirmation whether the policy accepts ownership and unowned-document access as exact-object authorization;
+- the installed DRF/Django/Guardian inherited behavior and versions.
+
+**Evidence basis:** source ref `126ec414a8b65158368653a2604ae58415e43103`; the authored rule program was rules-only and unexecuted.

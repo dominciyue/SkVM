@@ -1,0 +1,103 @@
+## Program authoring result
+
+The persistent executable program was repaired and adopted as draft revision:
+
+`ccaa6fdd9d382bb53312e165df2a90217224faa7ae66ac25269f6a63c6d08518`
+
+It has no compiler diagnostics. The key correction is that the source’s manual permission branch is inverted: a truthy `has_perms_owner_aware(...)` result returns `403`; the previous draft incorrectly treated it as authorization success.
+
+For the supplied development example, document 10 is owned by actor 7, so the helper is true and the corrected execution terminates with:
+
+`forbidden-when-owner-aware-check-is-true`
+
+Version and representation selection are therefore not reached in that execution.
+
+## 1. Requested document and returned file
+
+- The router registers `UnifiedSearchViewSet` under `documents`; that class inherits `DocumentViewSet` (`src/paperless/urls.py:74-77`, `src/documents/views.py:2503-2741`).
+- `download` is a GET detail action that calls `file_response(..., disposition="attachment")` and converts missing documents/files to `404` (`src/documents/views.py:1834-1839`).
+- `file_response` looks up `pk` with `Document.global_objects`, so deleted request documents are included. Missing `pk` is `404` (`src/documents/views.py:1408-1415,1429-1434`).
+- If the request document is a version, its root is resolved before authorization. Otherwise the request document itself is the root (`src/documents/versioning.py:146-156`).
+
+If authorization proceeds, effective-document selection is:
+
+1. If `pk` itself names a version and no `version` query parameter exists, that exact version is returned.
+2. Otherwise:
+   - no `version` parameter: newest visible related version, falling back to the root;
+   - `version=` with an empty value: newest related version including deleted versions;
+   - truthy `version`: convert it to an integer and select only the root itself or a version belonging to that root;
+   - malformed, missing, or unrelated explicit versions produce `404`.
+
+Newest order is `version_index DESC NULLS LAST`, then `id DESC` (`src/documents/views.py:1375-1399`; `src/documents/versioning.py:23-28,159-195`).
+
+Representation selection then occurs:
+
+- `original` must be present and exactly lowercase `"true"` to force the original;
+- otherwise an archive is returned when the selected document has one;
+- otherwise the original is returned (`src/documents/views.py:1368-1373,1437-1448`).
+
+Archive uses `archive_file` and `application/pdf`. Original uses `source_file` and the document MIME type, with UTF-8 charset adjustments for supported text/CSV types. `follow_formatting` affects the response filename, not the selected file handle. Download uses attachment disposition (`src/documents/views.py:4941-4995`).
+
+## 2. Authorization checks and ordering
+
+Before the action, DRF performs authentication and global permission checks (`framework/rest_framework-3.18.1/rest_framework/views.py:404-421`).
+
+`DocumentViewSet` configures:
+
+- `IsAuthenticated`
+- `PaperlessObjectPermissions`
+
+For GET, the latter requires model permission `documents.view_document` through `request.user.has_perms(...)` (`src/documents/views.py:1008-1022`; `src/documents/permissions.py:30-44`; `framework/rest_framework-3.18.1/rest_framework/permissions.py:233-246`).
+
+The custom download path does not call `get_object()` or `check_object_permissions()` for the eventual selected version. Instead it manually applies `has_perms_owner_aware(user, "view_document", root_doc)` to the resolved root.
+
+That helper returns true when the root is:
+
+- unowned;
+- owned by the requesting user; or
+- covered by the user’s Guardian object grant.
+
+However, the caller currently says:
+
+```python
+if request.user is not None and has_perms_owner_aware(...):
+    return HttpResponseForbidden(...)
+```
+
+Thus, as written:
+
+- owner/unowned root → helper true → `403`;
+- other-owned root with grant true → `403`;
+- other-owned root with grant false → processing continues.
+
+This behavior is established by `src/documents/permissions.py:624-635` and `src/documents/views.py:1421-1427`.
+
+Only after that branch succeeds does the code select the effective version and original/archive representation (`src/documents/views.py:1429-1448`).
+
+## 3. Alternate-version authorization resource
+
+Selecting another version does **not** change the permission target. Authorization is evaluated on `root_doc`; the selected effective version can be a different document and can have a different owner.
+
+There is no subsequent owner-aware or inherited DRF object-permission check for `file_doc`. Original versus archive selection happens even later and only changes the file handle, MIME rule, and filename. It does not alter the checked resource.
+
+Therefore:
+
+- requested version without `version=`: authorization remains on its root;
+- latest or explicit related version: authorization remains on the root;
+- original/archive choice: authorization remains on the root;
+- invalid or unrelated explicit version: `404`, not authorization against that unrelated document.
+
+## 4. Missing facts and blocked conclusions
+
+The following remain conditional:
+
+- **Authentication and model permission outcomes:** not supplied; these block concluding that the request reaches `download`.
+- **Actual root ownership and Guardian grant:** not supplied for a real request; these block concluding `403` versus continuation. Because of the inverted caller, a true grant produces `403`, while a false grant permits continuation.
+- **`request.user is None`:** source would skip the manual helper branch, although configured DRF authentication is intended to reject such a request earlier. Runtime admission is not established here.
+- **Actual database/version contents:** development rows are examples only; they do not establish the real requested document, root, or selected version.
+- **Storage existence and readability:** block concluding that `FileResponse` is successfully constructed. Relevant missing-file exceptions become `404`.
+- **Original-document MIME and filename fields:** absent from the finite fixture, so only their source rules—not exact resulting headers—are known.
+
+A no-grant trial was deliberately left unresolved rather than inventing a Guardian result; a missing-`pk` trial terminated at `404`.
+
+The program remains formally partial because its retained generic coverage gap and unreviewed source-candidate catalog have not been fully reconciled. It is not an HTTP authorization certificate.

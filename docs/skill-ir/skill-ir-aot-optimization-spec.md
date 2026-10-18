@@ -5,7 +5,7 @@
 
 **最后更新：** 2026-10-16
 
-**当前已确认路线：** 按 skill/task 范围设计领域表达并验证实际价值，复用既有授权 DSL 执行与 SkVM 入口。BO 已形成局部轨迹改善和逐题质量信号；用户授权 [BP 质量证据与分支可靠性](../superpowers/plans/2026-10-16-authorization-quality-evidence-and-branch-reliability.md)，以质量为主要效果轴，检验规则整理、有限执行和变化维护的增量。完整原 skill/四问、旧协议及默认保持，局部质量、整题、自动编写与成本分别判断。当前规划见 §14.55，BO 历史合同/结果保留 §14.54。研究过程统一[研究总文档](skill-dsl-research.md)，当前顺序见[执行计划](skill-ir-aot-optimization-plan.md)。BP 尚未实施，I1保留后备。
+**当前已确认路线：** 按 skill/task 范围设计领域表达并验证实际价值，复用既有授权 DSL 执行与 SkVM 入口。BO 已形成局部轨迹改善和逐题质量信号；用户授权 [BP 质量证据与分支可靠性](../superpowers/plans/2026-10-16-authorization-quality-evidence-and-branch-reliability.md)，以质量为主要效果轴，检验规则整理、有限执行和变化维护的增量。完整原 skill/四问、旧协议及默认保持，局部质量、整题、自动编写与成本分别判断。当前实现及评价合同见 §14.55，BO 历史合同/结果保留 §14.54。研究过程统一[研究总文档](skill-dsl-research.md)，当前顺序见[执行计划](skill-ir-aot-optimization-plan.md)。BP共享工程、45首位置及3具名确认已完成；主面板未达到预定重复局部优势，有限队列以completed-with-unmet-criteria收束，I1保留后备。
 
 本文保留旧研究阶段的标题与章节定位。下文有关统一 IR、AOT 优先、“不新建 DSL”和旧队列先后关系的限定，适用于各自阶段；总体方向以第14.34节为准，当前增量合同以第14.55节及任务书为准。已有 IR、接口、冻结结果和版本化材料不因路线变化而删除或改写。
 
@@ -3160,15 +3160,15 @@ BM8实施细节：当前协议只在thread/start注册dynamicTools。宿主预�
 
 ### 14.55 BP capability quality and executable support
 
-2026-10-16 用户授权 [BP0–BP21](../superpowers/plans/2026-10-16-authorization-quality-evidence-and-branch-reliability.md)，从已发布 af8321c3 接续，identity `authorization-quality-evidence-v1`。开发 gpt-6-astra/high，实验官方 gpt-5.6-sol/high，第三方暂停。2026-10-17从189a5924接管并进入共享工程；尚无BP实际模型调用，BO原件、评分和默认不改。
+2026-10-16 用户授权 [BP0–BP21](../superpowers/plans/2026-10-16-authorization-quality-evidence-and-branch-reliability.md)，从已发布 af8321c3 接续，identity `authorization-quality-evidence-v1`。开发 gpt-6-astra/high，实验官方 gpt-5.6-sol/high，第三方暂停。2026-10-17从189a5924接管，2026-10-18完成45首位置及3具名确认、36主面板评阅；维护职责修复bce9dfd4及两次同epoch确认单列。48attempt/77观察turn、46交付、47完整归档加1只读核对部分归档；工程成立，重复局部优势、整题及完整自动语义未达。BO原件、评分和默认不改。
 
-**当前实现细节。** rules在同native宿主保留raw草稿，复用patch/schema/来源结构工具，禁止调用会同时求值resource/property的编译器。规则check与普通session归档采用独立rules投影；现有execution.json/md文件名兼容inspect，schema为authorization-program-rules-archive/v1。CLI显式program-support=rules仅支持零模型check/compare和codex-account运行；provider入口明确拒绝该能力，避免静默执行。来源变化仍报告失效，跨执行历史不能作为rules账号续作来源。此边界尚在工程验证，不计真实采用证据。
+**当前实现细节。** rules在同native宿主保留raw草稿，复用patch/schema/来源结构工具，禁止调用会同时求值resource/property的编译器。规则check与普通session归档采用独立rules投影；现有execution.json/md文件名兼容inspect，schema为authorization-program-rules-archive/v1。CLI显式program-support=rules仅支持零模型check/compare和codex-account运行；provider入口明确拒绝该能力，避免静默执行。来源变化仍报告失效，跨执行历史不能作为rules账号续作来源。该边界已通过受影响联合测试及实际发送包核验；真实采用和质量效果另以原件评阅，不由工程通过推断。
 
 **主要目标。** 质量按授权对象关系、分支/调用顺序、变化一致性、条件/证据忠实性评价。局部重复优势可以独立成立，成本不作为质量成立的前置；完整四问、自动作者可靠性和长期目标保持各自验收。逐项正确、遗漏、错误肯定、合理 unknown、过度弃答和未交付分别记录；保持整题统计，不用单一整题 full 遮蔽局部进步。
 
 **共享实现。** 沿用 when/guard 和 coverage.call，补可选的模型作者激活依赖及实际连接反馈，不从函数名/旧答案推断正确条件。增加纯规则文档及显式 rules/execute 支持；full/compact/directed 原含义与旧默认兼容。rules 所有首包、details、patch/trial能力、恢复和终答 child 不得泄漏当前执行结果；执行臂使用同一份 raw 与规则。author-declared literal、有限计算、外部事实和上游未知的依据可区分，不把 literal 升格为证明。
 
-**维护职责接线细化（2026-10-18）。** 首轮S维护发现rules edit广告修改工具但只表述“可以编辑”，且未传authoringTargetMode，execute则明确要求程序交付。修复必须使两种edit入口都明确交付持久程序及原自然问题，向rules传入同一requested reusable目标，并从raw投影coverage缺口；rules只提供schema/source检查，不广告或执行trial。consume原合同与主面板固定输入保持。原首对保留指令混杂，修复后的同epoch两次确认另列，不替换36主分母、不从前次好稿续作。
+**维护职责接线细化（2026-10-18）。** 首轮S维护发现rules edit广告修改工具但只表述“可以编辑”，且未传authoringTargetMode，execute则明确要求程序交付。修复必须使两种edit入口都明确交付持久程序及原自然问题，向rules传入同一requested reusable目标，并从raw投影coverage缺口；rules只提供schema/source检查，不广告或执行trial。consume原合同与主面板固定输入保持。确认使用相同goal、reusable目标模式、初始raw/规则及配对绑定；目标说明按能力分别指向raw/source检查或trial，并不声称完整target对象字节相同。原首对保留指令混杂，修复后的同epoch两次确认另列，不替换36主分母、不从前次好稿续作。
 
 **配对实验。** R0 为原完整 skill/四问/源码/事实，R1 增加固定自动稿的规则文档及原字节，R2 在 R1 相同信息上增加实际执行支持。R1−R0 衡量规则准备，R2−R1 衡量执行支持；不把差异单独归因于语法。六个固定 development 情形各两次重复三臂，交付合同/模型/预算一致，独立 expected 在生成边界外。研究编写和源码变化维护另列；已暴露 ShareLink 辅助组只检验第二任务结构。
 

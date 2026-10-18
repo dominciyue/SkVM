@@ -1,8 +1,8 @@
 # Skill IR AOT 当前执行计划
 
-更新于2026-10-17。唯一实时入口为[current-status](current-status.md)。
+更新于2026-10-18。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BP0–BP21](../superpowers/plans/2026-10-16-authorization-quality-evidence-and-branch-reliability.md)，共享工程与评价预登记完成，进入真实作者队列。从189a5924接管，零模型兼容和三臂材料隔离已核验，质量效果尚待有限队列。以对象关系、分支、变化一致性和条件忠实性为主要质量轴。
+- 当前任务书：[BP0–BP21](../superpowers/plans/2026-10-16-authorization-quality-evidence-and-branch-reliability.md)，共享工程及45首位置已完成处置，主面板36位置34交付，未达到预定重复局部优势。维护职责缺陷已红绿修复，两次同epoch具名确认首/终稿均3/3局部匹配，条件及语义缺口保留；48attempt核验完成，以completed-with-unmet-criteria收束，完成origin发布后停止。
 - 方法合同：[spec §14.55](skill-ir-aot-optimization-spec.md#1455-bp-capability-quality-and-executable-support)；复核与开发过程统一在[研究 §7.77](skill-dsl-research.md#777-bo-质量复核与-bp-能力实验决定)。BO结果与合同保留在§7.76/§14.54。
 - identity：`authorization-quality-evidence-v1`，规划基线`af8321c313bcd3216620c1436802bacd8420fca8`。继续`skill-ir-aot`，只推用户origin，不建分支/worktree；新开发线程独占代码、共享方法文档与Git写入。
 - 开发`gpt-6-astra/high`，按用户指定；实验沿已授权官方账号`gpt-5.6-sol/high`。第三方暂停；旧未知与保护证据保持。接管时tracked干净，原有未跟踪`.tmp/`不清理。
@@ -13,14 +13,14 @@
 
 | 责任 | 已确认依据 | BP执行责任 |
 |---|---|---|
-| 调用保真 | BO A0 18/18加7/8，匿名外层激活仍缺 | BP2–4补共享依赖反馈和实际工具广告，不代填条件 |
-| 作者可靠性 | BO A1局部调用较好但值7/18 | A0修稿，A1/A2空稿分轨，不选最好稿代替固定A0 |
-| 消费机制 | 当前context均含执行信息，缺rules-only对照 | BP5–7纯规则文档及无结果泄漏支持，默认兼容 |
-| 局部质量 | BO两对3改善/1退步/4持平，Q3两组改善 | 六情形×三臂×两重复；逐能力/逐题/整题共同报告 |
-| 变化与采用 | BO副本三局部反转成立 | 两维护用途同材料比较；已暴露ShareLink辅助组 |
-| 实证与交付 | BO工程、实际程序和自然答分别有记录 | 保留原件、错误和未知；局部质量可单独成立，成本另轴 |
+| 调用保真 | BP固定52步A0字段/局部18/18、7/8、6/7，匿名激活及缺version键仍有缺口 | 共享依赖反馈和实际工具广告已实现，模型原稿不代修 |
+| 作者可靠性 | BP A1最终字段同A0；A2为17/18、5/8、5/7，局部轨迹同A0 | 独立空稿结果保留，完整可靠性未达 |
+| 消费机制 | 同源规则、默认兼容及实际包隔离均有证据 | 修复rules edit职责/可复用目标，consume不改 |
+| 局部质量 | R2−R1分支3/7/2、变化2/9/1；对象和条件各0/11/1 | 探索性改善与取舍，预定重复优势false；全部失败在分母 |
+| 变化与采用 | 维护首对指令混杂，修后同epoch确认另列；ShareLink三臂均partial | 有限采用与完整语义分别验收，第二结构无执行质量增益 |
+| 实证与交付 | 工程83测试/581断言、主/BP类型、15文档测试通过 | 零模型归档、来源、实际包和分轴验收已完成；origin发布收尾，未知成本不填零 |
 
-普通入口保留BL A0默认，[Download说明](../../examples/authorization-assessment/download-workflow/README.md#current-bo-explicit-program)提供BO显式命令。BP沿同入口增加当前稿与支持选择；缺稿记未运行，不用旧稿或开发者稿填位。最多45首位置及6具名修复确认，源码/评分/首答与修订分轨。完成有限队列后停止，不自动派发BQ。
+普通入口保留BL A0默认，[Download说明](../../examples/authorization-assessment/download-workflow/README.md#current-bp-explicit-program)提供BP显式命令。BP沿同入口使用当前稿与支持选择；缺稿记未运行，不用旧稿或开发者稿填位。最多45首位置及6具名修复确认，源码/评分/首答与修订分轨。完成有限队列后停止，不自动派发BQ。
 
 ## 继承的真实结果
 

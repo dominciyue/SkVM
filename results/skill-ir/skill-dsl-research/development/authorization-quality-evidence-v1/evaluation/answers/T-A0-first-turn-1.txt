@@ -1,0 +1,79 @@
+已建立并采纳持久化程序 `share-link-create-document-check`，当前 draft revision 为 `60f837…e6db`，无机械诊断。程序覆盖 endpoint、用户注入、全局权限及精确文档的 owner-aware 检查。
+
+## 结论
+
+对给定开发场景，创建分享**通过检查并符合策略**：
+
+- 调用者 `actor.id=7` 已认证；
+- 有 `documents.add_sharelink`；
+- 有全局 `documents.view_document`；
+- 请求指向 document `10`；
+- document `10` 属于用户 `9`，调用者不是所有者；
+- 但调用者具有 document `10` 的精确 `view_document` 对象授权。
+
+程序结果为：
+
+```text
+document_id: 10
+endpoint_permission: documents.add_sharelink
+model_view_permission: documents.view_document
+exact_object_basis: object_grant
+```
+
+### 请求与 endpoint 控制
+
+- 路由注册为 `share_links`，挂在 `/api/` 下，因此创建入口是 `POST /api/share_links/`：`src/paperless/urls.py:74-100`。
+- `ShareLinkViewSet` 继承 `CreateModelMixin`，使用 `ShareLinkSerializer`，权限类为：
+  - `IsAuthenticated`
+  - `PaperlessObjectPermissions`  
+  见 `src/documents/views.py:4696-4710`。
+- `PaperlessObjectPermissions` 将 POST 映射到 `documents.add_sharelink`：`src/documents/permissions.py:30-44`。
+
+这只是新建 `ShareLink` 的模型级入口权限。此时分享对象尚不存在，所以 `PaperlessObjectPermissions.has_object_permission()` 对现存 ShareLink 的 owner/object 检查不是目标文档的创建前授权依据。
+
+### 精确文档控制
+
+`PassUserMixin` 将 `request.user` 传入继承 `SerializerWithPerms` 的 serializer：`src/documents/views.py:411-428`。`ShareLinkSerializer` 经 `OwnedObjectSerializer` 满足该继承路径：`src/documents/serialisers.py:295-299,2851`。
+
+`ShareLinkSerializer.validate_document()` 要求三项同时成立：
+
+1. serializer 用户不为空；
+2. 用户有全局 `documents.view_document`；
+3. `has_perms_owner_aware(user, "view_document", document)` 对**该 document 实例**返回真。
+
+见 `src/documents/serialisers.py:2873-2886`。
+
+`has_perms_owner_aware` 对该精确对象仅在以下任一条件成立时放行：
+
+- 文档无 owner；
+- 调用者是 owner；
+- Guardian checker 对该文档授予 `view_document`。
+
+见 `src/documents/permissions.py:624-635`。
+
+因此，知道 document ID 或仅有全局 `view_document` 都不够。程序试验确认：
+
+- 他人文档且没有对象授权：拒绝；
+- 调用者是 owner：通过；
+- 精确对象授权存在：通过；
+- 缺少 `add_sharelink`：在 endpoint 阶段拒绝；
+- 缺少全局 `view_document`：在 serializer 阶段拒绝。
+
+验证通过后，`ShareLinkSerializer.create()` 生成 slug 并委托父类；`OwnedObjectSerializer.create()` 默认把当前用户设置为新 ShareLink 的 owner，然后才创建实例：`src/documents/serialisers.py:2869-2871,486-501`。
+
+## 策略符合性边界
+
+源码满足策略的核心要求：它不会把文档存在、已知 ID 或 `add_sharelink` 当作该文档的查看授权，而是另外检查精确 document。
+
+但 `has_perms_owner_aware` 将“本人所有”和“无 owner”视为有效的对象级授权。如果策略要求的不是这种有效对象访问权，而是**必须存在显式 Guardian `view_document` 记录**，则这两个分支比策略更宽，需要收紧。
+
+## 仍缺少的实际事实
+
+开发场景不能证明真实请求会被授权；实际判断仍需：
+
+- 真实认证用户及认证状态；
+- 真实请求解析出的 document 实例、存在性及 owner；
+- 当前权限后端计算出的 `add_sharelink` 和全局 `view_document`；
+- 精确文档的用户/组 Guardian 授权，或 owner/unowned 状态；
+- superuser、组权限和自定义 backend 的影响；
+- 策略是否接受 owner/unowned 作为“精确文档权限”。

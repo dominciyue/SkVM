@@ -1,0 +1,232 @@
+{
+  "schemaVersion": "authorization-executable-contract/v1",
+  "id": "share-link-create-document-check",
+  "scope": {
+    "kind": "function-contract",
+    "questionId": "share-create",
+    "root": {
+      "path": "src/documents/serialisers.py",
+      "symbol": "ShareLinkSerializer.validate_document"
+    },
+    "upstream": [
+      "The HTTP request-to-serializer field conversion and inherited create flow remain upstream",
+      "Django authentication and permission backend semantics remain unresolved"
+    ]
+  },
+  "sourceDeclarations": [
+    {
+      "source": {
+        "path": "src/documents/serialisers.py",
+        "symbol": "ShareLinkSerializer.validate_document"
+      },
+      "statements": []
+    },
+    {
+      "source": {
+        "path": "src/documents/views.py",
+        "symbol": "ShareLinkViewSet"
+      },
+      "statements": []
+    },
+    {
+      "source": {
+        "path": "src/paperless/urls.py",
+        "startLine": 88,
+        "endLine": 88
+      },
+      "statements": []
+    }
+  ],
+  "queries": [],
+  "assumptions": [],
+  "inputBinding": {
+    "questionId": "share-create"
+  },
+  "resourceWorkflow": {
+    "inputs": [
+      "actor",
+      "request",
+      "documents",
+      "model_grants",
+      "object_grants"
+    ],
+    "steps": [
+      {
+        "id": "document",
+        "op": "select",
+        "from": "documents",
+        "where": {
+          "op": "eq",
+          "left": {
+            "binding": "row.id"
+          },
+          "right": {
+            "binding": "request.document_id"
+          }
+        },
+        "source": {
+          "path": "src/documents/serialisers.py",
+          "startLine": 2873,
+          "endLine": 2886
+        },
+        "because": "The serializer validates the concrete document supplied for the document field."
+      },
+      {
+        "id": "model_view_grant",
+        "op": "select",
+        "from": "model_grants",
+        "where": {
+          "op": "all",
+          "args": [
+            {
+              "op": "eq",
+              "left": {
+                "binding": "row.actor_id"
+              },
+              "right": {
+                "binding": "actor.id"
+              }
+            },
+            {
+              "op": "eq",
+              "left": {
+                "binding": "row.permission"
+              },
+              "right": {
+                "literal": "documents.view_document"
+              }
+            }
+          ]
+        },
+        "source": {
+          "path": "src/documents/serialisers.py",
+          "startLine": 2873,
+          "endLine": 2877
+        }
+      },
+      {
+        "id": "require_user_and_model_view",
+        "op": "guard",
+        "test": {
+          "op": "all",
+          "args": [
+            {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "actor"
+                }
+              }
+            },
+            {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "model_view_grant"
+                }
+              }
+            }
+          ]
+        },
+        "failure": "Insufficient permissions.",
+        "principal": {
+          "ref": "actor"
+        },
+        "resource": {
+          "ref": "document"
+        },
+        "permission": {
+          "literal": "documents.view_document"
+        },
+        "source": {
+          "path": "src/documents/serialisers.py",
+          "startLine": 2873,
+          "endLine": 2877
+        }
+      },
+      {
+        "id": "result",
+        "op": "return",
+        "value": {
+          "record": {
+            "document_id": {
+              "field": {
+                "of": {
+                  "ref": "document"
+                },
+                "key": "id"
+              }
+            },
+            "model_view_check": {
+              "literal": true
+            }
+          }
+        },
+        "source": {
+          "path": "src/documents/serialisers.py",
+          "startLine": 2882,
+          "endLine": 2886
+        }
+      }
+    ],
+    "gaps": [
+      "has_perms_owner_aware semantics and its exact-object decision are not yet modeled",
+      "Inherited endpoint create permission mapping and serializer user injection are not yet modeled",
+      "Document field lookup and missing-document behavior are represented only by the supplied finite documents input"
+    ]
+  },
+  "authoringTarget": {
+    "mode": "reusable",
+    "coverage": [
+      {
+        "id": "validate-user-global-view",
+        "source": {
+          "path": "src/documents/serialisers.py",
+          "startLine": 2873,
+          "endLine": 2877
+        },
+        "stepIds": [
+          "document",
+          "model_view_grant",
+          "require_user_and_model_view"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "validate-owner-aware",
+        "source": {
+          "path": "src/documents/serialisers.py",
+          "startLine": 2877,
+          "endLine": 2886
+        },
+        "stepIds": [],
+        "disposition": "unwritten",
+        "reason": "Helper semantics must be read before encoding the exact-object decision."
+      },
+      {
+        "id": "share-viewset-endpoint-controls",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 4696,
+          "endLine": 4717
+        },
+        "stepIds": [],
+        "disposition": "unwritten",
+        "reason": "Inherited create permission and serializer paths remain to be read."
+      },
+      {
+        "id": "share-route",
+        "source": {
+          "path": "src/paperless/urls.py",
+          "startLine": 88,
+          "endLine": 88
+        },
+        "stepIds": [],
+        "disposition": "unwritten",
+        "reason": "Route is identified but is descriptive rather than a finite authorization relation."
+      }
+    ]
+  }
+}

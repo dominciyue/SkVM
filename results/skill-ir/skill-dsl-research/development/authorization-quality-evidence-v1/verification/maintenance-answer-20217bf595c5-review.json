@@ -1,0 +1,48 @@
+{
+  "answer": "evaluation/aux-blind/answer-20217bf595c5.txt",
+  "independentReviewer": {
+    "agent": "bp_s2_prose_review",
+    "ratings": [
+      "partial",
+      "partial",
+      "full-with-small-fix",
+      "partial"
+    ],
+    "finding": "Claimed helper lacked owner shortcuts, all criticisms derived from this claim",
+    "sourceUsed": "authorization-practical-execution-v1/source-change",
+    "accepted": false
+  },
+  "mainAdjudication": "独立评阅错误地转到 authorization-practical-execution-v1/source-change，声称permissions.py:635只有checker.has_perm，进而认为答案owner短路错误。该出处不属于指定BP副本。主代理点验BP真实permissions.py:634-635为checker构造后return obj.owner is None or obj.owner == user or checker.has_perm(perms,obj)，因此这组反对意见不成立。保留评阅偏离，不据此改分。",
+  "actualSource": "verification/source-change/package/source/src/documents/permissions.py:634-635",
+  "answerAnchors": {
+    "polarity": "17-25,176-192",
+    "selection": "43-91,129-139",
+    "object": "214-246",
+    "conditions": "254-267"
+  },
+  "scope": "Auxiliary qualitative source explanation; not primary fact/full grading or automatic maintenance proof",
+  "exactSourceIndependentReview": {
+    "agent": "bp_maintenance_exact_source",
+    "sourceQuote": "checker = ObjectPermissionChecker(user); return obj.owner is None or obj.owner == user or checker.has_perm(perms, obj)",
+    "viewsQuote": "if request.user is not None and has_perms_owner_aware(...): return HttpResponseForbidden",
+    "findings": {
+      "polarityCompletionOrder": "supported answer17-25,167-192; permissions634-635/views1421-1427",
+      "versionManagerRootSort": "supported answer43-91; views1375-1399/versioning23-28,146-195",
+      "objectRelations": "supported answer214-246; views1401-1448",
+      "conditions": "constructor normal-completion-not-grant at258; explicit False/None-as-normal-completion explanation omitted"
+    },
+    "ratings": [
+      "full",
+      "full",
+      "full",
+      "partial"
+    ]
+  },
+  "mainRatings": [
+    "full",
+    "full",
+    "full",
+    "partial"
+  ],
+  "ratingScope": "Auxiliary source explanation, four task questions; E2 value/completion omission retained, not a primary row"
+}

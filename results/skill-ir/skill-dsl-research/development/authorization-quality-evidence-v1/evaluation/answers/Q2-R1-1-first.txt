@@ -1,0 +1,113 @@
+## Source-level conclusion
+
+The Download action is exposed through the `documents` router inherited by `UnifiedSearchViewSet`, giving the normal DRF route `GET /api/documents/{pk}/download/`. The application first authorizes the resolved **root document**, then selects an effective version, then chooses that version’s original or archive file. Neither alternate-version selection nor original/archive selection causes another object-permission check.
+
+This is a static trace of revision `126ec414…`; it is not proof that any real request was admitted or any file was successfully read.
+
+## 1. Requested document and returned file
+
+### Entry and requested document
+
+- `/api/` includes the router, which registers `UnifiedSearchViewSet` under `documents`; that class inherits `DocumentViewSet` (`src/paperless/urls.py:74-77`, `src/paperless/urls.py:97-100`, `src/paperless/urls.py:293-299`, `src/documents/views.py:2503-2507`).
+- `download` is a GET detail action. It calls `file_response(pk, request, "attachment")` (`src/documents/views.py:1834-1839`).
+- `pk` is looked up as `Document.id`. For downloads, `include_deleted=True`, so the initial lookup uses `Document.global_objects`, not the ordinary manager. Missing `pk` produces 404 (`src/documents/views.py:1401-1415`, `src/documents/views.py:1429-1434`).
+
+### Root resolution
+
+From the requested document:
+
+1. If `root_document_id` is null, the requested document is the root.
+2. Otherwise, use its loaded `root_document` relation.
+3. If that relation is unavailable, query the include-deleted manager for the root ID.
+4. If that also fails, fall back to the requested document itself.
+
+See `src/documents/versioning.py:146-156`.
+
+### Effective version branches
+
+Version selection happens only after root authorization:
+
+| Request state | Selected document |
+|---|---|
+| `pk` itself names a version and `version` is absent | That exact requested version |
+| `version` absent in other cases | Newest non-deleted version of the root, or the root if none |
+| `version=` present but empty | Newest version including deleted versions, or the root |
+| `version=<nonempty integer>` | That ID, only if it is the root itself or a direct version of that root |
+| Non-integer `version` | 404, “Invalid version parameter” |
+| Missing or unrelated explicit version | 404 |
+
+The latest ordering is `version_index DESC NULLS LAST`, then `id DESC` (`src/documents/views.py:1375-1399`, `src/documents/versioning.py:23-28`, `src/documents/versioning.py:136-143`, `src/documents/versioning.py:159-195`).
+
+Consequently, a `version` parameter can override a version named by `pk`. An empty parameter is materially different from an absent parameter because it enables the global/include-deleted manager.
+
+### Original/archive selection
+
+After selecting `file_doc`:
+
+- Original is explicitly requested only when the `original` parameter exists and equals the exact lowercase string `"true"`.
+- Otherwise, if `file_doc.has_archive_version` is truthy, the archive is used.
+- Otherwise, the original is used.
+
+The archive branch returns `file_doc.archive_file` with `application/pdf`. The original branch returns `file_doc.source_file` using that document’s MIME type, with the source’s text-charset adjustments. `follow_formatting` only selects the response filename; it does not change the document or file handle. Download sets `Content-Disposition: attachment` (`src/documents/views.py:1368-1373`, `src/documents/views.py:1437-1448`, `src/documents/views.py:4941-4995`).
+
+`FileNotFoundError` or `Document.DoesNotExist` raised while `file_response` executes is converted to 404 (`src/documents/views.py:1834-1839`).
+
+### Supplied development example
+
+Taking the authored fixture literally—not as a deployment observation:
+
+- `pk=11` selects document 11.
+- It names root ID 10, but the finite inputs provide no related/root row, so the modeled fallback root is document 11.
+- Its owner is actor 9, so after the assumed successful checker construction, the owner branch permits it without calling `has_perm`.
+- Because `version` is absent and document 11 is already a version, document 11 remains selected.
+- Because `original` is absent and an archive exists, the selected file is `v1-archive.pdf`, returned as a PDF attachment.
+
+## 2. Authorization checks and selection order
+
+The order is:
+
+1. **DRF pre-handler checks.** `dispatch` calls `initial` before the action; `initial` performs authentication, global permission checks, and throttling (`framework/rest_framework-3.18.1/rest_framework/views.py:404-421`, `framework/rest_framework-3.18.1/rest_framework/views.py:506-523`).
+2. **Authentication.** `DocumentViewSet` configures `IsAuthenticated`, which requires a truthy authenticated user (`src/documents/views.py:1008-1022`, `framework/rest_framework-3.18.1/rest_framework/permissions.py:145-151`).
+3. **Global model permission.** `PaperlessObjectPermissions` maps GET to `view_document`; DRF derives the permission from the `Document` queryset and calls `request.user.has_perms`, so the effective model permission is `documents.view_document` (`src/documents/permissions.py:30-44`, `framework/rest_framework-3.18.1/rest_framework/permissions.py:233-246`).
+4. **Requested-document lookup and root resolution.** A missing `pk` yields 404 before the action-specific root authorization.
+5. **Action-specific root authorization.** `has_perms_owner_aware(user, "view_document", root_doc)` is evaluated:
+   - root unowned → allow;
+   - root owned by requesting user → allow;
+   - root owned by someone else → `ObjectPermissionChecker.has_perm("view_document", root_doc)` decides;
+   - false result → explicit 403.
+   
+   The checker is constructed before these short-circuit branches (`src/documents/permissions.py:624-635`, `src/documents/views.py:1417-1427`).
+6. **Version selection.**
+7. **Original/archive selection and response construction.**
+
+Although `PaperlessObjectPermissions` defines an owner-aware `has_object_permission`, this action does not use `get_object()` or call `check_object_permissions()` for either the requested version or selected `file_doc`. It performs the explicit root check and then directly calls `serve_file` (`src/documents/permissions.py:46-53`, `src/documents/views.py:1429-1448`; contrast DRF’s object-check facility at `framework/rest_framework-3.18.1/rest_framework/views.py:344-345`).
+
+## 3. Does alternate selection change the authorized resource?
+
+**No, not after the root has been resolved.**
+
+- If `pk` identifies a root, that root is authorized.
+- If `pk` identifies a version with an available root, its root is authorized—not the version.
+- If the referenced root cannot be obtained, the code falls back to authorizing the requested document itself.
+- An explicit alternate version must be either that root or a direct version of it. This relationship restriction prevents selecting an unrelated document, but the alternate version’s owner and object grants are not independently checked.
+- Selecting the latest visible version, latest including deleted versions, or an explicit related version changes `file_doc`, not `root_doc`.
+- Choosing original versus archive changes only the selected file handle and response metadata.
+
+Thus a selected version may differ from the authorized root and may have different owner data, but authorization remains based on the resolved root. There is no post-selection authorization recheck (`src/documents/views.py:1421-1448`, `src/documents/versioning.py:169-195`).
+
+## 4. Missing facts and bounded conclusions
+
+| Missing runtime fact | Conclusion it blocks |
+|---|---|
+| Actual authentication result and configured authenticators | Whether a real HTTP request reaches the action |
+| User’s actual `documents.view_document` model permission | Whether global DRF permission admission succeeds |
+| Throttle and other pre-handler outcomes | Whether dispatch reaches `download` |
+| Actual `pk`, query strings, database rows, root relation, deletion state, and version ordering data | Which request, root, and effective version documents are selected |
+| Resolved root’s actual owner | Whether ownership/unowned short-circuit authorization applies |
+| Guardian object grant and backend behavior for an other-owned root | Whether the action-specific root check allows or returns 403 |
+| Checker construction/runtime failures | Whether owner-aware evaluation completes; the fixture assumes only constructor completion |
+| Selected document’s archive flag and actual file fields | Whether archive or original is selected and which path/handle is used |
+| Storage existence, readability, backend behavior, and deferred reads | Whether a successful file response actually supplies bytes rather than failing |
+| Deployment proxy/base path and upstream admission controls | The externally reachable URL and whether traffic reaches this Django route |
+
+The missing selected-version ownership or grants **do not** block the source-level conclusion about authorization target: the code visibly does not reauthorize the selected version. They only block statements about who owns that selected version or what an independent permission check would have returned.

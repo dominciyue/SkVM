@@ -1,0 +1,267 @@
+# Document Download authorization and file-selection trace
+
+**Revision:** `paperless-ngx/paperless-ngx@126ec414a8b65158368653a2604ae58415e43103`
+
+**Evidence status:** This answer describes the current executable program and the supplied source excerpts. The program remains marked `semanticSupport: unreviewed` and `requestOperationCertified: false`; runtime deployment behavior is not certified.
+
+## Current supplied scenario
+
+For the supplied development fixture:
+
+- actor: user `7`
+- requested `pk`: document `10`
+- `version`: absent
+- `original`: absent
+- document `10` is a root owned by user `7`
+
+The current program terminates at the action-specific authorization branch:
+
+1. `pk=10` resolves to document `10`.
+2. Its authorized root is also document `10`.
+3. `has_perms_owner_aware(user=7, ..., root=10)` is true because the root owner equals the actor.
+4. The source at `src/documents/views.py:1421-1426` returns `HttpResponseForbidden` when that helper is true.
+5. Consequently, version and representation selection do not execute, and **no file is returned**.
+
+This is only the finite local outcome. Actual HTTP admission remains conditional on authentication, global model permission, and throttling.
+
+---
+
+## 1. Requested document and returned file
+
+### Entry and document identity
+
+The router registers the `documents` prefix through `UnifiedSearchViewSet` (`src/paperless/urls.py:74-77`). The exact final deployment URL and the inheritance relationship exposing `DocumentViewSet.download` were not present in the read evidence.
+
+`download` is a GET detail action and calls:
+
+```python
+self.file_response(pk, request, "attachment")
+```
+
+(`src/documents/views.py:1834-1839`).
+
+`file_response` resolves `pk` using `_resolve_request_and_root_doc(..., include_deleted=True)`. This selects `Document.global_objects`, so the request lookup is intended to include deleted rows. A missing `pk` raises `Http404` (`src/documents/views.py:1401-1415`, `1429-1434`).
+
+The root is then determined as follows (`src/documents/versioning.py:146-156`):
+
+1. If the requested row has no `root_document_id`, it is its own root.
+2. If its related `root_document` is already available, that related object is used.
+3. Otherwise, the root ID is queried using the selected manager.
+4. If that root cannot be found, the requested document itself is used as fallback.
+
+Authorization is performed on that resulting root before the effective file document is selected.
+
+### Version selection branches
+
+After the root authorization branch permits continuation, `_get_effective_file_doc` chooses the document whose file will be served (`src/documents/views.py:1375-1399`).
+
+#### A. `pk` itself names a version, and `version` is absent
+
+If `request_doc.root_document_id` is non-null and the `version` query parameter is absent, the exact `request_doc` is returned. No “latest version” lookup occurs.
+
+Thus requesting a version row directly preserves that exact version, even though authorization was evaluated against its root.
+
+#### B. No truthy `version` value
+
+Otherwise, `resolve_requested_version_for_root` selects the latest version belonging to the root, falling back to the root itself if no version exists (`src/documents/versioning.py:159-182`).
+
+Ordering is:
+
+1. `version_index` descending, nulls last;
+2. `id` descending.
+
+There is an important absent-versus-empty distinction:
+
+- **Parameter absent (`None`)**: `_resolve_file_doc` sets `include_deleted=False`, so the latest lookup uses the ordinary manager.
+- **Parameter present but empty (`version=`)**: the parameter is present, so `include_deleted=True`; however, the empty string is falsy, so it still selects “latest.” This therefore selects the latest version through the global manager, potentially including deleted versions.
+
+The exact ordinary/global manager filtering implementation was not included in the read excerpts; interpreting these as “visible-only” versus “including deleted” is an unreviewed program meaning supported by the helper names and call sites.
+
+#### C. Truthy explicit `version`
+
+A truthy value is converted with `int(version_param)` (`src/documents/versioning.py:184-195`):
+
+- conversion failure produces `INVALID`, mapped by the view to DRF `NotFound("Invalid version parameter")`;
+- a missing candidate produces a not-found result;
+- a candidate is accepted only if it is:
+  - the root itself, or
+  - a direct version whose `root_document_id` equals the authorized root ID;
+- an unrelated document ID produces not found.
+
+Because any present parameter makes `include_deleted=True`, a valid explicit ID may select a deleted root/version through the global manager.
+
+### Original versus archive
+
+Only after `file_doc` has been selected does the code decide its representation (`src/documents/views.py:1442-1447`):
+
+```text
+use_archive =
+    query parameter original is not exactly "true"
+    AND file_doc.has_archive_version is truthy
+```
+
+Therefore:
+
+- `?original=true` selects `file_doc.source_file`;
+- if `original` is absent or has any value other than the exact lowercase string `"true"`, an archive is selected when available;
+- if the selected document has no archive version, its original source file is used regardless.
+
+`serve_file` then constructs the response (`src/documents/views.py:4941-4995`):
+
+| Representation | File handle | Content type |
+|---|---|---|
+| Archive | `file_doc.archive_file` | `application/pdf` |
+| Original | `file_doc.source_file` | `file_doc.mime_type` |
+
+For original text/CSV MIME types, UTF-8 charset is appended. The CSV-to-`text/plain` branch applies only to inline responses, so it is not triggered by Download’s `attachment` disposition.
+
+`follow_formatting` changes only the response filename:
+
+- archive: `archive_filename` versus `get_public_filename(archive=True)`;
+- original: `filename` versus `get_public_filename()`.
+
+It does not change the selected document or file handle. The filename is normalized for the basic `filename=` field and also emitted through RFC 5987 `filename*=`.
+
+`FileNotFoundError` and `Document.DoesNotExist` escaping from `file_response` are converted to `Http404` by `download` (`src/documents/views.py:1835-1839`).
+
+### Conditional result for the supplied rows
+
+If the supplied request were allowed past the local root branch, then:
+
+- root `10`;
+- no `version` parameter;
+- latest non-deleted related version: document `11`;
+- `original` absent;
+- document `11` has an archive;
+
+would select `v1-archive.pdf`.
+
+That selection is counterfactual for the current execution: the current program returns forbidden before reaching it.
+
+---
+
+## 2. Authorization checks and selection order
+
+The source-visible order is:
+
+1. **DRF initialization**
+   - content negotiation and API-version processing;
+   - authentication;
+   - global permission checks;
+   - throttling.
+
+   (`framework/rest_framework-3.18.1/rest_framework/views.py:404-421`)
+
+2. **Global permissions**
+   - `DocumentViewSet.permission_classes` contains `IsAuthenticated` and `PaperlessObjectPermissions` (`src/documents/views.py:1008-1022`);
+   - for GET, `PaperlessObjectPermissions.perms_map` requires `documents.view_document` (`src/documents/permissions.py:30-44`);
+   - DRF calls each class’s `has_permission` before dispatch (`rest_framework/views.py:331-342`).
+
+3. **Requested document lookup**
+   - `pk` is loaded through `Document.global_objects`;
+   - missing row gives 404.
+
+4. **Root resolution**
+   - the requested root or ancestor root is determined as described above.
+
+5. **Action-specific root check**
+   - `ObjectPermissionChecker` is constructed;
+   - `has_perms_owner_aware` evaluates true when:
+     - the root is unowned;
+     - the root is owned by the requesting user; or
+     - Guardian’s `checker.has_perm("view_document", root)` returns true.
+
+   (`src/documents/permissions.py:624-635`)
+
+6. **Source-visible polarity**
+   - despite the helper’s name and return expression, the caller returns forbidden when the helper is true;
+   - it continues when the helper is false.
+
+   (`src/documents/views.py:1421-1427`)
+
+This means the source as read has these branches:
+
+| Root state | Helper result | Local action result |
+|---|---:|---|
+| Unowned | true | forbidden |
+| Owned by actor | true | forbidden |
+| Owned by another user, Guardian grant true | true | forbidden |
+| Owned by another user, Guardian grant false | false | continues |
+| `request.user is None` | helper skipped | continues locally |
+
+The final row normally should be blocked earlier by `IsAuthenticated`, but actual upstream admission is not supplied. The surprising true-means-forbidden polarity is directly present in the source; this answer does not assume whether it is intended.
+
+7. **Version selection**
+   - runs only if the root branch continues;
+   - may select the root, the directly requested version, the latest version, or an explicit related version.
+
+8. **Representation selection**
+   - original versus archive is decided from the already-selected `file_doc`.
+
+9. **Response construction**
+   - `serve_file` receives `file_doc` directly.
+
+### Object-permission behavior
+
+`file_response` does not call `get_object()` or DRF’s `check_object_permissions()` for either the requested row or the selected file document. DRF’s global `has_permission` checks run, but its inherited object-permission method is not invoked on `file_doc`.
+
+The only source-visible object-specific decision in this path is the explicit `has_perms_owner_aware(..., root_doc)` branch—and its caller uses the polarity described above.
+
+---
+
+## 3. Does another version or representation change the authorized resource?
+
+**Ordinarily, no.** The authorization target is the resolved `root_doc`. Version and representation selection happen afterward.
+
+### Alternate version selected by query parameter
+
+A `version=<id>` parameter:
+
+- does not replace the authorization target;
+- can only select the root or a direct version of that authorized root;
+- changes `file_doc`, and therefore the file handle and metadata used by `serve_file`;
+- does not trigger another owner-aware or DRF object-permission check on the selected version.
+
+Consequently, the selected version can have a different `owner` from the authorized root. The supplied fixture demonstrates that relationship: root `10` is owned by `7`, while versions `11` and `12` are owned by `9`. Source does not re-authorize against owners `9`.
+
+### `pk` directly names a version
+
+When `pk` names a version:
+
+1. the code resolves its root;
+2. the root is the authorization target;
+3. with no `version` parameter, the exact requested version becomes `file_doc`;
+4. there is no permission recheck on that version.
+
+If the related root is missing and cannot be fetched, `get_root_document` falls back to the version row itself. In that exceptional branch, the fallback row becomes the authorization target.
+
+### Original versus archive
+
+Choosing original or archive never changes the authorized resource:
+
+- the root has already been checked;
+- `file_doc` has already been selected;
+- the representation branch merely chooses `file_doc.source_file` or `file_doc.archive_file`.
+
+No separate permission is evaluated for the archive file, source file, storage path, or response filename.
+
+---
+
+## 4. Missing facts and conditional conclusions
+
+| Missing or unreviewed fact | Conclusion it blocks |
+|---|---|
+| Actual authentication credentials and configured authentication backends | Whether a real request reaches the Download action at all. |
+| Actual `documents.view_document` model permission for the user | Whether DRF’s global permission phase permits dispatch. |
+| Actual throttle state | Whether admission is stopped before the action despite authentication and permission success. |
+| Actual root ownership and Guardian object grant | Which branch `has_perms_owner_aware` returns in a real request. |
+| Guardian backend/configuration and actual `ObjectPermissionChecker.has_perm` result | Whether a foreign-owned root produces true or false in the helper. The supplied constructor assumption proves only normal construction, not a grant. |
+| Intended policy behind the true-means-forbidden condition | Whether the source-visible polarity is deliberate, a naming mismatch, or a defect. Its runtime branch is visible, but intent is not. |
+| Actual database rows, root relationships, deletion state, and version indices | Which requested/root/version document is selected in deployment. |
+| Exact implementations of `Document.objects` and `Document.global_objects` | Full proof of their visibility/deletion semantics; the current program’s visible/global interpretation remains unreviewed. |
+| Selected file’s MIME fields and generated public filenames | Exact response MIME and filename for a real document. |
+| Storage backend behavior and file existence/readability | Whether `FileResponse` can be completed or the action ends as not found/storage failure. |
+| `UnifiedSearchViewSet` inheritance and complete outer URL configuration | The exact externally reachable route, although the `documents` router prefix and `download` detail action are individually shown. |
+| Proxy, middleware, deployment admission, and external access policy | Whether a deployed request can reach the DRF view and whether additional controls apply. |
+
+Finally, the executable program itself retains the generic gap that further source-visible branches/candidate mappings remain unreviewed. Its finite trials support the described branch distinctions, but they are development computations, not observations of a deployed service or an authorization certificate.

@@ -1,0 +1,68 @@
+## share-create
+
+**Policy verdict:** **The supplied scenario conforms, but the implementation is not universally conformant with the policy’s literal requirement.**
+
+### Source behavior
+
+1. **Endpoint**
+   - `ShareLinkViewSet` is registered as `share_links`, under the `/api/` URL prefix, so creation is `POST /api/share_links/` (`src/paperless/urls.py:88`, `src/paperless/urls.py:97-100`, `src/paperless/urls.py:297`).
+
+2. **Endpoint-level controls**
+   - The view uses `IsAuthenticated` and `PaperlessObjectPermissions` (`src/documents/views.py:4696-4710`).
+   - `PaperlessObjectPermissions` inherits `DjangoObjectPermissions`; its POST mapping is `%(app_label)s.add_%(model_name)s`, which resolves for this view’s `ShareLink` model to `documents.add_sharelink` (`src/documents/permissions.py:30-44`, `src/documents/views.py:4704-4708`).
+   - The class’s object-permission override concerns an already-existing `ShareLink` and its owner. It is not the pre-create check on the submitted document (`src/documents/permissions.py:46-53`).
+
+3. **Serializer/user path**
+   - `PassUserMixin` supplies `request.user` when the serializer derives from `SerializerWithPerms` (`src/documents/views.py:406-428`).
+   - `ShareLinkSerializer → OwnedObjectSerializer → SerializerWithPerms`; the latter stores that value in `self.user` (`src/documents/serialisers.py:260-265`, `src/documents/serialisers.py:295-299`, `src/documents/serialisers.py:2851`).
+
+4. **Exact submitted document**
+   - `ShareLinkSerializer` exposes the `ShareLink.document` foreign key (`src/documents/serialisers.py:2857-2867`; model field at `src/documents/models.py:1000-1006`).
+   - Before `create()` is reached, `validate_document(document)` requires all of:
+     1. a supplied serializer user;
+     2. global `documents.view_document`; and
+     3. `has_perms_owner_aware(user, "view_document", document)` for the actual deserialized document (`src/documents/serialisers.py:2873-2886`).
+   - The owner-aware check passes when the document is:
+     - unowned,
+     - owned by the caller, or
+     - covered by `ObjectPermissionChecker(user).has_perm("view_document", document)` (`src/documents/permissions.py:624-635`).
+   - Failure raises `PermissionDenied`; successful creation occurs only afterward, through `create()` (`src/documents/serialisers.py:2869-2871`).
+
+Consequently, knowing an ID or possessing only `documents.add_sharelink` is insufficient. For a document owned by another user, a global `documents.view_document` grant alone is also insufficient.
+
+### Supplied finite scenario
+
+For actor `7` and document `10` owned by user `9`, the supplied inputs contain:
+
+- `documents.add_sharelink`;
+- global `documents.view_document`; and
+- an exact object grant, `view_document`, for document `10`.
+
+The current program therefore returns `exact_object_basis: "object_grant"`. That result matches the reviewed source for this example, so the example request passes the declared policy. It remains a development computation, not proof of a real request or deployment decision.
+
+### Policy limitation
+
+The implementation does **not** always require a guardian object grant. Ownership or `owner is None` independently satisfies `has_perms_owner_aware` (`src/documents/permissions.py:635`).
+
+Therefore:
+
+- If “permission for the exact document” includes the application’s ownership/unowned authorization rules, the implementation conforms.
+- If the independent policy literally requires an exact `view_document` permission grant, the owner and especially unowned-document branches are non-conformant. The narrow fix would be to replace the owner-aware predicate in `validate_document` with an exact object-permission check, or explicitly amend the policy to permit ownership/unowned access.
+
+### Incomplete or misleading authored rules
+
+- `endpoint_route = "share_links"` omits the `/api/` mount, HTTP method, and router-generated slash; the effective create endpoint is `POST /api/share_links/`.
+- The `model_grants` selections are abstractions, not Django’s actual `has_perm`/inherited DRF evaluation. They omit superuser, group, active-user, custom-backend, and other backend behavior.
+- The `object_grants` selection does not fully model Guardian resolution, including group-object permissions and backend behavior.
+- The document-selection rule omits inherited `ModelSerializer` primary-key conversion, queryset lookup, and not-found/invalid-input handling before `validate_document`.
+- `require_exact_document_view` correctly represents the source’s three branches, but its name can incorrectly imply that an object grant is always required.
+- The computed return establishes only that the supplied abstract guards pass; it neither creates a share nor certifies an actual request.
+
+### Missing facts for a real decision
+
+- Actual authenticated request user and account state.
+- Actual requested document after serializer field conversion, including existence and current owner.
+- Current `add_sharelink` and global `view_document` results from configured Django authentication backends.
+- Current Guardian user/group object permissions for that exact document.
+- Whether the policy treats document ownership or an unowned document as equivalent to exact-object `view_document` permission.
+- The installed DRF/Guardian behavior outside the reviewed source scope.
