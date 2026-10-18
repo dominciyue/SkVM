@@ -3,7 +3,7 @@ import { zodToJsonSchema } from "../../providers/structured.ts"
 import type { LLMTool } from "../../providers/types.ts"
 import { QuestionDeclarationSchema } from "../../task-dsl/authorization/question-workflow.ts"
 import { ExecutableContractSchema, ExecutableContractInputSchema } from "../../task-dsl/authorization/executable-contract.ts"
-import { FINITE_PREDICATE_GUIDE } from "../../task-dsl/authorization/control-evaluation.ts"
+import { FINITE_PREDICATE_GUIDE, FINITE_PERMISSION_GUIDE } from "../../task-dsl/authorization/control-evaluation.ts"
 import { PropertyIntentProposalSchema } from "../../task-dsl/authorization/property-intent.ts"
 import { isQuestionCheckedStrategy, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
 import type { AuthorizationInquiry } from "../../task-dsl/authorization/inquiry.ts"
@@ -44,14 +44,14 @@ export function questionWorkflowDefinitions(strategy: InquiryStrategy): LLMTool[
     authorization_prepare_properties: "Declare queries from the exact original task requirements for every undeclared question, or preserve the task uncertainty. This contains no source interpretation or verdict.",
     authorization_check_properties: "Inspect/recompute current local properties from adopted source meanings and actual call instances. Unknown is retained and never blocks the original natural answer.",
   }
-  return Object.entries(questionWorkflowSchemas(strategy)).map(([name, schema]) => ({ name, description: descriptions[name]! + (name === "authorization_program" ? " " + ENVELOPE_GUIDE + " " + RESOURCE_AUTHOR_GUIDE + " " + SELECTION_GUIDE : "") + (["authorization_program", "authorization_program_patch"].includes(name) ? " " + INPUT_BINDING_GUIDE + " " + TARGET_GUIDE + " " + CALL_EXECUTION_GUIDE : ""), inputSchema: zodToJsonSchema(name === "authorization_declare" ? QuestionDeclarationSchema : schema) }))
+  return Object.entries(questionWorkflowSchemas(strategy)).map(([name, schema]) => ({ name, description: descriptions[name]! + (["authorization_program", "authorization_program_patch", "authorization_declare"].includes(name) ? " " + FINITE_PERMISSION_GUIDE : "") + (name === "authorization_program_patch" ? " " + FINITE_PREDICATE_GUIDE : "") + (name === "authorization_program" ? " " + ENVELOPE_GUIDE + " " + RESOURCE_AUTHOR_GUIDE + " " + SELECTION_GUIDE : "") + (["authorization_program", "authorization_program_patch"].includes(name) ? " " + INPUT_BINDING_GUIDE + " " + TARGET_GUIDE + " " + CALL_EXECUTION_GUIDE : ""), inputSchema: zodToJsonSchema(name === "authorization_declare" ? QuestionDeclarationSchema : schema) }))
 }
 
 /** Same raw language, with only the rules host's actual capabilities advertised. */
 export function programRulesToolDescription(name: string) {
   if (name === "authorization_program_details") return 'Read the complete authored rule document, raw draft or step/question subset. format:"raw" retains original expressions; expectedRevision rejects obsolete drafts. Source catalogs contain read evidence or structural candidates. No evaluation, preview or trial results are available.'
-  const shared = 'Rules-only host: parse and retain raw declarations, with schema and source-structure diagnostics. No evaluation or candidate preview occurs. Source meanings are author-declared and unreviewed. ' + INPUT_BINDING_GUIDE + ' ' + CALL_EXECUTION_GUIDE
-  if (name === "authorization_program_patch") return shared + ' Patch the same raw using exact baseRevision, upsertSteps, removeStepIds, inputNames, optional inputBinding and authoringTarget. Omitted steps stay; stepOrder must name every remaining step exactly once. Inspect the current raw and structural diagnostics after editing.'
+  const shared = 'Rules-only host: parse and retain raw declarations, with schema and source-structure diagnostics. No evaluation or candidate preview occurs. Source meanings are author-declared and unreviewed. ' + INPUT_BINDING_GUIDE + ' ' + CALL_EXECUTION_GUIDE + ' ' + FINITE_PERMISSION_GUIDE
+  if (name === "authorization_program_patch") return shared + ' Patch the same raw using exact baseRevision, upsertSteps, removeStepIds, inputNames, optional inputBinding and authoringTarget. Omitted steps stay; stepOrder must name every remaining step exactly once. Inspect the current raw and structural diagnostics after editing. ' + FINITE_PREDICATE_GUIDE
   if (name === "authorization_program") return shared + ' Submit the complete raw source program. Resource steps use id,op,source,sources?,because?,when?. Ops: value(value), select(from,where,unique,order), guard(test,failure,principal?,resource?,permission?), external(name,arguments), return(value). Expressions: {literal:finiteValue}, {ref:name}, {field:{of:expression,key}}, {test:finitePredicate}, {choose:{test,then,else}}, {coalesce:[expressions]}, {integer:expression}, {record:{field:expression}}. ' + FINITE_PREDICATE_GUIDE + ' ' + SELECTION_GUIDE + ' ' + ENVELOPE_GUIDE + ' Optional authoringTarget records mode and coverage; review untriggered source branches without executing trials.'
   return undefined
 }

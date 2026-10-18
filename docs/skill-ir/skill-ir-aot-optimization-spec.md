@@ -3190,7 +3190,7 @@ BM8实施细节：当前协议只在thread/start注册dynamicTools。宿主预�
 
 ### 14.57 BR evidence backed answers and task transfer
 
-2026-10-19用户授权[BR0–BR21](../superpowers/plans/2026-10-19-authorization-evidence-backed-answers-and-task-transfer.md)，基线BQ最终3c3059a8，identity为`authorization-answer-transfer-v1`。本节为待实施合同。开发gpt-6-astra/high，实验官方gpt-5.6-sol/high，第三方暂停；继续skill-ir-aot，只推用户origin。
+2026-10-19用户授权[BR0–BR21](../superpowers/plans/2026-10-19-authorization-evidence-backed-answers-and-task-transfer.md)，基线BQ最终3c3059a8，identity为`authorization-answer-transfer-v1`。本节为当前实施合同。开发gpt-6-astra/high，实验官方gpt-5.6-sol/high，第三方暂停；继续skill-ir-aot，只推用户origin。
 
 **方法。** 复用现有outcome、消费上下文、原题职责、当前delivery basis和有限执行工具。先核对BQ实际发送包，区别事实未产生/未发送/截断/过期/模型未采用，再做共享修复。不新增答案填空协议，不将自然答案current标签当语义合格。当前实际计算、作者未审含义、外部假设、本次执行缺口和未覆盖问题分别显示；静态未走分支的未知不冒充本次执行阻断，computed也不升级为完整源码或HTTP认证。
 
@@ -3201,6 +3201,8 @@ BM8实施细节：当前协议只在thread/start注册dynamicTools。宿主预�
 **有限评价。** 九正常用途为Download R/E两项、Memos空稿作者一项、Memos原/变输入N/R/E六项；至多四具名确认。N→R包含作者准备和程序材料，R→E检验同材料上的执行增量；不单独归因DSL语法。各臂同模型/任务/事实/允许源码/预算，rules无执行泄漏，完整原任务保留。问题完整性、关键错误/遗漏、计算与轨迹、实际采用、成本分轴；计划失败分母不删、首件和修订不混。小面板仅支持具名局部或跨结构可行性观察。
 
 **修复与终结。** 共享故障当场红绿修复，不跑满坏实现；影响配对时同epoch补齐比较块并计入确认预算。旧unknown不重发，额度/认证及重复路由故障暂停对应通道，独立工程继续。没有合格自动稿也保留源码基线与普通失败，不换题、不手工补稿。有限队列、工程、实际采用与效果分别判断，结尾不自动BS。研究过程统一§7.79。
+
+**已复现的公共说明缺口。** A-M首件将严格数值比较标为不可表达；真实thread/start中program/patch工具只公开基础谓词，执行器其实已支持gt/gte/lt/lte。通过匿名阈值与库存计数红绿后，共享工具复用已有完整谓词说明，rules/execute一致；不新增算子或业务答案。具名确认从同一空稿、原输入和来源开始，保留首件及其全部成本，之后六消费者统一用新epoch及该确认最后raw。最末稿无效或较差也不回退；跨epoch作者观察不作纯因果质量估计。
 
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 

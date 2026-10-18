@@ -127,7 +127,8 @@ export async function run(position: string, attempt: string) {
   finally { await save(ledgerFile, ledger); await unlink(leasePath) }
 }
 export async function freeze(attempt: string) {
-  const entry = (await load(ledgerFile)).find((e: any) => e.position === "A-M" && e.attempt === attempt)
+  const entry = (await load(ledgerFile)).filter((e: any) => e.position === "A-M").at(-1)
+  if (entry?.attempt !== attempt) throw new Error("Must freeze the chronologically last author attempt, even if worse")
   if (!entry || ["running", "unknown"].includes(entry.status) || entry.lifecycle?.localExecution !== "closed") throw new Error("No known closed author")
   if (await Bun.file(path.join(base, "authoring/frozen-selection.json")).exists()) throw new Error("Already frozen")
   const file = path.join(base, `authoring/final-program-A-M-${attempt}.json`)

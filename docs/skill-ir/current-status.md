@@ -4,9 +4,9 @@
 
 ## 当前工作
 
-**BR0–BR21执行中，已完成接管、真实包诊断、定向共享修复和调用前登记，尚无BR模型调用。** 从4216358f接管，独占代码和Git写入。[任务书](../superpowers/plans/2026-10-19-authorization-evidence-backed-answers-and-task-transfer.md) identity为`authorization-answer-transfer-v1`。BQ69个实际发送片段可重建，当前结果和原问题已发送；自然遗漏不归因于结果丢失。匿名反例修正静态返回依赖中已跳过外部步骤的标签，不声称它改善BQ。Memos真实源码确定22案例与原/变时钟输入，完整原问题、skill及来源边界已冻结；有限九用途待执行。
+**BR0–BR21执行中，调用前工程已验证，Download两用途已交付，Memos空稿作者运行中。** 从4216358f接管，独占代码和Git写入。[任务书](../superpowers/plans/2026-10-19-authorization-evidence-backed-answers-and-task-transfer.md) identity为`authorization-answer-transfer-v1`。BQ69个实际发送片段可重建，当前结果和原问题已发送；自然遗漏不归因于结果丢失。匿名反例修正静态返回依赖中已跳过外部步骤的标签，不声称它改善BQ。Memos真实源码确定22案例与原/变时钟输入，完整原问题、skill及来源边界已冻结；Download两答原四问均full；执行臂取得并引用当前有限结果，但未见相对rules的质量增量，观察token较高。首轮中断及final-child交付保留；Memos作者运行中。
 
-正常用途9个：Download rules/execute两项、Memos空稿作者一项、同稿原/变输入N/R/E六项；至多4个具名确认。实验仍用官方gpt-5.6-sol/high，第三方暂停。Memos为已暴露公开源码，输入为显式有限合成事实，不称新held-out或liveAPI；开发者不修自动稿业务含义，原题及全部失败保留。合同见[spec§14.57](skill-ir-aot-optimization-spec.md#1457-br-evidence-backed-answers-and-task-transfer)及[研究§7.79](skill-dsl-research.md#779-bq-复核与-br-回答依据和跨任务检验)。调用前工程已验证；尚无BR模型调用或效果结果。
+正常用途9个：Download rules/execute两项、Memos空稿作者一项、同稿原/变输入N/R/E六项；至多4个具名确认。实验仍用官方gpt-5.6-sol/high，第三方暂停。Memos为已暴露公开源码，输入为显式有限合成事实，不称新held-out或liveAPI；开发者不修自动稿业务含义，原题及全部失败保留。合同见[spec§14.57](skill-ir-aot-optimization-spec.md#1457-br-evidence-backed-answers-and-task-transfer)及[研究§7.79](skill-dsl-research.md#779-bq-复核与-br-回答依据和跨任务检验)。当前两用途为局部同期观察，不建立稳定执行增益；跨任务结果待后续队列。
 
 ## BQ 已结束的实际结果
 

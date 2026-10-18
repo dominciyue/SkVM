@@ -2930,6 +2930,10 @@ BM首件实测补修：A0-first用60探索单位而无patch/trial；暂态重连
 
 ### 7.79 BQ 复核与 BR 回答依据和跨任务检验
 
+**BR首件与工具说明修复（2026-10-19）。** Download两消费同原稿/输入/源码epoch均交付，主裁定原四问各4/4 full。执行臂宿主实际计算并在38个真实发送片段携带结果，终答明确引用11/original/v1-original.pdf；没有主动trial。规则臂35工具/59单位，执行臂36工具/60单位；执行臂首回合预算预留中断、流重连及final-child保留。质量持平、执行观察token较高，不能归因于本轮静态外部标签修复或建立稳定增益。独立探子将首查询的include_deleted错误传播到文件选择、把未主动trial误作未计算，已按views.py:1375-1381与真实包否决。
+
+A-M首件五raw由7步变为25步，首有效在工具单位4，四turn交付，但保留expiry gap且明确声称没有数值大于算子。实际首thread/start和turn/start没有完整谓词说明，而control-evaluation既有gt/gte/lt/lte与数值比较实现。根因是question-workflow-wire只接入基础说明，非语言能力不足。共享修改复用已有FINITE_PERMISSION_GUIDE于program/declaration/patch和rules对应工具；匿名阈值/库存红绿，20测试/188断言及主/BR类型通过。登记一次A-M/predicate-guide空稿确认，不注入业务谓词、不改首稿；六未运行消费者共用修后epoch及确认最后raw，无效/较差亦不回退。首件、每稿22案例和全部成本保留；确认结果尚待实测。
+
 **BR调用前工程（2026-10-19）。** 从4216358f接管，重建BQ T-E/U-E实际发送的69个片段，当前outcome、原问题和规则均在；U-E无工具final-child与原记录一致。没有证据支持整段结果丢失或将自然遗漏归因于传输。一个匿名choose反例确实发现静态返回依赖把skipped外部调用标为unresolved-external-fact；红测后仅调整为unexecuted-external-branch，真实执行unknown仍conditional。BQ返回字段没有引用该外部步骤，故不声称修复解释了BQ遗漏。原覆盖范围、current与语义正确分列。Memos源内helper、创建者及返回裁剪已直接阅读，22个有限合成案例及原/变now输入先于作者冻结；独立核对未发现预期冲突。规则首包/回复结构及求值器spy核验通过，BQ35例字段/局部轨迹兼容、既有ShareLink6输入重放保持。实际模型采用、完整回答与成本效果尚待九用途，细节在BR结果目录。
 
 2026-10-18/19父线程核对BQ原稿、真实工具、逐题评价、来源及共享实现，并运行一次零模型普通消费；用户随后要求减少重复填字段、避免只精修Download，明确任务真实性和迁移证据。2026-10-19授权[BR0–BR21](../superpowers/plans/2026-10-19-authorization-evidence-backed-answers-and-task-transfer.md)及新gpt-6-astra/high线程，identity为authorization-answer-transfer-v1，基线3c3059a8。本节先记录开发决定，后续问题和实测追加此处，不新建研究正文。
