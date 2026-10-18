@@ -3168,6 +3168,8 @@ BM8实施细节：当前协议只在thread/start注册dynamicTools。宿主预�
 
 **共享实现。** 沿用 when/guard 和 coverage.call，补可选的模型作者激活依赖及实际连接反馈，不从函数名/旧答案推断正确条件。增加纯规则文档及显式 rules/execute 支持；full/compact/directed 原含义与旧默认兼容。rules 所有首包、details、patch/trial能力、恢复和终答 child 不得泄漏当前执行结果；执行臂使用同一份 raw 与规则。author-declared literal、有限计算、外部事实和上游未知的依据可区分，不把 literal 升格为证明。
 
+**维护职责接线细化（2026-10-18）。** 首轮S维护发现rules edit广告修改工具但只表述“可以编辑”，且未传authoringTargetMode，execute则明确要求程序交付。修复必须使两种edit入口都明确交付持久程序及原自然问题，向rules传入同一requested reusable目标，并从raw投影coverage缺口；rules只提供schema/source检查，不广告或执行trial。consume原合同与主面板固定输入保持。原首对保留指令混杂，修复后的同epoch两次确认另列，不替换36主分母、不从前次好稿续作。
+
 **配对实验。** R0 为原完整 skill/四问/源码/事实，R1 增加固定自动稿的规则文档及原字节，R2 在 R1 相同信息上增加实际执行支持。R1−R0 衡量规则准备，R2−R1 衡量执行支持；不把差异单独归因于语法。六个固定 development 情形各两次重复三臂，交付合同/模型/预算一致，独立 expected 在生成边界外。研究编写和源码变化维护另列；已暴露 ShareLink 辅助组只检验第二任务结构。
 
 **选择与失败。** A0 的最后当前采用 raw 在消费前固定；A1/A2 空稿不替换、不拼优点。partial 可作为准确标注范围的辅助材料进入评价，缺稿不以历史/开发者稿补位。首轮、修订与跨 epoch 分轨；发现共享问题立即修复，不跑满已知坏协议；保留全部正负样本，不重复抽到满意为止。旧 unknown 不重发，通道拒绝/重复路由故障时暂停相应调用、继续离线。

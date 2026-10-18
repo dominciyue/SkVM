@@ -30,7 +30,7 @@ import { projectProgramTaskContext, PROGRAM_AUTHORING_GOAL, resolveProgramPurpos
 import { collectProgramObligations } from "../../task-dsl/authorization/program-obligations.ts"
 import { ProgramTrialSchema } from "../../task-dsl/authorization/program-trial.ts"
 import { programDeliveryBasis } from "../../task-dsl/authorization/program-delivery.ts"
-import { createProgramRulesContext, PROGRAM_RULES_INSTRUCTION } from "../../task-dsl/authorization/program-rule-context.ts"
+import { createProgramRulesContext, PROGRAM_RULES_INSTRUCTION, programRulesInstruction } from "../../task-dsl/authorization/program-rule-context.ts"
 import { renderProgramRuleDocument } from "../../task-dsl/authorization/program-rule-document.ts"
 
 class NativeToolRejection extends Error {
@@ -50,13 +50,13 @@ export async function createNativeInquiryRuntime(options: { sourceStructure?: bo
   const rulesOnly = options.programSupport === "rules"
   if (rulesOnly && (!questionChecked || !options.domainTools)) throw new Error("rules-support-requires-question-checked-domain-host")
   const purpose = resolveProgramPurpose(rulesOnly ? "directed" : options.programContext, options.programMode, questionChecked)
-  const purposeInstruction = () => rulesOnly ? PROGRAM_RULES_INSTRUCTION : programPurposeInstruction(purpose!)
+  const purposeInstruction = () => rulesOnly ? programRulesInstruction(options.programMode) : programPurposeInstruction(purpose!)
   const method = parseNativeInquiryMethod(options.method)
   if (method && ((!isOperationInquiryStrategy(strategy) && !questionWorkflow && !(strategy === "legacy" && method === "M")) || !options.domainTools && !(strategy === "legacy" && method === "M"))) throw new Error("authorization-method requires an operation/question strategy with domain-tools, or M/legacy")
   if (strategy !== "legacy" && !options.domainTools) throw new Error("strategy-requires-domain-tools: native domain strategy requires explicit domain tools")
   const loaded = await loadInquiryInput(options.inputFile, { allowMissingPolicy: sourceAssisted }), tools = await createInquiryTools({ ...loaded.context, structure: options.sourceStructure || isOperationInquiryStrategy(strategy) || questionWorkflow, ...(options.sourceStructure || isFiniteControlInquiryStrategy(strategy) ? { controlSemantics: "finite-control/v1" as const, propertyDirected: options.sourceStructure || isPropertyDirectedInquiryStrategy(strategy), questionDirected: options.sourceStructure || isQuestionDirectedInquiryStrategy(strategy) } : {}), maxToolCalls: options.maxToolCalls ?? 24, maxDisplayBytes: options.maxDisplayBytes ?? 262144, maxReadBytes: options.maxReadBytes, reserveFinalRead: true, preparation: options.preparation })
   const separateFormats = isPropertyAbstractionStrategy(strategy), formatCorrectionLimit = separateFormats ? 2 : 0
-  const rules = rulesOnly ? createProgramRulesContext(tools, options.programMode) : undefined
+  const rules = rulesOnly ? createProgramRulesContext(tools, options.programMode, options.authoringTargetMode) : undefined
   const splitFormats = isSemanticCompletionStrategy(strategy)
   const checkLimit = options.domainTools && strategy !== "question-guided-v1" ? 2 : 0, finalReserve = splitFormats ? Math.min(4, tools.maxToolCalls - 1) : checkLimit, explorationLimit = tools.maxToolCalls - finalReserve
   if (options.domainTools && explorationLimit < 1) throw new NativeToolRejection("tool-budget", "Domain tools require at least 3 total calls: one exploration action and two result checks")

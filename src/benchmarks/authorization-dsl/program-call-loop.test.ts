@@ -84,13 +84,16 @@ test("rules account maintenance exposes raw/schema only through source patch det
       if (m.method === "turn/start") { current = decode(JSON.parse(m.params.input[0].text.split("Current local explanation context: ")[1])); receive({ id: m.id, result: { turn: { id: child > 1 ? "final" : "turn" } } }); queueMicrotask(next) }
       if (m.result?.contentItems) { const packet = decode(JSON.parse(m.result.contentItems[0].text)); current = packet.currentContext; queueMicrotask(next) }
     } })
-    const run = await runCodexAccountInquiry({ inputFile, domainProgramFile: programFile, workDir: root, model: "gpt-5.6-sol", strategy: "question-checked-v1", method: "M", domainTools: true, programMode: "edit", programSupport: "rules", programContext: "directed", executionPolicy: "progressive", maxAuthorContinuations: 0, maxToolCalls: 16, timeoutMs: 10000, transportFactory,
+    const run = await runCodexAccountInquiry({ inputFile, domainProgramFile: programFile, workDir: root, model: "gpt-5.6-sol", strategy: "question-checked-v1", method: "M", domainTools: true, programMode: "edit", programSupport: "rules", programContext: "directed", authoringTargetMode: "reusable", executionPolicy: "progressive", maxAuthorContinuations: 0, maxToolCalls: 16, timeoutMs: 10000, transportFactory,
       reuse: { info: {}, seed: { evidence: [], programDraft: { raw, candidate: { resourceExecution: { returned: "LEAK_FROM_PRIOR" } }, trials: [{ result: "LEAK_FROM_PRIOR" }] } } } } as any)
     expect(run.account.status).toBe("completed")
     expect(child).toBe(2)
     expect(advertised[0].dynamicTools.some((t: any) => t.name === "authorization_program_trial")).toBe(false)
     expect(advertised[0].dynamicTools.some((t: any) => t.name === "authorization_program_patch")).toBe(true)
     expect(advertised[1].dynamicTools).toEqual([])
+    expect(visible[0].instruction).toContain("A prose-only investigation does not fulfill edit mode")
+    expect(visible[0].authoring.target.mode).toBe("reusable")
+    expect(visible[0].authoring.target.instruction).not.toContain("authorization_program_trial")
     const text = JSON.stringify(visible)
     expect(text).not.toContain("LEAK_FROM_PRIOR")
     for (const key of ["resourceExecution", "outcome", "events", "computed", "propertyChecks", "candidatePreviewAvailable", "returned"]) expect(text).not.toContain(`"${key}":`)

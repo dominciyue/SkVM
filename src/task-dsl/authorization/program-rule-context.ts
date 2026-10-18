@@ -6,6 +6,8 @@ import { projectProgramCallRelations, collectProgramObligations } from "./progra
 import { renderProgramRuleDocument } from "./program-rule-document.ts"
 import { ProgramDetailsSchema } from "./program-consumption-context.ts"
 import type { createInquiryDomainRuntime } from "../../benchmarks/authorization-dsl/inquiry-domain-runtime.ts"
+import { PROGRAM_AUTHORING_GOAL } from "./program-authoring-context.ts"
+import { projectAuthoringTarget, type AuthoringTargetMode } from "./program-coverage.ts"
 
 type ExecutionReport = ReturnType<ReturnType<typeof createInquiryDomainRuntime>["report"]>
 type RulesReport = Omit<Partial<ExecutionReport>, "programDraft" | "executableContract"> & {
@@ -15,9 +17,12 @@ type RulesReport = Omit<Partial<ExecutionReport>, "programDraft" | "executableCo
 }
 
 export const PROGRAM_RULES_INSTRUCTION = "Program support is rules only. Read the same authored rules/raw and original source to answer every original question in the original skill format. No host evaluation, trial, computed outcome or permission proof is available. Source meanings and literal descriptions remain author-declared and unreviewed. Edit mode may submit or patch raw rules and inspect schema/source-structure diagnostics; it does not run them."
+export function programRulesInstruction(mode: ProgramMode = "consume") {
+  return mode === "edit" ? `Program-authoring task: produce or repair a persistent executable source program, then deliver every original natural question. A prose-only investigation does not fulfill edit mode. ${PROGRAM_AUTHORING_GOAL} Start with the current draft or a small source-supported program and inspect schema/source-structure diagnostics while budget remains. Do not postpone all program work until after broad source investigation. No expected answers or grants may be invented. ${PROGRAM_RULES_INSTRUCTION}` : PROGRAM_RULES_INSTRUCTION
+}
 /** A capability-limited draft view inside the existing host. Reuses the exact
  * patch/schema/source tools; never invokes the executable compiler or evaluator. */
-export function createProgramRulesContext(tools: InquiryTools, mode: ProgramMode = "consume") {
+export function createProgramRulesContext(tools: InquiryTools, mode: ProgramMode = "consume", authoringTargetMode?: AuthoringTargetMode) {
   let draft: ProgramDraft | undefined, diagnostics: any[] = [], sourcesCurrent = true
   const refresh = () => {
     diagnostics = []
@@ -62,7 +67,8 @@ export function createProgramRulesContext(tools: InquiryTools, mode: ProgramMode
     async context() {
       const state = project(), candidates = mode === "edit" ? await collectProgramObligations(tools, draft?.raw) : []
       const relations = projectProgramCallRelations(draft?.raw).map(({ event: _event, trials: _trials, completionGuard, ...row }) => ({ ...row, ...(completionGuard ? { completionGuard: { id: completionGuard.id, test: completionGuard.test } } : {}) }))
-      return { ...state, ...(mode === "edit" ? { authoring: { draftRevision: draft?.revision, phase: draft ? "review" : "draft", progressKey: draft?.revision, feedbackGroups: { inputStructure: diagnostics, callRelations: relations.filter(r => r.diagnostics.length), sourceCandidates: candidates, coverage: [] }, tools: ["authorization_program", "authorization_program_patch", "authorization_program_details"] } } : {}), instruction: PROGRAM_RULES_INSTRUCTION }
+      const target = mode === "edit" ? projectAuthoringTarget(draft?.raw, authoringTargetMode, "rules") : undefined
+      return { ...state, ...(target ? { authoring: { goal: PROGRAM_AUTHORING_GOAL, target, draftRevision: draft?.revision, phase: draft ? "review" : "draft", progressKey: draft?.revision, feedbackGroups: { inputStructure: diagnostics, callRelations: relations.filter(r => r.diagnostics.length), sourceCandidates: candidates, coverage: target.mode === "reusable" ? target.coverage.filter(c => c.disposition === "unwritten" || c.missingStepIds.length || c.disposition === "implemented" && !c.stepIds.length) : [] }, tools: ["authorization_program", "authorization_program_patch", "authorization_program_details"] } } : {}), instruction: programRulesInstruction(mode) }
     },
     report: (): RulesReport => ({ programSupport: "rules", programDraft: snapshot(), executableContract: undefined }),
   }

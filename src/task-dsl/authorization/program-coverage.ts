@@ -18,12 +18,12 @@ export const AuthoringTargetSchema = z.object({
 }).strict()
 
 /** Author declarations only; reference validity is never semantic coverage proof. */
-export function projectAuthoringTarget(raw: any, requestedMode?: AuthoringTargetMode) {
+export function projectAuthoringTarget(raw: any, requestedMode?: AuthoringTargetMode, programSupport: "rules" | "execute" = "execute") {
   const parsed = AuthoringTargetSchema.safeParse(raw?.authoringTarget)
   const declared = parsed.success ? parsed.data : undefined
   const mode = requestedMode ?? declared?.mode ?? "current-input"
   const stepIds = new Set((Array.isArray(raw?.resourceWorkflow?.steps) ? raw.resourceWorkflow.steps : []).map((s: any) => s?.id))
   const coverage = (declared?.coverage ?? []).map(item => ({ ...item, missingStepIds: item.stepIds.filter(id => !stepIds.has(id)), semanticSupport: "unreviewed" }))
   return { mode, declaredMode: declared?.mode, coverage, coverageStatus: coverage.length ? "author-declared-unreviewed" : "undeclared", completion: "unreviewed",
-    instruction: mode === "reusable" ? "Author one source-supported program for the declared task scope across varying inputs. The current scenario is only one execution instance. Read source branches and declare implemented/unwritten/external coverage with source and stepIds; an untriggered source branch is still authoring work. Test variations with authorization_program_trial and patch actual gaps. Empty or self-reported coverage never proves completeness. Do not invent external facts or classify a writable source branch as external merely because the current input does not trigger it." : "Current-input authoring remains supported; current computation does not certify other inputs or the complete original task." }
+    instruction: mode === "reusable" ? `Author one source-supported program for the declared task scope across varying inputs. The current scenario is only one execution instance. Read source branches and declare implemented/unwritten/external coverage with source and stepIds; an untriggered source branch is still authoring work. ${programSupport === "rules" ? "Inspect raw rules and schema/source-structure diagnostics and patch source-supported gaps; host execution and trials are unavailable." : "Test variations with authorization_program_trial and patch actual gaps."} Empty or self-reported coverage never proves completeness. Do not invent external facts or classify a writable source branch as external merely because the current input does not trigger it.` : "Current-input authoring remains supported; current computation does not certify other inputs or the complete original task." }
 }
