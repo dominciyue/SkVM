@@ -1,0 +1,30 @@
+{
+  "reviewerFindings": [
+    "claimed include_deleted=True propagates into latest version query",
+    "claimed known constructor false/null must stay conditional"
+  ],
+  "disposition": "not substantiated by exact source and external fact contract",
+  "sourceEvidence": [
+    {
+      "path": "src/documents/views.py",
+      "lines": "1375-1381",
+      "text": "_resolve_file_doc recomputes version_requested = get_request_version_param(request) is not None; passes include_deleted=version_requested. The True at file_response1429 is only request/root lookup."
+    },
+    {
+      "path": "src/documents/permissions.py",
+      "lines": "634-635",
+      "text": "construct checker before owner/grant expression. A supplied external fact means a known normal return; its false/null value is not an exception or missing fact and does not grant permission."
+    }
+  ],
+  "scope": "no evaluator change; independent findings retained; missing assumption is never fabricated by mapping only existing assumptions",
+  "reviewerAgreements": [
+    "None actor skips helper",
+    "absent version maps None",
+    "explicit candidate uses independent manager"
+  ],
+  "oracleLimits": [
+    "bounded ASCII safe integer conversion",
+    "finite complete fixtures only",
+    "upstream auth and storage excluded"
+  ]
+}

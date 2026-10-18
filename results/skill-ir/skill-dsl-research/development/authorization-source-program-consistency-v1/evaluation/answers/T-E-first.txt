@@ -1,0 +1,118 @@
+## 持久化程序
+
+已修复并采纳程序：
+
+- **Program ID:** `document-download-selection`
+- **活动编译版本:** `36cb0293c924e45e2affc28e52259954973ed665caa1503b70dbefc2f6254d4f`
+- **当前草稿版本:** `ea63aff2b61d5939094c4cbbb66ebec05c33c1f6bfeb14e05ea7ca8ca61cea36`
+- **状态:** current / adopted
+- **机械诊断:** 无
+
+本轮实际修复：
+
+1. 新增 `actor_present`，使 `ObjectPermissionChecker` 只在 `request.user is not None` 时构造；`actor=None` 不再产生虚假的外部调用缺口。
+2. 新增带 `default: null` 的 `version_param`，使缺失 `version` 键与显式 `null` 都符合 `query_params.get("version")`。
+3. 保留空字符串分支：`version=""` 是“参数存在但为假”，因此版本查询包含已删除文档并选择最新版本。
+4. 新增 `original_param` 默认值，正确处理缺失的 `original` 键。
+5. 将构造器和 `has_perm` 的外部调用引用收窄到准确源码行，并建模其条件激活和正常返回约束。
+6. 返回值新增 `action_permission_check_applies`、`version_parameter_value`、`original_parameter_value`。
+
+默认有限输入的当前结果是：
+
+- 请求文档 `10`
+- 授权资源（根文档）`10`
+- 选中文档 `11`
+- 表示：`archive`
+- 文件：`v1-archive.pdf`
+- 授权后才进行版本和文件表示选择
+- 不会对选中文档 `11` 再执行一次 owner-aware 检查
+
+## 回归输入
+
+所有用例共用题目给出的四条 `documents` 记录及 `related_root: null`。
+
+| 用例 | actor | request | 外部事实 | 程序结果 |
+|---|---|---|---|---|
+| 默认/显式 null | `{id:7}` | `{pk:10, version:null, original:null}` | constructor(7)=正常返回 | 最新可见版本 `11`，archive |
+| 缺少 version 键 | `{id:7}` | `{pk:10, original:null}` | constructor(7)=正常返回 | 与显式 null 相同；不再 unresolved |
+| 空 version | `{id:7}` | `{pk:10, version:"", original:null}` | constructor(7)=正常返回 | 最新版本包含删除记录，选择 `12`，无 archive，返回 original |
+| actor 为 null | `null` | `{pk:10, version:null, original:null}` | 无 | action 内 owner-aware 调用跳过，不再要求构造器事实 |
+| 明确拒绝 | `{id:9}` | `{pk:10, version:null, original:null}` | constructor(9)=正常；has_perm(9,10)=false | 在 `authorization` guard 终止 |
+| 指定已删除版本 | `{id:7}` | `{pk:10, version:"12", original:"true"}` | constructor(7)=正常 | 选择 `12` 的 `v2-original.txt` |
+| 无关版本 | `{id:7}` | `{pk:10, version:"20", original:null}` | constructor(7)=正常 | `not-found` |
+| 缺少构造器事实 | `{id:7}` | `{pk:10, version:null, original:null}` | 无 | 保留 `permission-checker-construction` 条件，未臆造成功 |
+
+上述用例均已交给当前草稿执行；两轮 trial 均无编译诊断。
+
+## 1. 请求文档与返回文件
+
+路由把该资源放在 `documents` 前缀下；`download` 是 GET detail action，随后以 `attachment` 调用 `file_response`（`src/paperless/urls.py:74-77`；`src/documents/views.py:1834-1839`）。
+
+处理次序如下：
+
+1. `pk` 使用 `Document.global_objects` 查找，因此请求文档本身可以是已删除记录；找不到则 404。
+2. 如果请求文档已经是版本，解析其根文档；否则它本身就是根文档（`src/documents/views.py:1401-1427`；`src/documents/versioning.py:146-156`）。
+3. 对根文档完成 action-level 授权后，才选择实际文件文档（`src/documents/views.py:1429-1448`）。
+4. 若 `pk` 指向版本且 `version` 参数缺失/为 null，直接返回该请求版本。
+5. 其他情况：
+   - 缺失或 null：选择最新**可见**版本；
+   - 空字符串：参数存在，所以查询包含已删除版本；由于空串为假，选择最新版本；
+   - 真值字符串：转为整数并选择根文档本身或其直接版本；
+   - 候选不存在或不属于该根：404；
+   - 无法转成整数：`Invalid version parameter` 的 NotFound。
+6. 最新版本排序为 `version_index DESC NULLS LAST, id DESC`；没有版本时回退到根文档（`src/documents/versioning.py:23-28,159-195`）。
+7. 文件文档确定后：
+   - `original` 的值严格等于字符串 `"true"`：返回 `source_file`；
+   - 否则，若该文档有 archive：返回 `archive_file`；
+   - 否则仍返回 `source_file`（`src/documents/views.py:1368-1373,1437-1448`）。
+8. archive MIME 固定为 `application/pdf`；original 使用文档 MIME，并可能附加 UTF-8 charset。`follow_formatting` 只影响下载文件名，不改变文件句柄（`src/documents/views.py:4941-4995`）。
+
+## 2. 授权检查及其顺序
+
+在 action 执行前，DRF 依次完成认证、全局 permission 和 throttling（`framework/rest_framework-3.18.1/rest_framework/views.py:404-421`）。
+
+`DocumentViewSet` 配置：
+
+- `IsAuthenticated`
+- `PaperlessObjectPermissions`
+
+见 `src/documents/views.py:1008-1021`。
+
+对 GET，`PaperlessObjectPermissions` 要求模型权限 `documents.view_document`；DRF 的模型 permission 会调用实际用户的 `has_perms`（`src/documents/permissions.py:30-44`；`framework/rest_framework-3.18.1/rest_framework/permissions.py:233-246`）。
+
+进入 action 后还有一次自定义根文档检查：
+
+- `request.user is None`：此 action-level 检查短路跳过；
+- 根文档无 owner：允许；
+- 根文档 owner 是当前用户：允许；
+- 否则调用 Guardian `ObjectPermissionChecker.has_perm("view_document", root_doc)`；
+- 返回 false 时得到 403（`src/documents/views.py:1421-1426`；`src/documents/permissions.py:624-635`）。
+
+随后才解析 `file_doc`，并直接调用 `serve_file`。代码没有对 `file_doc` 调用 `get_object()` 或 `check_object_permissions()`。通常 DRF 的 `get_object()` 会调用后者，但 Download 走的是自定义查询路径（`framework/rest_framework-3.18.1/rest_framework/generics.py:79-105`；`src/documents/views.py:1429-1448`）。
+
+## 3. 替代版本和 original/archive 是否改变授权资源
+
+**不会。**
+
+授权资源始终是由请求文档解析出的 `root_doc`。版本选择发生在根文档检查成功之后：
+
+- `pk` 指向版本时，授权目标仍是它的根文档；
+- `version=<id>` 改变的是授权后选出的 `file_doc`；
+- 最新可见、最新含删除记录以及明确版本分支都不替换授权目标；
+- `original=true` 或 archive 分支只改变最终文件句柄、MIME 和文件名；
+- 选中的版本可能具有不同 owner，但源码没有再次对该版本执行 owner-aware/object permission 检查。
+
+有限默认输入正好表现为：授权根 `10`（owner 7），随后返回版本 `11`（owner 9）的 archive。
+
+## 4. 缺失事实和条件结论
+
+以下事实没有由源码或有限输入提供：
+
+- **真实认证结果及 `documents.view_document` 模型权限**：因此不能断言某个部署用户一定能进入 Download action。
+- **真实根文档 ownership 与 Guardian grant**：因此不能断言一个非 owner 用户会被允许；只有提供精确 `has_perm(user, root, permission)` 事实后才能计算。
+- **真实数据库内容、删除状态和版本关系**：因此有限 fixture 的文件 ID 不能外推为部署结果。
+- **存储后端、文件存在性和可读性**：因此即使授权和选择成功，也不能断言文件流一定能打开。`download` 仅把可见的 `FileNotFoundError`/`Document.DoesNotExist` 转为 404（`src/documents/views.py:1834-1839`）。
+- **部署代理及外部 URL 前缀**：源码可建立 router/action 关系，但不能确定公开部署 URL。
+- **Malformed truthy version 的可执行建模**：源码结论明确是 NotFound，但当前有限表达式中的整数转换仍可能表现为 unresolved；这是剩余的程序作者工作，不能用虚构结果填补。
+
+程序仍保留概括性的“尚有源码分支待审阅”覆盖缺口，因此这是已修复、可回归执行的持久草稿，而不是对所有部署事实的授权证明。

@@ -4,9 +4,13 @@
 
 ## 当前工作
 
-**BQ0–BQ17 已获用户授权，当前为 in-progress。** [当前任务书](../superpowers/plans/2026-10-18-authorization-source-program-consistency-and-task-execution.md)先修源码外层调用条件、缺键语义和当前修稿反馈，再做一项真实项目排障任务：维护 SkVM 自动生成的 Paperless Download 辅助程序，交付可运行原稿和回归输入，并经普通入口消费。identity 为 `authorization-source-program-consistency-v1`，规划基线为 BP 最终提交 `27d59677`；开发 `gpt-6-astra/high`，实验官方账号 `gpt-5.6-sol/high`，第三方暂停。
+**BQ0–BQ16已完成有限执行，BQ17发布收尾中；以completed-with-unmet-criteria收束。** 两个已知缺陷已在模型实际原稿中修复，真实试跑参与和普通固定稿消费成立；完整自然质量与稳定执行增量未达。[任务书](../superpowers/plans/2026-10-18-authorization-source-program-consistency-and-task-execution.md) identity为`authorization-source-program-consistency-v1`，从a0e306cb接管，共享工程c0b5ccf8。开发gpt-6-astra/high，实验官方gpt-5.6-sol/high，第三方暂停。
 
-正常模型用途仅 T-R（rules/edit）、T-E（execute/edit）、U-E（固定 T-E 原稿消费）三个，最多三个具名修复确认。两臂共用任务、完整原 skill/四问、初始 BP 原稿、源码与静态反馈；执行臂的实际多输入试跑与修稿单列。有限 fixture 不冒充真实 HTTP/数据库运行。先完成共享红绿和普通接线，不扩语言层或重复大面板；失败当场诊断，首件与修订分存。方法见 [spec §14.56](skill-ir-aot-optimization-spec.md#1456-bq-source-program-consistency-and-real-task-use)、[研究 §7.78](skill-dsl-research.md#778-bp-复核与-bq-先修复后实际使用)。接管 a0e306cb 后，已实现共享源码调用/包围分支投影、当前 revision 试跑标识与普通 rules/execute 接线，35 个有限输入及评价合同已在首次调用前登记。匿名红绿和零模型初稿复现已完成，真实用途待执行；不将工程通过当作自动修稿成功。
+T-R/T-E均从BP52步原字节修至55步，首有效/最终稿均35/35字段与局部轨迹匹配，初稿32/35。None caller实际跳过外部权限调用，完整request缺version键显式default为null；正常、拒绝、unknown登记路径无关键退步。T-E有3批11案例，7案例对应最终revision，形成诊断→patch→验收链。固定T-E当前原字节经U-E普通消费，组合输入返回11/original/v1-original.pdf；无consumer编辑或主动trial。搬移重放与源码变化撤回通过，完整HTTP仍不获认证。
+
+3用途全部交付，8观察turn，0活动/unknown，未用额外确认。T-E续作budget-reserve中断但首交付/current raw一致；U-E工具中断后final-child交付，中断保留。源码决策9/12 full，原四问6/12 full、整题0/3。T-E遗漏root fallback与构造器顺序，三答正常false/null完成说明仍不完整。两臂程序持平；T-E观察token/时间较低但说明遗漏更多，单对不建立稳定质量/净收益。known input8,739,932（含cache7,810,432一次）/output52,327，USD/隐藏请求/开发及真人成本unknown。
+
+[执行记录](../../results/skill-ir/skill-dsl-research/development/authorization-source-program-consistency-v1/execution.md)、[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-source-program-consistency-v1/verification/acceptance-matrix.json)、[普通BQ命令](../../examples/authorization-assessment/download-workflow/README.md#current-bq-explicit-program)。原件无损压缩并逐件核验，原始本地文件和.tmp保留。方法见[spec§14.56](skill-ir-aot-optimization-spec.md#1456-bq-source-program-consistency-and-real-task-use)、[研究§7.78](skill-dsl-research.md#778-bp-复核与-bq-先修复后实际使用)。项目默认不变，不自动追加BR。
 
 ## BP 已结束的实际结果
 
@@ -131,7 +135,7 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 
 ## 账号、运行和继承边界
 
-- BQ开发 `gpt-6-astra/high`，按用户指定派发；实验沿用已授权的当前官方账号 `gpt-5.6-sol/high`，无需再次确认。第三方API和AV旧位置继续暂停。BQ先修共享实现，再登记三项正常用途和至多三项修复确认；BP及更早旧队列保持结束，不向旧结果补行。
+- BQ开发 `gpt-6-astra/high`，按用户指定派发；实验沿用已授权的当前官方账号 `gpt-5.6-sol/high`，无需再次确认。第三方API和AV旧位置继续暂停。BQ共享实现和三项正常用途已完成，未用额外确认；BP及更早旧队列保持结束，不向旧结果补行。
 - BG有限执行已收束，无活动或未知请求；自动编写与重复上下文成本为未达项，不自动增加样本。后续新任务继续遵守具名恢复、账号未知和成本记录边界。
 - BF六首位置及三具名修订已处置，可选反序第二对因自动R1未达未运行。自动编写、作者给定程序消费及变化复用各自分母；不会自动追加模型。新范围不升级旧readiness或改变项目默认。
 - BE六质量首位置和六变化逻辑位置已完成，保持完整原skill/四问及失败分母。source-previous两件确定未派发，仅一个同输入/epoch的登记恢复交付；原件和79,770ms本地开销保留。R0/R1资格、恢复和实际使用分列，旧答案/评阅/verdict不进入previous；R2缺失使实际R2撤回实验未执行。旧BD六未运行不补行，OWUI继续仅离线。
@@ -154,7 +158,7 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 
 | 阶段 | 保留记录 |
 |---|---|
-| 当前BQ | [任务书](../superpowers/plans/2026-10-18-authorization-source-program-consistency-and-task-execution.md)、spec§14.56、研究§7.78；in-progress，共享修复与登记完成，真实用途待运行 |
+| 当前BQ | [任务书](../superpowers/plans/2026-10-18-authorization-source-program-consistency-and-task-execution.md)、spec§14.56、研究§7.78；有限执行完成、发布收尾，两个缺陷修复，完整自然质量与稳定增量未达 |
 | BP | [任务书](../superpowers/plans/2026-10-16-authorization-quality-evidence-and-branch-reliability.md)、spec§14.55、研究§7.77；最终27d59677，有限队列完成，完整语义和重复执行质量优势未达 |
 | BO | [任务书](../superpowers/plans/2026-10-16-authorization-call-semantics-and-program-repair.md)、spec§14.54、研究§7.76；有限自动调用语义与维护结果保留 |
 | BN | [任务书](../superpowers/plans/2026-10-15-authorization-purpose-scoped-authoring-and-consumption.md)、spec§14.53、研究§7.75；有限队列已发布，完整程序/整题质量/净收益未达，实质成果bd613fc2 |

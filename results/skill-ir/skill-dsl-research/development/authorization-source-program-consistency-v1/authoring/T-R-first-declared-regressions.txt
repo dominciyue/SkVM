@@ -1,0 +1,66 @@
+## Reproducible regression fixtures
+
+Use this shared document set:
+
+```json
+[
+  {
+    "id": 10,
+    "root_document_id": null,
+    "owner_id": 7,
+    "version_index": null,
+    "deleted": false,
+    "has_archive_version": true,
+    "source_file": "root-original.pdf",
+    "archive_file": "root-archive.pdf"
+  },
+  {
+    "id": 11,
+    "root_document_id": 10,
+    "owner_id": 9,
+    "version_index": 1,
+    "deleted": false,
+    "has_archive_version": true,
+    "source_file": "v1-original.pdf",
+    "archive_file": "v1-archive.pdf"
+  },
+  {
+    "id": 12,
+    "root_document_id": 10,
+    "owner_id": 9,
+    "version_index": 2,
+    "deleted": true,
+    "has_archive_version": false,
+    "source_file": "v2-original.txt",
+    "archive_file": null
+  },
+  {
+    "id": 20,
+    "root_document_id": null,
+    "owner_id": 8,
+    "version_index": null,
+    "deleted": false,
+    "has_archive_version": false,
+    "source_file": "other.txt",
+    "archive_file": null
+  }
+]
+```
+
+| Case | Actor | Request | External facts | Authored-rule expectation |
+|---|---:|---|---|---|
+| root-default | 7 | `{pk:10, version:null, original:null}` | constructor completes | Authorize root 10; select visible v11; return `v1-archive.pdf` |
+| version-key-absent | 7 | `{pk:10, original:null}` | constructor completes | Same branch as null: v11 archive |
+| empty-version | 7 | `{pk:10, version:"", original:null}` | constructor completes | Include deleted; select v12; no archive, return `v2-original.txt` |
+| explicit-related | 7 | `{pk:10, version:"11", original:null}` | constructor completes | Select v11 archive |
+| explicit-deleted | 7 | `{pk:10, version:"12", original:null}` | constructor completes | Select deleted v12; return original |
+| explicit-unrelated | 7 | `{pk:10, version:"20", original:null}` | constructor completes | 404 |
+| invalid-version | 7 | `{pk:10, version:"abc", original:null}` | constructor completes | `NotFound("Invalid version parameter")` |
+| version-pk | 7 | `{pk:11, original:null}` | constructor completes | Authorize root 10; return exact v11 archive |
+| force-original | 7 | `{pk:10, version:null, original:"true"}` | constructor completes | Select v11; return `v1-original.pdf` |
+| anonymous-local | null | `{pk:10, version:null, original:null}` | none | Local root helper skipped; upstream authentication remains unresolved |
+| denied | 9 | `{pk:10, version:null, original:null}` | constructor completes; root grant=false | 403 before version selection |
+| missing-external | 7 | `{pk:10, version:null, original:null}` | none | Blocked on unknown checker-construction completion |
+| missing-pk | 7 | `{pk:999, version:null, original:null}` | constructor completes | 404 before authorization |
+
+These are reproducible rule inputs and source-derived expectations, not recorded execution results. The current session provided no evaluator or live Paperless/database run.

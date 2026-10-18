@@ -8,6 +8,20 @@ Use `-ProgramSupport rules` to inspect the same authored raw as a complete rule 
 
 The script accepts `-ProgramContext directed` to send current results, premises, branch rules and all original duties with retrievable details and incremental account packets. `full` remains the default. Use `-InputFile <file>` for another explicit input, or the additional `invalid-version`, `other-root-version` and `no-external` variants. Printed output separates actual execution from coverage gaps; `execution.md` retains the complete current view. An exhausted tool phase can receive one tools-free final answer within its original time/display budget, only after a confirmed terminal. Unknown requests are not resent.
 
+## Current BQ explicit program
+
+BQ's fixed [55-step model program](../../../results/skill-ir/skill-dsl-research/development/authorization-source-program-consistency-v1/authoring/automatic-program.json) repairs the caller's null-user activation and missing-version-key behavior. It is the final current T-E draft, byte-for-byte, with no developer semantic edits. Its first and final bytes are identical. Both rules and execution authors match all 35 registered finite inputs; this is one exposed development task, not general authorization certification. The BL default remains unchanged; use BQ explicitly:
+
+```powershell
+$bq = './results/skill-ir/skill-dsl-research/development/authorization-source-program-consistency-v1'
+./examples/authorization-assessment/download-workflow/run.ps1 -Mode zero -ProgramContext directed -ProgramFile "$bq/authoring/automatic-program.json" -InputFile "$bq/inputs/consume.json"
+./examples/authorization-assessment/download-workflow/run.ps1 -Mode account -ProgramContext directed -ProgramFile "$bq/authoring/automatic-program.json" -InputFile "$bq/inputs/consume.json"
+```
+
+The first command recomputes locally without a model. The second starts an ordinary official-account consumption of the fixed program. The completed [U-E answer](../../../results/skill-ir/skill-dsl-research/development/authorization-source-program-consistency-v1/evaluation/answers/U-E-first.txt) used this same input: null actor, absent version key, `original="true"`. The ordinary finite run selects document 11 / `v1-original.pdf`, with constructor and permission-query calls skipped. It does not establish an anonymous HTTP download: framework authentication/global permissions and actual storage remain outside the finite computation.
+
+The [assessment](../../../results/skill-ir/skill-dsl-research/development/authorization-source-program-consistency-v1/evaluation/te-final/summary.json) preserves all 35 inputs. T-E actively ran three batches / 11 cases, seven after repair at the final revision; exact model inputs are available through the [regression index](../../../results/skill-ir/skill-dsl-research/development/authorization-source-program-consistency-v1/authoring/regression-input-index.json). U-E used the ordinary current result without an active trial or raw edit. Source relocation/replay and changed-source withdrawal passed. The [execution record](../../../results/skill-ir/skill-dsl-research/development/authorization-source-program-consistency-v1/execution.md) separates repaired behavior, explanation omissions, budget interruptions, comparison and costs. Complete session bytes are retained in the lossless evidence bundle documented there.
+
 ## Current BP explicit program
 
 BP fixes A0's final 52-step [model original](../../../results/skill-ir/skill-dsl-research/development/authorization-quality-evidence-v1/authoring/automatic-program.json) before consumers. It is a revision of BO, with no developer semantic edits; independent authors do not replace this selection. Run it from the repository root:

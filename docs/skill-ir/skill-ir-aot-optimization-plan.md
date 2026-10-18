@@ -2,7 +2,7 @@
 
 更新于2026-10-18。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BQ0–BQ17](../superpowers/plans/2026-10-18-authorization-source-program-consistency-and-task-execution.md)，状态 in-progress。BQ0–BQ7 的共享结构投影、缺键合同、当前试跑反馈和普通入口接线已完成，35 个有限输入及量规已在首次调用前登记。下一步按 T-R、T-E、U-E 执行，尚无模型结果。
+- 当前任务书：[BQ0–BQ17](../superpowers/plans/2026-10-18-authorization-source-program-consistency-and-task-execution.md)，状态 BQ0–BQ16已执行、BQ17发布收尾。共享修复和两个实际raw缺陷已解决，T-R/T-E首终稿35/35；T-E主动11案例，U-E固定消费交付，搬移失效通过。完整自然质量与稳定执行增量未达，发布后停止，不追加模型。
 - 方法合同：[spec §14.56](skill-ir-aot-optimization-spec.md#1456-bq-source-program-consistency-and-real-task-use)；复核与开发过程统一在[研究 §7.78](skill-dsl-research.md#778-bp-复核与-bq-先修复后实际使用)。BP结果与合同保留在§7.77/§14.55。
 - identity：`authorization-source-program-consistency-v1`，规划基线`27d59677f8a3257d1a4e0ee687519ad518306aba`。继续`skill-ir-aot`，只推用户origin，不建分支/worktree；新开发线程独占代码、共享方法文档与Git写入。
 - 开发`gpt-6-astra/high`，按用户指定；实验沿已授权官方账号`gpt-5.6-sol/high`。第三方暂停；旧未知与保护证据保持。接管时tracked干净，原有未跟踪`.tmp/`不清理。
@@ -20,7 +20,7 @@
 | 评价 | BP整题0/36，部分答案仅缺执行抽象细节 | 原评分保留；源码决策、关键遗漏、抽象说明及程序事件分轴 |
 | 交付 | BP最终27d59677与origin一致 | 3正常用途+至多3具名确认；失败当场修，定向验证后发布 |
 
-普通入口暂保留BL A0默认，[Download说明](../../examples/authorization-assessment/download-workflow/README.md#current-bp-explicit-program)提供BP显式命令。BQ复用同入口；修订后的自动稿显式使用，不手改原稿或挑较好对照稿填位。两臂修改后需要重配对时从相同起点重做并计入具名确认，首件保留。完成有限队列后停止，不自动派发BR。
+普通入口保留BL A0默认，[Download说明](../../examples/authorization-assessment/download-workflow/README.md#current-bq-explicit-program)提供固定BQ55步稿显式命令。BQ已复用同入口完成零模型重放和普通消费；原稿由模型修订，没有开发者语义修改或较好对照稿替换。两臂修改后需要重配对时从相同起点重做并计入具名确认，首件保留。完成有限队列后停止，不自动派发BR。
 
 ## 继承的真实结果
 

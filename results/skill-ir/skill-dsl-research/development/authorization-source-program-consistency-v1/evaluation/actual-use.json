@@ -1,0 +1,322 @@
+{
+  "chains": [
+    {
+      "position": "T-R",
+      "revision": "16206b2cd90364fa0325de2aebfd6500f7d9fb6cfcc7bea844d0fb60082532ac",
+      "sequence": [
+        {
+          "index": 11,
+          "tool": "authorization_program_patch",
+          "expectedRevision": "bc7f3829a21dc39371af88a58971075140e46b6c376969372c7acfe6b68473b5",
+          "revision": "676d847e0930b4401cd64f229d44fee5ba8fe8256218fa23b867d80107eb3d98",
+          "changedStepIds": [
+            "version_param",
+            "original_param",
+            "actor_present",
+            "permission_checker_construct",
+            "permission_checker_construct_completed",
+            "owner_allows",
+            "object_grant_required",
+            "object_grant",
+            "object_grant_completed",
+            "permission_allows",
+            "authorization",
+            "authorization_path",
+            "version_parameter_present",
+            "requested_version_id",
+            "file_doc",
+            "version_selection_mode",
+            "invalid_version_outcome",
+            "use_archive",
+            "root_permission_name",
+            "authorization_target_owner",
+            "latest_manager_selected",
+            "latest_query_newest_first",
+            "latest_order_keys",
+            "latest_fallback_to_root",
+            "latest_visible",
+            "latest_all",
+            "explicit_version",
+            "file_doc_exists",
+            "requested_document_is_version",
+            "selected_document_owner",
+            "selected_differs_from_authorized_root",
+            "selection_after_authorization",
+            "authorization_rechecked_for_selected_document",
+            "inherited_object_permission_invoked",
+            "file_selection_precedes_representation",
+            "selected_representation",
+            "representation_changes_authorization_target",
+            "selected_file",
+            "selected_content_type_rule",
+            "follow_formatting_effect",
+            "response_disposition",
+            "file_open_failure_outcome",
+            "runtime_auth_facts_missing",
+            "runtime_storage_fact_missing",
+            "result"
+          ]
+        },
+        {
+          "index": 12,
+          "tool": "authorization_program_patch",
+          "expectedRevision": "676d847e0930b4401cd64f229d44fee5ba8fe8256218fa23b867d80107eb3d98",
+          "revision": "f40a98bc6b202fd566a7a958ea2b62028318a342abbeaa8585267fd80289db7c",
+          "changedStepIds": []
+        },
+        {
+          "index": 32,
+          "tool": "authorization_program_patch",
+          "expectedRevision": "f40a98bc6b202fd566a7a958ea2b62028318a342abbeaa8585267fd80289db7c",
+          "revision": "16206b2cd90364fa0325de2aebfd6500f7d9fb6cfcc7bea844d0fb60082532ac",
+          "changedStepIds": [
+            "route_prefix",
+            "permission_checker_construct",
+            "object_grant"
+          ]
+        }
+      ],
+      "trials": []
+    },
+    {
+      "position": "T-E",
+      "revision": "ea63aff2b61d5939094c4cbbb66ebec05c33c1f6bfeb14e05ea7ca8ca61cea36",
+      "sequence": [
+        {
+          "index": 11,
+          "tool": "authorization_program_trial",
+          "expectedRevision": "bc7f3829a21dc39371af88a58971075140e46b6c376969372c7acfe6b68473b5",
+          "revision": "bc7f3829a21dc39371af88a58971075140e46b6c376969372c7acfe6b68473b5",
+          "cases": [
+            "absent-version",
+            "empty-version",
+            "denied",
+            "actor-none"
+          ]
+        },
+        {
+          "index": 12,
+          "tool": "authorization_program_patch",
+          "expectedRevision": "bc7f3829a21dc39371af88a58971075140e46b6c376969372c7acfe6b68473b5",
+          "revision": "ea63aff2b61d5939094c4cbbb66ebec05c33c1f6bfeb14e05ea7ca8ca61cea36"
+        },
+        {
+          "index": 13,
+          "tool": "authorization_program_trial",
+          "expectedRevision": "ea63aff2b61d5939094c4cbbb66ebec05c33c1f6bfeb14e05ea7ca8ca61cea36",
+          "revision": "ea63aff2b61d5939094c4cbbb66ebec05c33c1f6bfeb14e05ea7ca8ca61cea36",
+          "cases": [
+            "absent-version",
+            "empty-version",
+            "actor-none",
+            "denied"
+          ]
+        },
+        {
+          "index": 26,
+          "tool": "authorization_program_trial",
+          "expectedRevision": "ea63aff2b61d5939094c4cbbb66ebec05c33c1f6bfeb14e05ea7ca8ca61cea36",
+          "revision": "ea63aff2b61d5939094c4cbbb66ebec05c33c1f6bfeb14e05ea7ca8ca61cea36",
+          "cases": [
+            "explicit-deleted-original",
+            "unrelated-version",
+            "missing-constructor-fact"
+          ]
+        }
+      ],
+      "trials": [
+        {
+          "revision": "bc7f3829a21dc39371af88a58971075140e46b6c376969372c7acfe6b68473b5",
+          "current": false,
+          "cases": [
+            {
+              "id": "absent-version",
+              "status": "executed",
+              "execution": "conditional",
+              "requiredPremises": [
+                {
+                  "step": "file_doc_exists",
+                  "test": {
+                    "op": "not",
+                    "arg": {
+                      "op": "is-null",
+                      "value": {
+                        "binding": "file_doc"
+                      }
+                    }
+                  },
+                  "otherwise": "not-found"
+                }
+              ],
+              "executionGaps": [
+                "request.version",
+                "field-missing:version",
+                "requested_version_id",
+                "file_doc",
+                "file_doc.id",
+                "file_doc.has_archive_version",
+                "use_archive"
+              ]
+            },
+            {
+              "id": "empty-version",
+              "status": "executed",
+              "execution": "computed",
+              "selectedFile": "v2-original.txt",
+              "requiredPremises": [],
+              "executionGaps": []
+            },
+            {
+              "id": "denied",
+              "status": "executed",
+              "execution": "denied",
+              "requiredPremises": [],
+              "executionGaps": []
+            },
+            {
+              "id": "actor-none",
+              "status": "executed",
+              "execution": "conditional",
+              "requiredPremises": [
+                {
+                  "step": "permission_checker_construct_completed",
+                  "test": {
+                    "op": "eq",
+                    "left": {
+                      "binding": "permission_checker_construct"
+                    },
+                    "right": {
+                      "binding": "permission_checker_construct"
+                    }
+                  },
+                  "otherwise": "permission-checker-construction"
+                },
+                {
+                  "step": "object_grant_completed",
+                  "controlGaps": [
+                    "object_grant_required"
+                  ],
+                  "otherwise": "object-permission-check"
+                },
+                {
+                  "step": "authorization",
+                  "test": {
+                    "op": "truthy",
+                    "language": "python",
+                    "value": {
+                      "binding": "permission_allows"
+                    }
+                  },
+                  "otherwise": "authorization"
+                }
+              ],
+              "executionGaps": [
+                "external:ObjectPermissionChecker.construct",
+                "field-object-required:id",
+                "permission_checker_construct",
+                "actor.id",
+                "owner_allows",
+                "object_grant_required",
+                "permission_allows"
+              ]
+            }
+          ]
+        },
+        {
+          "revision": "ea63aff2b61d5939094c4cbbb66ebec05c33c1f6bfeb14e05ea7ca8ca61cea36",
+          "current": true,
+          "cases": [
+            {
+              "id": "absent-version",
+              "status": "executed",
+              "execution": "computed",
+              "selectedFile": "v1-archive.pdf",
+              "requiredPremises": [],
+              "executionGaps": []
+            },
+            {
+              "id": "empty-version",
+              "status": "executed",
+              "execution": "computed",
+              "selectedFile": "v2-original.txt",
+              "requiredPremises": [],
+              "executionGaps": []
+            },
+            {
+              "id": "actor-none",
+              "status": "executed",
+              "execution": "computed",
+              "selectedFile": "v1-archive.pdf",
+              "requiredPremises": [],
+              "executionGaps": []
+            },
+            {
+              "id": "denied",
+              "status": "executed",
+              "execution": "denied",
+              "requiredPremises": [],
+              "executionGaps": []
+            }
+          ]
+        },
+        {
+          "revision": "ea63aff2b61d5939094c4cbbb66ebec05c33c1f6bfeb14e05ea7ca8ca61cea36",
+          "current": true,
+          "cases": [
+            {
+              "id": "explicit-deleted-original",
+              "status": "executed",
+              "execution": "computed",
+              "selectedFile": "v2-original.txt",
+              "requiredPremises": [],
+              "executionGaps": []
+            },
+            {
+              "id": "unrelated-version",
+              "status": "executed",
+              "execution": "denied",
+              "requiredPremises": [],
+              "executionGaps": []
+            },
+            {
+              "id": "missing-constructor-fact",
+              "status": "executed",
+              "execution": "conditional",
+              "selectedFile": "v1-archive.pdf",
+              "requiredPremises": [
+                {
+                  "step": "permission_checker_construct_completed",
+                  "test": {
+                    "op": "eq",
+                    "left": {
+                      "binding": "permission_checker_construct"
+                    },
+                    "right": {
+                      "binding": "permission_checker_construct"
+                    }
+                  },
+                  "otherwise": "permission-checker-construction"
+                }
+              ],
+              "executionGaps": [
+                "external:ObjectPermissionChecker.construct",
+                "permission_checker_construct"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "position": "U-E",
+      "revision": "ea63aff2b61d5939094c4cbbb66ebec05c33c1f6bfeb14e05ea7ca8ca61cea36",
+      "sequence": [],
+      "trials": []
+    }
+  ],
+  "executionParticipatedInRepair": true,
+  "evidence": "T-E initial four-case trial exposed absent/None gaps; model patch followed; seven cases at final revision used for acceptance in delivered answer. U-E received and explained ordinary current execution without active trial.",
+  "currentRawMatchesDelivery": true,
+  "consumerRawUnchanged": true,
+  "consumerProgramSha256": "c8eef5ceba0ac9baeabd39b81b0e9bb097a041132731424ae44c4082eb7bc744"
+}
