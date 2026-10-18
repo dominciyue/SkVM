@@ -1,0 +1,2888 @@
+[
+  {
+    "name": "expiry-equal-private-anonymous",
+    "group": "primary",
+    "input": {
+      "schemaVersion": "authorization-inquiry-input/v1",
+      "taskId": "memos-share",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "sourceRoot": "../../authorization-domain-execution-v1/model/public-source/memos",
+      "allowedPaths": [
+        "server/api/v1",
+        "core/access",
+        "store",
+        "proto/api/v1",
+        "internal/ratelimit"
+      ],
+      "inquiry": {
+        "schemaVersion": "authorization-inquiry/v2",
+        "mode": "behavior",
+        "operations": [
+          {
+            "id": "shared-memo",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "entryHint": "server/api/v1/memo_share_service.go::GetSharedMemo"
+          }
+        ],
+        "questions": [
+          {
+            "id": "shared-memo-access",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "principal": "caller supplying a share token",
+            "resource": "memo and surrounding resources",
+            "operation": "read shared memo",
+            "entryHint": "GetSharedMemo and relevant allowed dependencies",
+            "premises": [],
+            "operationId": "shared-memo",
+            "intent": "behavior"
+          }
+        ]
+      },
+      "resourceInputs": {
+        "shared-memo-access": {
+          "request": {
+            "ShareToken": "share-alpha"
+          },
+          "now": 2000,
+          "contextUserID": 0,
+          "instanceAccessMode": "PRIVATE",
+          "shares": [
+            {
+              "ID": 71,
+              "UID": "share-alpha",
+              "MemoID": 43,
+              "CreatorID": 17,
+              "ExpiresTs": 2000
+            },
+            {
+              "ID": 72,
+              "UID": "share-other",
+              "MemoID": 89,
+              "CreatorID": 22,
+              "ExpiresTs": null
+            }
+          ],
+          "memos": [
+            {
+              "ID": 43,
+              "UID": "memo-alpha",
+              "CreatorID": 17,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": "parent-private",
+              "Content": "shared body"
+            },
+            {
+              "ID": 89,
+              "UID": "memo-other",
+              "CreatorID": 22,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": null,
+              "Content": "unrelated body"
+            }
+          ],
+          "users": [
+            {
+              "ID": 17,
+              "Username": "author-a",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            },
+            {
+              "ID": 22,
+              "Username": "author-b",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            }
+          ],
+          "spaces": [],
+          "memberships": [],
+          "reactions": [],
+          "attachments": [],
+          "storeErrors": {
+            "share": null,
+            "memo": null,
+            "viewer": null,
+            "instanceSetting": null,
+            "creator": null,
+            "space": null,
+            "membership": null,
+            "reactions": null,
+            "attachments": null,
+            "conversion": null
+          }
+        }
+      },
+      "sourceNotes": {
+        "format": "markdown",
+        "text": "This is a researcher-authored source-analysis and shared-link troubleshooting task, not a customer incident or live service run. Answer the complete original question for the supplied finite scenario and explain relevant alternate branches. In edit mode also deliver a reusable source program, starting from an empty draft. In consume mode keep the supplied program unchanged. Facts are synthetic request, clock, database rows and operation error observations. Collections are complete finite populations; field names follow Go store structs, membership rows have SpaceID/UserID/Role. storeErrors null means the named storage operation returns normally, not an access grant; absent facts are unknown. No external allowed/access decision is supplied. Read source-visible helper logic or retain it as a named unresolved responsibility. Broader security-skill duties and unavailable deployment facts remain explicit."
+      }
+    },
+    "expected": {
+      "disposition": "return",
+      "memoID": 43,
+      "content": "shared body",
+      "parent": null,
+      "relations": [],
+      "sourceAccessHelperRequired": true
+    },
+    "sourceBasis": [
+      "server/api/v1/memo_share_service.go:172-218",
+      "core/access/memo.go:92-122"
+    ]
+  },
+  {
+    "name": "expiry-passed",
+    "group": "primary",
+    "input": {
+      "schemaVersion": "authorization-inquiry-input/v1",
+      "taskId": "memos-share",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "sourceRoot": "../../authorization-domain-execution-v1/model/public-source/memos",
+      "allowedPaths": [
+        "server/api/v1",
+        "core/access",
+        "store",
+        "proto/api/v1",
+        "internal/ratelimit"
+      ],
+      "inquiry": {
+        "schemaVersion": "authorization-inquiry/v2",
+        "mode": "behavior",
+        "operations": [
+          {
+            "id": "shared-memo",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "entryHint": "server/api/v1/memo_share_service.go::GetSharedMemo"
+          }
+        ],
+        "questions": [
+          {
+            "id": "shared-memo-access",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "principal": "caller supplying a share token",
+            "resource": "memo and surrounding resources",
+            "operation": "read shared memo",
+            "entryHint": "GetSharedMemo and relevant allowed dependencies",
+            "premises": [],
+            "operationId": "shared-memo",
+            "intent": "behavior"
+          }
+        ]
+      },
+      "resourceInputs": {
+        "shared-memo-access": {
+          "request": {
+            "ShareToken": "share-alpha"
+          },
+          "now": 2001,
+          "contextUserID": 0,
+          "instanceAccessMode": "PRIVATE",
+          "shares": [
+            {
+              "ID": 71,
+              "UID": "share-alpha",
+              "MemoID": 43,
+              "CreatorID": 17,
+              "ExpiresTs": 2000
+            },
+            {
+              "ID": 72,
+              "UID": "share-other",
+              "MemoID": 89,
+              "CreatorID": 22,
+              "ExpiresTs": null
+            }
+          ],
+          "memos": [
+            {
+              "ID": 43,
+              "UID": "memo-alpha",
+              "CreatorID": 17,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": "parent-private",
+              "Content": "shared body"
+            },
+            {
+              "ID": 89,
+              "UID": "memo-other",
+              "CreatorID": 22,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": null,
+              "Content": "unrelated body"
+            }
+          ],
+          "users": [
+            {
+              "ID": 17,
+              "Username": "author-a",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            },
+            {
+              "ID": 22,
+              "Username": "author-b",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            }
+          ],
+          "spaces": [],
+          "memberships": [],
+          "reactions": [],
+          "attachments": [],
+          "storeErrors": {
+            "share": null,
+            "memo": null,
+            "viewer": null,
+            "instanceSetting": null,
+            "creator": null,
+            "space": null,
+            "membership": null,
+            "reactions": null,
+            "attachments": null,
+            "conversion": null
+          }
+        }
+      },
+      "sourceNotes": {
+        "format": "markdown",
+        "text": "This is a researcher-authored source-analysis and shared-link troubleshooting task, not a customer incident or live service run. Answer the complete original question for the supplied finite scenario and explain relevant alternate branches. In edit mode also deliver a reusable source program, starting from an empty draft. In consume mode keep the supplied program unchanged. Facts are synthetic request, clock, database rows and operation error observations. Collections are complete finite populations; field names follow Go store structs, membership rows have SpaceID/UserID/Role. storeErrors null means the named storage operation returns normally, not an access grant; absent facts are unknown. No external allowed/access decision is supplied. Read source-visible helper logic or retain it as a named unresolved responsibility. Broader security-skill duties and unavailable deployment facts remain explicit."
+      }
+    },
+    "expected": {
+      "disposition": "NotFound",
+      "returned": false
+    },
+    "sourceBasis": [
+      "server/api/v1/memo_share_service.go:216-229"
+    ]
+  },
+  {
+    "name": "expiry-future",
+    "group": "branches",
+    "input": {
+      "schemaVersion": "authorization-inquiry-input/v1",
+      "taskId": "memos-share",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "sourceRoot": "../../authorization-domain-execution-v1/model/public-source/memos",
+      "allowedPaths": [
+        "server/api/v1",
+        "core/access",
+        "store",
+        "proto/api/v1",
+        "internal/ratelimit"
+      ],
+      "inquiry": {
+        "schemaVersion": "authorization-inquiry/v2",
+        "mode": "behavior",
+        "operations": [
+          {
+            "id": "shared-memo",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "entryHint": "server/api/v1/memo_share_service.go::GetSharedMemo"
+          }
+        ],
+        "questions": [
+          {
+            "id": "shared-memo-access",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "principal": "caller supplying a share token",
+            "resource": "memo and surrounding resources",
+            "operation": "read shared memo",
+            "entryHint": "GetSharedMemo and relevant allowed dependencies",
+            "premises": [],
+            "operationId": "shared-memo",
+            "intent": "behavior"
+          }
+        ]
+      },
+      "resourceInputs": {
+        "shared-memo-access": {
+          "request": {
+            "ShareToken": "share-alpha"
+          },
+          "now": 1999,
+          "contextUserID": 0,
+          "instanceAccessMode": "PRIVATE",
+          "shares": [
+            {
+              "ID": 71,
+              "UID": "share-alpha",
+              "MemoID": 43,
+              "CreatorID": 17,
+              "ExpiresTs": 2000
+            },
+            {
+              "ID": 72,
+              "UID": "share-other",
+              "MemoID": 89,
+              "CreatorID": 22,
+              "ExpiresTs": null
+            }
+          ],
+          "memos": [
+            {
+              "ID": 43,
+              "UID": "memo-alpha",
+              "CreatorID": 17,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": "parent-private",
+              "Content": "shared body"
+            },
+            {
+              "ID": 89,
+              "UID": "memo-other",
+              "CreatorID": 22,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": null,
+              "Content": "unrelated body"
+            }
+          ],
+          "users": [
+            {
+              "ID": 17,
+              "Username": "author-a",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            },
+            {
+              "ID": 22,
+              "Username": "author-b",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            }
+          ],
+          "spaces": [],
+          "memberships": [],
+          "reactions": [],
+          "attachments": [],
+          "storeErrors": {
+            "share": null,
+            "memo": null,
+            "viewer": null,
+            "instanceSetting": null,
+            "creator": null,
+            "space": null,
+            "membership": null,
+            "reactions": null,
+            "attachments": null,
+            "conversion": null
+          }
+        }
+      },
+      "sourceNotes": {
+        "format": "markdown",
+        "text": "This is a researcher-authored source-analysis and shared-link troubleshooting task, not a customer incident or live service run. Answer the complete original question for the supplied finite scenario and explain relevant alternate branches. In edit mode also deliver a reusable source program, starting from an empty draft. In consume mode keep the supplied program unchanged. Facts are synthetic request, clock, database rows and operation error observations. Collections are complete finite populations; field names follow Go store structs, membership rows have SpaceID/UserID/Role. storeErrors null means the named storage operation returns normally, not an access grant; absent facts are unknown. No external allowed/access decision is supplied. Read source-visible helper logic or retain it as a named unresolved responsibility. Broader security-skill duties and unavailable deployment facts remain explicit."
+      }
+    },
+    "expected": {
+      "disposition": "return",
+      "memoID": 43,
+      "content": "shared body",
+      "parent": null,
+      "relations": [],
+      "sourceAccessHelperRequired": true
+    },
+    "sourceBasis": [
+      "server/api/v1/memo_share_service.go:218"
+    ]
+  },
+  {
+    "name": "no-expiry",
+    "group": "branches",
+    "input": {
+      "schemaVersion": "authorization-inquiry-input/v1",
+      "taskId": "memos-share",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "sourceRoot": "../../authorization-domain-execution-v1/model/public-source/memos",
+      "allowedPaths": [
+        "server/api/v1",
+        "core/access",
+        "store",
+        "proto/api/v1",
+        "internal/ratelimit"
+      ],
+      "inquiry": {
+        "schemaVersion": "authorization-inquiry/v2",
+        "mode": "behavior",
+        "operations": [
+          {
+            "id": "shared-memo",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "entryHint": "server/api/v1/memo_share_service.go::GetSharedMemo"
+          }
+        ],
+        "questions": [
+          {
+            "id": "shared-memo-access",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "principal": "caller supplying a share token",
+            "resource": "memo and surrounding resources",
+            "operation": "read shared memo",
+            "entryHint": "GetSharedMemo and relevant allowed dependencies",
+            "premises": [],
+            "operationId": "shared-memo",
+            "intent": "behavior"
+          }
+        ]
+      },
+      "resourceInputs": {
+        "shared-memo-access": {
+          "request": {
+            "ShareToken": "share-alpha"
+          },
+          "now": 2000,
+          "contextUserID": 0,
+          "instanceAccessMode": "PRIVATE",
+          "shares": [
+            {
+              "ID": 71,
+              "UID": "share-alpha",
+              "MemoID": 43,
+              "CreatorID": 17,
+              "ExpiresTs": null
+            },
+            {
+              "ID": 72,
+              "UID": "share-other",
+              "MemoID": 89,
+              "CreatorID": 22,
+              "ExpiresTs": null
+            }
+          ],
+          "memos": [
+            {
+              "ID": 43,
+              "UID": "memo-alpha",
+              "CreatorID": 17,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": "parent-private",
+              "Content": "shared body"
+            },
+            {
+              "ID": 89,
+              "UID": "memo-other",
+              "CreatorID": 22,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": null,
+              "Content": "unrelated body"
+            }
+          ],
+          "users": [
+            {
+              "ID": 17,
+              "Username": "author-a",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            },
+            {
+              "ID": 22,
+              "Username": "author-b",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            }
+          ],
+          "spaces": [],
+          "memberships": [],
+          "reactions": [],
+          "attachments": [],
+          "storeErrors": {
+            "share": null,
+            "memo": null,
+            "viewer": null,
+            "instanceSetting": null,
+            "creator": null,
+            "space": null,
+            "membership": null,
+            "reactions": null,
+            "attachments": null,
+            "conversion": null
+          }
+        }
+      },
+      "sourceNotes": {
+        "format": "markdown",
+        "text": "This is a researcher-authored source-analysis and shared-link troubleshooting task, not a customer incident or live service run. Answer the complete original question for the supplied finite scenario and explain relevant alternate branches. In edit mode also deliver a reusable source program, starting from an empty draft. In consume mode keep the supplied program unchanged. Facts are synthetic request, clock, database rows and operation error observations. Collections are complete finite populations; field names follow Go store structs, membership rows have SpaceID/UserID/Role. storeErrors null means the named storage operation returns normally, not an access grant; absent facts are unknown. No external allowed/access decision is supplied. Read source-visible helper logic or retain it as a named unresolved responsibility. Broader security-skill duties and unavailable deployment facts remain explicit."
+      }
+    },
+    "expected": {
+      "disposition": "return",
+      "memoID": 43,
+      "content": "shared body",
+      "parent": null,
+      "relations": [],
+      "sourceAccessHelperRequired": true
+    },
+    "sourceBasis": [
+      "server/api/v1/memo_share_service.go:218"
+    ]
+  },
+  {
+    "name": "invalid-token",
+    "group": "branches",
+    "input": {
+      "schemaVersion": "authorization-inquiry-input/v1",
+      "taskId": "memos-share",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "sourceRoot": "../../authorization-domain-execution-v1/model/public-source/memos",
+      "allowedPaths": [
+        "server/api/v1",
+        "core/access",
+        "store",
+        "proto/api/v1",
+        "internal/ratelimit"
+      ],
+      "inquiry": {
+        "schemaVersion": "authorization-inquiry/v2",
+        "mode": "behavior",
+        "operations": [
+          {
+            "id": "shared-memo",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "entryHint": "server/api/v1/memo_share_service.go::GetSharedMemo"
+          }
+        ],
+        "questions": [
+          {
+            "id": "shared-memo-access",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "principal": "caller supplying a share token",
+            "resource": "memo and surrounding resources",
+            "operation": "read shared memo",
+            "entryHint": "GetSharedMemo and relevant allowed dependencies",
+            "premises": [],
+            "operationId": "shared-memo",
+            "intent": "behavior"
+          }
+        ]
+      },
+      "resourceInputs": {
+        "shared-memo-access": {
+          "request": {
+            "ShareToken": "missing"
+          },
+          "now": 2000,
+          "contextUserID": 0,
+          "instanceAccessMode": "PRIVATE",
+          "shares": [
+            {
+              "ID": 71,
+              "UID": "share-alpha",
+              "MemoID": 43,
+              "CreatorID": 17,
+              "ExpiresTs": 2000
+            },
+            {
+              "ID": 72,
+              "UID": "share-other",
+              "MemoID": 89,
+              "CreatorID": 22,
+              "ExpiresTs": null
+            }
+          ],
+          "memos": [
+            {
+              "ID": 43,
+              "UID": "memo-alpha",
+              "CreatorID": 17,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": "parent-private",
+              "Content": "shared body"
+            },
+            {
+              "ID": 89,
+              "UID": "memo-other",
+              "CreatorID": 22,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": null,
+              "Content": "unrelated body"
+            }
+          ],
+          "users": [
+            {
+              "ID": 17,
+              "Username": "author-a",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            },
+            {
+              "ID": 22,
+              "Username": "author-b",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            }
+          ],
+          "spaces": [],
+          "memberships": [],
+          "reactions": [],
+          "attachments": [],
+          "storeErrors": {
+            "share": null,
+            "memo": null,
+            "viewer": null,
+            "instanceSetting": null,
+            "creator": null,
+            "space": null,
+            "membership": null,
+            "reactions": null,
+            "attachments": null,
+            "conversion": null
+          }
+        }
+      },
+      "sourceNotes": {
+        "format": "markdown",
+        "text": "This is a researcher-authored source-analysis and shared-link troubleshooting task, not a customer incident or live service run. Answer the complete original question for the supplied finite scenario and explain relevant alternate branches. In edit mode also deliver a reusable source program, starting from an empty draft. In consume mode keep the supplied program unchanged. Facts are synthetic request, clock, database rows and operation error observations. Collections are complete finite populations; field names follow Go store structs, membership rows have SpaceID/UserID/Role. storeErrors null means the named storage operation returns normally, not an access grant; absent facts are unknown. No external allowed/access decision is supplied. Read source-visible helper logic or retain it as a named unresolved responsibility. Broader security-skill duties and unavailable deployment facts remain explicit."
+      }
+    },
+    "expected": {
+      "disposition": "NotFound",
+      "returned": false
+    },
+    "sourceBasis": [
+      "server/api/v1/memo_share_service.go:221-229"
+    ]
+  },
+  {
+    "name": "revoked-token",
+    "group": "branches",
+    "input": {
+      "schemaVersion": "authorization-inquiry-input/v1",
+      "taskId": "memos-share",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "sourceRoot": "../../authorization-domain-execution-v1/model/public-source/memos",
+      "allowedPaths": [
+        "server/api/v1",
+        "core/access",
+        "store",
+        "proto/api/v1",
+        "internal/ratelimit"
+      ],
+      "inquiry": {
+        "schemaVersion": "authorization-inquiry/v2",
+        "mode": "behavior",
+        "operations": [
+          {
+            "id": "shared-memo",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "entryHint": "server/api/v1/memo_share_service.go::GetSharedMemo"
+          }
+        ],
+        "questions": [
+          {
+            "id": "shared-memo-access",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "principal": "caller supplying a share token",
+            "resource": "memo and surrounding resources",
+            "operation": "read shared memo",
+            "entryHint": "GetSharedMemo and relevant allowed dependencies",
+            "premises": [],
+            "operationId": "shared-memo",
+            "intent": "behavior"
+          }
+        ]
+      },
+      "resourceInputs": {
+        "shared-memo-access": {
+          "request": {
+            "ShareToken": "share-alpha"
+          },
+          "now": 2000,
+          "contextUserID": 0,
+          "instanceAccessMode": "PRIVATE",
+          "shares": [
+            {
+              "ID": 72,
+              "UID": "share-other",
+              "MemoID": 89,
+              "CreatorID": 22,
+              "ExpiresTs": null
+            }
+          ],
+          "memos": [
+            {
+              "ID": 43,
+              "UID": "memo-alpha",
+              "CreatorID": 17,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": "parent-private",
+              "Content": "shared body"
+            },
+            {
+              "ID": 89,
+              "UID": "memo-other",
+              "CreatorID": 22,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": null,
+              "Content": "unrelated body"
+            }
+          ],
+          "users": [
+            {
+              "ID": 17,
+              "Username": "author-a",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            },
+            {
+              "ID": 22,
+              "Username": "author-b",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            }
+          ],
+          "spaces": [],
+          "memberships": [],
+          "reactions": [],
+          "attachments": [],
+          "storeErrors": {
+            "share": null,
+            "memo": null,
+            "viewer": null,
+            "instanceSetting": null,
+            "creator": null,
+            "space": null,
+            "membership": null,
+            "reactions": null,
+            "attachments": null,
+            "conversion": null
+          }
+        }
+      },
+      "sourceNotes": {
+        "format": "markdown",
+        "text": "This is a researcher-authored source-analysis and shared-link troubleshooting task, not a customer incident or live service run. Answer the complete original question for the supplied finite scenario and explain relevant alternate branches. In edit mode also deliver a reusable source program, starting from an empty draft. In consume mode keep the supplied program unchanged. Facts are synthetic request, clock, database rows and operation error observations. Collections are complete finite populations; field names follow Go store structs, membership rows have SpaceID/UserID/Role. storeErrors null means the named storage operation returns normally, not an access grant; absent facts are unknown. No external allowed/access decision is supplied. Read source-visible helper logic or retain it as a named unresolved responsibility. Broader security-skill duties and unavailable deployment facts remain explicit."
+      }
+    },
+    "expected": {
+      "disposition": "NotFound",
+      "returned": false
+    },
+    "sourceBasis": [
+      "server/api/v1/memo_share_service.go:221-229"
+    ]
+  },
+  {
+    "name": "token-rebound",
+    "group": "branches",
+    "input": {
+      "schemaVersion": "authorization-inquiry-input/v1",
+      "taskId": "memos-share",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "sourceRoot": "../../authorization-domain-execution-v1/model/public-source/memos",
+      "allowedPaths": [
+        "server/api/v1",
+        "core/access",
+        "store",
+        "proto/api/v1",
+        "internal/ratelimit"
+      ],
+      "inquiry": {
+        "schemaVersion": "authorization-inquiry/v2",
+        "mode": "behavior",
+        "operations": [
+          {
+            "id": "shared-memo",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "entryHint": "server/api/v1/memo_share_service.go::GetSharedMemo"
+          }
+        ],
+        "questions": [
+          {
+            "id": "shared-memo-access",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "principal": "caller supplying a share token",
+            "resource": "memo and surrounding resources",
+            "operation": "read shared memo",
+            "entryHint": "GetSharedMemo and relevant allowed dependencies",
+            "premises": [],
+            "operationId": "shared-memo",
+            "intent": "behavior"
+          }
+        ]
+      },
+      "resourceInputs": {
+        "shared-memo-access": {
+          "request": {
+            "ShareToken": "share-alpha"
+          },
+          "now": 2000,
+          "contextUserID": 0,
+          "instanceAccessMode": "PRIVATE",
+          "shares": [
+            {
+              "ID": 71,
+              "UID": "share-alpha",
+              "MemoID": 89,
+              "CreatorID": 17,
+              "ExpiresTs": 2000
+            },
+            {
+              "ID": 72,
+              "UID": "share-other",
+              "MemoID": 89,
+              "CreatorID": 22,
+              "ExpiresTs": null
+            }
+          ],
+          "memos": [
+            {
+              "ID": 43,
+              "UID": "memo-alpha",
+              "CreatorID": 17,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": "parent-private",
+              "Content": "shared body"
+            },
+            {
+              "ID": 89,
+              "UID": "memo-other",
+              "CreatorID": 22,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": null,
+              "Content": "unrelated body"
+            }
+          ],
+          "users": [
+            {
+              "ID": 17,
+              "Username": "author-a",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            },
+            {
+              "ID": 22,
+              "Username": "author-b",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            }
+          ],
+          "spaces": [],
+          "memberships": [],
+          "reactions": [],
+          "attachments": [],
+          "storeErrors": {
+            "share": null,
+            "memo": null,
+            "viewer": null,
+            "instanceSetting": null,
+            "creator": null,
+            "space": null,
+            "membership": null,
+            "reactions": null,
+            "attachments": null,
+            "conversion": null
+          }
+        }
+      },
+      "sourceNotes": {
+        "format": "markdown",
+        "text": "This is a researcher-authored source-analysis and shared-link troubleshooting task, not a customer incident or live service run. Answer the complete original question for the supplied finite scenario and explain relevant alternate branches. In edit mode also deliver a reusable source program, starting from an empty draft. In consume mode keep the supplied program unchanged. Facts are synthetic request, clock, database rows and operation error observations. Collections are complete finite populations; field names follow Go store structs, membership rows have SpaceID/UserID/Role. storeErrors null means the named storage operation returns normally, not an access grant; absent facts are unknown. No external allowed/access decision is supplied. Read source-visible helper logic or retain it as a named unresolved responsibility. Broader security-skill duties and unavailable deployment facts remain explicit."
+      }
+    },
+    "expected": {
+      "disposition": "return",
+      "memoID": 89,
+      "content": "unrelated body",
+      "parent": null,
+      "relations": [],
+      "sourceAccessHelperRequired": true
+    },
+    "sourceBasis": [
+      "server/api/v1/memo_share_service.go:173-178"
+    ]
+  },
+  {
+    "name": "memo-missing",
+    "group": "branches",
+    "input": {
+      "schemaVersion": "authorization-inquiry-input/v1",
+      "taskId": "memos-share",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "sourceRoot": "../../authorization-domain-execution-v1/model/public-source/memos",
+      "allowedPaths": [
+        "server/api/v1",
+        "core/access",
+        "store",
+        "proto/api/v1",
+        "internal/ratelimit"
+      ],
+      "inquiry": {
+        "schemaVersion": "authorization-inquiry/v2",
+        "mode": "behavior",
+        "operations": [
+          {
+            "id": "shared-memo",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "entryHint": "server/api/v1/memo_share_service.go::GetSharedMemo"
+          }
+        ],
+        "questions": [
+          {
+            "id": "shared-memo-access",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "principal": "caller supplying a share token",
+            "resource": "memo and surrounding resources",
+            "operation": "read shared memo",
+            "entryHint": "GetSharedMemo and relevant allowed dependencies",
+            "premises": [],
+            "operationId": "shared-memo",
+            "intent": "behavior"
+          }
+        ]
+      },
+      "resourceInputs": {
+        "shared-memo-access": {
+          "request": {
+            "ShareToken": "share-alpha"
+          },
+          "now": 2000,
+          "contextUserID": 0,
+          "instanceAccessMode": "PRIVATE",
+          "shares": [
+            {
+              "ID": 71,
+              "UID": "share-alpha",
+              "MemoID": 43,
+              "CreatorID": 17,
+              "ExpiresTs": 2000
+            },
+            {
+              "ID": 72,
+              "UID": "share-other",
+              "MemoID": 89,
+              "CreatorID": 22,
+              "ExpiresTs": null
+            }
+          ],
+          "memos": [
+            {
+              "ID": 89,
+              "UID": "memo-other",
+              "CreatorID": 22,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": null,
+              "Content": "unrelated body"
+            }
+          ],
+          "users": [
+            {
+              "ID": 17,
+              "Username": "author-a",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            },
+            {
+              "ID": 22,
+              "Username": "author-b",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            }
+          ],
+          "spaces": [],
+          "memberships": [],
+          "reactions": [],
+          "attachments": [],
+          "storeErrors": {
+            "share": null,
+            "memo": null,
+            "viewer": null,
+            "instanceSetting": null,
+            "creator": null,
+            "space": null,
+            "membership": null,
+            "reactions": null,
+            "attachments": null,
+            "conversion": null
+          }
+        }
+      },
+      "sourceNotes": {
+        "format": "markdown",
+        "text": "This is a researcher-authored source-analysis and shared-link troubleshooting task, not a customer incident or live service run. Answer the complete original question for the supplied finite scenario and explain relevant alternate branches. In edit mode also deliver a reusable source program, starting from an empty draft. In consume mode keep the supplied program unchanged. Facts are synthetic request, clock, database rows and operation error observations. Collections are complete finite populations; field names follow Go store structs, membership rows have SpaceID/UserID/Role. storeErrors null means the named storage operation returns normally, not an access grant; absent facts are unknown. No external allowed/access decision is supplied. Read source-visible helper logic or retain it as a named unresolved responsibility. Broader security-skill duties and unavailable deployment facts remain explicit."
+      }
+    },
+    "expected": {
+      "disposition": "NotFound",
+      "returned": false
+    },
+    "sourceBasis": [
+      "server/api/v1/memo_share_service.go:178-185"
+    ]
+  },
+  {
+    "name": "memo-archived",
+    "group": "branches",
+    "input": {
+      "schemaVersion": "authorization-inquiry-input/v1",
+      "taskId": "memos-share",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "sourceRoot": "../../authorization-domain-execution-v1/model/public-source/memos",
+      "allowedPaths": [
+        "server/api/v1",
+        "core/access",
+        "store",
+        "proto/api/v1",
+        "internal/ratelimit"
+      ],
+      "inquiry": {
+        "schemaVersion": "authorization-inquiry/v2",
+        "mode": "behavior",
+        "operations": [
+          {
+            "id": "shared-memo",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "entryHint": "server/api/v1/memo_share_service.go::GetSharedMemo"
+          }
+        ],
+        "questions": [
+          {
+            "id": "shared-memo-access",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "principal": "caller supplying a share token",
+            "resource": "memo and surrounding resources",
+            "operation": "read shared memo",
+            "entryHint": "GetSharedMemo and relevant allowed dependencies",
+            "premises": [],
+            "operationId": "shared-memo",
+            "intent": "behavior"
+          }
+        ]
+      },
+      "resourceInputs": {
+        "shared-memo-access": {
+          "request": {
+            "ShareToken": "share-alpha"
+          },
+          "now": 2000,
+          "contextUserID": 0,
+          "instanceAccessMode": "PRIVATE",
+          "shares": [
+            {
+              "ID": 71,
+              "UID": "share-alpha",
+              "MemoID": 43,
+              "CreatorID": 17,
+              "ExpiresTs": 2000
+            },
+            {
+              "ID": 72,
+              "UID": "share-other",
+              "MemoID": 89,
+              "CreatorID": 22,
+              "ExpiresTs": null
+            }
+          ],
+          "memos": [
+            {
+              "ID": 43,
+              "UID": "memo-alpha",
+              "CreatorID": 17,
+              "RowStatus": "ARCHIVED",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": "parent-private",
+              "Content": "shared body"
+            },
+            {
+              "ID": 89,
+              "UID": "memo-other",
+              "CreatorID": 22,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": null,
+              "Content": "unrelated body"
+            }
+          ],
+          "users": [
+            {
+              "ID": 17,
+              "Username": "author-a",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            },
+            {
+              "ID": 22,
+              "Username": "author-b",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            }
+          ],
+          "spaces": [],
+          "memberships": [],
+          "reactions": [],
+          "attachments": [],
+          "storeErrors": {
+            "share": null,
+            "memo": null,
+            "viewer": null,
+            "instanceSetting": null,
+            "creator": null,
+            "space": null,
+            "membership": null,
+            "reactions": null,
+            "attachments": null,
+            "conversion": null
+          }
+        }
+      },
+      "sourceNotes": {
+        "format": "markdown",
+        "text": "This is a researcher-authored source-analysis and shared-link troubleshooting task, not a customer incident or live service run. Answer the complete original question for the supplied finite scenario and explain relevant alternate branches. In edit mode also deliver a reusable source program, starting from an empty draft. In consume mode keep the supplied program unchanged. Facts are synthetic request, clock, database rows and operation error observations. Collections are complete finite populations; field names follow Go store structs, membership rows have SpaceID/UserID/Role. storeErrors null means the named storage operation returns normally, not an access grant; absent facts are unknown. No external allowed/access decision is supplied. Read source-visible helper logic or retain it as a named unresolved responsibility. Broader security-skill duties and unavailable deployment facts remain explicit."
+      }
+    },
+    "expected": {
+      "disposition": "NotFound",
+      "returned": false
+    },
+    "sourceBasis": [
+      "server/api/v1/memo_share_service.go:182-185"
+    ]
+  },
+  {
+    "name": "memo-space-audience",
+    "group": "branches",
+    "input": {
+      "schemaVersion": "authorization-inquiry-input/v1",
+      "taskId": "memos-share",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "sourceRoot": "../../authorization-domain-execution-v1/model/public-source/memos",
+      "allowedPaths": [
+        "server/api/v1",
+        "core/access",
+        "store",
+        "proto/api/v1",
+        "internal/ratelimit"
+      ],
+      "inquiry": {
+        "schemaVersion": "authorization-inquiry/v2",
+        "mode": "behavior",
+        "operations": [
+          {
+            "id": "shared-memo",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "entryHint": "server/api/v1/memo_share_service.go::GetSharedMemo"
+          }
+        ],
+        "questions": [
+          {
+            "id": "shared-memo-access",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "principal": "caller supplying a share token",
+            "resource": "memo and surrounding resources",
+            "operation": "read shared memo",
+            "entryHint": "GetSharedMemo and relevant allowed dependencies",
+            "premises": [],
+            "operationId": "shared-memo",
+            "intent": "behavior"
+          }
+        ]
+      },
+      "resourceInputs": {
+        "shared-memo-access": {
+          "request": {
+            "ShareToken": "share-alpha"
+          },
+          "now": 2000,
+          "contextUserID": 0,
+          "instanceAccessMode": "PRIVATE",
+          "shares": [
+            {
+              "ID": 71,
+              "UID": "share-alpha",
+              "MemoID": 43,
+              "CreatorID": 17,
+              "ExpiresTs": 2000
+            },
+            {
+              "ID": 72,
+              "UID": "share-other",
+              "MemoID": 89,
+              "CreatorID": 22,
+              "ExpiresTs": null
+            }
+          ],
+          "memos": [
+            {
+              "ID": 43,
+              "UID": "memo-alpha",
+              "CreatorID": 17,
+              "RowStatus": "NORMAL",
+              "Visibility": "SPACE",
+              "SpaceID": null,
+              "ParentUID": "parent-private",
+              "Content": "shared body"
+            },
+            {
+              "ID": 89,
+              "UID": "memo-other",
+              "CreatorID": 22,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": null,
+              "Content": "unrelated body"
+            }
+          ],
+          "users": [
+            {
+              "ID": 17,
+              "Username": "author-a",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            },
+            {
+              "ID": 22,
+              "Username": "author-b",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            }
+          ],
+          "spaces": [],
+          "memberships": [],
+          "reactions": [],
+          "attachments": [],
+          "storeErrors": {
+            "share": null,
+            "memo": null,
+            "viewer": null,
+            "instanceSetting": null,
+            "creator": null,
+            "space": null,
+            "membership": null,
+            "reactions": null,
+            "attachments": null,
+            "conversion": null
+          }
+        }
+      },
+      "sourceNotes": {
+        "format": "markdown",
+        "text": "This is a researcher-authored source-analysis and shared-link troubleshooting task, not a customer incident or live service run. Answer the complete original question for the supplied finite scenario and explain relevant alternate branches. In edit mode also deliver a reusable source program, starting from an empty draft. In consume mode keep the supplied program unchanged. Facts are synthetic request, clock, database rows and operation error observations. Collections are complete finite populations; field names follow Go store structs, membership rows have SpaceID/UserID/Role. storeErrors null means the named storage operation returns normally, not an access grant; absent facts are unknown. No external allowed/access decision is supplied. Read source-visible helper logic or retain it as a named unresolved responsibility. Broader security-skill duties and unavailable deployment facts remain explicit."
+      }
+    },
+    "expected": {
+      "disposition": "NotFound",
+      "returned": false
+    },
+    "sourceBasis": [
+      "server/api/v1/memo_share_service.go:183"
+    ]
+  },
+  {
+    "name": "unknown-audience",
+    "group": "branches",
+    "input": {
+      "schemaVersion": "authorization-inquiry-input/v1",
+      "taskId": "memos-share",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "sourceRoot": "../../authorization-domain-execution-v1/model/public-source/memos",
+      "allowedPaths": [
+        "server/api/v1",
+        "core/access",
+        "store",
+        "proto/api/v1",
+        "internal/ratelimit"
+      ],
+      "inquiry": {
+        "schemaVersion": "authorization-inquiry/v2",
+        "mode": "behavior",
+        "operations": [
+          {
+            "id": "shared-memo",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "entryHint": "server/api/v1/memo_share_service.go::GetSharedMemo"
+          }
+        ],
+        "questions": [
+          {
+            "id": "shared-memo-access",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "principal": "caller supplying a share token",
+            "resource": "memo and surrounding resources",
+            "operation": "read shared memo",
+            "entryHint": "GetSharedMemo and relevant allowed dependencies",
+            "premises": [],
+            "operationId": "shared-memo",
+            "intent": "behavior"
+          }
+        ]
+      },
+      "resourceInputs": {
+        "shared-memo-access": {
+          "request": {
+            "ShareToken": "share-alpha"
+          },
+          "now": 2000,
+          "contextUserID": 0,
+          "instanceAccessMode": "PRIVATE",
+          "shares": [
+            {
+              "ID": 71,
+              "UID": "share-alpha",
+              "MemoID": 43,
+              "CreatorID": 17,
+              "ExpiresTs": 2000
+            },
+            {
+              "ID": 72,
+              "UID": "share-other",
+              "MemoID": 89,
+              "CreatorID": 22,
+              "ExpiresTs": null
+            }
+          ],
+          "memos": [
+            {
+              "ID": 43,
+              "UID": "memo-alpha",
+              "CreatorID": 17,
+              "RowStatus": "NORMAL",
+              "Visibility": "OTHER",
+              "SpaceID": null,
+              "ParentUID": "parent-private",
+              "Content": "shared body"
+            },
+            {
+              "ID": 89,
+              "UID": "memo-other",
+              "CreatorID": 22,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": null,
+              "Content": "unrelated body"
+            }
+          ],
+          "users": [
+            {
+              "ID": 17,
+              "Username": "author-a",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            },
+            {
+              "ID": 22,
+              "Username": "author-b",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            }
+          ],
+          "spaces": [],
+          "memberships": [],
+          "reactions": [],
+          "attachments": [],
+          "storeErrors": {
+            "share": null,
+            "memo": null,
+            "viewer": null,
+            "instanceSetting": null,
+            "creator": null,
+            "space": null,
+            "membership": null,
+            "reactions": null,
+            "attachments": null,
+            "conversion": null
+          }
+        }
+      },
+      "sourceNotes": {
+        "format": "markdown",
+        "text": "This is a researcher-authored source-analysis and shared-link troubleshooting task, not a customer incident or live service run. Answer the complete original question for the supplied finite scenario and explain relevant alternate branches. In edit mode also deliver a reusable source program, starting from an empty draft. In consume mode keep the supplied program unchanged. Facts are synthetic request, clock, database rows and operation error observations. Collections are complete finite populations; field names follow Go store structs, membership rows have SpaceID/UserID/Role. storeErrors null means the named storage operation returns normally, not an access grant; absent facts are unknown. No external allowed/access decision is supplied. Read source-visible helper logic or retain it as a named unresolved responsibility. Broader security-skill duties and unavailable deployment facts remain explicit."
+      }
+    },
+    "expected": {
+      "disposition": "NotFound",
+      "returned": false
+    },
+    "sourceBasis": [
+      "core/access/memo.go:97-99"
+    ]
+  },
+  {
+    "name": "creator-missing",
+    "group": "branches",
+    "input": {
+      "schemaVersion": "authorization-inquiry-input/v1",
+      "taskId": "memos-share",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "sourceRoot": "../../authorization-domain-execution-v1/model/public-source/memos",
+      "allowedPaths": [
+        "server/api/v1",
+        "core/access",
+        "store",
+        "proto/api/v1",
+        "internal/ratelimit"
+      ],
+      "inquiry": {
+        "schemaVersion": "authorization-inquiry/v2",
+        "mode": "behavior",
+        "operations": [
+          {
+            "id": "shared-memo",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "entryHint": "server/api/v1/memo_share_service.go::GetSharedMemo"
+          }
+        ],
+        "questions": [
+          {
+            "id": "shared-memo-access",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "principal": "caller supplying a share token",
+            "resource": "memo and surrounding resources",
+            "operation": "read shared memo",
+            "entryHint": "GetSharedMemo and relevant allowed dependencies",
+            "premises": [],
+            "operationId": "shared-memo",
+            "intent": "behavior"
+          }
+        ]
+      },
+      "resourceInputs": {
+        "shared-memo-access": {
+          "request": {
+            "ShareToken": "share-alpha"
+          },
+          "now": 2000,
+          "contextUserID": 0,
+          "instanceAccessMode": "PRIVATE",
+          "shares": [
+            {
+              "ID": 71,
+              "UID": "share-alpha",
+              "MemoID": 43,
+              "CreatorID": 17,
+              "ExpiresTs": 2000
+            },
+            {
+              "ID": 72,
+              "UID": "share-other",
+              "MemoID": 89,
+              "CreatorID": 22,
+              "ExpiresTs": null
+            }
+          ],
+          "memos": [
+            {
+              "ID": 43,
+              "UID": "memo-alpha",
+              "CreatorID": 17,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": "parent-private",
+              "Content": "shared body"
+            },
+            {
+              "ID": 89,
+              "UID": "memo-other",
+              "CreatorID": 22,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": null,
+              "Content": "unrelated body"
+            }
+          ],
+          "users": [
+            {
+              "ID": 22,
+              "Username": "author-b",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            }
+          ],
+          "spaces": [],
+          "memberships": [],
+          "reactions": [],
+          "attachments": [],
+          "storeErrors": {
+            "share": null,
+            "memo": null,
+            "viewer": null,
+            "instanceSetting": null,
+            "creator": null,
+            "space": null,
+            "membership": null,
+            "reactions": null,
+            "attachments": null,
+            "conversion": null
+          }
+        }
+      },
+      "sourceNotes": {
+        "format": "markdown",
+        "text": "This is a researcher-authored source-analysis and shared-link troubleshooting task, not a customer incident or live service run. Answer the complete original question for the supplied finite scenario and explain relevant alternate branches. In edit mode also deliver a reusable source program, starting from an empty draft. In consume mode keep the supplied program unchanged. Facts are synthetic request, clock, database rows and operation error observations. Collections are complete finite populations; field names follow Go store structs, membership rows have SpaceID/UserID/Role. storeErrors null means the named storage operation returns normally, not an access grant; absent facts are unknown. No external allowed/access decision is supplied. Read source-visible helper logic or retain it as a named unresolved responsibility. Broader security-skill duties and unavailable deployment facts remain explicit."
+      }
+    },
+    "expected": {
+      "disposition": "NotFound",
+      "returned": false
+    },
+    "sourceBasis": [
+      "core/access/memo_resolve.go:36-42",
+      "core/access/memo.go:94"
+    ]
+  },
+  {
+    "name": "creator-archived",
+    "group": "branches",
+    "input": {
+      "schemaVersion": "authorization-inquiry-input/v1",
+      "taskId": "memos-share",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "sourceRoot": "../../authorization-domain-execution-v1/model/public-source/memos",
+      "allowedPaths": [
+        "server/api/v1",
+        "core/access",
+        "store",
+        "proto/api/v1",
+        "internal/ratelimit"
+      ],
+      "inquiry": {
+        "schemaVersion": "authorization-inquiry/v2",
+        "mode": "behavior",
+        "operations": [
+          {
+            "id": "shared-memo",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "entryHint": "server/api/v1/memo_share_service.go::GetSharedMemo"
+          }
+        ],
+        "questions": [
+          {
+            "id": "shared-memo-access",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "principal": "caller supplying a share token",
+            "resource": "memo and surrounding resources",
+            "operation": "read shared memo",
+            "entryHint": "GetSharedMemo and relevant allowed dependencies",
+            "premises": [],
+            "operationId": "shared-memo",
+            "intent": "behavior"
+          }
+        ]
+      },
+      "resourceInputs": {
+        "shared-memo-access": {
+          "request": {
+            "ShareToken": "share-alpha"
+          },
+          "now": 2000,
+          "contextUserID": 0,
+          "instanceAccessMode": "PRIVATE",
+          "shares": [
+            {
+              "ID": 71,
+              "UID": "share-alpha",
+              "MemoID": 43,
+              "CreatorID": 17,
+              "ExpiresTs": 2000
+            },
+            {
+              "ID": 72,
+              "UID": "share-other",
+              "MemoID": 89,
+              "CreatorID": 22,
+              "ExpiresTs": null
+            }
+          ],
+          "memos": [
+            {
+              "ID": 43,
+              "UID": "memo-alpha",
+              "CreatorID": 17,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": "parent-private",
+              "Content": "shared body"
+            },
+            {
+              "ID": 89,
+              "UID": "memo-other",
+              "CreatorID": 22,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": null,
+              "Content": "unrelated body"
+            }
+          ],
+          "users": [
+            {
+              "ID": 17,
+              "Username": "author-a",
+              "RowStatus": "ARCHIVED",
+              "Role": "USER"
+            },
+            {
+              "ID": 22,
+              "Username": "author-b",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            }
+          ],
+          "spaces": [],
+          "memberships": [],
+          "reactions": [],
+          "attachments": [],
+          "storeErrors": {
+            "share": null,
+            "memo": null,
+            "viewer": null,
+            "instanceSetting": null,
+            "creator": null,
+            "space": null,
+            "membership": null,
+            "reactions": null,
+            "attachments": null,
+            "conversion": null
+          }
+        }
+      },
+      "sourceNotes": {
+        "format": "markdown",
+        "text": "This is a researcher-authored source-analysis and shared-link troubleshooting task, not a customer incident or live service run. Answer the complete original question for the supplied finite scenario and explain relevant alternate branches. In edit mode also deliver a reusable source program, starting from an empty draft. In consume mode keep the supplied program unchanged. Facts are synthetic request, clock, database rows and operation error observations. Collections are complete finite populations; field names follow Go store structs, membership rows have SpaceID/UserID/Role. storeErrors null means the named storage operation returns normally, not an access grant; absent facts are unknown. No external allowed/access decision is supplied. Read source-visible helper logic or retain it as a named unresolved responsibility. Broader security-skill duties and unavailable deployment facts remain explicit."
+      }
+    },
+    "expected": {
+      "disposition": "return",
+      "memoID": 43,
+      "content": "shared body",
+      "parent": null,
+      "relations": [],
+      "sourceAccessHelperRequired": true
+    },
+    "sourceBasis": [
+      "core/access/memo_resolve.go:41-42"
+    ]
+  },
+  {
+    "name": "creator-invalid-state",
+    "group": "branches",
+    "input": {
+      "schemaVersion": "authorization-inquiry-input/v1",
+      "taskId": "memos-share",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "sourceRoot": "../../authorization-domain-execution-v1/model/public-source/memos",
+      "allowedPaths": [
+        "server/api/v1",
+        "core/access",
+        "store",
+        "proto/api/v1",
+        "internal/ratelimit"
+      ],
+      "inquiry": {
+        "schemaVersion": "authorization-inquiry/v2",
+        "mode": "behavior",
+        "operations": [
+          {
+            "id": "shared-memo",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "entryHint": "server/api/v1/memo_share_service.go::GetSharedMemo"
+          }
+        ],
+        "questions": [
+          {
+            "id": "shared-memo-access",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "principal": "caller supplying a share token",
+            "resource": "memo and surrounding resources",
+            "operation": "read shared memo",
+            "entryHint": "GetSharedMemo and relevant allowed dependencies",
+            "premises": [],
+            "operationId": "shared-memo",
+            "intent": "behavior"
+          }
+        ]
+      },
+      "resourceInputs": {
+        "shared-memo-access": {
+          "request": {
+            "ShareToken": "share-alpha"
+          },
+          "now": 2000,
+          "contextUserID": 0,
+          "instanceAccessMode": "PRIVATE",
+          "shares": [
+            {
+              "ID": 71,
+              "UID": "share-alpha",
+              "MemoID": 43,
+              "CreatorID": 17,
+              "ExpiresTs": 2000
+            },
+            {
+              "ID": 72,
+              "UID": "share-other",
+              "MemoID": 89,
+              "CreatorID": 22,
+              "ExpiresTs": null
+            }
+          ],
+          "memos": [
+            {
+              "ID": 43,
+              "UID": "memo-alpha",
+              "CreatorID": 17,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": "parent-private",
+              "Content": "shared body"
+            },
+            {
+              "ID": 89,
+              "UID": "memo-other",
+              "CreatorID": 22,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": null,
+              "Content": "unrelated body"
+            }
+          ],
+          "users": [
+            {
+              "ID": 17,
+              "Username": "author-a",
+              "RowStatus": "INVALID",
+              "Role": "USER"
+            },
+            {
+              "ID": 22,
+              "Username": "author-b",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            }
+          ],
+          "spaces": [],
+          "memberships": [],
+          "reactions": [],
+          "attachments": [],
+          "storeErrors": {
+            "share": null,
+            "memo": null,
+            "viewer": null,
+            "instanceSetting": null,
+            "creator": null,
+            "space": null,
+            "membership": null,
+            "reactions": null,
+            "attachments": null,
+            "conversion": null
+          }
+        }
+      },
+      "sourceNotes": {
+        "format": "markdown",
+        "text": "This is a researcher-authored source-analysis and shared-link troubleshooting task, not a customer incident or live service run. Answer the complete original question for the supplied finite scenario and explain relevant alternate branches. In edit mode also deliver a reusable source program, starting from an empty draft. In consume mode keep the supplied program unchanged. Facts are synthetic request, clock, database rows and operation error observations. Collections are complete finite populations; field names follow Go store structs, membership rows have SpaceID/UserID/Role. storeErrors null means the named storage operation returns normally, not an access grant; absent facts are unknown. No external allowed/access decision is supplied. Read source-visible helper logic or retain it as a named unresolved responsibility. Broader security-skill duties and unavailable deployment facts remain explicit."
+      }
+    },
+    "expected": {
+      "disposition": "NotFound",
+      "returned": false
+    },
+    "sourceBasis": [
+      "core/access/memo_resolve.go:41-42",
+      "core/access/memo.go:94"
+    ]
+  },
+  {
+    "name": "dangling-nonspace-placement",
+    "group": "branches",
+    "input": {
+      "schemaVersion": "authorization-inquiry-input/v1",
+      "taskId": "memos-share",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "sourceRoot": "../../authorization-domain-execution-v1/model/public-source/memos",
+      "allowedPaths": [
+        "server/api/v1",
+        "core/access",
+        "store",
+        "proto/api/v1",
+        "internal/ratelimit"
+      ],
+      "inquiry": {
+        "schemaVersion": "authorization-inquiry/v2",
+        "mode": "behavior",
+        "operations": [
+          {
+            "id": "shared-memo",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "entryHint": "server/api/v1/memo_share_service.go::GetSharedMemo"
+          }
+        ],
+        "questions": [
+          {
+            "id": "shared-memo-access",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "principal": "caller supplying a share token",
+            "resource": "memo and surrounding resources",
+            "operation": "read shared memo",
+            "entryHint": "GetSharedMemo and relevant allowed dependencies",
+            "premises": [],
+            "operationId": "shared-memo",
+            "intent": "behavior"
+          }
+        ]
+      },
+      "resourceInputs": {
+        "shared-memo-access": {
+          "request": {
+            "ShareToken": "share-alpha"
+          },
+          "now": 2000,
+          "contextUserID": 0,
+          "instanceAccessMode": "PRIVATE",
+          "shares": [
+            {
+              "ID": 71,
+              "UID": "share-alpha",
+              "MemoID": 43,
+              "CreatorID": 17,
+              "ExpiresTs": 2000
+            },
+            {
+              "ID": 72,
+              "UID": "share-other",
+              "MemoID": 89,
+              "CreatorID": 22,
+              "ExpiresTs": null
+            }
+          ],
+          "memos": [
+            {
+              "ID": 43,
+              "UID": "memo-alpha",
+              "CreatorID": 17,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": 909,
+              "ParentUID": "parent-private",
+              "Content": "shared body"
+            },
+            {
+              "ID": 89,
+              "UID": "memo-other",
+              "CreatorID": 22,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": null,
+              "Content": "unrelated body"
+            }
+          ],
+          "users": [
+            {
+              "ID": 17,
+              "Username": "author-a",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            },
+            {
+              "ID": 22,
+              "Username": "author-b",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            }
+          ],
+          "spaces": [],
+          "memberships": [],
+          "reactions": [],
+          "attachments": [],
+          "storeErrors": {
+            "share": null,
+            "memo": null,
+            "viewer": null,
+            "instanceSetting": null,
+            "creator": null,
+            "space": null,
+            "membership": null,
+            "reactions": null,
+            "attachments": null,
+            "conversion": null
+          }
+        }
+      },
+      "sourceNotes": {
+        "format": "markdown",
+        "text": "This is a researcher-authored source-analysis and shared-link troubleshooting task, not a customer incident or live service run. Answer the complete original question for the supplied finite scenario and explain relevant alternate branches. In edit mode also deliver a reusable source program, starting from an empty draft. In consume mode keep the supplied program unchanged. Facts are synthetic request, clock, database rows and operation error observations. Collections are complete finite populations; field names follow Go store structs, membership rows have SpaceID/UserID/Role. storeErrors null means the named storage operation returns normally, not an access grant; absent facts are unknown. No external allowed/access decision is supplied. Read source-visible helper logic or retain it as a named unresolved responsibility. Broader security-skill duties and unavailable deployment facts remain explicit."
+      }
+    },
+    "expected": {
+      "disposition": "return",
+      "memoID": 43,
+      "content": "shared body",
+      "parent": null,
+      "relations": [],
+      "sourceAccessHelperRequired": true
+    },
+    "sourceBasis": [
+      "core/access/memo.go:100-102",
+      "server/api/v1/memo_service_converter.go:105-117"
+    ]
+  },
+  {
+    "name": "share-store-error",
+    "group": "branches",
+    "input": {
+      "schemaVersion": "authorization-inquiry-input/v1",
+      "taskId": "memos-share",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "sourceRoot": "../../authorization-domain-execution-v1/model/public-source/memos",
+      "allowedPaths": [
+        "server/api/v1",
+        "core/access",
+        "store",
+        "proto/api/v1",
+        "internal/ratelimit"
+      ],
+      "inquiry": {
+        "schemaVersion": "authorization-inquiry/v2",
+        "mode": "behavior",
+        "operations": [
+          {
+            "id": "shared-memo",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "entryHint": "server/api/v1/memo_share_service.go::GetSharedMemo"
+          }
+        ],
+        "questions": [
+          {
+            "id": "shared-memo-access",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "principal": "caller supplying a share token",
+            "resource": "memo and surrounding resources",
+            "operation": "read shared memo",
+            "entryHint": "GetSharedMemo and relevant allowed dependencies",
+            "premises": [],
+            "operationId": "shared-memo",
+            "intent": "behavior"
+          }
+        ]
+      },
+      "resourceInputs": {
+        "shared-memo-access": {
+          "request": {
+            "ShareToken": "share-alpha"
+          },
+          "now": 2000,
+          "contextUserID": 0,
+          "instanceAccessMode": "PRIVATE",
+          "shares": [
+            {
+              "ID": 71,
+              "UID": "share-alpha",
+              "MemoID": 43,
+              "CreatorID": 17,
+              "ExpiresTs": 2000
+            },
+            {
+              "ID": 72,
+              "UID": "share-other",
+              "MemoID": 89,
+              "CreatorID": 22,
+              "ExpiresTs": null
+            }
+          ],
+          "memos": [
+            {
+              "ID": 43,
+              "UID": "memo-alpha",
+              "CreatorID": 17,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": "parent-private",
+              "Content": "shared body"
+            },
+            {
+              "ID": 89,
+              "UID": "memo-other",
+              "CreatorID": 22,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": null,
+              "Content": "unrelated body"
+            }
+          ],
+          "users": [
+            {
+              "ID": 17,
+              "Username": "author-a",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            },
+            {
+              "ID": 22,
+              "Username": "author-b",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            }
+          ],
+          "spaces": [],
+          "memberships": [],
+          "reactions": [],
+          "attachments": [],
+          "storeErrors": {
+            "share": "database-error",
+            "memo": null,
+            "viewer": null,
+            "instanceSetting": null,
+            "creator": null,
+            "space": null,
+            "membership": null,
+            "reactions": null,
+            "attachments": null,
+            "conversion": null
+          }
+        }
+      },
+      "sourceNotes": {
+        "format": "markdown",
+        "text": "This is a researcher-authored source-analysis and shared-link troubleshooting task, not a customer incident or live service run. Answer the complete original question for the supplied finite scenario and explain relevant alternate branches. In edit mode also deliver a reusable source program, starting from an empty draft. In consume mode keep the supplied program unchanged. Facts are synthetic request, clock, database rows and operation error observations. Collections are complete finite populations; field names follow Go store structs, membership rows have SpaceID/UserID/Role. storeErrors null means the named storage operation returns normally, not an access grant; absent facts are unknown. No external allowed/access decision is supplied. Read source-visible helper logic or retain it as a named unresolved responsibility. Broader security-skill duties and unavailable deployment facts remain explicit."
+      }
+    },
+    "expected": {
+      "disposition": "Internal",
+      "returned": false
+    },
+    "sourceBasis": [
+      "server/api/v1/memo_share_service.go:223-225"
+    ]
+  },
+  {
+    "name": "context-policy-error",
+    "group": "branches",
+    "input": {
+      "schemaVersion": "authorization-inquiry-input/v1",
+      "taskId": "memos-share",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "sourceRoot": "../../authorization-domain-execution-v1/model/public-source/memos",
+      "allowedPaths": [
+        "server/api/v1",
+        "core/access",
+        "store",
+        "proto/api/v1",
+        "internal/ratelimit"
+      ],
+      "inquiry": {
+        "schemaVersion": "authorization-inquiry/v2",
+        "mode": "behavior",
+        "operations": [
+          {
+            "id": "shared-memo",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "entryHint": "server/api/v1/memo_share_service.go::GetSharedMemo"
+          }
+        ],
+        "questions": [
+          {
+            "id": "shared-memo-access",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "principal": "caller supplying a share token",
+            "resource": "memo and surrounding resources",
+            "operation": "read shared memo",
+            "entryHint": "GetSharedMemo and relevant allowed dependencies",
+            "premises": [],
+            "operationId": "shared-memo",
+            "intent": "behavior"
+          }
+        ]
+      },
+      "resourceInputs": {
+        "shared-memo-access": {
+          "request": {
+            "ShareToken": "share-alpha"
+          },
+          "now": 2000,
+          "contextUserID": 0,
+          "instanceAccessMode": "PRIVATE",
+          "shares": [
+            {
+              "ID": 71,
+              "UID": "share-alpha",
+              "MemoID": 43,
+              "CreatorID": 17,
+              "ExpiresTs": 2000
+            },
+            {
+              "ID": 72,
+              "UID": "share-other",
+              "MemoID": 89,
+              "CreatorID": 22,
+              "ExpiresTs": null
+            }
+          ],
+          "memos": [
+            {
+              "ID": 43,
+              "UID": "memo-alpha",
+              "CreatorID": 17,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": "parent-private",
+              "Content": "shared body"
+            },
+            {
+              "ID": 89,
+              "UID": "memo-other",
+              "CreatorID": 22,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": null,
+              "Content": "unrelated body"
+            }
+          ],
+          "users": [
+            {
+              "ID": 17,
+              "Username": "author-a",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            },
+            {
+              "ID": 22,
+              "Username": "author-b",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            }
+          ],
+          "spaces": [],
+          "memberships": [],
+          "reactions": [],
+          "attachments": [],
+          "storeErrors": {
+            "share": null,
+            "memo": null,
+            "viewer": null,
+            "instanceSetting": "database-error",
+            "creator": null,
+            "space": null,
+            "membership": null,
+            "reactions": null,
+            "attachments": null,
+            "conversion": null
+          }
+        }
+      },
+      "sourceNotes": {
+        "format": "markdown",
+        "text": "This is a researcher-authored source-analysis and shared-link troubleshooting task, not a customer incident or live service run. Answer the complete original question for the supplied finite scenario and explain relevant alternate branches. In edit mode also deliver a reusable source program, starting from an empty draft. In consume mode keep the supplied program unchanged. Facts are synthetic request, clock, database rows and operation error observations. Collections are complete finite populations; field names follow Go store structs, membership rows have SpaceID/UserID/Role. storeErrors null means the named storage operation returns normally, not an access grant; absent facts are unknown. No external allowed/access decision is supplied. Read source-visible helper logic or retain it as a named unresolved responsibility. Broader security-skill duties and unavailable deployment facts remain explicit."
+      }
+    },
+    "expected": {
+      "disposition": "NotFound",
+      "returned": false
+    },
+    "sourceBasis": [
+      "server/api/v1/memo_access.go:23-27",
+      "server/api/v1/memo_share_service.go:186-189"
+    ]
+  },
+  {
+    "name": "missing-clock",
+    "group": "unknown",
+    "input": {
+      "schemaVersion": "authorization-inquiry-input/v1",
+      "taskId": "memos-share",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "sourceRoot": "../../authorization-domain-execution-v1/model/public-source/memos",
+      "allowedPaths": [
+        "server/api/v1",
+        "core/access",
+        "store",
+        "proto/api/v1",
+        "internal/ratelimit"
+      ],
+      "inquiry": {
+        "schemaVersion": "authorization-inquiry/v2",
+        "mode": "behavior",
+        "operations": [
+          {
+            "id": "shared-memo",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "entryHint": "server/api/v1/memo_share_service.go::GetSharedMemo"
+          }
+        ],
+        "questions": [
+          {
+            "id": "shared-memo-access",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "principal": "caller supplying a share token",
+            "resource": "memo and surrounding resources",
+            "operation": "read shared memo",
+            "entryHint": "GetSharedMemo and relevant allowed dependencies",
+            "premises": [],
+            "operationId": "shared-memo",
+            "intent": "behavior"
+          }
+        ]
+      },
+      "resourceInputs": {
+        "shared-memo-access": {
+          "request": {
+            "ShareToken": "share-alpha"
+          },
+          "contextUserID": 0,
+          "instanceAccessMode": "PRIVATE",
+          "shares": [
+            {
+              "ID": 71,
+              "UID": "share-alpha",
+              "MemoID": 43,
+              "CreatorID": 17,
+              "ExpiresTs": 2000
+            },
+            {
+              "ID": 72,
+              "UID": "share-other",
+              "MemoID": 89,
+              "CreatorID": 22,
+              "ExpiresTs": null
+            }
+          ],
+          "memos": [
+            {
+              "ID": 43,
+              "UID": "memo-alpha",
+              "CreatorID": 17,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": "parent-private",
+              "Content": "shared body"
+            },
+            {
+              "ID": 89,
+              "UID": "memo-other",
+              "CreatorID": 22,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": null,
+              "Content": "unrelated body"
+            }
+          ],
+          "users": [
+            {
+              "ID": 17,
+              "Username": "author-a",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            },
+            {
+              "ID": 22,
+              "Username": "author-b",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            }
+          ],
+          "spaces": [],
+          "memberships": [],
+          "reactions": [],
+          "attachments": [],
+          "storeErrors": {
+            "share": null,
+            "memo": null,
+            "viewer": null,
+            "instanceSetting": null,
+            "creator": null,
+            "space": null,
+            "membership": null,
+            "reactions": null,
+            "attachments": null,
+            "conversion": null
+          }
+        }
+      },
+      "sourceNotes": {
+        "format": "markdown",
+        "text": "This is a researcher-authored source-analysis and shared-link troubleshooting task, not a customer incident or live service run. Answer the complete original question for the supplied finite scenario and explain relevant alternate branches. In edit mode also deliver a reusable source program, starting from an empty draft. In consume mode keep the supplied program unchanged. Facts are synthetic request, clock, database rows and operation error observations. Collections are complete finite populations; field names follow Go store structs, membership rows have SpaceID/UserID/Role. storeErrors null means the named storage operation returns normally, not an access grant; absent facts are unknown. No external allowed/access decision is supplied. Read source-visible helper logic or retain it as a named unresolved responsibility. Broader security-skill duties and unavailable deployment facts remain explicit."
+      }
+    },
+    "expected": {
+      "disposition": "unknown",
+      "blocked": "expiry"
+    },
+    "sourceBasis": [
+      "server/api/v1/memo_share_service.go:218"
+    ]
+  },
+  {
+    "name": "missing-users-population",
+    "group": "unknown",
+    "input": {
+      "schemaVersion": "authorization-inquiry-input/v1",
+      "taskId": "memos-share",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "sourceRoot": "../../authorization-domain-execution-v1/model/public-source/memos",
+      "allowedPaths": [
+        "server/api/v1",
+        "core/access",
+        "store",
+        "proto/api/v1",
+        "internal/ratelimit"
+      ],
+      "inquiry": {
+        "schemaVersion": "authorization-inquiry/v2",
+        "mode": "behavior",
+        "operations": [
+          {
+            "id": "shared-memo",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "entryHint": "server/api/v1/memo_share_service.go::GetSharedMemo"
+          }
+        ],
+        "questions": [
+          {
+            "id": "shared-memo-access",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "principal": "caller supplying a share token",
+            "resource": "memo and surrounding resources",
+            "operation": "read shared memo",
+            "entryHint": "GetSharedMemo and relevant allowed dependencies",
+            "premises": [],
+            "operationId": "shared-memo",
+            "intent": "behavior"
+          }
+        ]
+      },
+      "resourceInputs": {
+        "shared-memo-access": {
+          "request": {
+            "ShareToken": "share-alpha"
+          },
+          "now": 2000,
+          "contextUserID": 0,
+          "instanceAccessMode": "PRIVATE",
+          "shares": [
+            {
+              "ID": 71,
+              "UID": "share-alpha",
+              "MemoID": 43,
+              "CreatorID": 17,
+              "ExpiresTs": 2000
+            },
+            {
+              "ID": 72,
+              "UID": "share-other",
+              "MemoID": 89,
+              "CreatorID": 22,
+              "ExpiresTs": null
+            }
+          ],
+          "memos": [
+            {
+              "ID": 43,
+              "UID": "memo-alpha",
+              "CreatorID": 17,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": "parent-private",
+              "Content": "shared body"
+            },
+            {
+              "ID": 89,
+              "UID": "memo-other",
+              "CreatorID": 22,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": null,
+              "Content": "unrelated body"
+            }
+          ],
+          "spaces": [],
+          "memberships": [],
+          "reactions": [],
+          "attachments": [],
+          "storeErrors": {
+            "share": null,
+            "memo": null,
+            "viewer": null,
+            "instanceSetting": null,
+            "creator": null,
+            "space": null,
+            "membership": null,
+            "reactions": null,
+            "attachments": null,
+            "conversion": null
+          }
+        }
+      },
+      "sourceNotes": {
+        "format": "markdown",
+        "text": "This is a researcher-authored source-analysis and shared-link troubleshooting task, not a customer incident or live service run. Answer the complete original question for the supplied finite scenario and explain relevant alternate branches. In edit mode also deliver a reusable source program, starting from an empty draft. In consume mode keep the supplied program unchanged. Facts are synthetic request, clock, database rows and operation error observations. Collections are complete finite populations; field names follow Go store structs, membership rows have SpaceID/UserID/Role. storeErrors null means the named storage operation returns normally, not an access grant; absent facts are unknown. No external allowed/access decision is supplied. Read source-visible helper logic or retain it as a named unresolved responsibility. Broader security-skill duties and unavailable deployment facts remain explicit."
+      }
+    },
+    "expected": {
+      "disposition": "unknown",
+      "blocked": "creator lookup"
+    },
+    "sourceBasis": [
+      "core/access/memo_resolve.go:36-42"
+    ]
+  },
+  {
+    "name": "renamed-identities",
+    "group": "perturbation",
+    "input": {
+      "schemaVersion": "authorization-inquiry-input/v1",
+      "taskId": "memos-share",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "sourceRoot": "../../authorization-domain-execution-v1/model/public-source/memos",
+      "allowedPaths": [
+        "server/api/v1",
+        "core/access",
+        "store",
+        "proto/api/v1",
+        "internal/ratelimit"
+      ],
+      "inquiry": {
+        "schemaVersion": "authorization-inquiry/v2",
+        "mode": "behavior",
+        "operations": [
+          {
+            "id": "shared-memo",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "entryHint": "server/api/v1/memo_share_service.go::GetSharedMemo"
+          }
+        ],
+        "questions": [
+          {
+            "id": "shared-memo-access",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "principal": "caller supplying a share token",
+            "resource": "memo and surrounding resources",
+            "operation": "read shared memo",
+            "entryHint": "GetSharedMemo and relevant allowed dependencies",
+            "premises": [],
+            "operationId": "shared-memo",
+            "intent": "behavior"
+          }
+        ]
+      },
+      "resourceInputs": {
+        "shared-memo-access": {
+          "request": {
+            "ShareToken": "new-key"
+          },
+          "now": 2000,
+          "contextUserID": 0,
+          "instanceAccessMode": "PRIVATE",
+          "shares": [
+            {
+              "ID": 71,
+              "UID": "new-key",
+              "MemoID": 143,
+              "CreatorID": 117,
+              "ExpiresTs": 2000
+            },
+            {
+              "ID": 72,
+              "UID": "share-other",
+              "MemoID": 89,
+              "CreatorID": 22,
+              "ExpiresTs": null
+            }
+          ],
+          "memos": [
+            {
+              "ID": 143,
+              "UID": "memo-alpha",
+              "CreatorID": 117,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": "parent-private",
+              "Content": "shared body"
+            },
+            {
+              "ID": 89,
+              "UID": "memo-other",
+              "CreatorID": 22,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": null,
+              "Content": "unrelated body"
+            }
+          ],
+          "users": [
+            {
+              "ID": 117,
+              "Username": "author-a",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            },
+            {
+              "ID": 22,
+              "Username": "author-b",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            }
+          ],
+          "spaces": [],
+          "memberships": [],
+          "reactions": [],
+          "attachments": [],
+          "storeErrors": {
+            "share": null,
+            "memo": null,
+            "viewer": null,
+            "instanceSetting": null,
+            "creator": null,
+            "space": null,
+            "membership": null,
+            "reactions": null,
+            "attachments": null,
+            "conversion": null
+          }
+        }
+      },
+      "sourceNotes": {
+        "format": "markdown",
+        "text": "This is a researcher-authored source-analysis and shared-link troubleshooting task, not a customer incident or live service run. Answer the complete original question for the supplied finite scenario and explain relevant alternate branches. In edit mode also deliver a reusable source program, starting from an empty draft. In consume mode keep the supplied program unchanged. Facts are synthetic request, clock, database rows and operation error observations. Collections are complete finite populations; field names follow Go store structs, membership rows have SpaceID/UserID/Role. storeErrors null means the named storage operation returns normally, not an access grant; absent facts are unknown. No external allowed/access decision is supplied. Read source-visible helper logic or retain it as a named unresolved responsibility. Broader security-skill duties and unavailable deployment facts remain explicit."
+      }
+    },
+    "expected": {
+      "disposition": "return",
+      "memoID": 143,
+      "content": "shared body",
+      "parent": null,
+      "relations": [],
+      "sourceAccessHelperRequired": true
+    },
+    "sourceBasis": [
+      "server/api/v1/memo_share_service.go:173-178"
+    ]
+  },
+  {
+    "name": "reordered-populations",
+    "group": "perturbation",
+    "input": {
+      "schemaVersion": "authorization-inquiry-input/v1",
+      "taskId": "memos-share",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "sourceRoot": "../../authorization-domain-execution-v1/model/public-source/memos",
+      "allowedPaths": [
+        "server/api/v1",
+        "core/access",
+        "store",
+        "proto/api/v1",
+        "internal/ratelimit"
+      ],
+      "inquiry": {
+        "schemaVersion": "authorization-inquiry/v2",
+        "mode": "behavior",
+        "operations": [
+          {
+            "id": "shared-memo",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "entryHint": "server/api/v1/memo_share_service.go::GetSharedMemo"
+          }
+        ],
+        "questions": [
+          {
+            "id": "shared-memo-access",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "principal": "caller supplying a share token",
+            "resource": "memo and surrounding resources",
+            "operation": "read shared memo",
+            "entryHint": "GetSharedMemo and relevant allowed dependencies",
+            "premises": [],
+            "operationId": "shared-memo",
+            "intent": "behavior"
+          }
+        ]
+      },
+      "resourceInputs": {
+        "shared-memo-access": {
+          "request": {
+            "ShareToken": "share-alpha"
+          },
+          "now": 2000,
+          "contextUserID": 0,
+          "instanceAccessMode": "PRIVATE",
+          "shares": [
+            {
+              "ID": 72,
+              "UID": "share-other",
+              "MemoID": 89,
+              "CreatorID": 22,
+              "ExpiresTs": null
+            },
+            {
+              "ID": 71,
+              "UID": "share-alpha",
+              "MemoID": 43,
+              "CreatorID": 17,
+              "ExpiresTs": 2000
+            }
+          ],
+          "memos": [
+            {
+              "ID": 89,
+              "UID": "memo-other",
+              "CreatorID": 22,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": null,
+              "Content": "unrelated body"
+            },
+            {
+              "ID": 43,
+              "UID": "memo-alpha",
+              "CreatorID": 17,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": "parent-private",
+              "Content": "shared body"
+            }
+          ],
+          "users": [
+            {
+              "ID": 22,
+              "Username": "author-b",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            },
+            {
+              "ID": 17,
+              "Username": "author-a",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            }
+          ],
+          "spaces": [],
+          "memberships": [],
+          "reactions": [],
+          "attachments": [],
+          "storeErrors": {
+            "share": null,
+            "memo": null,
+            "viewer": null,
+            "instanceSetting": null,
+            "creator": null,
+            "space": null,
+            "membership": null,
+            "reactions": null,
+            "attachments": null,
+            "conversion": null
+          }
+        }
+      },
+      "sourceNotes": {
+        "format": "markdown",
+        "text": "This is a researcher-authored source-analysis and shared-link troubleshooting task, not a customer incident or live service run. Answer the complete original question for the supplied finite scenario and explain relevant alternate branches. In edit mode also deliver a reusable source program, starting from an empty draft. In consume mode keep the supplied program unchanged. Facts are synthetic request, clock, database rows and operation error observations. Collections are complete finite populations; field names follow Go store structs, membership rows have SpaceID/UserID/Role. storeErrors null means the named storage operation returns normally, not an access grant; absent facts are unknown. No external allowed/access decision is supplied. Read source-visible helper logic or retain it as a named unresolved responsibility. Broader security-skill duties and unavailable deployment facts remain explicit."
+      }
+    },
+    "expected": {
+      "disposition": "return",
+      "memoID": 43,
+      "content": "shared body",
+      "parent": null,
+      "relations": [],
+      "sourceAccessHelperRequired": true
+    },
+    "sourceBasis": [
+      "server/api/v1/memo_share_service.go:173-178"
+    ]
+  },
+  {
+    "name": "unrelated-fields",
+    "group": "perturbation",
+    "input": {
+      "schemaVersion": "authorization-inquiry-input/v1",
+      "taskId": "memos-share",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "sourceRoot": "../../authorization-domain-execution-v1/model/public-source/memos",
+      "allowedPaths": [
+        "server/api/v1",
+        "core/access",
+        "store",
+        "proto/api/v1",
+        "internal/ratelimit"
+      ],
+      "inquiry": {
+        "schemaVersion": "authorization-inquiry/v2",
+        "mode": "behavior",
+        "operations": [
+          {
+            "id": "shared-memo",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "entryHint": "server/api/v1/memo_share_service.go::GetSharedMemo"
+          }
+        ],
+        "questions": [
+          {
+            "id": "shared-memo-access",
+            "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+            "principal": "caller supplying a share token",
+            "resource": "memo and surrounding resources",
+            "operation": "read shared memo",
+            "entryHint": "GetSharedMemo and relevant allowed dependencies",
+            "premises": [],
+            "operationId": "shared-memo",
+            "intent": "behavior"
+          }
+        ]
+      },
+      "resourceInputs": {
+        "shared-memo-access": {
+          "request": {
+            "ShareToken": "share-alpha"
+          },
+          "now": 2000,
+          "contextUserID": 0,
+          "instanceAccessMode": "PRIVATE",
+          "shares": [
+            {
+              "ID": 71,
+              "UID": "share-alpha",
+              "MemoID": 43,
+              "CreatorID": 17,
+              "ExpiresTs": 2000
+            },
+            {
+              "ID": 72,
+              "UID": "share-other",
+              "MemoID": 89,
+              "CreatorID": 22,
+              "ExpiresTs": null
+            }
+          ],
+          "memos": [
+            {
+              "ID": 43,
+              "UID": "memo-alpha",
+              "CreatorID": 17,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": "parent-private",
+              "Content": "shared body"
+            },
+            {
+              "ID": 89,
+              "UID": "memo-other",
+              "CreatorID": 22,
+              "RowStatus": "NORMAL",
+              "Visibility": "PRIVATE",
+              "SpaceID": null,
+              "ParentUID": null,
+              "Content": "unrelated body",
+              "Extra": "not relevant"
+            }
+          ],
+          "users": [
+            {
+              "ID": 17,
+              "Username": "author-a",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            },
+            {
+              "ID": 22,
+              "Username": "author-b",
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            }
+          ],
+          "spaces": [],
+          "memberships": [],
+          "reactions": [],
+          "attachments": [],
+          "storeErrors": {
+            "share": null,
+            "memo": null,
+            "viewer": null,
+            "instanceSetting": null,
+            "creator": null,
+            "space": null,
+            "membership": null,
+            "reactions": null,
+            "attachments": null,
+            "conversion": null
+          }
+        }
+      },
+      "sourceNotes": {
+        "format": "markdown",
+        "text": "This is a researcher-authored source-analysis and shared-link troubleshooting task, not a customer incident or live service run. Answer the complete original question for the supplied finite scenario and explain relevant alternate branches. In edit mode also deliver a reusable source program, starting from an empty draft. In consume mode keep the supplied program unchanged. Facts are synthetic request, clock, database rows and operation error observations. Collections are complete finite populations; field names follow Go store structs, membership rows have SpaceID/UserID/Role. storeErrors null means the named storage operation returns normally, not an access grant; absent facts are unknown. No external allowed/access decision is supplied. Read source-visible helper logic or retain it as a named unresolved responsibility. Broader security-skill duties and unavailable deployment facts remain explicit."
+      }
+    },
+    "expected": {
+      "disposition": "return",
+      "memoID": 43,
+      "content": "shared body",
+      "parent": null,
+      "relations": [],
+      "sourceAccessHelperRequired": true
+    },
+    "sourceBasis": [
+      "server/api/v1/memo_share_service.go:173-178"
+    ]
+  }
+]

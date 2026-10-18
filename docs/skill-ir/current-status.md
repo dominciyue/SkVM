@@ -4,9 +4,9 @@
 
 ## 当前工作
 
-**BR0–BR21已登记，planned-not-started，准备派发gpt-6-astra/high。** 用户要求减少重复填字段、检验同类不同task的共享解法，并明确真实skill/源码与研究任务/合成输入的区别。[任务书](../superpowers/plans/2026-10-19-authorization-evidence-backed-answers-and-task-transfer.md) identity为`authorization-answer-transfer-v1`，规划基线为BQ最终3c3059a8。先诊断已有outcome/消费/最终交接为何没有支持准确回答，再复用公共工具从空稿处理Memos GetSharedMemo；Download仅做固定稿回归和两臂消费。
+**BR0–BR21执行中，已完成接管、真实包诊断、定向共享修复和调用前登记，尚无BR模型调用。** 从4216358f接管，独占代码和Git写入。[任务书](../superpowers/plans/2026-10-19-authorization-evidence-backed-answers-and-task-transfer.md) identity为`authorization-answer-transfer-v1`。BQ69个实际发送片段可重建，当前结果和原问题已发送；自然遗漏不归因于结果丢失。匿名反例修正静态返回依赖中已跳过外部步骤的标签，不声称它改善BQ。Memos真实源码确定22案例与原/变时钟输入，完整原问题、skill及来源边界已冻结；有限九用途待执行。
 
-正常用途9个：Download rules/execute两项、Memos空稿作者一项、同稿原/变输入N/R/E六项；至多4个具名确认。实验仍用官方gpt-5.6-sol/high，第三方暂停。Memos为已暴露公开源码，输入为显式有限合成事实，不称新held-out或liveAPI；开发者不修自动稿业务含义，原题及全部失败保留。合同见[spec§14.57](skill-ir-aot-optimization-spec.md#1457-br-evidence-backed-answers-and-task-transfer)及[研究§7.79](skill-dsl-research.md#779-bq-复核与-br-回答依据和跨任务检验)。目前只有计划，没有BR新实现、模型调用或效果结果。
+正常用途9个：Download rules/execute两项、Memos空稿作者一项、同稿原/变输入N/R/E六项；至多4个具名确认。实验仍用官方gpt-5.6-sol/high，第三方暂停。Memos为已暴露公开源码，输入为显式有限合成事实，不称新held-out或liveAPI；开发者不修自动稿业务含义，原题及全部失败保留。合同见[spec§14.57](skill-ir-aot-optimization-spec.md#1457-br-evidence-backed-answers-and-task-transfer)及[研究§7.79](skill-dsl-research.md#779-bq-复核与-br-回答依据和跨任务检验)。调用前工程已验证；尚无BR模型调用或效果结果。
 
 ## BQ 已结束的实际结果
 
@@ -164,7 +164,7 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 
 | 阶段 | 保留记录 |
 |---|---|
-| 当前BR | [任务书](../superpowers/plans/2026-10-19-authorization-evidence-backed-answers-and-task-transfer.md)、spec§14.57、研究§7.79；planned-not-started，共享交接修复及跨任务自动编写/消费待执行 |
+| 当前BR | [任务书](../superpowers/plans/2026-10-19-authorization-evidence-backed-answers-and-task-transfer.md)、spec§14.57、研究§7.79；in-progress，共享投影修复及调用前登记已验证；九用途待执行 |
 | BQ | [任务书](../superpowers/plans/2026-10-18-authorization-source-program-consistency-and-task-execution.md)、spec§14.56、研究§7.78；最终3c3059a8已发布，两个缺陷修复，完整自然质量与稳定增量未达 |
 | BP | [任务书](../superpowers/plans/2026-10-16-authorization-quality-evidence-and-branch-reliability.md)、spec§14.55、研究§7.77；最终27d59677，有限队列完成，完整语义和重复执行质量优势未达 |
 | BO | [任务书](../superpowers/plans/2026-10-16-authorization-call-semantics-and-program-repair.md)、spec§14.54、研究§7.76；有限自动调用语义与维护结果保留 |

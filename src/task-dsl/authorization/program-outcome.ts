@@ -12,7 +12,7 @@ function returnBasis(program: any, execution: any, returnedStep: any) {
       seen.add(step.id)
       const event = events.find(e => e.id === step.id)
       dependencies.set(step.id, { id: step.id, op: step.op, source: step.source, sources: step.sources, outcome: event?.outcome ?? "not-executed", meaningOrigin: event?.meaningOrigin, assumption: event?.inputs?.assumption })
-      if (step.op === "external") kinds.add(event?.inputs?.assumption ? "supplied-external-fact" : "unresolved-external-fact")
+      if (step.op === "external") kinds.add(!event || event.outcome === "skipped" ? "unexecuted-external-branch" : event.inputs?.assumption ? "supplied-external-fact" : "unresolved-external-fact")
       else if (step.op === "select" || step.op === "guard") kinds.add("finite-computation")
       if (typeof step.from === "string") reference(step.from)
       for (const key of ["value", "test", "where", "when", "arguments", "principal", "resource"]) visit(step[key], key === "where" && step.op === "select")

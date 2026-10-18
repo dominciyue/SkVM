@@ -1,6 +1,25 @@
 import { expect, test } from "bun:test"
 import { executeResourceWorkflow } from "./resource-relations.ts"
+import { projectProgramOutcome } from "./program-outcome.ts"
 const api: any = await import("./program-outcome.ts").catch(() => ({}))
+test("a skipped external branch is structural context rather than an unresolved executed fact", () => {
+  const source = { path: "shared.go", startLine: 1, endLine: 8 }
+  const workflow: any = { inputs: ["local", "record"], gaps: ["other request paths unreviewed"], steps: [
+    { id: "remote", op: "external", name: "fetch", arguments: {}, when: { op: "eq", left: { binding: "local" }, right: { literal: false } }, source },
+    { id: "done", op: "return", value: { choose: { test: { op: "truthy", language: "python", value: { binding: "local" } }, then: { ref: "record" }, else: { ref: "remote" } } }, source },
+  ] }
+  const execution = executeResourceWorkflow(workflow, { local: true, record: 83 })
+  const view = projectProgramOutcome({ program: { resourceWorkflow: workflow }, resourceExecution: execution })
+  expect(view.execution).toBe("computed")
+  expect(view.executionGaps).toEqual([])
+  expect(view.coverageGaps).toContain("other request paths unreviewed")
+  expect(view.returnBasis?.fields.$return?.kinds).toContain("unexecuted-external-branch")
+  expect(view.returnBasis?.fields.$return?.kinds).not.toContain("unresolved-external-fact")
+  expect(view.returnBasis?.fields.$return?.dependencies[0]).toMatchObject({ id: "remote", outcome: "skipped" })
+  const missing = projectProgramOutcome({ program: { resourceWorkflow: workflow }, resourceExecution: executeResourceWorkflow(workflow, { local: false, record: 83 }) })
+  expect(missing.execution).toBe("conditional")
+  expect(missing.returnBasis?.fields.$return?.kinds).toContain("unresolved-external-fact")
+})
 test("return basis separates literal claims, finite selection and external facts with unresolved control", () => {
   const source = { path: "anonymous.py", startLine: 1, endLine: 10 }
   const workflow: any = { inputs: ["rows"], steps: [

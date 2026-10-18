@@ -1,0 +1,64 @@
+{
+  "fixedBeforeModel": true,
+  "originalQuestion": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+  "planDenominator": 9,
+  "caseDenominator": 22,
+  "necessaryFacts": [
+    {
+      "id": "binding",
+      "source": "server/api/v1/memo_share_service.go:173-185,221-229",
+      "requirements": "UID token lookup, share MemoID lookup; missing/revoked/expired NotFound, store error Internal; no caller-supplied memo selector"
+    },
+    {
+      "id": "time",
+      "source": "server/api/v1/memo_share_service.go:216-218",
+      "requirements": "nil expiry unbounded; strictly greater Unix seconds expires, equality valid"
+    },
+    {
+      "id": "access",
+      "source": "server/api/v1/memo_access.go:17-40;core/access/memo_resolve.go:31-90;core/access/memo.go:92-122",
+      "requirements": "source-visible creator validity, recognized visibility, actual read-context resolution/errors; share binds exactly one non-SPACE memo; archived memo denied earlier; private instance does not by itself block valid share"
+    },
+    {
+      "id": "anonymous",
+      "source": "server/api/v1/acl_config.go:45-46,78-79;auth_service_session.go:269-290",
+      "requirements": "public/bootstrap route, user absent permitted but resolution may error; do not equate token with general user/owner permission"
+    },
+    {
+      "id": "return",
+      "source": "server/api/v1/memo_share_service.go:191-213;memo_service_converter.go:26-137",
+      "requirements": "content/reactions/attachment metadata, nil relations, Parent cleared; placement projection restricted; creator missing and conversion errors retained; not graph or write authority"
+    },
+    {
+      "id": "limits",
+      "source": "complete original brief and skill",
+      "requirements": "synthetic development data, no live API, source/helper uncertainty precise; wider skill duties scoped and not claimed audited"
+    }
+  ],
+  "scores": [
+    "full",
+    "partial",
+    "incorrect",
+    "unavailable"
+  ],
+  "axes": [
+    "transport",
+    "raw-validity",
+    "source-semantic-coverage",
+    "field-values",
+    "event-order",
+    "source-decisions",
+    "original-task-completeness",
+    "adoption",
+    "cost"
+  ],
+  "method": "Evaluate anonymous A/B/C answer copies against the same source rubric before attaching arm labels. Independent read-only verification may challenge main judgement. A sentence/field-name match is not quality proof.",
+  "comparisons": "N to R includes author preparation and materials; R to E same raw execution increment. Same source tree/input/model/effort/budget required. First and confirmation separate.",
+  "forbiddenModelInputs": [
+    "evaluation",
+    "expected",
+    "taskbook",
+    "old answers",
+    "developer semantic program"
+  ]
+}

@@ -2,7 +2,7 @@
 
 > **For agentic workers:** 使用 executing-plans；定位缺陷使用 systematic-debugging，生产修改使用 test-driven-development。用户已授权直接执行、有限官方账号实验及发布。开发线程使用 `gpt-6-astra/high`，独占生产代码、当前方法文档和 Git 写入。常规检查点不等确认；探子仅做独立、窄范围只读检索或核验。
 
-**状态：** planned-not-started，2026-10-19。此文件是开发合同，以下目标尚未实现或验证。
+**状态：** in-progress，2026-10-19。从4216358f接管；BR0–BR7的诊断、定向红绿、源码案例与有限runner已落地，BR8调用前验证通过。尚无BR模型调用。逐项目标仍按实际证据勾选，结果见BR目录execution.md。
 
 **Goal：** 让已有 DSL 的计算、来源和缺口可靠地支持完整自然回答；用另一个真实仓库中的不同授权任务，从空稿检验同一套编写、执行和变化消费机制。交付实际程序、普通使用过程与可核对的正负结果。
 
@@ -113,42 +113,44 @@ BQ 固定程序仅用于 Download，不能移植它的成功语义填入 Memos�
 ## 五、BR0–BR21 连续工作队列
 
 ### BR0 接管与留底
-- [ ] 读父/仓 AGENTS、current-status、本任务书、spec§14.57和研究§1/§7.79/§11；BQ execution、actual-use、quality-reviews、最终raw按需读取。
-- [ ] 核对分支/HEAD/origin、BQ关闭与无并发写者；保护`.tmp/`和旧证据。创建 BR status/manifest，目标字段与实际通过字段分开。
+- [x] 读父/仓 AGENTS、current-status、本任务书、spec§14.57和研究§1/§7.79/§11；BQ execution、actual-use、quality-reviews、最终raw按需读取。
+- [x] 核对分支/HEAD/origin、BQ关闭与无并发写者；保护`.tmp/`和旧证据。创建 BR status/manifest，目标字段与实际通过字段分开。
 
 ### BR1 真实交接诊断
-- [ ] 零调用读BQ原件包；复核T-E/U-E当前结果、规则、trial、最后工具包及final-child的实际内容。
-- [ ] 在 `diagnosis.json` 记录每个已知误述/遗漏的首次信息断点、代码位置及反证，确认已有能力，删除没有实际依据的修复猜想。
+- [x] 零调用读BQ原件包；复核T-E/U-E当前结果、规则、trial、最后工具包及final-child的实际内容。
+- [x] 在 `diagnosis.json` 记录每个已知误述/遗漏的首次信息断点、代码位置及反证，确认已有能力，删除没有实际依据的修复猜想。
 
 ### BR2 共享失败测试
-- [ ] 在既有 `program-outcome.test.ts`、`program-consumption-context.test.ts`、`program-delivery.test.ts`和普通入口测试中加入复现断点的最小红测，运行并保留预期失败。
-- [ ] 至少覆盖computed但coverage未完成、静态未走分支含unknown、执行中真实unknown、旧trial/旧source、规则不得见执行、当前稿更新后旧答案失效，以及原问题仍保留。使用匿名名称、不同ID和第二结构，不把55步原稿硬编码为核心测试。
+- [x] 在既有 `program-outcome.test.ts`、`program-consumption-context.test.ts`、`program-delivery.test.ts`和普通入口测试中加入复现断点的最小红测，运行并保留预期失败。
+- [x] 至少覆盖computed但coverage未完成、静态未走分支含unknown、执行中真实unknown、旧trial/旧source、规则不得见执行、当前稿更新后旧答案失效，以及原问题仍保留。使用匿名名称、不同ID和第二结构，不把55步原稿硬编码为核心测试。
 
 ### BR3 修结果到回答的共享接线
-- [ ] 修改 `program-outcome.ts`、`program-consumption-context.ts`、`program-authoring-context.ts`中已复现的最小位置；实现前完整阅读拟改函数。
-- [ ] 验证普通执行事实、来源/假设和未覆盖范围可以分别被读到；无确凿缺陷的模块不重写。绿测后更新开发指南的对应责任。
+- [x] 修改 `program-outcome.ts`、`program-consumption-context.ts`、`program-authoring-context.ts`中已复现的最小位置；实现前完整阅读拟改函数。
+- [x] 验证普通执行事实、来源/假设和未覆盖范围可以分别被读到；无确凿缺陷的模块不重写。绿测后更新开发指南的对应责任。
 
 ### BR4 普通/最终交付一致性
-- [ ] 在 `src/benchmarks/authorization-dsl/inquiry-native.ts`、`src/adapters/codex-account.ts`按需接通同一结果，沿既有delivery basis和final-child，不新增模型评审循环。
-- [ ] 用fake账号/普通入口测tool reply、断点恢复、最终上下文、引用还原及rules隔离；自然答案只要求忠实任务，不强制新字段合同。零调用验证既有BQ普通命令。
+- [x] 在 `src/benchmarks/authorization-dsl/inquiry-native.ts`、`src/adapters/codex-account.ts`按需接通同一结果，沿既有delivery basis和final-child，不新增模型评审循环。
+- [x] 用fake账号/普通入口测tool reply、断点恢复、最终上下文、引用还原及rules隔离；自然答案只要求忠实任务，不强制新字段合同。零调用验证既有BQ普通命令。
 
 ### BR5 Memos 源码与需求先行
-- [ ] 读既有 `memos-share.json`、完整GitHub原skill、同ref GetSharedMemo及真实依赖。建立provenance与一份自然任务，分别登记外部材料、研究者问题和合成输入。
-- [ ] 根据源码确定允许/拒绝/边界/未知案例、原输入与变化输入；独立核对时钟比较、目标对象、访问helper及返回裁剪。读取不到的材料明确缺失，不补正确答案。
+- [x] 读既有 `memos-share.json`、完整GitHub原skill、同ref GetSharedMemo及真实依赖。建立provenance与一份自然任务，分别登记外部材料、研究者问题和合成输入。
+- [x] 根据源码确定允许/拒绝/边界/未知案例、原输入与变化输入；独立核对时钟比较、目标对象、访问helper及返回裁剪。读取不到的材料明确缺失，不补正确答案。
 
 ### BR6 可表达性与隔离
-- [ ] 将必要关系映射到现有通用算子/输入/unknown，记录支持与缺口。研究者的设计推演仅放评价侧，不作为作者初稿或模型上下文。
-- [ ] 如有共享执行错误，先匿名红绿修复；若需要整套Go语义或仓库分支则保留unsupported，继续自然源码基线和可用部分。检查模型allowlist不含oracle、旧答案、任务书及开发稿。
+- [x] 将必要关系映射到现有通用算子/输入/unknown，记录支持与缺口。研究者的设计推演仅放评价侧，不作为作者初稿或模型上下文。
+- [x] 如有共享执行错误，先匿名红绿修复；若需要整套Go语义或仓库分支则保留unsupported，继续自然源码基线和可用部分。检查模型allowlist不含oracle、旧答案、任务书及开发稿。
 
 ### BR7 有限 runner 与评价
-- [ ] 新建 BR `study.ts`、`study.test.ts`、`tsconfig.json`，复用BP/BQ普通派发与恢复代码，只保留九用途和四确认，不复制旧大面板。
-- [ ] 注册表只接受本书九个用途ID；第五个具名确认必须被拒绝。写测试证明旧BP六确认上限及Q/S/T位置不会随代码复用进入BR。首包和每次工具回复都按宿主结构核验rules没有求值/trial/outcome结果，并用fake执行计数验证未调用求值器；不只对整包做字段名正则。
-- [ ] 支持零调用preflight、单用途run、status、离线verify；命令先写入BR execution.md。失败测试验证输入边界、原字节选稿、rules无执行、当前attempt不能重发及计量去重。
-- [ ] 注册每题必要事实及严重错误、全部计划case/用途/epoch、盲评方法。模型不能访问这一评价目录。
+- [x] 新建 BR `study.ts`、`study.test.ts`、`tsconfig.json`，复用BP/BQ普通派发与恢复代码，只保留九用途和四确认，不复制旧大面板。
+- [x] 注册表只接受本书九个用途ID；第五个具名确认必须被拒绝。写测试证明旧BP六确认上限及Q/S/T位置不会随代码复用进入BR。首包和每次工具回复都按宿主结构核验rules没有求值/trial/outcome结果，并用fake执行计数验证未调用求值器；不只对整包做字段名正则。
+- [x] 支持零调用preflight、单用途run、status、离线verify；命令先写入BR execution.md。失败测试验证输入边界、原字节选稿、rules无执行、当前attempt不能重发及计量去重。
+- [x] 注册每题必要事实及严重错误、全部计划case/用途/epoch、盲评方法。模型不能访问这一评价目录。
 
 ### BR8 第一次工程确认
-- [ ] 运行受影响测试和主/BR类型检查；查看实际序列化首包，不派额外模型探针。
-- [ ] 用改名/换ID匿名例验证同一共享实现，并对BQ固定稿35例及BP ShareLink已有有限输入做零模型兼容；不修改旧成绩或把兼容计为新增泛化成功。
+- [x] 运行受影响测试和主/BR类型检查；查看实际序列化首包，不派额外模型探针。
+- [x] 用改名/换ID匿名例验证同一共享实现，并对BQ固定稿35例及BP ShareLink已有有限输入做零模型兼容；不修改旧成绩或把兼容计为新增泛化成功。
+
+BR2–BR4复用已有断点恢复、旧trial/source、原问题及交付失效测试；新增红测只针对已复现的静态依赖标签。未发现缺陷的交接模块未重写。扩展82测试初跑有6项5秒超时，6项在20秒测试时限下逐项通过；没有修改生产会话预算。
 
 ### BR9 Download 固定稿同期对照
 - [ ] 依次执行D-R、D-E，保留完整原skill/四问、同一BQ原稿和输入；只消费，不再次编辑Download。
