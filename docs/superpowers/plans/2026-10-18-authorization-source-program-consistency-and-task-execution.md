@@ -2,7 +2,7 @@
 
 > **For agentic workers:** 使用 executing-plans；缺陷定位使用 systematic-debugging，生产修改使用 test-driven-development。用户已授权直接执行、有限真实实验和发布，开发模型为 `gpt-6-astra/high`。常规检查点不等待确认。探子仅做独立、窄范围只读核验，开发线程独占实现、共享文档和 Git 写入。
 
-**状态：** BQ0–BQ16已执行，BQ17发布收尾（2026-10-18）。两个已知raw缺陷和实际采用已达，完整自然质量/稳定增量未达；有限队列以completed-with-unmet-criteria收束，不追加BR。接管a0e306cb，共享工程c0b5ccf8。
+**状态：** BQ0–BQ17已执行并发布（2026-10-18），实质成果34ed287e与用户origin核对一致。两个已知raw缺陷和实际采用已达，完整自然质量/稳定增量未达；有限队列以completed-with-unmet-criteria收束，不追加BR。接管a0e306cb，共享工程c0b5ccf8。
 
 **Goal：** 修复自动编写过程漏掉调用者条件、缺键语义以及“说明已修但程序未修”的共享缺陷；让同一份自动程序实际参与源码排障、修稿、回归和后续使用，给出可重放的过程与准确结果。
 
@@ -250,4 +250,4 @@ T-R 与 T-E 按预先登记顺序串行执行。任何共享修复改变实验�
 
 ## 七、实施结果
 
-T-R/T-E均自动55步，首有效和终稿35/35字段与局部轨迹（初稿32/35）；T-E三批11案例、7案例当前revision，U-E固定原字节普通消费交付。三个用途共八观察turn，0活动/unknown，0额外确认；T-E续作中断但首交付与当前raw一致，U-E预算final-child交付。原四问6/12 full、0/3整题，源码决策9/12 full，缺失/误述见[BQ执行记录](../../../results/skill-ir/skill-dsl-research/development/authorization-source-program-consistency-v1/execution.md)。普通CLI、搬移及源码变化撤回通过，完整原件无损发布包逐件hash核验。当前仅余文档/发布最后核对；真实模型队列已停止。
+T-R/T-E均自动55步，首有效和终稿35/35字段与局部轨迹（初稿32/35）；T-E三批11案例、7案例当前revision，U-E固定原字节普通消费交付。三个用途共八观察turn，0活动/unknown，0额外确认；T-E续作中断但首交付与当前raw一致，U-E预算final-child交付。原四问6/12 full、0/3整题，源码决策9/12 full，缺失/误述见[BQ执行记录](../../../results/skill-ir/skill-dsl-research/development/authorization-source-program-consistency-v1/execution.md)。普通CLI、搬移及源码变化撤回通过，完整原件无损发布包逐件hash核验。实质成果已发布并核对，终态回执随闭合提交保存；真实模型队列已停止。

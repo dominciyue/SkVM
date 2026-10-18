@@ -1,6 +1,6 @@
 # BQ：源码一致性修复与真实产物维护
 
-有限队列已执行，发布收尾中。两个已知缺陷已在模型原稿中修复，真实多输入采用和普通消费成立；完整自然交付与稳定执行增量未达。本轮是一个公开 development 源码任务，使用有限 fixture，没有运行 Paperless 服务或数据库。开发 gpt-6-astra/high，实验官方 gpt-5.6-sol/high，第三方暂停。
+有限队列已执行并发布，实质成果34ed287e与用户origin远端SHA核对一致，见[发布回执](publication.json)。两个已知缺陷已在模型原稿中修复，真实多输入采用和普通消费成立；完整自然交付与稳定执行增量未达。本轮是一个公开 development 源码任务，使用有限 fixture，没有运行 Paperless 服务或数据库。开发 gpt-6-astra/high，实验官方 gpt-5.6-sol/high，第三方暂停。
 
 ## 实际任务链
 
@@ -65,4 +65,4 @@ $bq = './results/skill-ir/skill-dsl-research/development/authorization-source-pr
 
 匿名红绿、普通静态parity、缺键/default、当前revision与trial归档通过；最近定向52测试354断言，另有fake/恢复42测试342断言。主/研究类型和15文档单测通过；全部三真实会话ordinary inspect及冻结身份零调用核验通过。未重跑旧全src，历史失败不称已修。见[工程](verification/engineering.json)、[收束](verification/zero-call-closeout.json)、[分轴验收](verification/acceptance-matrix.json)。
 
-两个已知缺陷和实际采用已解决；完整自然质量、未审源含义与稳定增量保持未达。项目默认不变，显式BQ可用于已说明范围。只推用户origin/skill-ir-aot，发布核对后结束，不自动创建BR或追加模型实验。
+两个已知缺陷和实际采用已解决；完整自然质量、未审源含义与稳定增量保持未达。项目默认不变，显式BQ可用于已说明范围。只推用户origin/skill-ir-aot，发布已核对，队列结束，不自动创建BR或追加模型实验。

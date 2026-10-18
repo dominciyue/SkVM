@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-**BQ0–BQ16已完成有限执行，BQ17发布收尾中；以completed-with-unmet-criteria收束。** 两个已知缺陷已在模型实际原稿中修复，真实试跑参与和普通固定稿消费成立；完整自然质量与稳定执行增量未达。[任务书](../superpowers/plans/2026-10-18-authorization-source-program-consistency-and-task-execution.md) identity为`authorization-source-program-consistency-v1`，从a0e306cb接管，共享工程c0b5ccf8。开发gpt-6-astra/high，实验官方gpt-5.6-sol/high，第三方暂停。
+**BQ0–BQ17已执行并发布，以completed-with-unmet-criteria收束；实质成果34ed287e已核对用户origin同SHA。** 两个已知缺陷已在模型实际原稿中修复，真实试跑参与和普通固定稿消费成立；完整自然质量与稳定执行增量未达。[任务书](../superpowers/plans/2026-10-18-authorization-source-program-consistency-and-task-execution.md) identity为`authorization-source-program-consistency-v1`，从a0e306cb接管，共享工程c0b5ccf8。开发gpt-6-astra/high，实验官方gpt-5.6-sol/high，第三方暂停。
 
 T-R/T-E均从BP52步原字节修至55步，首有效/最终稿均35/35字段与局部轨迹匹配，初稿32/35。None caller实际跳过外部权限调用，完整request缺version键显式default为null；正常、拒绝、unknown登记路径无关键退步。T-E有3批11案例，7案例对应最终revision，形成诊断→patch→验收链。固定T-E当前原字节经U-E普通消费，组合输入返回11/original/v1-original.pdf；无consumer编辑或主动trial。搬移重放与源码变化撤回通过，完整HTTP仍不获认证。
 
@@ -158,7 +158,7 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 
 | 阶段 | 保留记录 |
 |---|---|
-| 当前BQ | [任务书](../superpowers/plans/2026-10-18-authorization-source-program-consistency-and-task-execution.md)、spec§14.56、研究§7.78；有限执行完成、发布收尾，两个缺陷修复，完整自然质量与稳定增量未达 |
+| 当前BQ | [任务书](../superpowers/plans/2026-10-18-authorization-source-program-consistency-and-task-execution.md)、spec§14.56、研究§7.78；实质成果34ed287e已发布，两个缺陷修复，完整自然质量与稳定增量未达 |
 | BP | [任务书](../superpowers/plans/2026-10-16-authorization-quality-evidence-and-branch-reliability.md)、spec§14.55、研究§7.77；最终27d59677，有限队列完成，完整语义和重复执行质量优势未达 |
 | BO | [任务书](../superpowers/plans/2026-10-16-authorization-call-semantics-and-program-repair.md)、spec§14.54、研究§7.76；有限自动调用语义与维护结果保留 |
 | BN | [任务书](../superpowers/plans/2026-10-15-authorization-purpose-scoped-authoring-and-consumption.md)、spec§14.53、研究§7.75；有限队列已发布，完整程序/整题质量/净收益未达，实质成果bd613fc2 |
