@@ -1,5 +1,22 @@
 import { expect, test } from "bun:test"
 const panel: any = await import("./panel.ts").catch(() => ({}))
+test("explicit quota reset admits only named closed historical failures without rewriting the ledger", async () => {
+  const study: any = await import("./study.ts")
+  expect(typeof study.admitRegisteredPurpose).toBe("function")
+  const failed = { position: "Q2-R2-1", attempt: "first", session: "original", status: "failed", terminalStatus: "failed", quotaOrAuth: true, lifecycle: { localExecution: "closed" } }
+  const observation = { terminal: "completed", localExecution: "closed", reconciliation: "terminal-found", channel: "available", nextPurpose: "independent-task", independentAuthorized: true }
+  const reset = { userAuthorization: "Quota reset; continue", authorizedAt: "2026-10-18", covered: [{ position: failed.position, attempt: failed.attempt, session: failed.session }] }
+  const before = JSON.stringify(failed)
+  expect(study.admitRegisteredPurpose([failed], observation).allowNewTurn).toBe(false)
+  expect(study.admitRegisteredPurpose([failed], observation, reset).allowNewTurn).toBe(true)
+  expect(JSON.stringify(failed)).toBe(before)
+  expect(study.admitRegisteredPurpose([failed], observation, { ...reset, userAuthorization: "" }).allowNewTurn).toBe(false)
+  expect(study.admitRegisteredPurpose([{ ...failed, session: "new" }], observation, reset).allowNewTurn).toBe(false)
+  expect(study.admitRegisteredPurpose([{ ...failed, status: "running" }], observation, reset).allowNewTurn).toBe(false)
+  expect(study.admitRegisteredPurpose([{ ...failed, terminalStatus: "completion-unknown" }], observation, reset).allowNewTurn).toBe(false)
+  expect(study.admitRegisteredPurpose([failed, { ...failed, position: "Q3-R2-1" }], observation, reset).allowNewTurn).toBe(false)
+  expect(study.admitRegisteredPurpose([failed, { status: "unknown" }], observation, reset).allowNewTurn).toBe(false)
+})
 test("quality epoch identity retains working source diff and common experimental binding", async () => {
   const study: any = await import("./study.ts")
   expect(typeof study.qualityPairIdentity).toBe("function")

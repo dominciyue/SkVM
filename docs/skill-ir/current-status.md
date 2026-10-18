@@ -1,14 +1,16 @@
 # Skill IR 当前状态
 
-更新于2026-10-17（Asia/Shanghai）。工作分支为 `skill-ir-aot`，仅发布到用户 `origin`。本页是唯一实时状态入口；历史任务书与结果保留当时记录。
+更新于2026-10-18（Asia/Shanghai）。工作分支为 `skill-ir-aot`，仅发布到用户 `origin`。本页是唯一实时状态入口；历史任务书与结果保留当时记录。
 
 ## 当前工作
 
 **用户已授权 BP0–BP21，当前推进BP13固定面板；共享工程与三个真实作者已完成，完整面板尚未完成，尚无质量优势结论。** [当前任务书](../superpowers/plans/2026-10-16-authorization-quality-evidence-and-branch-reliability.md) identity为`authorization-quality-evidence-v1`，开发`gpt-6-astra/high`，实验官方账号`gpt-5.6-sol/high`，第三方暂停。方法见[spec§14.55](skill-ir-aot-optimization-spec.md#1455-bp-capability-quality-and-executable-support)和[研究§7.77](skill-dsl-research.md#777-bo-质量复核与-bp-能力实验决定)。工程14eea13f已验证外层依赖诊断、完整规则renderer、规则/执行隔离及三臂源码工具同构。固定A0为52步原稿，A0/A1最终字段及局部轨迹均18/18、7/8、6/7；A2字段17/18、5/8、5/7，局部轨迹18/18、7/8、6/7。匿名外层激活和缺version键仍有缺口，A2另有输出值受未解析条件影响。普通入口五组和搬移失效均通过。
 
-恢复后按本地协议核验与红绿测试登记CLI 0.163.0-alpha.10.2（b33adeb4），只读确认Q0原R0首件为interrupted且无答案。原completion-unknown、未交付和部分费用仍保留；具名cli-recovery另轨交付（1/6修复额度），不替换原36首位置分母。BP12已处置，BP13现完成Q0/Q1六首位置及评阅（五份交付、原R0未交付），Q2-R2-0已交付、待盲评。Q0 R1/R2为F/P/F/P对F/F/F/P；Q1 R0/R1/R2为P/P/P/P、F/F/F/P、F/F/F/P。仅首重复局部观察，尚不构成重复优势。三作者离线和独立评阅已完成，评阅分歧独立留存。两个工程提交尚未推送；原件和文档有本轮未提交改动。跨实现epoch不作同条件因果配对，后续按任务书有限队列继续，不自动创建BQ。
+恢复后按本地协议核验与红绿测试登记CLI 0.163.0-alpha.10.2（b33adeb4），只读确认Q0原R0首件为interrupted且无答案。原completion-unknown、未交付和部分费用仍保留；具名cli-recovery另轨交付（1/6修复额度），不替换原36首位置分母。BP12已处置，BP13首轮18位置已完成评阅（17交付、原R0未交付），第二轮按反序继续。首轮R2对R1：对象关系和条件证据均六组持平，分支调用2胜3平1负，变化一致性1胜5平；仅描述性首轮观察，尚不构成重复优势。三作者离线和独立评阅已完成，评阅分歧独立留存。工程和初始证据至5b9e40a3三个提交尚未推送。实际进度以attempts.json及逐份review为准；跨实现epoch不作同条件因果配对，后续按任务书有限队列继续，不自动创建BQ。
 
 ## BO 已结束的实际结果
+
+BP恢复补记（2026-10-18）：主面板27首位置已处置并评阅，25交付；Q2-R2-1额度拒绝、已知failed且关闭，原失败保留。用户明确通知额度重置后，以精确历史身份恢复后续九个首位置。研究驱动恢复登记12测试/73断言及BP类型通过，独立审核无实质问题；生产epoch不变，完整面板、维护及ShareLink仍待完成。
 
 **BO0–BO17以completed-with-unmet-criteria收束有限队列：工程和普通使用完成，完整自动语义、四问质量及净收益未达。** 工程754b72f3与公开契约修复e8522ee9已发布；[当前任务书](../superpowers/plans/2026-10-16-authorization-call-semantics-and-program-repair.md)从89ef2864接管，identity为`authorization-call-semantics-v1`。固定A0为模型原稿45步，字段/局部轨迹18/18、额外7/8，匿名外层激活仍缺；A1独立23步，值7/18、局部调用17/18加8/8，上游未知与局部错误分列。普通CLI七组、搬移四组及源码变化撤回已验证；S0维护54步，副本三组局部反转成立，不替换A0。两对四问B/C为P/P/P/F对P/F/F/P、P/P/P/F对P/P/F/F，总token比1.045/2.269，均为质量与成本取舍。八attempt/七位置全部交付、15观察turn、0活动/未知；逐题14/32 full、整题0/8 full。known input17,911,460（含cache-read16,421,248一次）/output133,089，USD、开发评阅和真人成本未知。180测试/1285断言、主/研究类型及15文档测试通过。见[分轴验收](../../results/skill-ir/skill-dsl-research/development/authorization-call-semantics-v1/verification/acceptance-matrix.json)、[运行过程](../../results/skill-ir/skill-dsl-research/development/authorization-call-semantics-v1/execution.md)、[显式命令](../../examples/authorization-assessment/download-workflow/README.md#current-bo-explicit-program)、[spec§14.54](skill-ir-aot-optimization-spec.md#1454-bo-source-call-semantics-and-program-repair)和[研究§7.76](skill-dsl-research.md#776-bn-复核与-bo-源码调用语义修稿决定)。第三方继续暂停；本轮结束，不自动追加BP。
 

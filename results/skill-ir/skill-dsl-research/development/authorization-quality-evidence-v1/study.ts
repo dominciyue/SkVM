@@ -98,11 +98,18 @@ export async function preflight() {
   const result = { identity, checkedAt: new Date().toISOString(), providerCalls: 0, targetExecutions: 0, registrationSha256: hash(await readFile(path.join(base, "registration.json"))), sharedRuleSha256: hash(JSON.stringify(views.rules.document)), views: { sourceStructure: true, baselineTools: views.baseline.tools, rulesTools: views.rules.tools, executeTools: views.execute.tools, identicalSourceDefinitions: true, identicalSourceFiles: true }, originalBOUnchanged: registration.originalBO.sha256 === hash(await readFile(boRaw)), observation: { terminal: "completed", localExecution: "closed", reconciliation: "terminal-found", channel: "available", nextPurpose: "independent-task", independentAuthorized: true } }
   await save(path.join(base, "verification/preflight.json"), result); return result
 }
+export function admitRegisteredPurpose(ledger: any[], observation: Parameters<typeof admitPurpose>[1], reset?: { userAuthorization: string; authorizedAt: string; covered: Array<{ position: string; attempt: string; session: string }> }) {
+  const covered = reset?.userAuthorization?.trim() && reset.authorizedAt ? reset.covered : []
+  const admissionLedger = ledger.map(entry => entry.quotaOrAuth && entry.status === "failed" && entry.terminalStatus === "failed" && entry.lifecycle?.localExecution === "closed" && covered.some(item => item.position === entry.position && item.attempt === entry.attempt && item.session === entry.session)
+    ? { ...entry, quotaOrAuth: false } : entry)
+  return { ...admitPurpose(admissionLedger, observation), quotaReset: admissionLedger.some((entry, index) => entry !== ledger[index]) ? reset : undefined }
+}
 export async function run(position: string, attempt: string) {
   const options = positionOptions(position), ledger: any[] = await load(ledgerFile), admission = await load(path.join(base, "verification/preflight.json"))
   await prepare()
   if (git("status", "--porcelain", "--", "src")) throw new Error("Commit tested production epoch before real calls")
-  const decision = admitPurpose(ledger, admission.observation)
+  const reset = await load(path.join(base, "verification/quota-reset.json")).catch((error: NodeJS.ErrnoException) => { if (error.code !== "ENOENT") throw error; return undefined })
+  const decision = admitRegisteredPurpose(ledger, admission.observation, reset)
   if (!decision.allowNewTurn) throw new Error(JSON.stringify(decision))
   if (!attempt || !/^[a-z0-9-]+$/.test(attempt) || ledger.some(e => e.position === position && e.attempt === attempt)) throw new Error("Explicit unique attempt required; never resend")
   const repairs: any[] = await load(path.join(base, "repairs.json")).catch(() => []), repair = repairs.find(r => r.position === position && r.attempt === attempt)
