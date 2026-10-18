@@ -1,0 +1,208 @@
+## Findings summary
+
+| Severity | Count |
+|---|---:|
+| 🔴 Critical | 0 |
+| 🟠 High | 0 |
+| 🟡 Medium | 0 |
+| 🔵 Low | 0 |
+| ⚪ Info | 0 |
+
+No source-supported authorization vulnerability was identified in the reviewed `GetSharedMemo` path. **Confidence: High** for the behavior described below. This was a narrowly scoped source review; dependency and secrets audits were not performed.
+
+## Executable authorization program
+
+A reusable program was authored and executed:
+
+- **Program:** `shared-memo-access`
+- **Current revision:** `6a3f7fc0e591df2f9a0be7a8fdf4827f09da939e9e35b7ee4f4d258aeda312f9`
+- **Draft revision:** `0efbf7be42964df70eb1020ea4815222eb526ccc1e4814806f02dd94bfe201a4`
+- **Workflow:** 25 steps
+- **Current execution:** successful return
+- **Required premises / execution gaps:** none
+- **Repository changes:** none
+
+The program and its coverage declarations remain marked **author-declared/unreviewed**, not an independent authorization certificate.
+
+## GetSharedMemo behavior
+
+### Token-to-memo binding
+
+The request supplies only a share token, not an independently selectable memo identifier:
+
+1. `request.ShareToken` is looked up as `MemoShare.UID`.
+2. The resulting share row is rejected if absent or expired.
+3. The memo is fetched by that row’s `MemoID`.
+4. The same `MemoID` is placed into `MemoReadContext.SharedMemoID`.
+5. The share branch succeeds only when `memo.ID == *SharedMemoID`.
+
+A caller therefore cannot use a valid token while substituting another memo through this API request. The stored share row determines the returned memo.
+
+Sources:
+
+- `server/api/v1/memo_share_service.go:172-189`
+- `server/api/v1/memo_share_service.go:216-229`
+- `core/access/memo.go:119-122`
+
+### Invalid and expired tokens
+
+Missing and expired tokens are intentionally indistinguishable:
+
+| Condition | Result |
+|---|---|
+| No share with that UID | `NOT_FOUND: "not found"` |
+| Share has `now > ExpiresTs` | `NOT_FOUND: "not found"` |
+| Share lookup storage error | `INTERNAL: "failed to get memo share"` |
+
+Expiry uses a strict greater-than comparison:
+
+```go
+time.Now().Unix() > *ms.ExpiresTs
+```
+
+Consequently, a token remains active when `now == ExpiresTs`; it expires in the following second.
+
+Source: `server/api/v1/memo_share_service.go:216-229`.
+
+### Controls that remain after token validation
+
+A valid, active token is not sufficient by itself. `GetSharedMemo` also requires:
+
+- The share-bound memo to exist.
+- The memo to be `NORMAL`; archived memos are rejected by the endpoint’s initial filter.
+- The memo not to use `SPACE` visibility.
+- Its visibility to be one of the recognized values; unknown values fail closed in `CheckMemoReadContext`.
+- Its creator to exist, have the matching ID, and be `NORMAL` or `ARCHIVED`.
+- Read-context construction to complete.
+- The resulting read decision to be allowed.
+
+For this endpoint, the initial `NORMAL` and non-`SPACE` checks mean several later general-policy branches—including archived and ordinary `SPACE` handling—cannot produce a successful shared response.
+
+Sources:
+
+- `server/api/v1/memo_share_service.go:178-189`
+- `core/access/memo_resolve.go:31-52`
+- `core/access/memo.go:92-122`
+
+### Authentication, instance mode, and membership
+
+`GetSharedMemo` itself does not require authentication.
+
+For an unauthenticated caller, `buildMemoReadContext` still resolves whether the instance permits ordinary anonymous access. That lookup must succeed. However, its Boolean result does not control an exact valid share: the exact-share branch is evaluated before the ordinary `PUBLIC`, `PROTECTED`, and `PRIVATE` audience branches.
+
+Therefore, for a structurally valid, exact, non-`SPACE` shared memo:
+
+- A `PRIVATE` memo can be returned to an unauthenticated caller.
+- This also works when the instance access mode is `PRIVATE`.
+- Authorship and Space membership are not required for that exact memo.
+- An instance-access-setting lookup failure is hidden by `GetSharedMemo` as generic `NOT_FOUND`.
+
+For authenticated contexts:
+
+- Only `NORMAL` users are treated as active.
+- An inactive user is reduced to no viewer, causing the anonymous-setting path to be used.
+- Failure to resolve a nonzero current user is likewise hidden as `NOT_FOUND`.
+- Active administrator and ordinary audience exceptions exist in the general helper, but the exact-share branch already permits a valid shared memo. The endpoint’s earlier structural checks still apply.
+
+Sources:
+
+- `server/api/v1/auth_service_session.go:269-290`
+- `server/api/v1/memo_access.go:17-40`
+- `store/instance_setting.go:255-262`
+- `core/access/memo.go:55-69,92-145`
+
+## What the token exposes—and what it does not
+
+On success, `GetSharedMemo` returns the converted share-bound memo and loads:
+
+- Reactions selected using that memo’s ID.
+- Attachments selected using that memo’s ID.
+- Creator and ordinary converted memo fields.
+
+The response deliberately does not expand the surrounding graph:
+
+- Relations are passed to conversion as `nil`, producing an empty relation list.
+- Conversion can initially populate `Parent` from `ParentUID`, but `GetSharedMemo` explicitly resets `Parent` to `nil`.
+- The authorization context states that relations do not contribute access.
+- `SharedMemoID` applies only where the examined memo’s ID exactly matches it.
+
+Thus the token authorizes reading this memo response, including its memo-scoped reactions and attachments. It does **not** establish authorization to:
+
+- Read the parent memo.
+- Read children or either endpoint of a relation.
+- Traverse a conversation or relation graph.
+- Download or mutate attachments through separate endpoints.
+- Modify reactions or the memo.
+- Use the token as a general credential for other resources.
+
+Reaction conversion also skips individual reactions whose creator cannot be resolved, while other reaction-conversion failures abort conversion.
+
+Sources:
+
+- `server/api/v1/memo_share_service.go:191-213`
+- `server/api/v1/memo_service_converter.go:69-102,177-207`
+- `core/access/memo.go:37-48,87-122`
+
+## Error visibility after a valid token
+
+| Stage | Visible behavior |
+|---|---|
+| Memo storage lookup fails | `INTERNAL: failed to get memo` |
+| Memo missing, non-normal, or `SPACE` | Generic `NOT_FOUND` |
+| Viewer, anonymous-policy, creator, space, or membership resolution fails | Generic `NOT_FOUND` from `GetSharedMemo` |
+| Access decision denies | Generic `NOT_FOUND` |
+| Reaction listing fails | `INTERNAL: failed to list reactions` |
+| Attachment listing fails | `INTERNAL: failed to list attachments` |
+| Memo creator missing during conversion | Generic `NOT_FOUND` |
+| Other conversion failure | Wrapped as `failed to convert memo` |
+| Connect wrapper receives an error | Passed through `convertGRPCError` |
+
+The detailed result of `convertGRPCError` was outside the modeled function contract.
+
+## Supplied scenario result
+
+For the supplied `share-alpha` request:
+
+- The share row is ID `71`, with `MemoID == 43`.
+- `now == ExpiresTs == 2000`, so the token is still active.
+- Memo `43` is `memo-alpha`; memo `89` cannot be selected by this token.
+- The memo is `NORMAL`, `PRIVATE`, non-`SPACE`, and has valid creator `17`.
+- The caller is unauthenticated.
+- The instance is `PRIVATE`, so ordinary anonymous access is false, but the exact-share branch still permits the memo.
+- All modeled storage and conversion operations succeed.
+
+Computed response boundary:
+
+```text
+memo_id:                   43
+memo_uid:                  memo-alpha
+content:                   shared body
+creator_id:                17
+share_bound_memo_id:       43
+instance_allows_anonymous: false
+reactions:                 included, empty in supplied data
+attachments:               included, empty in supplied data
+relations:                 empty
+parent:                    suppressed
+```
+
+Trials also established:
+
+- Unknown token → `NOT_FOUND`
+- `share-alpha` after timestamp `2000` → `NOT_FOUND`
+- Non-expiring `share-other` → only `memo-other`
+- `SPACE`-audience memo → `NOT_FOUND`
+- Archived memo → rejected by the endpoint prefilter
+
+## Limits and remaining source gaps
+
+This describes source revision `cb42e326ba9cc266a6a9570c53e0fe04c62793f4`, not live deployment state. It does not establish database contents, token secrecy, schema uniqueness guarantees, proxy behavior, or independent endpoint permissions.
+
+Explicit program limits remain:
+
+- Individual converted reaction and attachment rows were not materialized in the finite result.
+- Full protobuf conversion, snippet generation, and placement projection were not modeled field-by-field.
+- Detailed Connect transport error conversion was not modeled.
+- The broad generated source-candidate catalog remains unreviewed; program semantic support is consequently labeled unreviewed.
+
+No patches are proposed. **Review each patch before applying. Nothing has been changed yet.**

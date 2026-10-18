@@ -1,0 +1,19 @@
+{
+  "reviewedAnswer": "evaluation/blind/download-B.txt",
+  "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+  "independentReview": {
+    "questions": ["incorrect", "partial", "full", "partial"],
+    "claimedMajorError": "Download include_deleted=True also applies to absent-version latest lookup, so document12 should replace document11",
+    "claimedOmissions": ["normal versus forbidden response", "normal completion versus False/None"]
+  },
+  "mainAdjudication": {
+    "questions": ["full", "full", "full", "full"],
+    "rejectedMajorError": "views.py:1375-1381 independently sets version_requested = get_request_version_param(request) is not None and passes that value as include_deleted. The earlier request/root lookup flag is not propagated. versioning.py:175-181 passes this independent flag to latest lookup. Absent selects11; empty selects12. The scout omitted the decisive call site.",
+    "rejectedResponseOmission": "Answer211 explicitly says the action returns HttpResponseForbidden if the helper expression is false, then220 says file selection follows authorization success. Source views.py:1435-1436 confirms the returned response short-circuit.",
+    "completionVersusPermission": "Answer157 explicitly separates constructor normal completion from a grant, locates it before ownership short-circuit, and states has_perm is skipped. This meets the distinction without imposing a fixed False/None sentence.",
+    "sourceDecisions": {"rootFallback":"full; answer40", "versionBranches":"full; answer52-88", "constructorBeforeShortcut":"full; answer157", "nullUserVersusUpstream":"full; answer242-246"},
+    "scope": "Computed finite fixture is explicitly separated from live HTTP, authentication, storage and source certification. Current empty conditions are not generalized to complete coverage.",
+    "mainSourceSpotChecks": ["src/documents/views.py:1375-1399", "src/documents/versioning.py:159-195", "src/documents/permissions.py:634-635", "src/documents/views.py:1435-1441"]
+  },
+  "developerAndScoutCost": null
+}

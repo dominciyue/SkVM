@@ -9,7 +9,7 @@ const matrix = await load(path.join(base, "evaluation/final/matrix.json")), raw 
 if (!matrix.session) {
   await save(path.join(base, "verification/portability.json"), { providerCalls: 0, status: "unavailable-program", reason: "Final raw did not produce an inspectable ordinary execution; not replaced by developer semantics." })
 } else {
-  const original = path.resolve(repo, matrix.session), originalInput = await loadInquiryInput(path.join(base, "inputs/memos-original.json")), work = path.join(base, "verification/portable-copy"), copied = path.join(work, "session"), source = path.join(work, "source"), program = path.join(work, "program.json")
+  const original = path.resolve(repo, matrix.session), originalInput = await loadInquiryInput(path.join(base, "inputs/memos-original.json")), work = path.join(base, "verification/portable-copy-relative"), copied = path.join(work, "session"), source = path.join(work, "source"), program = path.join(work, "program.json")
   assert.equal(await stat(work).then(() => true).catch(() => false), false, "Use retained result instead of overwriting an existing replay")
   await mkdir(work, { recursive: true })
   await cp(original, copied, { recursive: true, errorOnExist: true, force: false })
@@ -26,7 +26,7 @@ if (!matrix.session) {
   const archive = await saveLocalInquiryCheck(inputFile, program, path.join(work, "replay"), checked, { executionPolicy: "progressive" })
   await inspectLocalInquiry(archive.sessionPath)
   const changedInput = await load(path.join(base, "inputs/memos-changed.json")), changedFile = path.join(work, "changed-input.json")
-  changedInput.sourceRoot = source; await save(changedFile, changedInput)
+  changedInput.sourceRoot = path.relative(path.dirname(changedFile), source).split(path.sep).join("/"); await save(changedFile, changedInput)
   const inputChange: any = await compareLocalInquiry(changedFile, copied, "question-checked-v1", program, { executionPolicy: "progressive", programMode: "consume" })
   assert.equal(inputChange.sourceChanged, false); assert.equal(inputChange.resourceInputsOnly, true); assert.equal(inputChange.answerReused, false)
   const file = path.join(source, "server/api/v1/memo_share_service.go"), bytes = await readFile(file, "utf8"), old = "time.Now().Unix() > *ms.ExpiresTs", replacement = "time.Now().Unix() >= *ms.ExpiresTs"

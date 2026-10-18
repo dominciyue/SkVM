@@ -4,9 +4,9 @@
 
 ## 当前工作
 
-**BR0–BR21执行中，调用前工程已验证，Download两用途已交付，Memos空稿作者运行中。** 从4216358f接管，独占代码和Git写入。[任务书](../superpowers/plans/2026-10-19-authorization-evidence-backed-answers-and-task-transfer.md) identity为`authorization-answer-transfer-v1`。BQ69个实际发送片段可重建，当前结果和原问题已发送；自然遗漏不归因于结果丢失。匿名反例修正静态返回依赖中已跳过外部步骤的标签，不声称它改善BQ。Memos真实源码确定22案例与原/变时钟输入，完整原问题、skill及来源边界已冻结；Download两答原四问均full；执行臂取得并引用当前有限结果，但未见相对rules的质量增量，观察token较高。首轮中断及final-child交付保留；Memos作者运行中。
+**BR有限队列已完成，以completed-with-unmet-criteria收束。** 从4216358f接管，[任务书](../superpowers/plans/2026-10-19-authorization-evidence-backed-answers-and-task-transfer.md) identity为`authorization-answer-transfer-v1`。9用途、10attempt、17观察turn全部交付并关闭，使用1/4具名确认，无活动/unknown。共享修复区分未执行外部依赖，并公开执行器已有数值比较语法；Memos首件五raw及确认七raw全部保留，按时间固定最后25步原稿。20已知结果案例匹配、2缺输入保留真实条件；源码调用顺序和完整转换仍未达。普通CLI、同稿时钟变化、搬移和源码变化撤回通过，见[普通使用说明](../../examples/authorization-assessment/shared-link-workflow/README.md)。
 
-正常用途9个：Download rules/execute两项、Memos空稿作者一项、同稿原/变输入N/R/E六项；至多4个具名确认。实验仍用官方gpt-5.6-sol/high，第三方暂停。Memos为已暴露公开源码，输入为显式有限合成事实，不称新held-out或liveAPI；开发者不修自动稿业务含义，原题及全部失败保留。合同见[spec§14.57](skill-ir-aot-optimization-spec.md#1457-br-evidence-backed-answers-and-task-transfer)及[研究§7.79](skill-dsl-research.md#779-bq-复核与-br-回答依据和跨任务检验)。当前两用途为局部同期观察，不建立稳定执行增益；跨任务结果待后续队列。
+Download原四问两答均full，Memos消费者27/36维full、整题0/6；原输入E/R持平，变化输入E遗漏R已说明的转换错误。E/R观察总token比分别1.196和0.748，Download执行更贵；跨结构有限采用成立，完整自然质量和稳定净收益未达。实验官方gpt-5.6-sol/high，known input15,642,633（含cache13,998,592一次）/output110,124；USD、隐藏请求、开发/探子和真人成本unknown。Memos为已暴露源码及合成事实，不称held-out/liveAPI。972原件无损打包逐件核验，本地原件及.tmp保留。见[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-answer-transfer-v1/verification/acceptance-matrix.json)、[执行记录](../../results/skill-ir/skill-dsl-research/development/authorization-answer-transfer-v1/execution.md)、[spec§14.57](skill-ir-aot-optimization-spec.md#1457-br-evidence-backed-answers-and-task-transfer)及[研究§7.79](skill-dsl-research.md#779-bq-复核与-br-回答依据和跨任务检验)。最终文档核验和origin发布收尾后停止，不自动BS。
 
 ## BQ 已结束的实际结果
 
@@ -164,7 +164,7 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 
 | 阶段 | 保留记录 |
 |---|---|
-| 当前BR | [任务书](../superpowers/plans/2026-10-19-authorization-evidence-backed-answers-and-task-transfer.md)、spec§14.57、研究§7.79；in-progress，共享投影修复及调用前登记已验证；九用途待执行 |
+| 当前BR | [任务书](../superpowers/plans/2026-10-19-authorization-evidence-backed-answers-and-task-transfer.md)、spec§14.57、研究§7.79；completed-with-unmet-criteria，九用途与一次确认完成；有限复用成立，完整语义/质量/稳定收益未达 |
 | BQ | [任务书](../superpowers/plans/2026-10-18-authorization-source-program-consistency-and-task-execution.md)、spec§14.56、研究§7.78；最终3c3059a8已发布，两个缺陷修复，完整自然质量与稳定增量未达 |
 | BP | [任务书](../superpowers/plans/2026-10-16-authorization-quality-evidence-and-branch-reliability.md)、spec§14.55、研究§7.77；最终27d59677，有限队列完成，完整语义和重复执行质量优势未达 |
 | BO | [任务书](../superpowers/plans/2026-10-16-authorization-call-semantics-and-program-repair.md)、spec§14.54、研究§7.76；有限自动调用语义与维护结果保留 |

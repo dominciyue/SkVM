@@ -1,0 +1,162 @@
+## Findings summary
+
+| Severity | Count |
+|---|---:|
+| 🔴 Critical | 0 |
+| 🟠 High | 0 |
+| 🟡 Medium | 0 |
+| 🔵 Low | 0 |
+| ⚪ Info | 0 |
+
+No source-supported authorization vulnerability was identified in the reviewed `GetSharedMemo` path. Dependency and secrets audits were outside this narrowly scoped behavioral review.
+
+## Program authoring
+
+A reusable executable source program was authored and persisted:
+
+- **Program:** `shared-memo-access`
+- **Revision:** `cb3eb2e54ebcddf7471bf824a4e55dfde8d73b583743f98750b4567f803f5c92`
+- **Steps:** 25
+- **Diagnostics:** none
+- **Trials:** invalid token, expired token, valid non-expiring token, expiry-boundary token, and SPACE-audience rejection
+- No repository files were modified.
+
+## Source behavior
+
+### Token-to-memo binding
+
+`GetSharedMemo` does not accept a memo identifier independently of the token:
+
+1. It looks up `request.ShareToken` as `MemoShare.UID`.
+2. It rejects a missing or expired share.
+3. It loads the memo using that share row’s `MemoID`.
+
+Consequently, a caller cannot combine a valid token with a different memo ID through this request. The database share row determines the memo.
+
+Sources: `server/api/v1/memo_share_service.go:172-185`, `:216-229`.
+
+Expiration is strict:
+
+```go
+time.Now().Unix() > *ms.ExpiresTs
+```
+
+Thus a token with `ExpiresTs == now` remains valid for that second; it expires once `now` becomes greater.
+
+### Invalid and expired tokens
+
+Both cases produce the same generic result:
+
+- Missing token: `NOT_FOUND: "not found"`
+- Expired token: `NOT_FOUND: "not found"`
+
+This deliberately avoids disclosing whether a share existed. A share-store failure is different: it becomes `INTERNAL: "failed to get memo share"`.
+
+Source: `server/api/v1/memo_share_service.go:221-229`.
+
+### Additional controls on a valid token
+
+Even a valid, unexpired token is rejected with generic `NOT_FOUND` when:
+
+- The bound memo is missing.
+- The memo is not `NORMAL`—including archived memos.
+- Its visibility is `SPACE`.
+- Its visibility value is structurally unknown.
+- Its creator is missing or not `NORMAL`/`ARCHIVED`.
+- Building the read context fails.
+- The final read decision is not allowed.
+
+Sources:
+
+- `server/api/v1/memo_share_service.go:178-189`
+- `core/access/memo_resolve.go:31-52`
+- `core/access/memo.go:87-122`
+
+Store failures differ by stage:
+
+| Failure | Visible result |
+|---|---|
+| Share lookup | `INTERNAL`, failed to get memo share |
+| Memo lookup | `INTERNAL`, failed to get memo |
+| Viewer/instance policy/creator/space/membership resolution | Hidden as generic `NOT_FOUND` |
+| Reaction listing | `INTERNAL`, failed to list reactions |
+| Attachment listing | `INTERNAL`, failed to list attachments |
+| Missing creator during conversion | Generic `NOT_FOUND` |
+| Other conversion failure | Wrapped conversion error |
+
+### Unauthenticated access
+
+The endpoint itself requires no authentication. For an unauthenticated caller, `buildMemoReadContext` resolves the instance’s anonymous-access setting. However, the shared-memo policy then computes:
+
+```go
+shareApplies :=
+    ctx.SharedMemoID != nil &&
+    memo.ID == *ctx.SharedMemoID &&
+    memo.Visibility != store.SpaceAudience
+```
+
+A structurally valid exact-memo share is allowed before the ordinary PUBLIC/PROTECTED/PRIVATE audience branches. Therefore:
+
+- A valid share can expose a `PRIVATE` memo to an unauthenticated caller.
+- This remains true when the instance access mode is `PRIVATE`.
+- The instance-setting lookup must still complete successfully; its Boolean result does not override the exact-share branch.
+- Authentication, authorship, or Space membership is not required for that exact shared memo.
+
+Sources:
+
+- `server/api/v1/memo_access.go:17-40`
+- `store/instance_setting.go:255-262`
+- `core/access/memo.go:92-145`
+
+### What the token exposes around the memo
+
+On success, the response includes the bound memo plus:
+
+- Reactions selected by that memo’s ID.
+- Attachments selected by that memo’s ID.
+- Converted creator and memo fields.
+
+But it deliberately excludes graph expansion:
+
+- Relations are passed as `nil`, and conversion emits an empty relation list.
+- Conversion may initially set `Parent` from `ParentUID`, but `GetSharedMemo` explicitly resets it to `nil`.
+- The share policy applies only where `memo.ID == SharedMemoID`; it does not transfer to a parent, child, relation endpoint, or conversation graph.
+
+Sources:
+
+- `server/api/v1/memo_share_service.go:191-213`
+- `server/api/v1/memo_service_converter.go:26-103`
+- `core/access/memo.go:87-122`
+
+This establishes inclusion of reaction and attachment data in this memo response. It does **not** establish independent download, mutation, or separate-endpoint rights for those resources.
+
+## Supplied scenario
+
+For `share-alpha`:
+
+- `now == ExpiresTs == 2000`, so the token is still active.
+- It binds to `MemoID 43`, hence `memo-alpha`; `memo-other` cannot be selected.
+- The memo is `NORMAL`, `PRIVATE`, non-SPACE, and has a valid creator.
+- The caller is unauthenticated and the instance is `PRIVATE`, but the exact share branch still permits the memo.
+
+The executable result was:
+
+- memo: `memo-alpha`, content `shared body`
+- creator: user `17`
+- reactions and attachments included, both empty in this scenario
+- relations: empty
+- parent: suppressed
+- instance anonymous access: false, but not a denial for the exact valid share
+
+Trials confirmed:
+
+- Unknown token → `NOT_FOUND`
+- `share-alpha` at `now=2001` → `NOT_FOUND`
+- Non-expiring `share-other` → returns only `memo-other`
+- SPACE-audience bound memo → `NOT_FOUND`
+
+## Limits
+
+This is static analysis of revision `cb42e326ba9cc266a6a9570c53e0fe04c62793f4`. It does not establish deployment state, token secrecy, database uniqueness constraints, or behavior outside the reviewed call chain. Full protobuf conversion, placement projection, individual converted reaction/attachment rows, and Connect transport mapping remain explicit program boundaries.
+
+**Review each patch before applying. Nothing has been changed yet.**

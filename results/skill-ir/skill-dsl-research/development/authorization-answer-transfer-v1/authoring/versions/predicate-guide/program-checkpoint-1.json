@@ -1,0 +1,286 @@
+{
+  "schemaVersion": "authorization-executable-contract/v1",
+  "id": "shared-memo-access",
+  "description": "Finite source model for resolving a shared-memo token to its bound memo.",
+  "scope": {
+    "kind": "function-contract",
+    "questionId": "shared-memo-access",
+    "root": {
+      "path": "server/api/v1/memo_share_service.go",
+      "symbol": "GetSharedMemo"
+    },
+    "upstream": [
+      "Transport routing and request decoding are outside this function contract."
+    ]
+  },
+  "inputBinding": {
+    "questionId": "shared-memo-access"
+  },
+  "sourceDeclarations": [
+    {
+      "source": {
+        "path": "server/api/v1/memo_share_service.go",
+        "symbol": "GetSharedMemo"
+      },
+      "statements": []
+    },
+    {
+      "source": {
+        "path": "server/api/v1/memo_share_service.go",
+        "symbol": "getActiveMemoShare"
+      },
+      "statements": []
+    },
+    {
+      "source": {
+        "path": "server/api/v1/memo_share_service.go",
+        "symbol": "isMemoShareExpired"
+      },
+      "statements": []
+    }
+  ],
+  "queries": [],
+  "assumptions": [],
+  "resourceWorkflow": {
+    "inputs": [
+      "request",
+      "now",
+      "contextUserID",
+      "instanceAccessMode",
+      "shares",
+      "memos",
+      "users",
+      "spaces",
+      "memberships",
+      "reactions",
+      "attachments",
+      "storeErrors"
+    ],
+    "steps": [
+      {
+        "id": "share",
+        "op": "select",
+        "from": "shares",
+        "where": {
+          "op": "eq",
+          "left": {
+            "binding": "row.UID"
+          },
+          "right": {
+            "binding": "request.ShareToken"
+          }
+        },
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 221,
+          "endLine": 229
+        },
+        "because": "GetMemoShare looks up the supplied token as the share UID."
+      },
+      {
+        "id": "share_found",
+        "op": "guard",
+        "test": {
+          "op": "not",
+          "arg": {
+            "op": "is-null",
+            "value": {
+              "binding": "share"
+            }
+          }
+        },
+        "failure": "NOT_FOUND: not found",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 221,
+          "endLine": 229
+        }
+      },
+      {
+        "id": "share_active",
+        "op": "guard",
+        "test": {
+          "op": "any",
+          "args": [
+            {
+              "op": "is-null",
+              "value": {
+                "binding": "share.ExpiresTs"
+              }
+            },
+            {
+              "op": "lte",
+              "left": {
+                "binding": "now"
+              },
+              "right": {
+                "binding": "share.ExpiresTs"
+              }
+            }
+          ]
+        },
+        "failure": "NOT_FOUND: not found",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 216,
+          "endLine": 229
+        }
+      },
+      {
+        "id": "memo",
+        "op": "select",
+        "from": "memos",
+        "where": {
+          "op": "eq",
+          "left": {
+            "binding": "row.ID"
+          },
+          "right": {
+            "binding": "share.MemoID"
+          }
+        },
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 172,
+          "endLine": 185
+        },
+        "because": "The share row's MemoID, not a memo identifier supplied separately by the caller, selects the memo."
+      },
+      {
+        "id": "memo_visible_state",
+        "op": "guard",
+        "test": {
+          "op": "all",
+          "args": [
+            {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "memo"
+                }
+              }
+            },
+            {
+              "op": "eq",
+              "left": {
+                "binding": "memo.RowStatus"
+              },
+              "right": {
+                "literal": "NORMAL"
+              }
+            },
+            {
+              "op": "neq",
+              "left": {
+                "binding": "memo.Visibility"
+              },
+              "right": {
+                "literal": "SPACE"
+              }
+            }
+          ]
+        },
+        "failure": "NOT_FOUND: not found",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 178,
+          "endLine": 185
+        }
+      },
+      {
+        "id": "result",
+        "op": "return",
+        "value": {
+          "record": {
+            "memo_id": {
+              "field": {
+                "of": {
+                  "ref": "memo"
+                },
+                "key": "ID"
+              }
+            },
+            "memo_uid": {
+              "field": {
+                "of": {
+                  "ref": "memo"
+                },
+                "key": "UID"
+              }
+            },
+            "parent": {
+              "literal": null
+            }
+          }
+        },
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 203,
+          "endLine": 213
+        }
+      }
+    ],
+    "gaps": [
+      "Store error branches are not yet modeled.",
+      "buildMemoReadContext and CheckMemoReadContext are not yet modeled.",
+      "Reaction, attachment, creator conversion, and conversion-error branches are not yet modeled."
+    ]
+  },
+  "authoringTarget": {
+    "mode": "reusable",
+    "coverage": [
+      {
+        "id": "token-resolution",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 216,
+          "endLine": 229
+        },
+        "stepIds": [
+          "share",
+          "share_found",
+          "share_active"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "bound-memo-state",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 172,
+          "endLine": 185
+        },
+        "stepIds": [
+          "memo",
+          "memo_visible_state"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "read-context",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 186,
+          "endLine": 189
+        },
+        "stepIds": [],
+        "disposition": "unwritten",
+        "reason": "Relevant helper source must be read before modeling."
+      },
+      {
+        "id": "surrounding-resources-and-conversion",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 191,
+          "endLine": 213
+        },
+        "stepIds": [
+          "result"
+        ],
+        "disposition": "unwritten",
+        "reason": "Only parent suppression is currently modeled; reaction, attachment, creator and conversion behavior remains to author."
+      }
+    ]
+  }
+}

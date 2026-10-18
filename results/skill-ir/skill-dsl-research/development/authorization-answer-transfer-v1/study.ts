@@ -5,6 +5,7 @@ import { execFileSync } from "node:child_process"
 import { executeLocalInquiryRun, checkAuthorizationInquiry, inspectLocalInquiry } from "../../../../../src/benchmarks/authorization-dsl/inquiry-local.ts"
 import { createNativeInquiryRuntime } from "../../../../../src/benchmarks/authorization-dsl/inquiry-native.ts"
 import { classifyTerminalReport, observedAccountCost, measureAuthorTimeline } from "../authorization-authoring-loop-v1/measurement.ts"
+import { parseArchivedPacket } from "./archive-packets.ts"
 
 export const base = import.meta.dir, repo = path.resolve(base, "../../../../.."), identity = "authorization-answer-transfer-v1"
 export const positions = ["D-R", "D-E", "A-M", "M0-N", "M0-R", "M0-E", "M1-E", "M1-R", "M1-N"]
@@ -111,11 +112,14 @@ export async function run(position: string, attempt: string) {
       await save(path.join(base, `evaluation/timeline-${position}-${attempt}.json`), measureAuthorTimeline(archived))
       await mkdir(path.join(base, "evaluation/answers"), { recursive: true }); await writeFile(path.join(base, `evaluation/answers/${position}-${attempt}.txt`), account?.text ?? "", "utf8")
       await save(path.join(base, `authoring/${position}-${attempt}-proposals.json`), history.filter((h: any) => ["authorization_program", "authorization_program_patch", "authorization_program_trial"].includes(h.call.name)))
+      const archiveDecoding: any[] = []
+      const checkRulesText = (text: string) => { const decoded = parseArchivedPacket(text); assertRulesPacket(decoded.packet); if (decoded.repairedEscapes) archiveDecoding.push({ repairedEscapes: decoded.repairedEscapes, reason: "archive-only redaction escape; original raw retained" }) }
       if (o.programSupport === "rules") for (const t of account?.turns ?? []) for (const e of t.events ?? []) {
         if (e.direction !== "client") continue
-        if (e.method === "turn/start") for (const item of e.params.input) if (item.text?.includes("Current local explanation context: ")) assertRulesPacket(JSON.parse(item.text.split("Current local explanation context: ")[1]))
-        for (const item of e.result?.contentItems ?? []) if (item.text) assertRulesPacket(JSON.parse(item.text))
+        if (e.method === "turn/start") for (const item of e.params.input) if (item.text?.includes("Current local explanation context: ")) checkRulesText(item.text.split("Current local explanation context: ")[1])
+        for (const item of e.result?.contentItems ?? []) if (item.text) checkRulesText(item.text)
       }
+      if (archiveDecoding.length) await save(path.join(outDir, "archive-decoding.json"), archiveDecoding)
       if (o.author) {
         const raw = chooseLastRaw(report.domain)
         if (raw) await save(path.join(base, `authoring/final-program-${position}-${attempt}.json`), raw)

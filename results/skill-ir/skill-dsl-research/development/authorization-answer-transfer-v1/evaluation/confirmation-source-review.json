@@ -1,0 +1,24 @@
+{
+  "programSha256": "2e762d8c06c04d3959e3553d2385ca9a81b7f6f1fc5eba405f7ba0359dc76ff5",
+  "selectedBy": "last submitted raw before evaluation; no developer semantic edits",
+  "versions": {"steps": [6,24,24,25,25,25,25], "knownMatchesOf20": [6,11,20,20,20,20,20], "unknownsPreservedOf2": [1,2,2,2,2,2,2], "firstValidToolUnit": 4},
+  "versionFindings": "Draft1 models binding/expiry but omits content and error/context duties. Draft2 adds context/error checks and content but its relations:[] scalar record makes all nine allow returns unresolved. Draft3 replaces that array with relation_count:0 and matches all finite selected cases. Later drafts add instance-mode reporting and coverage declarations; final removes stale broad gaps. None materializes the complete converted payload.",
+  "finalFiniteResult": {"knownScalarAndDispositionMatches": "20/20", "inputUnknownConditionsPreserved": "2/2", "completePayloadCertified": false, "sourceSemanticCompleteness": false},
+  "covered": [
+    "share UID lookup then selected share.MemoID lookup, including renamed and rebound identities",
+    "share_active performs nil expiry OR now<=expiry before memo lookup; equality passes, expired rejects, missing now leaves an actual condition",
+    "memo presence/NORMAL/non-SPACE/recognized audience and creator presence/ID/NORMAL-or-ARCHIVED checks",
+    "viewer lookup and inactive-to-anonymous conversion, instance-setting error, creator/space/membership lookup error boundaries",
+    "exact shared memo access before enrichment; reaction/attachment/conversion normal-completion guards",
+    "source-supported summary of memo identity/content, parent suppression and relation count zero"
+  ],
+  "sourceOrderLimits": [
+    {"step": "memo_visible_state", "finding": "Recognized-audience test is moved ahead of read-context construction. Source performs it in CheckMemoReadContext after context resolution (core/access/memo.go:94-99); endpoint initially checks only memo existence, NORMAL and non-SPACE (memo_share_service.go:182-189). Unknown-audience result matches, but intervening lookup order does not."},
+    {"step": "creator_valid", "finding": "Program rejects invalid creator before space/membership resolution. Source ResolveMemoReadFacts records CreatorValid and still resolves optional space (memo_resolve.go:41-51), then WithViewer may query membership (58-80), before CheckMemoReadContext rejects. Result equality is not full call-order equivalence."},
+    {"step": "membership", "finding": "The row is fetched but ViewerSpaceMember/active-role classification is not materialized or used. Source role check is memo_resolve.go:79. For a successful exact non-SPACE share, ordinary audience membership policy is bypassed; placement projection remains unmodeled."},
+    {"step": "conversion_ok/result", "finding": "storeErrors.conversion models an observed completion/error boundary, not the converter body. Repeated creator lookup, per-reaction creator handling, attachment conversion, snippet and placement projection are not executed. Literal inclusion flags/relation_count are summaries, not converted arrays. Converter placement rule: memo_service_converter.go:105-137."}
+  ],
+  "externalAssumptions": "No external allowed=true substitutes for the core access helper. Request/database/clock/store-error inputs are registered synthetic facts. Source-visible conversion responsibility remains a declared gap, not counted as covered.",
+  "independentReview": {"reviewer": "br_confirm_source_review", "readOnly": true, "accepted": "Binding, strict expiry and broad context duties; conversion incomplete", "rejectedClaim": "Reviewer said an inactive membership is treated as valid. Main inspected every membership reference: only lookup/error steps refer to membership, no boolean grant or result consumes it. Active-role classification is omitted, not falsely evaluated true."},
+  "comparisonLimit": "The confirmation differs in disclosed generic interface and stochastic author output. First and confirmation costs and scores remain separate; this is evidence of actual use after repair, not an isolated estimate that the guide caused every semantic improvement."
+}

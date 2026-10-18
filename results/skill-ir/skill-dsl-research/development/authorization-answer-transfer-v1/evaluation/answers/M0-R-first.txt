@@ -1,0 +1,177 @@
+## Findings Summary
+
+| Severity | Count |
+|---|---:|
+| 🔴 CRITICAL | 0 |
+| 🟠 HIGH | 0 |
+| 🟡 MEDIUM | 0 |
+| 🔵 LOW | 0 |
+| ⚪ INFO | 0 |
+| **Total** | **0** |
+
+**Result:** No vulnerabilities found in the bounded `GetSharedMemo` review.  
+**Confidence:** High  
+**Dependency audit:** No vulnerable package identified; dependency manifests were outside the available source scope.  
+**Secrets scan:** No exposed credentials found in the reviewed files.
+
+# 🔐 Security Review Report
+
+**Project:** usememos/memos @ `cb42e326ba9cc266a6a9570c53e0fe04c62793f4`  
+**Scan date:** 2026-10-19  
+**Scope:** `GetSharedMemo` and its authorization, storage, conversion, and transport dependencies  
+**Language/framework:** Go, gRPC/Connect
+
+## Access-control behavior
+
+### 1. How the token binds to a memo
+
+The HTTP endpoint is:
+
+```text
+GET /api/v1/shares/{share_token}/memo
+```
+
+The supplied token is looked up as an exact `MemoShare.UID` value:
+
+```go
+ms, err := s.Store.GetMemoShare(ctx, &store.FindMemoShare{UID: &shareID})
+```
+
+The database implementations use a parameterized equality predicate such as `uid = ?`. Once selected, the share row—not any caller-supplied memo identifier—determines the memo:
+
+```go
+memo, err := s.Store.GetMemo(ctx, &store.FindMemo{ID: &ms.MemoID})
+```
+
+That same `ms.MemoID` is placed in the read context:
+
+```go
+readContext, err := s.buildMemoReadContext(ctx, memo, &ms.MemoID)
+```
+
+The central policy accepts the share only when that ID equals the memo currently being checked:
+
+```go
+shareApplies := ctx.SharedMemoID != nil &&
+    memo.ID == *ctx.SharedMemoID &&
+    memo.Visibility != store.SpaceAudience
+```
+
+Therefore `share-alpha` can resolve only its stored `MemoID`; it cannot be combined with another memo UID or ID to retrieve `memo-other`.
+
+Sources: `proto/api/v1/memo_service.proto:134-137,644-646`, `server/api/v1/memo_share_service.go:172-189,221-229`, `core/access/memo.go:87-121`, `store/db/sqlite/memo_share.go:121-122`.
+
+### 2. Invalid and expired tokens
+
+| Condition | Result |
+|---|---|
+| No share row matches the token | `NOT_FOUND: not found` |
+| `ExpiresTs` exists and current Unix time is greater than it | Same `NOT_FOUND: not found` |
+| Current time equals `ExpiresTs` | Still active |
+| Share-store failure | `INTERNAL: failed to get memo share` |
+
+Expiry uses a strict comparison:
+
+```go
+ms.ExpiresTs != nil && time.Now().Unix() > *ms.ExpiresTs
+```
+
+Thus missing and expired tokens are deliberately indistinguishable, but backend failures remain distinguishable as internal errors.
+
+An invalid token does not fall back to ordinary public, author, member, or administrator access: token resolution fails before any memo is loaded.
+
+Source: `server/api/v1/memo_share_service.go:216-229`.
+
+### 3. Controls that remain after a valid token is found
+
+A currently active share row is necessary but not sufficient:
+
+- The referenced memo must still exist.
+- `GetSharedMemo` requires `RowStatus == NORMAL`; archived memos are hidden here even though the general read policy has narrower archived-memo exceptions.
+- `SPACE`-audience memos are always rejected. Creation also refuses to create shares for this audience.
+- Unknown visibility values fail closed in the central policy.
+- The memo creator must exist and be either `NORMAL` or `ARCHIVED`.
+- The share must still match the exact memo ID.
+- Store failures while resolving creator, space, membership, current user, or instance settings are collapsed by `GetSharedMemo` to `NOT_FOUND`.
+
+Sources: `server/api/v1/memo_share_service.go:23-80,178-209`, `core/access/memo_resolve.go:31-90`, `core/access/memo.go:87-157`.
+
+### 4. Authentication and instance-access mode
+
+Authentication is not required. For an unauthenticated caller, the service still reads the instance setting and computes whether ordinary anonymous access is allowed. However, the exact-share branch runs before the ordinary `PUBLIC`, `PROTECTED`, and `PRIVATE` audience branches.
+
+Consequently, for a valid exact share:
+
+- `PUBLIC`, `PROTECTED`, and `PRIVATE` memos can be returned.
+- A `PRIVATE` instance does not negate the share.
+- An instance-setting lookup failure can still prevent the read because context construction happens before the share decision.
+- `SPACE` audience remains excluded.
+- Ambient author, member, or administrator status is not required to read the exact shared memo.
+
+Sources: `server/api/v1/auth_service_session.go:269-290`, `server/api/v1/memo_access.go:17-40`, `store/instance_setting.go:255-262`, `core/access/memo.go:107-153`.
+
+## Supplied finite scenario
+
+For the supplied scenario:
+
+- Token `share-alpha` selects share row 71.
+- That row binds to `MemoID=43`.
+- `now=2000` equals `ExpiresTs=2000`; because expiry is `now > ExpiresTs`, the share is still active.
+- Memo 43 is `NORMAL`, `PRIVATE`, and not `SPACE`.
+- The unauthenticated viewer and `PRIVATE` instance would ordinarily be unable to read that memo.
+- Nevertheless, the exact `SharedMemoID == memo.ID` branch authorizes it.
+- Creator 17 is valid.
+- Memo 89 is unrelated and is never selected.
+
+The successful result contains `memo-alpha` and `"shared body"`, with empty reaction and attachment arrays under the supplied facts. Its parent is suppressed and its relation list is empty.
+
+## What the Bearer [redacted] what it does not authorize
+
+### Included in the shared response
+
+A successful response can include:
+
+- Memo body and ordinary memo metadata.
+- Creator username/name.
+- Memo-scoped reactions, including their creator names.
+- Memo-scoped attachment representations.
+- Generated content snippet and payload metadata.
+
+Reactions and attachments have no separate read gate in this response; they are loaded only after the memo read has succeeded.
+
+Sources: `server/api/v1/memo_share_service.go:191-209`, `server/api/v1/memo_service_converter.go:26-102,177-220`.
+
+### Deliberately excluded
+
+- `Parent` is explicitly reset to `nil`, even if the memo has `ParentUID`.
+- Relations are passed as `nil` to conversion and become an empty list.
+- The token is not propagated to parent or relation endpoints.
+- Within the reviewed source, `ShareToken` is consumed only by `GetSharedMemo`; it does not authorize mutation, share management, or independent reads of related memos.
+- An unauthenticated caller does not receive an assigned Space’s identity. Space projection requires the author, an active member, or an instance administrator.
+
+Sources: `server/api/v1/memo_share_service.go:203-213`, `server/api/v1/memo_service_converter.go:50-94,105-137`, `core/access/memo.go:37-39`.
+
+Attachment metadata appears in the memo response, but this analysis does not establish authorization for separate attachment-content endpoints.
+
+## Exceptions and implementation limits
+
+- Share rows are Bearer [redacted] and appear reusable until deleted or expired; no one-time-use behavior is visible.
+- Read-time authorization relies on `MemoShare.MemoID`; `MemoShare.CreatorID` is not compared with the memo creator in `GetSharedMemo`.
+- Tokens created by this service use a 22-character base57 UUIDv4 representation, described in source as approximately 122 bits of entropy.
+- `GetSharedMemo` has no visible local call to `throttleAndCharge`, unlike share creation. Given the high-entropy token and normalized missing/expired response, this alone was not classified as a vulnerability. Global middleware or proxy rate limiting was not established.
+- Connect simply forwards the call and converts returned errors; detailed external transport mapping was not reviewed.
+- This is static, bounded source analysis—not a runtime permission proof or normative policy assessment.
+
+## Dependency Audit
+
+The reviewed path imports `shortuuid/v4`, but its resolved version and complete transitive dependency set could not be checked because `go.mod`/`go.sum` were outside the supplied source scope. No dependency vulnerability is asserted.
+
+## Secrets & Exposure Scan
+
+No hardcoded credentials, private keys, cloud tokens, or embedded connection strings were found in the reviewed source.
+
+## Patch Proposals
+
+No CRITICAL or HIGH findings require patches.
+
+**Review each patch before applying. Nothing has been changed yet.**

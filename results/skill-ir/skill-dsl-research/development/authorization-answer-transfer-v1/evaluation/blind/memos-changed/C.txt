@@ -1,0 +1,100 @@
+## Findings summary
+
+| Severity | Count |
+|---|---:|
+| 🔴 Critical | 0 |
+| 🟠 High | 0 |
+| 🟡 Medium | 0 |
+| 🔵 Low | 0 |
+| ⚪ Info | 0 |
+
+**Conclusion:** No confirmed vulnerability was found in the scoped `GetSharedMemo` authorization flow. Confidence: **High**. Dependency and secrets audits were outside the supplied source scope.
+
+## Token-to-memo binding
+
+`GetSharedMemo` accepts only `share_token`; the caller cannot also select a memo ID or name (`proto/api/v1/memo_service.proto:134-138,644-647`).
+
+The flow is:
+
+1. Look up a `memo_share` row by exact `UID == share_token`.
+2. Reject a missing or expired row.
+3. Read the memo whose numeric ID equals that row’s `MemoID`.
+4. Pass that same `MemoID` into the read policy, which checks that the loaded memo has exactly that ID.
+
+Relevant code: `server/api/v1/memo_share_service.go:172-188,216-229`; the database lookup uses an equality predicate on `uid` (`store/db/postgres/memo_share.go:113-155`, with equivalent SQLite/MySQL implementations).
+
+Thus a valid token cannot be redirected to another memo by supplying a memo identifier: the persisted share row chooses the memo. Creation uses a random URL-safe short UUID described as having 122 bits of entropy (`server/api/v1/memo_share_service.go:66-75`).
+
+## Invalid and expired tokens
+
+A share is expired exactly when:
+
+```go
+ms.ExpiresTs != nil && time.Now().Unix() > *ms.ExpiresTs
+```
+
+`server/api/v1/memo_share_service.go:216-219`
+
+Therefore:
+
+- Unknown token: `NOT_FOUND`, message `"not found"`.
+- Expired token: the same `NOT_FOUND`, message `"not found"`.
+- At the exact expiry second, the token remains valid because the comparison is `>` rather than `>=`.
+- A storage failure while looking up the share is distinguishable: it returns `INTERNAL`, `"failed to get memo share"` (`memo_share_service.go:221-227`).
+
+### Supplied scenario
+
+At time `2001`, `share-alpha` resolves to share row 71 and memo ID 43, but its expiry is `2000`. It is therefore rejected as expired with `NOT_FOUND`. Memo 43 is not fetched or returned. An entirely invalid token produces the same externally visible result.
+
+By comparison, `share-other` has no expiry and binds to memo 89. Subject to the remaining checks, it returns **memo 89**, containing `"unrelated body"`—not memo 43.
+
+If `share-alpha` were unexpired, it would bind only to memo 43 and return `"shared body"`.
+
+## Remaining access controls and exceptions
+
+A valid share must also satisfy these controls:
+
+- The memo must exist, be `NORMAL`, and not have `SPACE` visibility. Missing, archived, and `SPACE` memos all become `NOT_FOUND` (`memo_share_service.go:178-188`).
+- The memo must have a valid creator whose state is `NORMAL` or `ARCHIVED` (`core/access/memo_resolve.go:31-50`).
+- Its visibility must be one of the known visibility values (`core/access/memo.go:92-105`).
+- The share applies only when `memo.ID == *SharedMemoID`, and never to a `SPACE` memo (`core/access/memo.go:119-122`).
+
+The exact-token match is an explicit exception to normal audience rules: once it applies, a `PRIVATE`, `PROTECTED`, or `PUBLIC` memo is readable without requiring authorship, authentication, or anonymous-public instance mode. It is still subject to the structural checks above.
+
+`GetSharedMemo` is both public and an authentication-bootstrap method, so anonymous callers may reach it even when the instance is `PRIVATE` (`server/api/v1/acl_config.go:45-46,56-79`; `server/api/v1/authz.go:99-107`). For an anonymous caller, the service still resolves the instance setting, but `AllowAnonymous=false` does not defeat an exact valid share. An instance-setting lookup error is masked as `NOT_FOUND` by `GetSharedMemo` (`memo_access.go:17-29`; `memo_share_service.go:186-188`).
+
+## What the token exposes—and what it does not
+
+A successful response includes the memo itself and:
+
+- memo content and ordinary memo metadata;
+- creator resource name;
+- reactions, including reaction creator names;
+- attachment metadata, including an external link when the attachment is externally stored.
+
+`memo_share_service.go:191-203`; `memo_service_converter.go:34-100`; `attachment_service_storage.go:25-49`.
+
+It deliberately does **not** expose or authorize the surrounding graph:
+
+- No relations are loaded; the converter receives `nil` and emits an empty relation list.
+- The returned `Parent` is forcibly cleared, even when the stored memo has a parent.
+- Comments are not loaded.
+- An anonymous viewer is not shown the memo’s Space projection.
+
+`memo_share_service.go:203-213`; `memo_service_converter.go:69-94,105-137`.
+
+The token is recognized only by `GetSharedMemo`. Separate APIs for the memo, comments, relations, reactions, and attachments invoke normal memo authorization with `sharedMemoID=nil`; they do not accept or propagate this share token (`memo_access.go:43-48`; `memo_service_comments.go:117-153`; `memo_relation_service.go:103-118`; `reaction_service.go:18-38`; `memo_attachment_service.go:489-508`).
+
+Consequently, in the supplied **PRIVATE-instance, unauthenticated** scenario:
+
+- a valid share can return the shared memo plus its embedded reaction and attachment metadata;
+- the same token does not independently authorize fetching the parent, comments, relation endpoints, attachment endpoints, or mutations;
+- mutation endpoints continue to require authentication and their normal ownership/role checks.
+
+## Source-visible limits
+
+- The allowed source did not include the schema establishing whether share UIDs are database-unique. The query filters by UID and selects one row; creation relies on high-entropy generation.
+- Expiry and revocation are checked once before later memo/conversion work. They are not revalidated transactionally before returning an already in-flight response.
+- This conclusion covers the supplied API/store paths at revision `cb42e326ba9cc266a6a9570c53e0fe04c62793f4`; deployment proxies or attachment-serving routes outside the allowed source were not assessed.
+
+No patches are proposed. **Review each patch before applying. Nothing has been changed yet.**

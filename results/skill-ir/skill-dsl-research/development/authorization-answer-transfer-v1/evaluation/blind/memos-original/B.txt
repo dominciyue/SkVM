@@ -1,0 +1,121 @@
+## Findings summary
+
+| Severity | Count |
+|---|---:|
+| 🔴 Critical | 0 |
+| 🟠 High | 0 |
+| 🟡 Medium | 0 |
+| 🔵 Low | 0 |
+| ⚪ Info | 0 |
+
+**Conclusion:** No vulnerability is asserted because no normative authorization policy was supplied. The behavior below is a source-level description of `GetSharedMemo`. **Confidence: High.**
+
+## Token-to-memo binding
+
+`GetSharedMemo` treats `share_token` as an opaque Bearer [redacted]
+
+1. It looks up a `MemoShare` using an exact `uid = ?` database predicate.
+2. The resulting share row supplies `MemoID`.
+3. The memo is fetched by that internal ID—not by any memo identifier supplied by the caller.
+4. The read context receives the same `MemoID`, and the share exception applies only when `memo.ID == *SharedMemoID`.
+
+Therefore, `share-alpha` can resolve only the memo referenced by its row’s `MemoID`; it cannot be combined with another memo name or ID to retrieve memo 89.
+
+Sources: `server/api/v1/memo_share_service.go:172-189`, `store/db/sqlite/memo_share.go:115-157`, `core/access/memo.go:119-122`.
+
+## Access controls and exceptions
+
+### Method-level access
+
+`GetSharedMemo` is both:
+
+- a public method; and
+- an authentication-bootstrap method.
+
+Consequently, anonymous requests may reach it even when the instance access mode is `PRIVATE`. Other public methods generally require a public instance, but this method is an explicit exception.
+
+Sources: `server/api/v1/acl_config.go:45-46`, `server/api/v1/acl_config.go:56-79`, `server/api/v1/authz.go:93-116`.
+
+### Token validity
+
+A share is active when:
+
+- a matching share row exists; and
+- `ExpiresTs` is absent or the current Unix second is **not greater than** it.
+
+The comparison is `now > expires`, not `now >= expires`. A token is therefore still valid during the exact second recorded in `ExpiresTs`.
+
+Source: `server/api/v1/memo_share_service.go:216-229`.
+
+### Memo-level requirements
+
+Even with an active token, this endpoint returns `NOT_FOUND` unless:
+
+- the referenced memo exists;
+- its row status is exactly `NORMAL`;
+- its visibility is not `SPACE`;
+- its visibility value is recognized;
+- its creator exists and is either `NORMAL` or `ARCHIVED`; and
+- authorization context resolution succeeds.
+
+The token exception then authorizes that exact non-`SPACE` memo before the ordinary `PUBLIC`/`PROTECTED`/`PRIVATE` visibility rules are evaluated. Thus it can expose a `PRIVATE` memo anonymously and independently of the instance’s anonymous-access setting.
+
+Sources: `server/api/v1/memo_share_service.go:178-189`, `core/access/memo.go:87-145`, `core/access/memo_resolve.go:31-52`.
+
+Important exceptions and limits:
+
+- An authenticated author or administrator still needs an existing, active token to use this endpoint; token resolution happens first.
+- An administrator cannot use this method to bypass its explicit `NORMAL` and non-`SPACE` checks.
+- The read path does not revalidate `MemoShare.CreatorID`; authorization is based on the share row’s memo binding and the current memo state.
+- Share creation currently requires an active memo, a manager of the memo, and non-`SPACE` visibility, but later state changes are handled by the read-time checks above (`server/api/v1/memo_share_service.go:23-75`).
+
+## Invalid, expired, and valid tokens
+
+| Condition | Result |
+|---|---|
+| No share row for token | `NOT_FOUND: "not found"` |
+| Expiry strictly before current Unix second | Same `NOT_FOUND` |
+| Expiry exactly equal to current Unix second | Still active |
+| Active token, but memo missing/archived/`SPACE` | Same `NOT_FOUND` |
+| Active token, but creator/access facts invalid | Same `NOT_FOUND` |
+| Active token and all memo controls pass | Memo is returned |
+
+This deliberate collapsing prevents callers from distinguishing a nonexistent token, expired token, and several invalid memo states. Storage failures are not collapsed universally: share or memo lookup failures return `INTERNAL`; failures while building the read context are converted to `NOT_FOUND`.
+
+Source: `server/api/v1/memo_share_service.go:173-208`.
+
+## Supplied scenario
+
+At `now = 2000`:
+
+- `share-alpha` resolves exactly to share row 71 and `MemoID = 43`.
+- Its `ExpiresTs` is also `2000`, so it is **not expired** under the strict `>` comparison.
+- Memo 43 is `NORMAL`, `PRIVATE`, non-`SPACE`, and has a valid normal creator.
+- Although the caller is anonymous and the instance is `PRIVATE`, `GetSharedMemo` remains reachable as a bootstrap method. The ordinary anonymous-access flag is false, but the exact-memo share exception allows the read.
+
+The response therefore contains memo 43, including its content `"shared body"` and creator identity. It does not return memo 89.
+
+Given the supplied empty collections, reactions and attachments are empty. Relations are empty, and the stored parent `"parent-private"` is deliberately removed from the response.
+
+## What the token exposes around the memo
+
+The token is intentionally memo-local:
+
+- **Included:** the memo fields, reactions belonging to that memo, and attachment metadata belonging to that memo.
+- **Excluded:** relations, the parent identity, and comments/conversation traversal.
+- `relations` is passed as `nil`, producing an empty list.
+- `Parent` is explicitly reset to `nil` after conversion.
+
+Sources: `server/api/v1/memo_share_service.go:191-213`, `server/api/v1/memo_service_converter.go:69-94`.
+
+The token does **not** become general authorization for adjacent endpoints:
+
+- `ListMemoComments` accepts a memo name, not a share token, and performs ordinary memo access checks (`server/api/v1/memo_service_comments.go:117-153`).
+- `GetAttachment` likewise performs ordinary linked-memo access with no shared memo ID (`server/api/v1/attachment_service.go:345-363`, `server/api/v1/attachment_service.go:627-656`).
+- Managed attachment bytes are not embedded in the shared memo response; only metadata is converted. External attachment links, when configured, may appear in that metadata, but their external enforcement is outside this source scope (`server/api/v1/attachment_service_storage.go:25-49`).
+
+## Scope limits
+
+This was a bounded static review of the supplied Go/API/store paths, not a runtime test or full repository audit. Deployment routing outside the allowed source set, database constraints/migrations, clock behavior beyond the supplied scenario, and enforcement by external attachment storage were not available. No dependency or repository-wide secrets audit was performed.
+
+No patches are proposed. **Nothing has been changed.**

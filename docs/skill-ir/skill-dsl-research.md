@@ -4,7 +4,7 @@
 
 ## 1. 当前结论
 
-**BR已进入执行，调用前工程已验证。** 接续BQ实际结果，下一轮重点为“当前程序依据进入完整自然回答”和“不同真实任务共用一套编写/执行机制”。现有outcome已经分列计算、作者含义、外部假设和缺口，先查实际交接而非再建协议。Download只用固定稿做回归；Memos GetSharedMemo从空稿进入同工具链，按原/变输入做源码基线、规则消费和执行消费。外部skill、真实源码、研究者问题、合成事实各自登记。九正常用途、至多四具名确认，开发gpt-6-astra/high，实验官方gpt-5.6-sol/high；没有新效果主张。见[§7.79](#779-bq-复核与-br-回答依据和跨任务检验)。
+**BR有限队列完成，跨结构自动编写和同稿变化使用成立，完整语义、自然质量与稳定净收益未达。** 九用途及一次具名确认、17观察turn全部关闭；最后25步Memos自动原稿在20已知结果/选定标量案例匹配、2缺输入保留条件，普通入口、搬移和源码失效通过。Download两答原四问完整；Memos六消费者27/36维full、整题0/6。执行对规则原输入持平、变化输入少说明一项转换错误，观察token比1.196/0.748；不能称稳定优势。共享修复只区分未执行依赖、公开已有谓词，不补业务程序。完整来源、全部首/修订原件、未知成本及后续责任见[§7.79](#779-bq-复核与-br-回答依据和跨任务检验)。以completed-with-unmet-criteria收束，不自动BS。
 
 **BQ有限使用已完成，两个实际原稿缺陷和真实执行采用已解决；完整自然质量与稳定执行增量未达。** 共享工程c0b5ccf8后，两臂均将原52步稿修至55步、35/35有限字段与局部轨迹匹配；T-E有3批11案例、7当前revision验收，U-E固定消费成功。原四问6/12 full、整题0/3，源码决策9/12 full。单对程序持平，T-E说明遗漏更多且预算续作中断，token较低不代表稳定净收益。过程与责任见[§7.78](#778-bp-复核与-bq-先修复后实际使用)，实质成果34ed287e已发布并核对用户origin，队列停止，不追加BR。
 
@@ -2930,23 +2930,23 @@ BM首件实测补修：A0-first用60探索单位而无patch/trial；暂态重连
 
 ### 7.79 BQ 复核与 BR 回答依据和跨任务检验
 
-**BR首件与工具说明修复（2026-10-19）。** Download两消费同原稿/输入/源码epoch均交付，主裁定原四问各4/4 full。执行臂宿主实际计算并在38个真实发送片段携带结果，终答明确引用11/original/v1-original.pdf；没有主动trial。规则臂35工具/59单位，执行臂36工具/60单位；执行臂首回合预算预留中断、流重连及final-child保留。质量持平、执行观察token较高，不能归因于本轮静态外部标签修复或建立稳定增益。独立探子将首查询的include_deleted错误传播到文件选择、把未主动trial误作未计算，已按views.py:1375-1381与真实包否决。
+**BR收束（2026-10-19）。** [任务书](../superpowers/plans/2026-10-19-authorization-evidence-backed-answers-and-task-transfer.md)从4216358f接管，identity为authorization-answer-transfer-v1；用户授权开发gpt-6-astra/high、实验官方gpt-5.6-sol/high。9用途、10attempt、17观察turn全部交付关闭，1/4具名确认，0活动/unknown。以completed-with-unmet-criteria结束，不自动BS。分轴结果见[summary](../../results/skill-ir/skill-dsl-research/development/authorization-answer-transfer-v1/summary.json)和[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-answer-transfer-v1/verification/acceptance-matrix.json)。
 
-A-M首件五raw由7步变为25步，首有效在工具单位4，四turn交付，但保留expiry gap且明确声称没有数值大于算子。实际首thread/start和turn/start没有完整谓词说明，而control-evaluation既有gt/gte/lt/lte与数值比较实现。根因是question-workflow-wire只接入基础说明，非语言能力不足。共享修改复用已有FINITE_PERMISSION_GUIDE于program/declaration/patch和rules对应工具；匿名阈值/库存红绿，20测试/188断言及主/BR类型通过。登记一次A-M/predicate-guide空稿确认，不注入业务谓词、不改首稿；六未运行消费者共用修后epoch及确认最后raw，无效/较差亦不回退。首件、每稿22案例和全部成本保留；确认结果尚待实测。
+**交接诊断与共享修复。** 重建BQ实际发送69片段，当前outcome、原问题和规则均在，不能把自然遗漏归因于整段结果丢失。匿名choose反例证明静态returnBasis把未执行外部调用标为unresolved；红绿后只改为unexecuted-external-branch，实际unknown仍conditional。BQ返回表达式不依赖该步骤，故此修复不解释BQ遗漏。A-M首件五raw由7到25步，保留expiry gap并声称数值大于不可表达；真实工具合同确实漏掉执行器已有gt/gte/lt/lte。共享工具改为复用FINITE_PERMISSION_GUIDE，匿名阈值/库存反例验证，不增加算子、业务答案或模型门槛。一次predicate-guide确认从同输入/来源空稿重来，首件及费用保留。
 
-**BR调用前工程（2026-10-19）。** 从4216358f接管，重建BQ T-E/U-E实际发送的69个片段，当前outcome、原问题和规则均在；U-E无工具final-child与原记录一致。没有证据支持整段结果丢失或将自然遗漏归因于传输。一个匿名choose反例确实发现静态返回依赖把skipped外部调用标为unresolved-external-fact；红测后仅调整为unexecuted-external-branch，真实执行unknown仍conditional。BQ返回字段没有引用该外部步骤，故不声称修复解释了BQ遗漏。原覆盖范围、current与语义正确分列。Memos源内helper、创建者及返回裁剪已直接阅读，22个有限合成案例及原/变now输入先于作者冻结；独立核对未发现预期冲突。规则首包/回复结构及求值器spy核验通过，BQ35例字段/局部轨迹兼容、既有ShareLink6输入重放保持。实际模型采用、完整回答与成本效果尚待九用途，细节在BR结果目录。
+**作者实际过程。** 首件4turn/5raw，首有效工具单位4，4批14主动案例，最终revision对应6例；最后稿20已知案例18匹配、2缺输入仅1保留真实条件。确认4turn/7raw，从6步到25步，首有效同为单位4，6批12主动案例，最后revision对应2例。确认第1稿6/20、第2稿11/20、第3至7稿20/20，缺输入最终2/2；所有12raw均离线评价22例。首件第3稿把relations数组塞进只接标量的record导致9允许案例unresolved；原件不修不删。选最后提交而非最好分，最终SHA为2e762d8c06c04d3959e3553d2385ca9a81b7f6f1fc5eba405f7ba0359dc76ff5。两作者首/终自然答共4份仍partial；中间4条续作消息本来被要求汇报编辑进展，不能记为4次整题未交付，纠正在author-phase-adjudication.json。
 
-2026-10-18/19父线程核对BQ原稿、真实工具、逐题评价、来源及共享实现，并运行一次零模型普通消费；用户随后要求减少重复填字段、避免只精修Download，明确任务真实性和迁移证据。2026-10-19授权[BR0–BR21](../superpowers/plans/2026-10-19-authorization-evidence-backed-answers-and-task-transfer.md)及新gpt-6-astra/high线程，identity为authorization-answer-transfer-v1，基线3c3059a8。本节先记录开发决定，后续问题和实测追加此处，不新建研究正文。
+**自动语义范围。** 最终稿真正编码token→memo绑定、nil/相等/超时、NORMAL与受众、viewer/context/creator、exact share、错误边界及有限摘要，不以外部allowed替代源内核心权限。它把recognized audience移到context之前，creator拒绝也早于实际optional space/membership收集；结果相同不代表调用顺序相同。conversion单一错误前提与摘要flags没有实现第二次creator lookup、placement、reaction/attachment转换和完整protobuf。membership row未被权限表达式消费，不能将缺Role.IsActiveMember误判成额外授权。详细边界见confirmation-source-review.json；20/20只计已登记终态和选定标量，不称完整payload匹配。
 
-**已经实现与仍缺什么。** BQ两臂55步稿35/35有限输入匹配；T-E11主动案例包含修前4个和最终稿7个，U-E普通消费有55事件。源码决策9/12、原四问6/12、整题0/3full。自然说明缺root回退/构造器顺序，并有非法版本的残余误述。父复跑得到11/original、两个外部调用skipped、execution=computed、0事件gap，外层conditional来自作者保留的概括性coverage。它说明当前计算和全题语义存在不同边界，不能把状态汇总当源码判断。
+**Download同期消费。** 两臂同BQ原字节/输入/源码epoch，原四问各4/4 full。R为35工具/59单位，E为36工具/60单位；E的38个发送片段携带计算，终答引用11/original/v1-original.pdf，未主动trial。E首turn预算预留中断与重连、无工具final-child均留账。质量持平，E观察token更多；无执行增益。独立评阅误将include_deleted传播到独立版本查询、将无trial等同未计算，主线程按源码和包否决。BQ历史评分保持。
 
-**共享设计已有基础。** program-outcome已经分列实际计算、作者表达式、外部假设、执行及覆盖缺口；program-consumption-context、program-authoring-context和program-delivery已有当前basis、原问题、trial版本、source失效及有限final-child。下一责任是通过BQ实际发送原件判断信息究竟未产生、未发出、截断、过期或未被模型采用，再修具体接缝。静态returnBasis可能包含未走分支，不自动代表当前执行依赖；current答案也只证明版本而非语义。BR不再以多一套状态/字段协议代替真实消费。
+**Memos同期消费与自然质量。** 六消费者共用生产source tree ec85209772085b0215f9e2db006014b6a3d789f9；R/E同最后原稿，N仅原skill/源码/事实，变化面板仅clock2000→2001。全部无主动trial；E宿主自动计算，原输入答明确采用memo结果，变化答明确采用expiry拒绝并评述程序缺口。按binding/time/access/anonymous/return/limits六维，M0-N为F/F/F/F/P/F，M0-R和E为F/F/F/P/P/F；M1-N为F/F/F/F/P/F，M1-R为F/F/F/P/F/F，M1-E为F/F/F/P/P/F。总27/36维full、整题0/6。公共路由/bootstrap与conversion错误是不同遗漏；E变化答用建模缺口代替实际错误解释，独立评审误给full后经原文点验降为partial。E/R原输入持平，变化输入一维退步；不能宣称完整或稳定局部质量改善。匿名仅隐藏标签，内容仍可能暴露组别。N→R含编写准备/材料作用，不是纯DSL效果。
 
-**来源与选类复核。** 已归档完整外部skill包括cloudflare/security-audit-skill和github/awesome-copilot的security-review。历史真实源码任务包括Open WebUI、FastAPI full-stack模板、Gitea、Memos、Paperless；这些跨不同历史方法，不能合并计成当前资源程序已泛化。AQ等brief明确为experimental-user-brief，BQ是项目内真实程序排障任务，35输入为同一已暴露源码上的有限合成development fixtures。BP ShareLink是首4步无效→最终10步局部稿，三臂必要事实3/7、5/7、3/7，不能写成完整第二主链。
+**成本。** 作者8turn input8,476,435/output50,467；消费者9turn input7,166,198/output59,657；合计input15,642,633（含cache13,998,592一次）/output110,124。两个Memos面板E/R观察总token比1.196和0.748，方向不一致且M1-E少一个完整维度；加上准备成本更不能声称稳定净收益。重连和并行本地处理使elapsed不是隔离时延实验。USD、隐藏上游请求、开发/探子成本及真人分钟unknown。用途/attempt/turn分别计量，中断、续作和确认不隐藏。
 
-**BR任务选择。** 选择已暴露Memos GetSharedMemo而非继续增加Download版本变体。来源为usememos/memos的cb42e326ba9cc266a6a9570c53e0fe04c62793f4，现有memos-share输入和真实Go源码支持token、时效、目标memo及返回范围问题。作者从空稿读取完整GitHub原skill及真实源码，使用现有有限工具；source-visible access helper必须解释或具名未知，不能用虚构外部allow替掉核心职责。合成数据、研究者任务和上游需求分别登记，先由源码确定case，再看DSL能否处理。它检验另一结构的development迁移，未承诺未见或live服务结论。
+**普通复用、故障与验证。** [普通命令](../../examples/authorization-assessment/shared-link-workflow/README.md)实际零模型跑过check/rules/inspect/init/compare：原输入返回memo43摘要、clock2001拒绝，同稿搬移重放，副本源码从>改>=撤回旧结论。第一次研究搬移输入误用绝对sourceRoot，保留失败后改相对路径一次重跑通过。M0-R已completed后，研究解析脱敏JSON遇无效转义；adapter发送原内容、归档副本经脱敏才受影响。BR离线reader只修redaction marker前奇数反斜杠，原件、已知终态保留，不重发。77测试/516断言、主及BR类型通过，额外archive+study9测试/35断言有8项重叠，不相加冒充86项独立测试；15文档测试及最终链接/diff另留证。972大原件压缩成4个64MiB上限分片，逐成员hash读回，本地原件不删；restore拒绝覆盖不同内容。
 
-**采用与对照。** Download固定BQ原稿rules/execute两消费；Memos一空稿作者、同一终稿原/变输入N/R/E六消费，共九用途，至多四具名确认。N→R包含准备和程序材料，R→E比较同材料执行增量。失败/unknown/退步与正向同表，原题、字段、轨迹、源码语义和费用分轴；模型不见oracle、旧答案、任务书和开发者语义稿。共享故障当场红绿修，不能只重跑较差臂凑胜出。没有合格原稿时仍保留源码基线和普通失败，不能换题或手改程序填成果。共享投影的一项匿名缺陷已修复并验证；尚无BR真实模型或效果结果。
+**真实性与未达责任。** 完整Cloudflare/GitHub外部skill、Memos cb42e326ba9cc266a6a9570c53e0fe04c62793f4真实源码、研究者问题、合成数据库/时钟、源码先行22案例分别登记；328注册文件hash核验。Memos已暴露development来源，服务/数据库未启动，非held-out/liveAPI。模型不见oracle、旧答或开发者业务稿，首/修订/负向及历史保护证据保持。可保留的成果是共享公共说明修复、另一任务从空稿进入普通工具链、同稿变化及可恢复证据。未达责任仍为源码调用/错误顺序、完整转换与自然遗漏、可重复质量和包含准备的成本收益；不靠追加Download变体或新状态协议替代这些问题。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 
@@ -3011,16 +3011,18 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 | ID | 问题 | 当前依据 | 接下来的判断 |
 |---|---|---|---|
 | Q1 | 哪个任务范围共享领域语义？ | 固定来源的授权职责支持 principal/resource/operation/control/evidence；混合职责单列，见 §4–§7.10 | 保持单 repo/ref、源码可见的授权切片 |
-| Q2 | 声明如何带来实际行为？ | BQ55步稿35/35、7当前trial案例、普通computed；仍有作者coverage与自然答遗漏 | BR复用已有outcome/交付链，从实际发送包定位断点 |
+| Q2 | 声明如何带来实际行为？ | BR Memos最后25步原稿20已知结果匹配、2缺输入保留条件，普通计算实际进入答案 | 有限采用成立，源码顺序和完整转换仍须解决 |
 | Q3 | 为什么仍漏决定性源码或分支？ | BQ已补真实caller结构与两处原稿；答案仍漏回退/顺序并误述残余 | 区分未产生/未发送/旧状态/模型未用，不一律加提示或字段 |
-| Q4 | 领域方法相对好说明的增量是什么？ | BQ程序与rules持平，执行说明遗漏更多 | BR同稿R/E、Memos源码N对照，准备/材料作用与执行分开 |
-| Q5 | 作者和变化复用是否可用？ | BP ShareLink10步仅局部可用；当前自动执行集中Download | BR在已暴露Memos另一结构从空稿编写，同稿原/变输入；不冒充未见泛化 |
+| Q4 | 领域方法相对好说明的增量是什么？ | BR原输入E/R持平，变化E少一完整维度；token比1.196/0.748 | 未建立稳定质量/净收益；准备和执行成本继续分列，不自动追加实验 |
+| Q5 | 作者和变化复用是否可用？ | BR Memos空稿确认最后原稿，同稿clock变化、搬移和源失效通过 | 跨结构有限可行性成立，非完整自动语义、未见泛化或live服务 |
 | Q6 | 本地化路线如何处理？ | 保留 §8–§9 设计及结构回填反例 | 暂缓；重新选择该类时再处理，不混入授权验收 |
-| Q7 | 如何评价和计量？ | BQ原题6/12、整题0/3，源码决策9/12；合成事实不代表服务行为 | BR登记来源层次，源码先于fixture；计划/交付分母、首/修订及全部成本分列 |
+| Q7 | 如何评价和计量？ | BR Download2/2整题full；Memos27/36维、0/6整题；17turn全计 | 原始/修订、进展/整题消息、有限值/源码语义分列；USD与隐藏成本unknown |
 
 决策沿革：
 
-- **2026-10-19 / BR规划：** 用户授权gpt-6-astra/high开发；复用已有结果与交付机制，Download固定稿回归，Memos空稿跨结构验证，九用途加至多四具名确认。来源/任务/合成输入分开，不扩语言语义、不造仓库成功分支、原件及默认保持。尚无BR实验，见§7.79和spec§14.57。
+- **2026-10-19 / BR收束：** 9用途及1具名确认全部交付关闭；跨结构有限编写/变化消费与普通工具成立，完整语义、六消费者整题质量和稳定净收益未达。以completed-with-unmet-criteria收束，全部首件和修订、评审分歧与未知费用保留；不自动BS。详见§7.79。
+
+- **2026-10-19 / BR规划时：** 用户授权gpt-6-astra/high开发；复用已有结果与交付机制，Download固定稿回归，Memos空稿跨结构验证，九用途加至多四具名确认。来源/任务/合成输入分开，不扩语言语义、不造仓库成功分支、原件及默认保持。当时尚无BR实验，实测见§7.79和spec§14.57。
 
 - **2026-10-18 / BQ实施：** 共享工程和两个自动raw缺陷修复，三用途交付、8观察turn，35/35有限匹配，T-E11主动案例、U-E固定消费及搬移失效通过；自然完整性和稳定增量未达，实质成果34ed287e已发布并核对，不追加BR。详见§7.78及BQ执行记录。
 

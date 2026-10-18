@@ -1,0 +1,15 @@
+### 编辑进度
+
+- 已修复并采纳可复用程序草案，保留原始问题及全部 25 个执行步骤。
+- 当前草案版本：`672a71560fcac79fd4d9fae0a57e4b807378b1cfea8dcba1eb0ed4a3ea62ab66`
+- 已清除过时反馈；当前无机械诊断或根级阻塞。
+- 已试验确认：
+  - 无效 token → `NotFound`
+  - `now == ExpiresTs` → 正常返回
+  - reaction 存储错误 → `Internal`
+  - `now > ExpiresTs` 仍标记为模型缺口，因为谓词语言不支持数值 `>`；源码行为仍为 `NotFound`
+- 剩余明确缺口：
+  1. 严格过期时间比较无法在当前有限谓词中执行。
+  2. reaction、attachment、snippet 及其余 protobuf 字段未展开建模。
+
+未修改仓库源码。

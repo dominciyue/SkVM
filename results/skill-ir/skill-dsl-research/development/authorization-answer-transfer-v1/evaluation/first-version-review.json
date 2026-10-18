@@ -1,0 +1,22 @@
+{
+  "scope": "Five original A-M/first raw checkpoints; no developer semantic changes",
+  "denominator": {"cases": 22, "knownDispositionCases": 20, "returnCases": 9, "NotFoundCases": 10, "InternalCases": 1, "unknownCases": 2},
+  "fieldMapping": {"memoID": "returned.memo_id", "content": "returned.content", "parent": "returned.parent", "relations": "No successful draft returns the actual relations array. Drafts 4/5 return relation_graph_included:false, a source-supported absence summary, not a protobuf array."},
+  "rows": [
+    {"version": 1, "steps": 7, "knownDispositionAndCoreScalarMatches": 15, "recognizedInputUnknowns": 0, "failedKnownCases": ["expiry-passed", "unknown-audience", "creator-missing", "creator-invalid-state", "context-policy-error"], "missingUnknowns": ["missing-clock", "missing-users-population"]},
+    {"version": 2, "steps": 24, "knownDispositionAndCoreScalarMatches": 18, "recognizedInputUnknowns": 1, "failedKnownCases": ["expiry-passed", "unknown-audience"], "missingUnknowns": ["missing-clock"], "reasonableConditionalCase": "missing-users-population"},
+    {"version": 3, "steps": 25, "knownDispositionAndCoreScalarMatches": 9, "recognizedInputUnknowns": 1, "failedKnownCases": ["expiry-passed", "unknown-audience", "all nine expected return cases"], "missingUnknowns": ["missing-clock"], "reasonableConditionalCase": "missing-users-population", "additionalFailure": "result is unresolved with record-scalar-required:relations; this unrelated representation error is not correct handling of missing clock"},
+    {"version": 4, "steps": 25, "knownDispositionAndCoreScalarMatches": 18, "recognizedInputUnknowns": 1, "failedKnownCases": ["expiry-passed", "unknown-audience"], "missingUnknowns": ["missing-clock"], "reasonableConditionalCase": "missing-users-population"},
+    {"version": 5, "steps": 25, "knownDispositionAndCoreScalarMatches": 18, "recognizedInputUnknowns": 1, "failedKnownCases": ["expiry-passed", "unknown-audience"], "missingUnknowns": ["missing-clock"], "reasonableConditionalCase": "missing-users-population"}
+  ],
+  "eventOrder": "All drafts select share by UID then memo by selected share.MemoID. No draft executes expiry between share lookup and memo lookup. Draft 1 has no read-context/creator checks. Drafts 2-5 add viewer/context, creator, space/membership, exact share check, enrichment checks and conversion before return, but omit the recognized-audience guard. Source locations: memo_share_service.go:172-229; memo_access.go:17-40; core/access/memo.go:92-122.",
+  "sourceSemanticCompleteness": false,
+  "completeConvertedPayload": false,
+  "independentReview": {"reviewer": "br_first_versions_audit", "readOnly": true, "reportedAggregateMatches": [15, 18, 9, 18, 18], "reportedFailure": "Counted missing-users-population as failure whenever termination was return; reported 13 expected return cases; described final relations/gaps inaccurately."},
+  "mainAdjudication": [
+    "Retained the scout's known-disposition/core-scalar counts, but split unknowns rather than treating all return-labelled paths as unconditional success or failure. Drafts 2-5 have an actual unresolved creator_valid condition and users/creator missing bindings; final result is conditional. This is appropriate preserved uncertainty, not a proved HTTP return.",
+    "Directly inspected actual termination and guard events: rejected share_exists terminates NotFound: not found; store failure terminates Internal. Null output alone is not the test.",
+    "Directly inspected all five final return expressions and gap arrays. Only draft 3 writes relations:[] and fails scalar-record evaluation; drafts 4/5 use the absence flag. Final draft removes stale helper gaps, retaining expiry and conversion coverage gaps.",
+    "Counted registered case expectations: nine return cases, not thirteen. Source completeness remains false even where selected values match; no aggregate is an authorization certificate."
+  ]
+}

@@ -1,0 +1,332 @@
+{
+  "schemaVersion": "authorization-executable-contract/v1",
+  "id": "shared-memo-access",
+  "description": "Source-supported finite workflow for resolving a shared memo; helper details and expiry ordering are expanded or retained as gaps.",
+  "scope": {
+    "kind": "function-contract",
+    "questionId": "shared-memo-access",
+    "root": {
+      "path": "server/api/v1/memo_share_service.go",
+      "symbol": "GetSharedMemo"
+    },
+    "upstream": [
+      "HTTP/Connect request entry, deployment middleware, and facts outside the supplied finite inputs remain unresolved"
+    ]
+  },
+  "inputBinding": {
+    "questionId": "shared-memo-access"
+  },
+  "sourceDeclarations": [
+    {
+      "source": {
+        "path": "server/api/v1/memo_share_service.go",
+        "symbol": "GetSharedMemo"
+      },
+      "statements": []
+    },
+    {
+      "source": {
+        "path": "server/api/v1/memo_share_service.go",
+        "symbol": "getActiveMemoShare"
+      },
+      "statements": []
+    },
+    {
+      "source": {
+        "path": "server/api/v1/memo_share_service.go",
+        "symbol": "isMemoShareExpired"
+      },
+      "statements": []
+    }
+  ],
+  "queries": [],
+  "assumptions": [],
+  "resourceWorkflow": {
+    "inputs": [
+      "request",
+      "now",
+      "contextUserID",
+      "instanceAccessMode",
+      "shares",
+      "memos",
+      "users",
+      "spaces",
+      "memberships",
+      "reactions",
+      "attachments",
+      "storeErrors"
+    ],
+    "steps": [
+      {
+        "id": "share_store_ok",
+        "op": "guard",
+        "test": {
+          "op": "is-null",
+          "value": {
+            "lookup": {
+              "map": {
+                "binding": "storeErrors"
+              },
+              "key": {
+                "literal": "share"
+              }
+            }
+          }
+        },
+        "failure": "Internal: failed to get memo share",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 221,
+          "endLine": 225
+        }
+      },
+      {
+        "id": "share",
+        "op": "select",
+        "from": "shares",
+        "where": {
+          "op": "eq",
+          "left": {
+            "binding": "row.UID"
+          },
+          "right": {
+            "binding": "request.ShareToken"
+          }
+        },
+        "unique": true,
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 221,
+          "endLine": 229
+        }
+      },
+      {
+        "id": "share_exists",
+        "op": "guard",
+        "test": {
+          "op": "not",
+          "arg": {
+            "op": "is-null",
+            "value": {
+              "binding": "share"
+            }
+          }
+        },
+        "failure": "NotFound: not found",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 226,
+          "endLine": 227
+        }
+      },
+      {
+        "id": "memo_store_ok",
+        "op": "guard",
+        "test": {
+          "op": "is-null",
+          "value": {
+            "lookup": {
+              "map": {
+                "binding": "storeErrors"
+              },
+              "key": {
+                "literal": "memo"
+              }
+            }
+          }
+        },
+        "failure": "Internal: failed to get memo",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 178,
+          "endLine": 181
+        }
+      },
+      {
+        "id": "memo",
+        "op": "select",
+        "from": "memos",
+        "where": {
+          "op": "eq",
+          "left": {
+            "binding": "row.ID"
+          },
+          "right": {
+            "binding": "share.MemoID"
+          }
+        },
+        "unique": true,
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 178,
+          "endLine": 184
+        }
+      },
+      {
+        "id": "memo_visible_state",
+        "op": "guard",
+        "test": {
+          "op": "all",
+          "args": [
+            {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "memo"
+                }
+              }
+            },
+            {
+              "op": "eq",
+              "left": {
+                "binding": "memo.RowStatus"
+              },
+              "right": {
+                "literal": "NORMAL"
+              }
+            },
+            {
+              "op": "neq",
+              "left": {
+                "binding": "memo.Visibility"
+              },
+              "right": {
+                "literal": "SPACE"
+              }
+            }
+          ]
+        },
+        "failure": "NotFound: not found",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 182,
+          "endLine": 185
+        }
+      },
+      {
+        "id": "result",
+        "op": "return",
+        "value": {
+          "record": {
+            "memo_id": {
+              "field": {
+                "of": {
+                  "ref": "memo"
+                },
+                "key": "ID"
+              }
+            },
+            "memo_uid": {
+              "field": {
+                "of": {
+                  "ref": "memo"
+                },
+                "key": "UID"
+              }
+            },
+            "creator_id": {
+              "field": {
+                "of": {
+                  "ref": "memo"
+                },
+                "key": "CreatorID"
+              }
+            },
+            "content": {
+              "field": {
+                "of": {
+                  "ref": "memo"
+                },
+                "key": "Content"
+              }
+            },
+            "parent": {
+              "literal": null
+            }
+          }
+        },
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 203,
+          "endLine": 213
+        }
+      }
+    ],
+    "gaps": [
+      "The strict expiry comparison time.Now().Unix() > ExpiresTs is source-visible but not expressible by the available finite predicate operators; it must still gate success between share_exists and memo lookup.",
+      "buildMemoReadContext and CheckMemoReadContext are not yet modeled.",
+      "Reaction and attachment listing, creator-dependent conversion, and non-creator conversion failures are not yet modeled.",
+      "Returned protobuf fields beyond the finite record shown here are not modeled."
+    ]
+  },
+  "authoringTarget": {
+    "mode": "reusable",
+    "coverage": [
+      {
+        "id": "get-shared-core",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 172,
+          "endLine": 214
+        },
+        "stepIds": [
+          "memo_store_ok",
+          "memo",
+          "memo_visible_state",
+          "result"
+        ],
+        "disposition": "implemented",
+        "reason": "Core share-to-memo selection, visible state checks, and parent redaction; helper checks and enrichment calls remain separately declared."
+      },
+      {
+        "id": "active-share",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 216,
+          "endLine": 230
+        },
+        "stepIds": [
+          "share_store_ok",
+          "share",
+          "share_exists"
+        ],
+        "disposition": "implemented",
+        "reason": "Token lookup and missing-share handling are modeled; strict numeric expiry ordering remains unwritten."
+      },
+      {
+        "id": "expiry-ordering",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 216,
+          "endLine": 219
+        },
+        "stepIds": [],
+        "disposition": "unwritten",
+        "reason": "Available finite predicate language has equality/null/truthiness but no numeric greater-than relation."
+      },
+      {
+        "id": "read-context",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 186,
+          "endLine": 189
+        },
+        "stepIds": [],
+        "disposition": "unwritten",
+        "reason": "Requires reading and modeling helper dependencies."
+      },
+      {
+        "id": "enrichment-conversion",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 191,
+          "endLine": 209
+        },
+        "stepIds": [],
+        "disposition": "unwritten",
+        "reason": "Reaction, attachment, and conversion branches remain to be modeled."
+      }
+    ]
+  }
+}
