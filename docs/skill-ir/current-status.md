@@ -4,6 +4,12 @@
 
 ## 当前工作
 
+**BQ0–BQ17 已获用户授权，当前为 planned-not-started。** [当前任务书](../superpowers/plans/2026-10-18-authorization-source-program-consistency-and-task-execution.md)先修源码外层调用条件、缺键语义和当前修稿反馈，再做一项真实项目排障任务：维护 SkVM 自动生成的 Paperless Download 辅助程序，交付可运行原稿和回归输入，并经普通入口消费。identity 为 `authorization-source-program-consistency-v1`，规划基线为 BP 最终提交 `27d59677`；开发 `gpt-6-astra/high`，实验官方账号 `gpt-5.6-sol/high`，第三方暂停。
+
+正常模型用途仅 T-R（rules/edit）、T-E（execute/edit）、U-E（固定 T-E 原稿消费）三个，最多三个具名修复确认。两臂共用任务、完整原 skill/四问、初始 BP 原稿、源码与静态反馈；执行臂的实际多输入试跑与修稿单列。有限 fixture 不冒充真实 HTTP/数据库运行。先完成共享红绿和普通接线，不扩语言层或重复大面板；失败当场诊断，首件与修订分存。方法见 [spec §14.56](skill-ir-aot-optimization-spec.md#1456-bq-source-program-consistency-and-real-task-use)、[研究 §7.78](skill-dsl-research.md#778-bp-复核与-bq-先修复后实际使用)。本次只登记计划，尚无 BQ 实现或实验结果。
+
+## BP 已结束的实际结果
+
 **BP有限队列以completed-with-unmet-criteria收束：45首位置及3具名确认完成，工程与有限采用成立，重复局部质量优势和完整语义未达；证据提交4a9bcd19已发布并核对origin同SHA。** [当前任务书](../superpowers/plans/2026-10-16-authorization-quality-evidence-and-branch-reliability.md) identity为`authorization-quality-evidence-v1`，开发`gpt-6-astra/high`，实验官方账号`gpt-5.6-sol/high`，第三方暂停。方法见[spec§14.55](skill-ir-aot-optimization-spec.md#1455-bp-capability-quality-and-executable-support)和[研究§7.77](skill-dsl-research.md#777-bo-质量复核与-bp-能力实验决定)。固定52步A0、A1最终字段及局部轨迹均18/18、7/8、6/7；A2字段17/18、5/8、5/7，局部轨迹18/18、7/8、6/7。匿名外层激活和缺version键仍有缺口。普通入口五组和搬移失效均通过。
 
 主面板R2对R1四域胜/平/负分别为对象0/11/1、分支3/7/2、变化2/9/1、条件0/11/1；每域的一次负向来自Q2-R2-1额度拒绝，分支另有一次已交付语义退步。原Q0-R0-0中断另轨确认仍不替换首件，跨epoch不作因果配对。全部34交付均遗漏正常完成与False/None返回值的完整区分；整题0/36 full，Q3-R0-1有独立版本查询manager误判。全部评阅、原件与分歧保留。局部改善和负向同表报告，不推一般可靠性或净收益。
@@ -121,11 +127,11 @@ BB先保留effect/context标注下的源码调用，沿真实调用实例连接�
 - 两作者包已按原字节实际消费。Download消费者源码评阅full但机器partial；OWUI消费者仍有决定性helper未读。变化中policy-fresh、premise-fresh/previous已有运行；policy-previous路由失败、source-fresh额度拒绝，source-previous及质量位置保留未运行。
 - 原件、计量及验收以 [最终收束](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/final-closure-v35.json)、[manifest](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/manifest.json)、[状态](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/status.json) 为准。历史 `acceptance` 字段表达要求，不代表实际通过。
 
-AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有有界修复，形成过程保留在研究§7.61。当前新增责任以§7.75和BN任务书为准；既有严格路径保留，渐进执行继续按实际结果标注。
+AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有有界修复，形成过程保留在研究§7.61。当前新增责任以§7.78和BQ任务书为准；既有严格路径保留，渐进执行继续按实际结果标注。
 
 ## 账号、运行和继承边界
 
-- BN开发 `gpt-6-astra/high`，按用户指定派发；实验沿用已授权的当前官方账号 `gpt-5.6-sol/high`，无需再次确认。第三方API和AV旧位置继续暂停。BN在新identity登记修订作者、独立作者、消费、基线、维护与具名确认；BM及更早旧队列保持结束，不向旧结果补行。
+- BQ开发 `gpt-6-astra/high`，按用户指定派发；实验沿用已授权的当前官方账号 `gpt-5.6-sol/high`，无需再次确认。第三方API和AV旧位置继续暂停。BQ先修共享实现，再登记三项正常用途和至多三项修复确认；BP及更早旧队列保持结束，不向旧结果补行。
 - BG有限执行已收束，无活动或未知请求；自动编写与重复上下文成本为未达项，不自动增加样本。后续新任务继续遵守具名恢复、账号未知和成本记录边界。
 - BF六首位置及三具名修订已处置，可选反序第二对因自动R1未达未运行。自动编写、作者给定程序消费及变化复用各自分母；不会自动追加模型。新范围不升级旧readiness或改变项目默认。
 - BE六质量首位置和六变化逻辑位置已完成，保持完整原skill/四问及失败分母。source-previous两件确定未派发，仅一个同输入/epoch的登记恢复交付；原件和79,770ms本地开销保留。R0/R1资格、恢复和实际使用分列，旧答案/评阅/verdict不进入previous；R2缺失使实际R2撤回实验未执行。旧BD六未运行不补行，OWUI继续仅离线。
@@ -148,7 +154,10 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 
 | 阶段 | 保留记录 |
 |---|---|
-| 当前BN | [任务书](../superpowers/plans/2026-10-15-authorization-purpose-scoped-authoring-and-consumption.md)、spec§14.53、研究§7.75；有限队列已发布，完整程序/整题质量/净收益未达，实质成果bd613fc2 |
+| 当前BQ | [任务书](../superpowers/plans/2026-10-18-authorization-source-program-consistency-and-task-execution.md)、spec§14.56、研究§7.78；planned-not-started，先共享修复，再真实排障与普通消费 |
+| BP | [任务书](../superpowers/plans/2026-10-16-authorization-quality-evidence-and-branch-reliability.md)、spec§14.55、研究§7.77；最终27d59677，有限队列完成，完整语义和重复执行质量优势未达 |
+| BO | [任务书](../superpowers/plans/2026-10-16-authorization-call-semantics-and-program-repair.md)、spec§14.54、研究§7.76；有限自动调用语义与维护结果保留 |
+| BN | [任务书](../superpowers/plans/2026-10-15-authorization-purpose-scoped-authoring-and-consumption.md)、spec§14.53、研究§7.75；有限队列已发布，完整程序/整题质量/净收益未达，实质成果bd613fc2 |
 | BM | [任务书](../superpowers/plans/2026-10-14-authorization-branch-completion-and-directed-consumption.md)、spec§14.52、研究§7.74；有限队列收束，A0/A1为15/18、14/18，首对negative，完整自动程序和收益未达 |
 | BL | [任务书](../superpowers/plans/2026-10-14-authorization-reusable-program-semantics-and-delivery.md)、spec§14.51、研究§7.73；适用工程/八用途收束，自动范围15/18、两对negative、C2缺交付，完整研究目标未达 |
 | BK | [任务书](../superpowers/plans/2026-10-13-authorization-recoverable-authoring-and-real-delivery.md)、spec§14.50、研究§7.72；适用工程/有限队列结束，自动主链和净收益未达 |

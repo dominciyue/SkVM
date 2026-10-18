@@ -2,27 +2,29 @@
 
 更新于2026-10-18。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BP0–BP21](../superpowers/plans/2026-10-16-authorization-quality-evidence-and-branch-reliability.md)，共享工程及45首位置已完成处置，主面板36位置34交付，未达到预定重复局部优势。维护职责缺陷已红绿修复，两次同epoch具名确认首/终稿均3/3局部匹配，条件及语义缺口保留；48attempt核验完成，以completed-with-unmet-criteria收束，证据4a9bcd19已发布到origin并核对同SHA；本轮停止。
-- 方法合同：[spec §14.55](skill-ir-aot-optimization-spec.md#1455-bp-capability-quality-and-executable-support)；复核与开发过程统一在[研究 §7.77](skill-dsl-research.md#777-bo-质量复核与-bp-能力实验决定)。BO结果与合同保留在§7.76/§14.54。
-- identity：`authorization-quality-evidence-v1`，规划基线`af8321c313bcd3216620c1436802bacd8420fca8`。继续`skill-ir-aot`，只推用户origin，不建分支/worktree；新开发线程独占代码、共享方法文档与Git写入。
+- 当前任务书：[BQ0–BQ17](../superpowers/plans/2026-10-18-authorization-source-program-consistency-and-task-execution.md)，状态 planned-not-started。用户要求先解决共享缺陷，再进行一次参与真实任务的实验。本次只完成计划登记，尚无 BQ 代码或模型结果。
+- 方法合同：[spec §14.56](skill-ir-aot-optimization-spec.md#1456-bq-source-program-consistency-and-real-task-use)；复核与开发过程统一在[研究 §7.78](skill-dsl-research.md#778-bp-复核与-bq-先修复后实际使用)。BP结果与合同保留在§7.77/§14.55。
+- identity：`authorization-source-program-consistency-v1`，规划基线`27d59677f8a3257d1a4e0ee687519ad518306aba`。继续`skill-ir-aot`，只推用户origin，不建分支/worktree；新开发线程独占代码、共享方法文档与Git写入。
 - 开发`gpt-6-astra/high`，按用户指定；实验沿已授权官方账号`gpt-5.6-sol/high`。第三方暂停；旧未知与保护证据保持。接管时tracked干净，原有未跟踪`.tmp/`不清理。
 
 连续执行有限队列，不等待或重复验证凑时长。沿BK恢复合同区分旧unknown、本地宿主与研究处置；不重发原请求、不改终态/费用，核查隔离后可开展已授权独立用途。新额度/认证及重复通道故障按任务书暂停对应通道，仍推进独立工程。质量目标与成本分别判断，不因token未下降抹去有据的局部质量改善。
 
 ## 本轮责任与处置
 
-| 责任 | 已确认依据 | BP执行责任 |
+| 责任 | 已确认依据 | BQ执行责任 |
 |---|---|---|
-| 调用保真 | BP固定52步A0字段/局部18/18、7/8、6/7，匿名激活及缺version键仍有缺口 | 共享依赖反馈和实际工具广告已实现，模型原稿不代修 |
-| 作者可靠性 | BP A1最终字段同A0；A2为17/18、5/8、5/7，局部轨迹同A0 | 独立空稿结果保留，完整可靠性未达 |
-| 消费机制 | 同源规则、默认兼容及实际包隔离均有证据 | 修复rules edit职责/可复用目标，consume不改 |
-| 局部质量 | R2−R1分支3/7/2、变化2/9/1；对象和条件各0/11/1 | 探索性改善与取舍，预定重复优势false；全部失败在分母 |
-| 变化与采用 | 维护首对指令混杂，修后同epoch确认另列；ShareLink三臂均partial | 有限采用与完整语义分别验收，第二结构无执行质量增益 |
-| 实证与交付 | 工程83测试/581断言、主/BP类型、15文档测试通过 | 零模型归档、来源、实际包和分轴验收已完成；origin证据发布已核对，未知成本不填零 |
+| 调用保真 | BP漏caller外层条件，仅核对作者声明会漏掉未声明的关系 | 基于已读源码/真实调用边提供结构线索，普通入口两臂共用 |
+| 输入语义 | when/field.default已存在；原稿直接读version导致缺键异常 | 区分已知缺键、null、空串、未知；模型依源码修raw，宿主不猜默认值 |
+| 修稿闭环 | 自然说明可能正确但raw未改，旧trial与当前稿必须区分 | 当前revision、patch与多输入试跑可追溯，无程序改变不记已修 |
+| 实际任务 | BP主面板R2无主动trial，规则准备已有局部帮助 | 一项真实项目产物排障，T-R/T-E同条件，再U-E普通消费 |
+| 评价 | BP整题0/36，部分答案仅缺执行抽象细节 | 原评分保留；源码决策、关键遗漏、抽象说明及程序事件分轴 |
+| 交付 | BP最终27d59677与origin一致 | 3正常用途+至多3具名确认；失败当场修，定向验证后发布 |
 
-普通入口保留BL A0默认，[Download说明](../../examples/authorization-assessment/download-workflow/README.md#current-bp-explicit-program)提供BP显式命令。BP沿同入口使用当前稿与支持选择；缺稿记未运行，不用旧稿或开发者稿填位。最多45首位置及6具名修复确认，源码/评分/首答与修订分轨。完成有限队列后停止，不自动派发BQ。
+普通入口暂保留BL A0默认，[Download说明](../../examples/authorization-assessment/download-workflow/README.md#current-bp-explicit-program)提供BP显式命令。BQ复用同入口；修订后的自动稿显式使用，不手改原稿或挑较好对照稿填位。两臂修改后需要重配对时从相同起点重做并计入具名确认，首件保留。完成有限队列后停止，不自动派发BR。
 
 ## 继承的真实结果
+
+BP最终发布27d59677。45首位置及3具名确认收束，主面板34/36交付、0/36整题full；R0/R1/R2逐题full分别4/1/5/0、11/9/12/0、11/10/11/0。固定A0及空稿A1最终局部结果18/18、7/8、6/7，外层None激活和缺version键仍缺。规则组织与实际执行增量分开；83受影响测试/581断言、主/BP类型及15文档测试通过。原件、量规、全部失败和费用保持。
 
 BO最终发布af8321c3。固定45步A0字段/局部18/18、额外7/8；A1独立23步值7/18，两个程序不拼接。两对四问full从基线2/8到辅助4/8，3改善/1退步/4持平，整题均未完整；修订进步、配对质量和成本分列。原八attempt/15观察turn全交付关闭，180测试/1285断言及类型/文档通过。本轮父复核另做五场景零调用重放，确认匿名反例仍在。
 
