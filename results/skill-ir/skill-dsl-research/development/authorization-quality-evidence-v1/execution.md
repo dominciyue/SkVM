@@ -1,6 +1,6 @@
 # BP execution record
 
-Status: completed-with-unmet-criteria. All45 normal positions and3 named confirmations are closed and reviewed; publication is the final step. Engineering and bounded adoption are verified, while repeated local quality advantage, complete source semantics and net saving are not established. See `verification/acceptance-matrix.json`, `summary.json` and the current taskbook.
+Status: completed-with-unmet-criteria. All45 normal positions and3 named confirmations are closed and reviewed; the evidence commit4a9bcd19 is published to user origin with matching remote SHA. Engineering and bounded adoption are verified, while repeated local quality advantage, complete source semantics and net saving are not established. See `verification/acceptance-matrix.json`, `summary.json` and the current taskbook.
 
 ## Scope and implementation
 

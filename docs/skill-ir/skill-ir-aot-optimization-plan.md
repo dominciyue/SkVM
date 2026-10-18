@@ -2,7 +2,7 @@
 
 更新于2026-10-18。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BP0–BP21](../superpowers/plans/2026-10-16-authorization-quality-evidence-and-branch-reliability.md)，共享工程及45首位置已完成处置，主面板36位置34交付，未达到预定重复局部优势。维护职责缺陷已红绿修复，两次同epoch具名确认首/终稿均3/3局部匹配，条件及语义缺口保留；48attempt核验完成，以completed-with-unmet-criteria收束，完成origin发布后停止。
+- 当前任务书：[BP0–BP21](../superpowers/plans/2026-10-16-authorization-quality-evidence-and-branch-reliability.md)，共享工程及45首位置已完成处置，主面板36位置34交付，未达到预定重复局部优势。维护职责缺陷已红绿修复，两次同epoch具名确认首/终稿均3/3局部匹配，条件及语义缺口保留；48attempt核验完成，以completed-with-unmet-criteria收束，证据4a9bcd19已发布到origin并核对同SHA；本轮停止。
 - 方法合同：[spec §14.55](skill-ir-aot-optimization-spec.md#1455-bp-capability-quality-and-executable-support)；复核与开发过程统一在[研究 §7.77](skill-dsl-research.md#777-bo-质量复核与-bp-能力实验决定)。BO结果与合同保留在§7.76/§14.54。
 - identity：`authorization-quality-evidence-v1`，规划基线`af8321c313bcd3216620c1436802bacd8420fca8`。继续`skill-ir-aot`，只推用户origin，不建分支/worktree；新开发线程独占代码、共享方法文档与Git写入。
 - 开发`gpt-6-astra/high`，按用户指定；实验沿已授权官方账号`gpt-5.6-sol/high`。第三方暂停；旧未知与保护证据保持。接管时tracked干净，原有未跟踪`.tmp/`不清理。
@@ -18,7 +18,7 @@
 | 消费机制 | 同源规则、默认兼容及实际包隔离均有证据 | 修复rules edit职责/可复用目标，consume不改 |
 | 局部质量 | R2−R1分支3/7/2、变化2/9/1；对象和条件各0/11/1 | 探索性改善与取舍，预定重复优势false；全部失败在分母 |
 | 变化与采用 | 维护首对指令混杂，修后同epoch确认另列；ShareLink三臂均partial | 有限采用与完整语义分别验收，第二结构无执行质量增益 |
-| 实证与交付 | 工程83测试/581断言、主/BP类型、15文档测试通过 | 零模型归档、来源、实际包和分轴验收已完成；origin发布收尾，未知成本不填零 |
+| 实证与交付 | 工程83测试/581断言、主/BP类型、15文档测试通过 | 零模型归档、来源、实际包和分轴验收已完成；origin证据发布已核对，未知成本不填零 |
 
 普通入口保留BL A0默认，[Download说明](../../examples/authorization-assessment/download-workflow/README.md#current-bp-explicit-program)提供BP显式命令。BP沿同入口使用当前稿与支持选择；缺稿记未运行，不用旧稿或开发者稿填位。最多45首位置及6具名修复确认，源码/评分/首答与修订分轨。完成有限队列后停止，不自动派发BQ。
 
