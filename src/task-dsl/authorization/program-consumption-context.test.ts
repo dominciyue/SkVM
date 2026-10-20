@@ -1,6 +1,20 @@
 import { expect, test } from "bun:test"
 const api = await import("./program-consumption-context.ts").catch(() => ({} as any))
 const author = await import("./program-authoring-context.ts")
+test("shared task context connects current source candidates to every original duty without claiming resolution", () => {
+  const source = { path: "creation.go", startLine: 1, endLine: 8, sha256: "current" }
+  const report = { revision: "r", scope: { questionId: "create" }, program: { scope: { questionId: "create", root: source }, resourceWorkflow: { steps: [] } } }
+  const obligations = [{ id: "failure", source, function: source, kind: "error-exit", state: "unmapped", stepIds: [], declarationIds: [], diagnostics: [], origin: "source-structure", text: "return err" }] as any
+  const view = author.projectProgramTaskContext({ report, obligations, programContext: "directed", questions: [{ id: "create", request: "Create" }, { id: "response", request: "Response after write" }], operationQuestions: [{ questionId: "create", operationId: "write" }, { questionId: "response", operationId: "write" }] })
+  expect(view.remainingDuties[1]!.candidates[0]!.id).toBe("failure")
+  expect(view.remainingDuties[1]!.semanticCoverage).toBe("unreviewed")
+  expect(view.remainingDuties[1]!.relation).toBe("same-declared-operation")
+  const paged = api.programConsumptionDetails(report, { catalog: "source-candidates", limit: 1 }, { sourceCandidates: [...obligations, { ...obligations[0], id: "other" }] })
+  expect(paged.remaining).toBe(1)
+  const stale = author.projectProgramTaskContext({ report: { ...report, sourcesCurrent: false, obligations }, programContext: "directed", questions: [{ id: "create", request: "Create" }] })
+  expect(stale.remainingDuties[0]!.candidates).toEqual([])
+  expect(stale.remainingDuties[0]!.nextAction).toBe("locate-and-read-original-source")
+})
 test("directed default details reuse the compact event view and raw retrieval preserves exact evidence", () => {
   const event = { id: "pick", op: "select", outcome: "computed", source: { path: "a.py", startLine: 1 }, inputs: { candidates: Array(20).fill({ row: { id: 3 }, predicate: { truth: "true" } }), rows: { known: true, value: Array(20).fill({ id: 3 }) } }, outputs: { known: true, value: { id: 3 } }, gaps: [], because: "Selection" }
   const report = { revision: "r", sourcesCurrent: true, status: "current", program: { scope: { questionId: "q" }, resourceWorkflow: { steps: [{ id: "pick", op: "select", source: event.source }] } }, currentDraft: { revision: "d", raw: { privateAuthorHistory: true } }, resourceExecution: { events: [event], returned: { id: 3 }, conditions: [], gaps: [] } }

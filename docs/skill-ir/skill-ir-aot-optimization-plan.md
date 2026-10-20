@@ -2,7 +2,7 @@
 
 更新于2026-10-20。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BS0–BS22](../superpowers/plans/2026-10-20-authorization-task-coverage-and-semantic-transfer.md)，用户已授权，planned-not-started，等待新开发线程接管。原题覆盖、源码执行顺序与自然回答接线共同推进，避免继续只修Download。
+- 当前任务书：[BS0–BS22](../superpowers/plans/2026-10-20-authorization-task-coverage-and-semantic-transfer.md)，用户已授权，in-progress；已完成BS0–BS8共享工程与首次调用前登记，尚未派发账号实验。原题覆盖、源码执行顺序与自然回答接线共同推进，避免继续只修Download。
 - 方法合同：[spec §14.58](skill-ir-aot-optimization-spec.md#1458-bs-task-coverage-and-semantic-transfer)；复核与开发过程统一在[研究 §7.80](skill-dsl-research.md#780-br-复核与-bs-原题覆盖和跨结构语义使用)。BR/BQ/BP历史结论保持。
 - identity：`authorization-task-coverage-v1`，规划基线`2100085ba37e1f01ef9fc7002905feeeb78e7042`。继续`skill-ir-aot`，只推用户origin，不建分支/worktree；父线程交付计划后，新开发线程独占代码、共享方法文档与Git写入。
 - 开发`gpt-6-astra/high`，按用户指定；实验沿已授权官方账号`gpt-5.6-sol/high`。第三方暂停；旧未知与保护证据保持。接管时tracked干净，原有未跟踪`.tmp/`不清理。

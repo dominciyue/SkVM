@@ -2952,6 +2952,10 @@ BM首件实测补修：A0-first用60探索单位而无patch/trial；暂态重连
 
 ### 7.80 BR 复核与 BS 原题覆盖和跨结构语义使用
 
+**2026-10-20实施进展。** 新线程从b21b077d完成BS0–BS8，首次账号请求尚未派发。原始client包核对：N收到authz与ACL正文，四个R/E未读该正文；M1-E与M1-R均收到转换creator及root错误映射，前者遗漏不能单归因缺材料或截断。共享投影只关联显式scope/operation及有界来源引用，保留未知和全部原题；有限执行器原本已保留首错及先调用后失败，新增的是可见反馈和普通摘要。独立核验发现的stale候选回退已修复，旧v2原档案inspect仍通过。
+
+首次调用前登记M29/G16案例与四个消费状态，M1单改conversionUsers为空；G1改issues writer及refetch错误。G事务内部源码缺失，提交/回滚保持unknown。完整skill、允许来源、输入与oracle共553文件哈希登记；输入格式预检纠正保留初登记，不改变源先行语义。工程及预检证据见[engineering](../../results/skill-ir/skill-dsl-research/development/authorization-task-coverage-v1/verification/engineering.json)和[登记](../../results/skill-ir/skill-dsl-research/development/authorization-task-coverage-v1/registration.json)。这只建立工程行为，不建立自然质量或研究收益。
+
 **2026-10-20计划决定。** 用户要求编写下一任务书并派发gpt-6-astra/high；[BS0–BS22](../superpowers/plans/2026-10-20-authorization-task-coverage-and-semantic-transfer.md)从BR最终2100085b继续，identity为authorization-task-coverage-v1。此时未改生产代码、未发BS实验调用。BR原件及结论保持，父复核只做必要点验和零模型复现。
 
 **事实和机制区分。** BR最后25步原稿确实运行，Memos原/变输入有限结果成立；20已知例只覆盖终态及选定标量。源码context读取、optional space/member与creator错误的先后顺序，以及conversion第二次creator查询等，仍有真实缺口。六Memos自然答全partial；原题和执行结果已经发送，不能把遗漏泛归因于丢包或unexecuted标签。父复核9项定向测试55断言、普通零模型原/变clock结果确认这些有限能力，没有重跑模型或历史全审计。

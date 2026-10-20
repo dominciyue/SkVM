@@ -36,7 +36,7 @@ export function programConsumptionDetails(report: any, query: z.input<typeof Pro
     if (args.expectedRevision && args.expectedRevision !== currentRevision || args.expectedBasis && args.expectedBasis !== basis(report)) return { status: "stale-program-reference", revision: currentRevision, items: [] }
     const all = args.catalog === "source-index" ? catalogs?.sourceIndex : catalogs?.sourceCandidates
     if (!all) return { status: "catalog-unavailable", items: [] }
-    return { status: "catalog", catalog: args.catalog, revision: currentRevision, sourcesCurrent: report?.sourcesCurrent, items: all.slice(args.offset, args.offset + args.limit), total: all.length, nextOffset: args.offset + args.limit < all.length ? args.offset + args.limit : undefined, semanticSupport: "unreviewed" }
+    return { status: "catalog", catalog: args.catalog, revision: currentRevision, sourcesCurrent: report?.sourcesCurrent, items: all.slice(args.offset, args.offset + args.limit), total: all.length, remaining: Math.max(0, all.length - args.offset - args.limit), nextOffset: args.offset + args.limit < all.length ? args.offset + args.limit : undefined, semanticSupport: "unreviewed" }
   }
   if (!report) return { status: "no-active-program", steps: [], events: [] }
   if (args.expectedBasis && (args.expectedBasis !== basis(report) || report.sourcesCurrent === false)) return { status: "stale-program-reference", basis: basis(report), steps: [], events: [] }

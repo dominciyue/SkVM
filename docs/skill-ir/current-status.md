@@ -4,9 +4,9 @@
 
 ## 当前工作
 
-**BS0–BS22 已获用户授权，任务书已登记，等待新开发线程接管。** [任务书](../superpowers/plans/2026-10-20-authorization-task-coverage-and-semantic-transfer.md) identity为`authorization-task-coverage-v1`，从BR最终2100085b继续；开发`gpt-6-astra/high`，实验官方账号`gpt-5.6-sol/high`，第三方暂停。本轮聚焦原题调查覆盖、调用/错误顺序与自然回答采用，复用已有obligations/details/trial/delivery，不增加必填答案协议。Memos模型修订既有原稿，Gitea CreateIssue从空稿检验创建写入结构，Download仅零模型兼容。
+**BS0–BS22 已接管，正在实施共享工程及首次实验前登记。** [任务书](../superpowers/plans/2026-10-20-authorization-task-coverage-and-semantic-transfer.md) identity为`authorization-task-coverage-v1`，从BR最终2100085b继续；开发`gpt-6-astra/high`，实验官方账号`gpt-5.6-sol/high`，第三方暂停。本轮聚焦原题调查覆盖、调用/错误顺序与自然回答采用，复用已有obligations/details/trial/delivery，不增加必填答案协议。Memos模型修订既有原稿，Gitea CreateIssue从空稿检验创建写入结构，Download仅零模型兼容。
 
-正常用途14个（2作者、12个N/R/E消费者），最多4个具名确认；共享故障当场修复，首件/修订及跨epoch比较分开。Gitea使用已暴露固定源码和明确标注的实验用户政策，有限输入为合成事实，不执行目标服务。完整原题保留，值、顺序、局部effect、自然质量与成本分别验收；尚未产生BS工程或实验结果。方法见[spec§14.58](skill-ir-aot-optimization-spec.md#1458-bs-task-coverage-and-semantic-transfer)、[研究§7.80](skill-dsl-research.md#780-br-复核与-bs-原题覆盖和跨结构语义使用)。保留历史原件、未知请求及`.tmp/`；仅本轮计划/状态文档由父线程提交，代码交新线程独占实施，结束不自动BT。
+正常用途14个（2作者、12个N/R/E消费者），最多4个具名确认；共享故障当场修复，首件/修订及跨epoch比较分开。Gitea使用已暴露固定源码和明确标注的实验用户政策，有限输入为合成事实，不执行目标服务。完整原题保留，值、顺序、局部effect、自然质量与成本分别验收；共享投影和普通报告已实现并正在定向验证；首次账号实验尚未派发，程序质量与采用效果未评。方法见[spec§14.58](skill-ir-aot-optimization-spec.md#1458-bs-task-coverage-and-semantic-transfer)、[研究§7.80](skill-dsl-research.md#780-br-复核与-bs-原题覆盖和跨结构语义使用)。保留历史原件、未知请求及`.tmp/`；仅本轮计划/状态文档由父线程提交，代码交新线程独占实施，结束不自动BT。
 
 ## BR 已结束的实际结果
 

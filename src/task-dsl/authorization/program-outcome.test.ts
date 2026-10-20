@@ -2,6 +2,26 @@ import { expect, test } from "bun:test"
 import { executeResourceWorkflow } from "./resource-relations.ts"
 import { projectProgramOutcome } from "./program-outcome.ts"
 const api: any = await import("./program-outcome.ts").catch(() => ({}))
+test("actual stop preserves the ordered prefix and earlier simulated calls after a response error", () => {
+  const source = { path: "anonymous.go", startLine: 1, endLine: 9 }
+  const guard = (id: string, binding: string, failure: string) => ({ id, op: "guard", test: { op: "eq", left: { binding }, right: { literal: null } }, failure, source })
+  const read: any = { inputs: ["contextError", "ownerError"], steps: [guard("context", "contextError", "context-error"), guard("owner", "ownerError", "owner-error")] }
+  const facts = { contextError: "broken", ownerError: "invalid" }
+  const first = executeResourceWorkflow(read, facts)
+  const reversed = executeResourceWorkflow({ ...read, steps: [...read.steps].reverse() }, facts)
+  expect(first.termination).toBe("context-error")
+  expect(reversed.termination).toBe("owner-error")
+  expect(projectProgramOutcome({ program: { resourceWorkflow: read }, resourceExecution: first }).stoppedAt?.id).toBe("context")
+  const write: any = { inputs: ["responseError"], steps: [{ id: "write", op: "external", name: "persist", arguments: {}, source }, guard("response", "responseError", "response-error"), { id: "done", op: "return", value: { literal: false }, source }] }
+  for (const value of [false, null]) {
+    const execution = executeResourceWorkflow(write, { responseError: "broken" }, { externalAssumptions: [{ name: "persist", arguments: {}, value, reason: "Synthetic normal completion; no target write" }] })
+    const view = projectProgramOutcome({ program: { resourceWorkflow: write }, resourceExecution: execution })
+    expect(view.eventOrder).toEqual(["write", "response"])
+    expect(view.stoppedAt).toMatchObject({ id: "response", termination: "response-error" })
+    expect(view.priorCalls).toEqual([{ id: "write", outcome: "computed", value, source, meaningOrigin: "supplied-unreviewed", targetExecution: false }])
+    expect(view.value).toBeUndefined()
+  }
+})
 test("a skipped external branch is structural context rather than an unresolved executed fact", () => {
   const source = { path: "shared.go", startLine: 1, endLine: 8 }
   const workflow: any = { inputs: ["local", "record"], gaps: ["other request paths unreviewed"], steps: [
@@ -19,6 +39,7 @@ test("a skipped external branch is structural context rather than an unresolved 
   const missing = projectProgramOutcome({ program: { resourceWorkflow: workflow }, resourceExecution: executeResourceWorkflow(workflow, { local: false, record: 83 }) })
   expect(missing.execution).toBe("conditional")
   expect(missing.returnBasis?.fields.$return?.kinds).toContain("unresolved-external-fact")
+  expect(missing.priorCalls[0]?.meaningOrigin).toBe("unresolved-external-fact")
 })
 test("return basis separates literal claims, finite selection and external facts with unresolved control", () => {
   const source = { path: "anonymous.py", startLine: 1, endLine: 10 }

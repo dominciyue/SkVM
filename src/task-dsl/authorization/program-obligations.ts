@@ -184,6 +184,27 @@ export function projectProgramCandidateFrontier(catalog: readonly ProgramObligat
   const items = candidates.filter(o => { const f = o.function ?? o.source; return f.path === group?.path && f.startLine === group?.startLine && f.endLine === group?.endLine }).slice(0, 12)
   return { items, function: group, total: catalog.length, pending: pending.length, related: related.length, remainingRelated: Math.max(0, related.length - items.length), relation: related.length ? "program-citation-or-known-dependency" : "no-current-program-location", details: "authorization_program_details({catalog:'source-candidates'}) returns the complete catalog. For an empty draft, choose and read a function related to the original task, then cite it in a small program. Relatedness and exact mapping are unreviewed; do not invent required calls from syntax." }
 }
+/** Original duties linked only by explicit scope/operation identity. These are
+ * source investigation leads, not inferred relevance or a completed answer. */
+export function projectProgramInvestigation(catalog: readonly ProgramObligation[], raw: any, questions: readonly { id: string; request?: string }[], mappings: readonly { questionId: string; operationId: string }[] = [], limit = 8) {
+  const scope = raw?.scope?.questionId
+  const operations = mappings.filter(m => m.questionId === scope)
+  const operation = operations.length === 1 ? operations[0]!.operationId : undefined
+  // Retain all cited functions, including already mapped but unreviewed exits.
+  const citations: any[] = []
+  const visit = (v: any) => { if (!v || typeof v !== "object") return; if (typeof v.path === "string" && Number.isInteger(v.startLine)) citations.push(v); else for (const [key, child] of Object.entries(v)) if (key !== "literal") visit(child) }
+  visit(raw?.scope); visit(raw?.sourceDeclarations); visit(raw?.resourceWorkflow)
+  const related = catalog.filter(o => { const f = o.function ?? o.source; return citations.some(c => c.path === f.path && (!c.sha256 || c.sha256 === f.sha256) && c.startLine <= f.endLine && (c.endLine ?? c.startLine) >= f.startLine) })
+  return questions.map(q => {
+    const links = mappings.filter(m => m.questionId === q.id)
+    const relation = q.id === scope ? "program-scope" : operation && links.length === 1 && links[0]!.operationId === operation ? "same-declared-operation" : "no-source-association"
+    const candidates = relation === "no-source-association" ? [] : related
+    return { questionId: q.id, request: q.request, relation, semanticCoverage: "unreviewed", candidates: candidates.slice(0, limit).map(({ id, source, kind, state, diagnostics }) => ({ id, source, kind, state, diagnostics })), remaining: Math.max(0, candidates.length - limit), total: candidates.length,
+      nextAction: candidates.length ? "review-source-meaning-and-unmapped-exits" : "locate-and-read-original-source",
+      details: { catalog: "source-candidates" as const, offset: 0, limit: 40 },
+      catalogTotal: catalog.length, responsibility: "Reading, mapping and executing a source span do not resolve this original question. Follow relevant caller/helper and error/return paths; unassociated questions still require source investigation." }
+  })
+}
 /** Uses the existing cached parser, and only functions completely shown already. */
 export async function collectProgramObligations(tools: InquiryTools, raw?: unknown) {
   if (tools.snapshotVerification?.valid === false) return []

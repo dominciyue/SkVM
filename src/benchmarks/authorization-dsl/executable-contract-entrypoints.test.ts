@@ -696,9 +696,31 @@ test("ordinary session archives host execution and inspect verifies its projecti
   expect(readable).toContain("Example finite return")
   expect(readable.indexOf("Current result")).toBeLessThan(readable.indexOf("## 1."))
   expect(readable).toContain("Detailed inputs and events: execution.json")
+  expect(readable).not.toContain('"coverageGaps"')
+  expect(readable).toContain("Source investigation")
   expect((await inspectLocalInquiry(report.sessionPath)).execution.resourceExecution.returned).toBe(17)
   await writeFile(path.join(report.sessionPath, "execution.json"), "{}")
   await expect(inspectLocalInquiry(report.sessionPath)).rejects.toThrow("execution archive changed")
+})
+test("ordinary rules and execute consumers expose the same source investigation after reading", async () => {
+  const f = await contractFiles()
+  for (const programSupport of ["rules", "execute"] as const) {
+    const runtime = await createNativeInquiryRuntime({ inputFile: f.inputFile, domainProgramFile: f.domainProgramFile, workDir: f.root, domainTools: true, strategy: "question-checked-v1", programContext: "directed", programSupport, executionPolicy: "progressive" })
+    try {
+      await runtime.execute({ id: "source", name: "source_read", arguments: { path: "app.py", startLine: 1, endLine: 8 } })
+      const context: any = await runtime.accountContext(false)
+      expect(context.remainingDuties[0].candidates.length).toBeGreaterThan(0)
+      expect(context.remainingDuties[1].relation).toBe("no-source-association")
+      expect(context.remainingDuties[0].semanticCoverage).toBe("unreviewed")
+      if (programSupport === "rules") {
+        expect(context.executableContract).toBeUndefined()
+        expect(context.outcome).toBeUndefined()
+        const details = await runtime.execute({ id: "details", name: "authorization_program_details", arguments: { catalog: "source-candidates", offset: 0, limit: 1 } })
+        const page = JSON.parse(details.output)
+        expect(page.remaining).toBe(page.total - page.items.length)
+      }
+    } finally { await runtime.close() }
+  }
 })
 test("resource-only input change preserves R1 and recomputes the same archived program", async () => {
   const f = await contractFiles(), input = JSON.parse(await readFile(f.inputFile, "utf8"))

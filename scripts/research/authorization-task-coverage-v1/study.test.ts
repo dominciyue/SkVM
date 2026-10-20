@@ -1,0 +1,22 @@
+import { expect, test } from "bun:test"
+const api: any = await import("./study.ts").catch(() => ({}))
+test("finite queue refuses duplicate unknown out-of-order and unregistered confirmation", () => {
+  expect(typeof api.admitAttempt).toBe("function")
+  expect(() => api.admitAttempt([], "A-M", "first")).not.toThrow()
+  expect(() => api.admitAttempt([], "A-G", "first")).toThrow()
+  const closed = { position: "A-M", attempt: "first", status: "completed", lifecycle: { localExecution: "closed" } }
+  expect(() => api.admitAttempt([closed], "A-M", "first")).toThrow()
+  expect(() => api.admitAttempt([{ ...closed, status: "unknown" }], "M0-N", "first")).toThrow()
+  expect(() => api.admitAttempt([closed], "M0-N", "first")).not.toThrow()
+  expect(() => api.admitAttempt([closed], "A-M", "repair")).toThrow()
+})
+test("same fixed raw is used by R and E while invalid drafts retain source consumption", () => {
+  expect(typeof api.optionsFor).toBe("function")
+  expect(api.optionsFor("A-M").domainProgramFile).toContain("memos-inherited-program.json")
+  expect(api.optionsFor("A-G").domainProgramFile).toBeUndefined()
+  expect(api.optionsFor("M0-R").domainProgramFile).toBe(api.optionsFor("M0-E").domainProgramFile)
+  expect(api.optionsFor("G1-R").domainProgramFile).toBe(api.optionsFor("G1-E").domainProgramFile)
+  expect(api.optionsFor("M0-N").domainProgramFile).toBeUndefined()
+  expect(api.programDisposition({ status: "invalid" })).toMatchObject({ dispatchSourceConsumer: true, executionComparable: false })
+  expect(api.chooseLastRaw({ programDraft: { currentDraft: { raw: { broken: true } } }, executableContract: { program: { good: true } } })).toEqual({ broken: true })
+})

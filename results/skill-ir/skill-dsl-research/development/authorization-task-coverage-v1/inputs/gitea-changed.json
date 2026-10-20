@@ -1,0 +1,123 @@
+{
+  "schemaVersion": "authorization-inquiry-input/v1",
+  "taskId": "gitea-create-issue",
+  "repository": "go-gitea/gitea",
+  "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+  "sourceRoot": "../../authorization-domain-execution-v1/model/public-source/gitea",
+  "allowedPaths": [
+    "routers/api/v1/repo",
+    "routers/api/v1/api.go",
+    "routers/api/v1/utils",
+    "modules/structs",
+    "modules/setting",
+    "modules/web",
+    "models/unit",
+    "models/perm",
+    "models/auth",
+    "models/user",
+    "models/repo",
+    "models/issues",
+    "models/organization",
+    "services/convert",
+    "services/issue",
+    "services/context"
+  ],
+  "inquiry": {
+    "schemaVersion": "authorization-inquiry/v2",
+    "mode": "conformance",
+    "policy": {
+      "text": "Creating an issue requires write permission to the repository's issues unit. Read permission to the repository alone does not authorize this write.",
+      "origin": "user",
+      "location": "experimental-user-brief:gitea-issue-policy/v1"
+    },
+    "operations": [
+      {
+        "id": "create-issue-operation",
+        "request": "Check CreateIssue and its API route in this Gitea revision against the independently supplied current policy. Compare authenticated repository readers and principals with issue write permission. Trace route-level controls, repository or issue-unit checks and the issue creation effect; identify any relevant exceptions instead of assuming endpoint-local checks are the whole path. Explain policy compliance and precise source or deployment limits.",
+        "entryHint": "routers/api/v1/repo/issue.go::CreateIssue"
+      }
+    ],
+    "questions": [
+      {
+        "id": "create-issue",
+        "request": "Check CreateIssue and its API route in this Gitea revision against the independently supplied current policy. Compare authenticated repository readers and principals with issue write permission. Trace route-level controls, repository or issue-unit checks and the issue creation effect; identify any relevant exceptions instead of assuming endpoint-local checks are the whole path. Explain policy compliance and precise source or deployment limits. Explain how supplied fields are handled, what happens before and after creation, and what the response or later errors establish.",
+        "principal": "authenticated repository reader or issues-unit writer",
+        "resource": "repository issue and related creation fields",
+        "operation": "create issue",
+        "operationId": "create-issue-operation",
+        "intent": "policy-comparison",
+        "premises": [],
+        "entryHint": "CreateIssue API route, handler and necessary allowed helpers"
+      }
+    ]
+  },
+  "resourceInputs": {
+    "create-issue": {
+      "request": {
+        "Method": "POST"
+      },
+      "principal": {
+        "ID": 31,
+        "IsSigned": true,
+        "IsSiteAdmin": false,
+        "IsRepoAdmin": false
+      },
+      "repository": {
+        "ID": 83,
+        "OwnerID": 7,
+        "IsArchived": false,
+        "IsPrivate": false,
+        "CanEnablePulls": true
+      },
+      "permission": {
+        "AccessMode": 2,
+        "IssuesUnitPresent": true,
+        "IssuesUnitMode": 2,
+        "PullRequestsUnitPresent": true,
+        "PullRequestsUnitMode": 1
+      },
+      "token": {
+        "ApiTokenScopePresent": false,
+        "PublicOnly": false
+      },
+      "tokenScopes": [],
+      "form": {
+        "Title": " finite issue ",
+        "Body": "Synthetic issue body",
+        "Ref": "main",
+        "Deadline": 2000,
+        "Milestone": 12,
+        "Assignee": "",
+        "Closed": false
+      },
+      "formLabels": [
+        5
+      ],
+      "formAssignees": [],
+      "formProjects": [],
+      "assignees": [],
+      "blockedUserIDs": [],
+      "createdIssue": {
+        "ID": 141,
+        "Index": 9
+      },
+      "errors": {
+        "repositoryAssignment": null,
+        "binding": null,
+        "assigneeNames": null,
+        "assigneeLookup": null,
+        "assignability": null,
+        "loadPoster": null,
+        "createTransaction": null,
+        "mentions": null,
+        "close": null,
+        "refetch": "database-read-error",
+        "responseLoad": null
+      }
+    }
+  },
+  "sourceNotes": {
+    "format": "markdown",
+    "text": "This is a researcher-authored source review, not a live service run. The policy is an experimental user policy, not an assertion of Gitea's intended security policy. Preserve the complete natural task and relevant alternate branches. In edit mode create a reusable source program from an empty draft; in consume mode keep the supplied raw unchanged. Facts are synthetic middleware context fields, form values, finite database rows and operation errors. AccessMode and unit modes use the source enum; unit presence/modes describe stored permission context rather than an allow verdict. ApiTokenScopePresent says whether ApiTokenScope exists in context. Error null means normal completion, not permission; missing fields remain unknown. createTransaction is the observed error returned by the visible transaction call, not evidence of commit/rollback. responseLoad refers to a response-converter load operation. assignees and blockedUserIDs are complete finite populations. Read source-visible authorization and field handling; retain unavailable middleware, transaction internals and deployment facts as explicit limits. Do not call the target service. For the finite input format, tokenScopes and formLabels/formAssignees/formProjects carry the corresponding source collections separately from the scalar token/form maps."
+  }
+}

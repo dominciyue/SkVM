@@ -59,7 +59,7 @@ export function createProgramRulesContext(tools: InquiryTools, mode: ProgramMode
       if (args.expectedRevision && args.expectedRevision !== draft?.revision || args.expectedBasis && args.expectedBasis !== draft?.revision) return { status: "stale-program-reference", revision: draft?.revision }
       if (args.catalog) {
         const items = args.catalog === "source-index" ? tools.evidence.map(({ id, path, startLine, endLine, sha256 }) => ({ id, path, startLine, endLine, sha256 })) : await collectProgramObligations(tools, draft?.raw)
-        return { status: "catalog", items: items.slice(args.offset, args.offset + args.limit), total: items.length, nextOffset: args.offset + args.limit < items.length ? args.offset + args.limit : undefined }
+        return { status: "catalog", items: items.slice(args.offset, args.offset + args.limit), total: items.length, remaining: Math.max(0, items.length - args.offset - args.limit), nextOffset: args.offset + args.limit < items.length ? args.offset + args.limit : undefined }
       }
       const steps = draft?.raw?.resourceWorkflow?.steps
       const catalog = await collectProgramObligations(tools, draft?.raw)

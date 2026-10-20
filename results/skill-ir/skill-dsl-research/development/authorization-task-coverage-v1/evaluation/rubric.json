@@ -1,0 +1,53 @@
+{
+  "sourceFirst": true,
+  "automaticKeywordScoring": false,
+  "targetExecutions": 0,
+  "wholeTask": "full only when every applicable original duty is correct and sufficient; partial/incorrect/not-delivered remain in denominator",
+  "M": {
+    "question": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+    "sourceBasis": [
+      "server/api/v1/memo_share_service.go:172-229",
+      "server/api/v1/memo_access.go:10-42",
+      "core/access/memo_resolve.go:21-92",
+      "core/access/memo.go:92-158",
+      "server/api/v1/memo_service_converter.go:26-137",
+      "server/api/v1/acl_config.go:45-86",
+      "server/api/v1/authz.go:93-118"
+    ],
+    "domains": {
+      "binding": "UID lookup binds share.MemoID to memo.ID; no arbitrary adjacent object access",
+      "expiryAndFailures": "strict now > expiry; nil expiry, missing/revoked share, store errors and order",
+      "accessAndOrder": "initial normal/nonSPACE gate; context before creator/recognized audience checks; exact-share exception before ordinary membership; SPACE disallowed",
+      "anonymousEntry": "GetSharedMemo public AND bootstrap registration permits private-instance anonymous entry; context error and actual deployment limits distinct",
+      "responseAndErrors": "reactions/attachments scoped to memo; second creator lookup missing=>NotFound, other conversion errors wrapped; Parent cleared, Relations empty, placement not a neighboring access grant; do not promise full payload without source",
+      "limits": "synthetic scenario, finite source scope, no live service/deployment/security certification; unread dependencies named"
+    }
+  },
+  "G": {
+    "originalBrief": "Check CreateIssue and its API route in this Gitea revision against the independently supplied current policy. Compare authenticated repository readers and principals with issue write permission. Trace route-level controls, repository or issue-unit checks and the issue creation effect; identify any relevant exceptions instead of assuming endpoint-local checks are the whole path. Explain policy compliance and precise source or deployment limits.",
+    "question": "Check CreateIssue and its API route in this Gitea revision against the independently supplied current policy. Compare authenticated repository readers and principals with issue write permission. Trace route-level controls, repository or issue-unit checks and the issue creation effect; identify any relevant exceptions instead of assuming endpoint-local checks are the whole path. Explain policy compliance and precise source or deployment limits. Explain how supplied fields are handled, what happens before and after creation, and what the response or later errors establish.",
+    "policy": {
+      "text": "Creating an issue requires write permission to the repository's issues unit. Read permission to the repository alone does not authorize this write.",
+      "origin": "user",
+      "location": "experimental-user-brief:gitea-issue-policy/v1"
+    },
+    "sourceBasis": [
+      "routers/api/v1/api.go:327-369,414-423,472-479,782-805,877-882,1642-1766",
+      "routers/api/v1/repo/issue.go:570-652",
+      "models/perm/access/repo_permission.go:95-154",
+      "services/issue/issue.go:24-83",
+      "models/issues/issue_update.go:360-476",
+      "services/issue/status.go:17-45",
+      "services/convert/issue.go:32-117"
+    ],
+    "domains": {
+      "route": "issue token write scope when token context present, repository assignment/public-only scope, mustEnableIssuesOrPulls, signed identity, archived check, input binding and issues reader guard including repo/site admin exceptions",
+      "permissionAndPolicy": "source creation accepts issues readers; general repository read alone may lack issues read; writer gates selected fields rather than creation; compare to experimental user write policy without alleging upstream vulnerability",
+      "fields": "nonwriter deadline/milestone/assignee omitted and labels cleared; basic title/body/ref/poster/repo retained, Projects forwarded; writer assignee errors/assignability inspected",
+      "effectAndOrder": "LoadPoster/blocking before transaction callback, model issue creation/assignees/projects inside visible callback, mentions after; unknown db.WithTx implementation and actual target effect",
+      "responseAndErrors": "NewIssue error mapping403/400/500, optional close412/500 after creation call, refetch500 after creation, successful201; converter load failure returns empty issue object not a new handler error",
+      "limits": "source-policy distinction, synthetic context/error observations, unavailable transaction internals/deployment, no real issue or proven committed write"
+    }
+  },
+  "comparison": "Same block same raw/model/source/budget; N-to-R includes author preparation; R-to-E is execution increment only if actual adoption and comparable epoch. No-raw/invalid raw consumers retain source access; execution increment unavailable."
+}

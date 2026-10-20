@@ -4,7 +4,7 @@ import { projectProgramConsumption, type ProgramContext } from "./program-consum
 import type { ResourceProgramInputs } from "./resource-relations.ts"
 import { resolveProgramInputBinding } from "./program-input-binding.ts"
 import { projectAuthoringTarget } from "./program-coverage.ts"
-import { projectProgramCandidateFrontier, projectProgramCallRelations } from "./program-obligations.ts"
+import { projectProgramCandidateFrontier, projectProgramCallRelations, projectProgramInvestigation } from "./program-obligations.ts"
 
 type OriginalQuestion = { id: string; request?: string }
 export type ProgramPurpose = "author" | "consume"
@@ -165,6 +165,7 @@ export function decideProgramAuthorContinuation(options: {
 export function projectProgramTaskContext(options: AuthorInputs & { report?: any; draftReport?: any; questions: readonly OriginalQuestion[]; programMode?: ProgramMode; programContext?: ProgramContext; local?: any; evidence?: readonly any[]; remainingActions?: number }) {
   const mode = options.programMode ?? "consume", report = options.report ?? options.draftReport
   const local = options.local
+  const obligations = options.obligations ?? (report?.sourcesCurrent === false || report?.status === "invalidated" ? [] : report?.obligations ?? [])
   return {
     programMode: mode, ...(options.programContext === "directed" ? { purpose: resolveProgramPurpose(options.programContext, mode) } : {}), currentStage: local?.focus?.stage ?? "source-investigation",
     executableContract: projectProgramConsumption(options.report, options.questions, options.programContext),
@@ -172,6 +173,6 @@ export function projectProgramTaskContext(options: AuthorInputs & { report?: any
     ...(options.programContext === "directed" ? {} : { sourceWindows: local?.sourceWindows ?? [] }),
     sourceIndex: (options.evidence ?? []).map(({ id, path, startLine, endLine, sha256 }) => ({ id, path, startLine, endLine, sha256 })),
     sourceCandidates: local?.pendingSourceWork ?? [],
-    remainingDuties: options.questions.map(q => ({ questionId: q.id, request: q.request, semanticCoverage: "unreviewed" })),
+    remainingDuties: projectProgramInvestigation(obligations, report?.currentDraft?.raw ?? report?.program, options.questions, options.operationQuestions),
   }
 }

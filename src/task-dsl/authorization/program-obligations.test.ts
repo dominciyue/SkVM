@@ -10,6 +10,27 @@ const source = { id: "unit", path: "anonymous.py", sha256: "current", startLine:
 const skeleton: any = { sourceId: "unit", source, revision: "r", modelCovered: true, anchors: [
   ["condition", 2], ["raise", 3], ["return", 4], ["call", 5],
 ].map(([kind, line]) => ({ id: `${kind}`, kind, sourceSha256: "current", selector: { path: source.path, startLine: line, endLine: line }, text: `anonymous ${kind}` })), flow: [] }
+test("original questions retain shared-source investigation and unmapped duties with recoverable overflow", () => {
+  const catalog = api.projectProgramObligations([skeleton], {})
+  const raw = { scope: { questionId: "read", root: source }, resourceWorkflow: { steps: [] } }
+  const questions = [{ id: "read", request: "Read this object" }, { id: "errors", request: "Explain failures" }, { id: "outside", request: "Other entry" }]
+  const mappings = [{ questionId: "read", operationId: "operation" }, { questionId: "errors", operationId: "operation" }]
+  const view = api.projectProgramInvestigation(catalog, raw, questions, mappings, 2)
+  expect(view.map((q: any) => q.request)).toEqual(questions.map(q => q.request))
+  expect(view[0].relation).toBe("program-scope")
+  expect(view[1].relation).toBe("same-declared-operation")
+  expect(view[1].candidates).toHaveLength(2)
+  expect(view[1].remaining).toBe(2)
+  expect(view[1].semanticCoverage).toBe("unreviewed")
+  expect(view[2].relation).toBe("no-source-association")
+  expect(view[2].candidates).toEqual([])
+  expect(view[2].nextAction).toBe("locate-and-read-original-source")
+  expect(view[1].details.catalog).toBe("source-candidates")
+  expect(view[1].candidates[0].kind).toBe("branch-exit")
+  expect(view[1].candidates[0].source.path).toBe("anonymous.py")
+  expect(view[1].candidates[0].callers).toBeUndefined()
+  expect(view[1].candidates[0].function).toBeUndefined()
+})
 test("source candidates survive absent and deleted author declarations without implying meanings", () => {
   expect(typeof api.projectProgramObligations).toBe("function")
   const result = api.projectProgramObligations([skeleton], {})
