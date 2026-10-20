@@ -4,11 +4,13 @@
 
 ## 当前工作
 
-**BT有限队列与评价已结束，工程及研究诊断最低目标达到，完整自动语义、自然质量和稳定净收益未达；正在发布收尾。** [任务书](../superpowers/plans/2026-10-21-authorization-semantic-validation-and-method-diagnosis.md) identity为`authorization-semantic-validation-v1`，基线`b0ab0c18`。10计划用途、9实际派发、15观察turn全部关闭，0/4额外确认。M末稿`6cb4bcad`修复3处源码顺序反例并通过局部资格；G末稿`6ec6765c`错误地把转换器加载失败当成阻止201，AE-G零调用不合格、分母保留。M原控制流抽取测试8子案例通过，完整模块与目标服务执行均0；G仅源码评阅。563文件预先冻结，作者使用`58c3ba23`，全部消费者同`d8a0a754`，RR/RE同参考原字节。
+**BT0–BT21已完成并发布，工程及研究诊断最低目标达到，完整自动语义、自然质量和稳定净收益未达。** [任务书](../superpowers/plans/2026-10-21-authorization-semantic-validation-and-method-diagnosis.md) identity为`authorization-semantic-validation-v1`，基线`b0ab0c18`。10计划用途、9实际派发、15观察turn全部关闭，0/4额外确认。M末稿`6cb4bcad`修复3处源码顺序反例并通过局部资格；G末稿`6ec6765c`错误地把转换器加载失败当成阻止201，AE-G零调用不合格、分母保留。M原控制流抽取测试8子案例通过，完整模块与目标服务执行均0；G仅源码评阅。563文件预先冻结，作者使用`58c3ba23`，全部消费者同`d8a0a754`，RR/RE同参考原字节。
 
 八消费位置交付7、整题0/8 full、评价域29/48 full、核心关系18/28正确；N/RR/RE/AE完整域分别7/9/10/3（各12域）。M参考规则/执行持平，G执行多覆盖writer错误处理一域；RE/RR观察token比为1.410/1.455，不能归为稳定执行收益。普通原/变输入、搬移与来源失效通过，G条件保留与语义不合格分开。132定向测试/905断言、主/研究类型与15文档测试通过；939原件无损归档并读回。known input14,779,426（含cache13,203,584一次）、output95,621，USD、准备/开发/评阅成本未知。开发`gpt-6-astra/high`，实验官方`gpt-5.6-sol/high`，第三方暂停；原件与`.tmp/`保留。
 
 见[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-validation-v1/verification/acceptance-matrix.json)、[执行记录](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-validation-v1/execution.md)、[逐答裁定](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-validation-v1/evaluation/natural-review.json)和[成本](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-validation-v1/accounting.json)。方法合同见[spec§14.59](skill-ir-aot-optimization-spec.md#1459-bt-semantic-validation-and-method-diagnosis)，原因与下一责任见[研究§7.81](skill-dsl-research.md#781-bs-复核与-bt-源码语义核验及方法诊断)。保留局部执行，优先解决源码正文依据与原题剩余职责组织；本轮停止，不自动BU。
+
+实质成果`80bd25e9`已推用户origin并核对远端同SHA，见[发布回执](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-validation-v1/publication.json)。以`completed-with-unmet-criteria`记录完整语义/质量/收益未达，诊断最低目标独立为true；本地原件和既存`.tmp/`保持。
 
 ## BS 已结束的实际结果
 
