@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-21",
+  "sourceCommit": "d8a0a754bb187876b05753ce2be731f8854d48cf",
+  "checks": [
+    {
+      "command": "bun test --timeout 30000 ./src/benchmarks/authorization-dsl/executable-contract-entrypoints.test.ts ./src/adapters/codex-account-session.test.ts ./src/task-dsl/authorization/program-authoring-context.test.ts ./src/task-dsl/authorization/program-consumption-context.test.ts ./src/task-dsl/authorization/program-relations.test.ts ./scripts/research/authorization-semantic-validation-v1/study.test.ts",
+      "exitCode": 0,
+      "passed": 132,
+      "failed": 0,
+      "assertions": 905,
+      "evidence": "final-tests.txt"
+    },
+    {
+      "command": "bun run typecheck",
+      "exitCode": 0,
+      "evidence": "final-typecheck.txt"
+    },
+    {
+      "command": "bunx tsc --noEmit -p scripts/research/authorization-semantic-validation-v1/tsconfig.json",
+      "exitCode": 0,
+      "evidence": "final-research-typecheck.txt"
+    },
+    {
+      "command": "python -m unittest discover -s scripts -p check_skill_ir_doc_links_test.py",
+      "exitCode": 0,
+      "passed": 15
+    },
+    {
+      "command": "bun scripts/research/authorization-semantic-validation-v1/finalize-review.ts",
+      "exitCode": 0,
+      "rows": 20,
+      "distinctReviewedAnswers": 11
+    },
+    {
+      "command": "python -X utf8 scripts/research/authorization-semantic-validation-v1/pack.py verify",
+      "exitCode": 0,
+      "files": 939,
+      "parts": 3,
+      "losslessReadbackVerified": true
+    },
+    {
+      "command": "changed-file documentation reference check",
+      "exitCode": 0,
+      "scannedFiles": 67,
+      "brokenReferences": 0,
+      "evidence": "final-doc-links.json"
+    },
+    {
+      "command": "git diff --cached --check",
+      "exitCode": 0
+    },
+    {
+      "command": "git cat-file staged byte comparison against registration and final raw SHA-256",
+      "exitCode": 0,
+      "files": 565
+    },
+    {
+      "command": "git show staged archive parts compared with manifest SHA-256",
+      "exitCode": 0,
+      "parts": 3
+    }
+  ],
+  "earlierFailures": "The initial default five-second aggregate run had five entrypoint timeouts; the complete affected suite and final six-suite run passed with the explicit 30-second per-test timeout. Historical full-document scan had ten pre-existing output references; current changes are checked separately."
+}

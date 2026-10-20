@@ -31,11 +31,28 @@ assert(facts.contextUserID === 0, "document-inherited-case-as-observed")
 facts.contextUserID = 22
 const corrected = executeResourceWorkflow(raw.resourceWorkflow, facts)
 assert(corrected.events.find(e => e.outcome === "rejected")?.id === "viewer_store_ok", "active-viewer-error-before-audience")
+const initialRaw = await load(path.join(base, "automatic/M-initial.json"))
+const initialCorrected = executeResourceWorkflow(initialRaw.resourceWorkflow, facts)
+const oldRows = matrix.variants.find((v: any) => v.variant === "initial").rows
+const oldPrefix = (id: string) => oldRows.find((r: any) => r.id === id).execution.events.filter((e: any) => e.outcome !== "skipped").map((e: any) => e.id)
+assert(oldPrefix("invalid-creator-still-resolves-space").at(-1) === "creator_valid", "initial-creator-premature-space")
+assert(oldPrefix("invalid-creator-still-resolves-member").at(-1) === "creator_valid", "initial-creator-premature-membership")
+assert(initialCorrected.events.find(e => e.outcome === "rejected")?.id === "memo_visible_state", "initial-audience-premature-viewer")
 const sha256 = hash(await readFile(programFile))
 const review = {
   task: "M", sha256, providerCalls: 0, businessWrites: 0, selectedFiniteComparisons: { matched: rows.length, total: rows.length, rows },
   sourceBasis: ["memo_share_service.go:172-229", "memo_access.go:17-40", "memo_resolve.go:31-90", "memo.go:92-122", "memo_service_converter.go:26-137"],
   ordering: { invalidCreatorSpaceError: space, invalidCreatorMemberError: member, correctedActiveViewerError: corrected.events.map(e => ({ id: e.id, outcome: e.outcome })) },
+  beforeAfter: {
+    sourceReviewedCounterexamples: 3, currentFinalOrderRepairs: 3, transportValueEqualityDoesNotEstablishOrder: true,
+    initialSpaceErrorPrefix: oldPrefix("invalid-creator-still-resolves-space"),
+    initialMembershipErrorPrefix: oldPrefix("invalid-creator-still-resolves-member"),
+    initialCorrectedActiveViewerPrefix: initialCorrected.events.filter(e => e.outcome !== "skipped").map(e => e.id),
+    sourceExpected: "Resolve creator facts then optional Space/member calls before policy rejection; the root NORMAL/nonSPACE gate does not reject unknown audience before active-viewer lookup. Checked against the fixed source and extraction evidence.",
+    referenceObservedPrefixes: matrix.variants.find((v: any) => v.variant === "reference").rows
+      .filter((r: any) => ["invalid-creator-still-resolves-space", "invalid-creator-still-resolves-member"].includes(r.id))
+      .map((r: any) => ({ id: r.id, prefix: r.execution.events.filter((e: any) => e.outcome !== "skipped").map((e: any) => e.id), note: "Reference exposes local context error; transport NotFound translation is outside its declared scope." }))
+  },
   inheritedCaseCorrection: { id: inherited.name, originalPreserved: true, reason: "contextUserID=0 skips fetchCurrentUser's lookup, so injected viewer error cannot be the first error. The original oracle order is wrong; main review checked a separate active-viewer case, without changing the frozen inherited file.", source: "auth_service_session.go:269-286; memo_access.go:17-29" },
   independentEvidence: { sourceExecution: "source/M-extraction.json: eight original access control-flow subcases with type shim, one isolated execution; no new Go execution here", sourceReview: "Main review directly checked exact raw and source anchors; scout reviewed identical checkpoint raw." },
   disputedReview: { reviewer: "bt_m_semantic_audit", initialVerdict: "no clear executable source-related local scope that is free of known misleading core behavior",

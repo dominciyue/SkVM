@@ -388,6 +388,97 @@
       }
     ]
   },
+  "beforeAfter": {
+    "sourceReviewedCounterexamples": 3,
+    "currentFinalOrderRepairs": 3,
+    "transportValueEqualityDoesNotEstablishOrder": true,
+    "initialSpaceErrorPrefix": [
+      "share_store_ok",
+      "share",
+      "share_found",
+      "share_active",
+      "memo_store_ok",
+      "memo",
+      "memo_visible_state",
+      "viewer",
+      "instance_setting_ok",
+      "allow_anonymous",
+      "creator_store_ok",
+      "creator",
+      "creator_valid"
+    ],
+    "initialMembershipErrorPrefix": [
+      "share_store_ok",
+      "share",
+      "share_found",
+      "share_active",
+      "memo_store_ok",
+      "memo",
+      "memo_visible_state",
+      "viewer_store_ok",
+      "viewer_row",
+      "viewer_exists",
+      "viewer",
+      "allow_anonymous",
+      "creator_store_ok",
+      "creator",
+      "creator_valid"
+    ],
+    "initialCorrectedActiveViewerPrefix": [
+      "share_store_ok",
+      "share",
+      "share_found",
+      "share_active",
+      "memo_store_ok",
+      "memo",
+      "memo_visible_state"
+    ],
+    "sourceExpected": "Resolve creator facts then optional Space/member calls before policy rejection; the root NORMAL/nonSPACE gate does not reject unknown audience before active-viewer lookup. Checked against the fixed source and extraction evidence.",
+    "referenceObservedPrefixes": [
+      {
+        "id": "invalid-creator-still-resolves-space",
+        "prefix": [
+          "share_error",
+          "share",
+          "share_found",
+          "share_time",
+          "memo_error",
+          "memo",
+          "memo_entry_state",
+          "viewer",
+          "setting_error",
+          "creator_error",
+          "creator",
+          "creator_valid",
+          "space_error"
+        ],
+        "note": "Reference exposes local context error; transport NotFound translation is outside its declared scope."
+      },
+      {
+        "id": "invalid-creator-still-resolves-member",
+        "prefix": [
+          "share_error",
+          "share",
+          "share_found",
+          "share_time",
+          "memo_error",
+          "memo",
+          "memo_entry_state",
+          "viewer_error",
+          "viewer_row",
+          "viewer_found",
+          "viewer",
+          "creator_error",
+          "creator",
+          "creator_valid",
+          "space_error",
+          "space",
+          "membership_error"
+        ],
+        "note": "Reference exposes local context error; transport NotFound translation is outside its declared scope."
+      }
+    ]
+  },
   "inheritedCaseCorrection": {
     "id": "unrecognized-audience-after-context-error",
     "originalPreserved": true,

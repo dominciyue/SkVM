@@ -1,0 +1,97 @@
+{
+  "task": "G",
+  "reviewMethod": "Two independent blind read-only reviewers followed by main source/answer adjudication. Mapping was opened after both returned. Frozen domain duties, rather than reviewer confidence or tool success, determine grades.",
+  "sourceChecks": [
+    "routers/api/v1/api.go:782-805 requires readable Issues or readable enabled Pull Requests before the endpoint gate.",
+    "routers/api/v1/repo/issue.go:591-618 distinguishes writer assignee lookup and assignability failures.",
+    "routers/api/v1/repo/issue.go:624-652 maps creation errors to 403/400/500, close errors to 412/500, refetch error to 500, then returns 201.",
+    "services/convert/issue.go:36-48,70-106 returns an empty API issue on loader failure; this does not prevent the handler's 201."
+  ],
+  "independentReviews": [
+    {
+      "reviewer": "bt_blind_g_one",
+      "initial": {
+        "G-326263a25c3e": "route/fields/response partial; remaining domains full; whole partial; identified false successful-conversion inference",
+        "G-89e4da2e0976": "all full; all core correct",
+        "G-d4636ea4c691": "effect partial because supplied identity described as created; remaining domains full"
+      },
+      "adjudication": "The positive 201/converter assertion is incorrect, not merely incomplete. Title normalization is not an extra mandatory frozen subcriterion: omission alone does not lower fields. Writer error handling and registered response mappings do matter. The supplied identity is expressly inside a synthetic scenario with no actual deployment claim, so that effect objection is rejected."
+    },
+    {
+      "reviewer": "bt_blind_g_two",
+      "initial": {
+        "G-832a1d330f81": "all full; all core correct",
+        "G-d561a1f56ef8": "all full; all core correct; claimed converter empty-object behavior covered"
+      },
+      "adjudication": "Full ratings are rejected where the actual answer omits frozen duties. In particular G-d561 explicitly leaves parent-helper and converter semantics unreviewed; it does not describe the empty-object fallback. RR and RE omit the explicit close 412/500 mapping. Finite scenario reasoning alone is not adoption of a delivered executable result."
+    }
+  ],
+  "answers": [
+    {
+      "id": "G-326263a25c3e",
+      "domains": {"route":"partial","permissionAndPolicy":"full","fields":"partial","effectAndOrder":"full","responseAndErrors":"incorrect","limits":"full"},
+      "coreRelations": {"routeGates":"not-covered","readerWriterPolicy":"correct","effectErrorOrder":"incorrect"},
+      "wholeTask": "incorrect",
+      "severeUnsupportedClaims": [],
+      "adoption": {"usesComputedResults":true,"quote":"The finite read-only trial consequently reached creation while suppressing deadline, milestone, labels, and assignees."},
+      "evidence": [
+        {"finding":"No enclosing mustEnableIssuesOrPulls explanation; endpoint and token gates alone do not cover the registered parent relation.","source":"routers/api/v1/api.go:782-805"},
+        {"quote":"Assignees are processed only for writers, including user lookup and assignability checks.","finding":"Names checks but omits their failure behavior; frozen fields domain includes writer errors.","source":"routers/api/v1/repo/issue.go:591-618"},
+        {"quote":"A 201 therefore establishes normal completion of the visible handler path and successful response conversion.","finding":"False: converter loader failures return an empty object and still permit 201. This is a core error, although it does not match any predeclared severe-claim category.","source":"services/convert/issue.go:36-48; routers/api/v1/repo/issue.go:652"}
+      ]
+    },
+    {
+      "id": "G-832a1d330f81",
+      "domains": {"route":"full","permissionAndPolicy":"full","fields":"partial","effectAndOrder":"full","responseAndErrors":"partial","limits":"full"},
+      "coreRelations": {"routeGates":"correct","readerWriterPolicy":"correct","effectErrorOrder":"correct"},
+      "wholeTask": "partial",
+      "severeUnsupportedClaims": [],
+      "adoption": {"usesComputedResults":false,"quote":"The authored executable rules were unreviewed declarations and were not treated as execution results."},
+      "evidence": [
+        {"quote":"Names resolved, users loaded, and assignability checked","finding":"Writer checks covered but lookup/unassignability error behavior omitted.","source":"routers/api/v1/repo/issue.go:591-618"},
+        {"quote":"a close failure can occur after the issue has been created","finding":"Correct order, but frozen response domain's dependency 412 versus other 500 distinction omitted.","source":"routers/api/v1/repo/issue.go:635-643"},
+        {"quote":"converter success is not guaranteed because converter load failures are suppressed","finding":"Correct converter/effect limits and correct parent/helper relation; no invented durable effect.","source":"services/convert/issue.go:36-48"}
+      ]
+    },
+    {
+      "id": "G-89e4da2e0976",
+      "domains": {"route":"full","permissionAndPolicy":"full","fields":"full","effectAndOrder":"full","responseAndErrors":"partial","limits":"full"},
+      "coreRelations": {"routeGates":"correct","readerWriterPolicy":"correct","effectErrorOrder":"correct"},
+      "wholeTask": "partial",
+      "severeUnsupportedClaims": [],
+      "adoption": {"usesComputedResults":true,"quote":"The program correctly computed, for its represented branch:","qualification":"Explicitly uses returned can_write/field facts while naming unrepresented source branches and responseLoad limitations; packet evidence independently confirms delivered executions."},
+      "evidence": [
+        {"quote":"Closing and refetching also occur after creation. Their failure responses do not establish that the earlier issue creation was undone.","finding":"Correct ordering and effect limitation, but close dependency 412 versus other 500 mapping is omitted.","source":"routers/api/v1/repo/issue.go:635-643"},
+        {"quote":"it silently returns an empty api.Issue{} rather than an error, and the handler still returns 201","finding":"Corrects the executable abstraction using the actual converter source.","source":"services/convert/issue.go:36-106"},
+        {"finding":"Parent readable-Issues-or-enabled-Pulls condition, admin exception, reader/writer distinction, writer error handling and synthetic transaction limits all covered.","source":"routers/api/v1/api.go:782-805; routers/api/v1/repo/issue.go:591-633"}
+      ]
+    },
+    {
+      "id": "G-d4636ea4c691",
+      "domains": {"route":"full","permissionAndPolicy":"full","fields":"partial","effectAndOrder":"full","responseAndErrors":"partial","limits":"full"},
+      "coreRelations": {"routeGates":"correct","readerWriterPolicy":"correct","effectErrorOrder":"correct"},
+      "wholeTask": "partial",
+      "severeUnsupportedClaims": [],
+      "adoption": {"usesComputedResults":false,"qualification":"Source reasoning over supplied synthetic facts; no execution/outcome packets were delivered in this run."},
+      "evidence": [
+        {"quote":"The supplied scenario is synthetic; null errors mean normal modeled completion, not proof of a production commit.","finding":"Reject the reviewer objection to supplied ID/index: the whole passage is explicitly a synthetic scenario, not an observed created row."},
+        {"quote":"resolves/validates assignees","finding":"Does not explain writer lookup/unassignability failure outcomes.","source":"routers/api/v1/repo/issue.go:591-618"},
+        {"finding":"Correct close 412/500, refetch 500 and empty-object 201; creation-service 403/400/500 mapping omitted.","source":"routers/api/v1/repo/issue.go:624-633"},
+        {"finding":"Correct pre-transaction blocking and post-transaction mentions, readable issue parent/endpoint gates and experimental policy distinction."}
+      ]
+    },
+    {
+      "id": "G-d561a1f56ef8",
+      "domains": {"route":"partial","permissionAndPolicy":"full","fields":"full","effectAndOrder":"full","responseAndErrors":"partial","limits":"full"},
+      "coreRelations": {"routeGates":"not-covered","readerWriterPolicy":"correct","effectErrorOrder":"not-covered"},
+      "wholeTask": "partial",
+      "severeUnsupportedClaims": [],
+      "adoption": {"usesComputedResults":true,"quote":"The executable model consequently computed:","qualification":"Explicitly limits supplied createdIssue values to synthetic finite execution, with no real record or durable commit."},
+      "evidence": [
+        {"quote":"the parent issue routing structure contains an issues/pulls enablement check, but its complete helper semantics were not established in the current executable model","finding":"Acknowledges the missing relation; does not satisfy its source explanation.","source":"routers/api/v1/api.go:782-805"},
+        {"quote":"the exact behavior of convert.ToAPIIssue was not reviewed sufficiently to certify that modeled error path","finding":"Withdraws first-answer certainty but leaves converter semantics uncovered. Raw program still contains the independently reproduced error.","source":"services/convert/issue.go:36-48"},
+        {"finding":"Writer assignee errors, service effect order and synthetic/deployment limits are explicit; these domains are full."}
+      ]
+    }
+  ]
+}

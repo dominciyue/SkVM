@@ -1,0 +1,106 @@
+{
+  "task": "M",
+  "reviewMethod": "Two independent blind read-only reviewers, followed by main source/answer adjudication before final aggregation. Arm mapping opened only after both reviews returned. Grades are not keyword scores.",
+  "sourceChecks": [
+    "server/api/v1/acl_config.go:45-79 and authz.go:99-116 distinguish public registration from the private-instance bootstrap exception.",
+    "core/access/memo_resolve.go:31-90 resolves creator/placement/membership before policy validation; equal final NotFound does not explain that order.",
+    "server/api/v1/memo_service_converter.go:26-38 independently reloads the creator; memo_share_service.go:203-208 maps missing creator to NotFound and wraps other conversion errors."
+  ],
+  "independentReviews": [
+    {
+      "reviewer": "bt_blind_m_one",
+      "ids": ["M-010e260525fc", "M-088fc1aa194c", "M-0e5b1ff4c6fd"],
+      "initial": "All six domains full, all four core relations correct, whole full for all three; no severe claims; usesComputedResults=true.",
+      "adjudication": "Rejected unsupported full ratings where actual answer lacks bootstrap registration or context-before-policy order. A scenario value alone does not establish execution-result adoption."
+    },
+    {
+      "reviewer": "bt_blind_m_two",
+      "initial": [
+        {"id": "M-108e868d956c", "partialDomains": ["accessAndOrder", "responseAndErrors"], "missingCore": ["contextOrder", "conversionScope"], "wholeTask": "partial"},
+        {"id": "M-5bcc0f8fcf48", "partialDomains": ["accessAndOrder", "anonymousEntry", "responseAndErrors"], "missingCore": ["entryActivation", "contextOrder", "conversionScope"], "wholeTask": "partial"},
+        {"id": "M-784eb93a5d09", "partialDomains": ["accessAndOrder", "anonymousEntry", "responseAndErrors"], "missingCore": ["entryActivation", "contextOrder"], "conversionScope": "partial", "wholeTask": "partial"}
+      ],
+      "adjudication": "RE text explicitly names the second creator lookup and includes NotFound/wrapped-conversion rows; its response grade is full. A first answer explicitly says policy denial follows creator, placement and membership, so its order is covered. N separately describes the conversion query and missing creator mapping, so its core conversion relation is correct, though the response domain still omits the other-error mapping. The reviewer's non-schema core grade partial is replaced by the registered correct/not-covered distinction."
+    }
+  ],
+  "answers": [
+    {
+      "id": "M-010e260525fc",
+      "domains": {"binding": "full", "expiryAndFailures": "full", "accessAndOrder": "partial", "anonymousEntry": "partial", "responseAndErrors": "partial", "limits": "full"},
+      "coreRelations": {"tokenObject": "correct", "entryActivation": "not-covered", "contextOrder": "not-covered", "conversionScope": "not-covered"},
+      "wholeTask": "partial",
+      "severeUnsupportedClaims": [],
+      "adoption": {"usesComputedResults": true, "quote": "The supplied program produces the correct bounded outcome", "qualification": "Explicit program-result use; actual delivered execution is checked separately. It also distinguishes explanatory fields from wire fields."},
+      "evidence": [
+        {"domain": "accessAndOrder", "quote": "Its creator must exist and be NORMAL or ARCHIVED", "finding": "Accurate prerequisites and context-error list, but no statement that placement/member lookups precede creator/audience policy denial.", "source": "core/access/memo_resolve.go:31-90"},
+        {"domain": "anonymousEntry", "quote": "share_token ... is accepted without authentication", "finding": "Cites proto documentation; omits actual public/bootstrap registration and the authorizer path on a private instance.", "source": "server/api/v1/acl_config.go:45-79; authz.go:99-116"},
+        {"domain": "responseAndErrors", "quote": "other conversion failures remain wrapped conversion errors", "finding": "Explains assigned-memo context rebuild and wire fields but omits the independent memo-creator reload and its special NotFound mapping. Reaction creator lookups are a different operation.", "source": "server/api/v1/memo_service_converter.go:26-38; memo_share_service.go:203-208"}
+      ]
+    },
+    {
+      "id": "M-088fc1aa194c",
+      "domains": {"binding": "full", "expiryAndFailures": "full", "accessAndOrder": "partial", "anonymousEntry": "full", "responseAndErrors": "full", "limits": "full"},
+      "coreRelations": {"tokenObject": "correct", "entryActivation": "correct", "contextOrder": "not-covered", "conversionScope": "correct"},
+      "wholeTask": "partial",
+      "severeUnsupportedClaims": [],
+      "adoption": {"usesComputedResults": false, "quote": "The request succeeds and returns memo 43", "qualification": "This is finite source/input reasoning, not evidence of receiving an executor result. This position has rules-only support."},
+      "evidence": [
+        {"domain": "accessAndOrder", "quote": "An error while resolving the viewer, instance setting, creator, space, or membership becomes a read-context error", "finding": "Correct error normalization and share precedence, but the answer does not order those calls before creator/audience policy rejection.", "source": "core/access/memo_resolve.go:31-90; server/api/v1/memo_share_service.go:186-189"},
+        {"domain": "anonymousEntry", "quote": "included in the private-instance bootstrap allowlist", "finding": "Actual transport activation is identified.", "source": "server/api/v1/acl_config.go:45-79"},
+        {"domain": "responseAndErrors", "quote": "Creator disappears during conversion | Generic NOT_FOUND", "finding": "Separately states the later creator failure and wrapped other conversion errors, plus memo-scoped collections and cleared parent/relations.", "source": "server/api/v1/memo_share_service.go:191-213"}
+      ]
+    },
+    {
+      "id": "M-0e5b1ff4c6fd",
+      "domains": {"binding": "full", "expiryAndFailures": "full", "accessAndOrder": "full", "anonymousEntry": "partial", "responseAndErrors": "full", "limits": "full"},
+      "coreRelations": {"tokenObject": "correct", "entryActivation": "not-covered", "contextOrder": "correct", "conversionScope": "correct"},
+      "wholeTask": "partial",
+      "severeUnsupportedClaims": [],
+      "adoption": {"usesComputedResults": true, "quote": "The current executable program returns:", "qualification": "Author final uses its actual finite result and separately describes missing independent assigned-conversion observations."},
+      "evidence": [
+        {"domain": "accessAndOrder", "quote": "4. Read-context construction must succeed. 5. Its creator must resolve ... 6. Visibility must be one of the recognized values.", "finding": "The ordered prerequisite explanation, source anchors and context-error list support context construction before policy validation.", "source": "core/access/memo_resolve.go:31-90; core/access/memo.go:92-122"},
+        {"domain": "anonymousEntry", "quote": "GetSharedMemo itself requires no authentication", "finding": "Accurate local behavior but public/bootstrap registration is not explained; the independent review's claim that it was present was incorrect.", "source": "server/api/v1/acl_config.go:45-79; authz.go:99-116"},
+        {"domain": "responseAndErrors", "quote": "Missing creator during response conversion | Generic NOT_FOUND", "finding": "Later creator failure, wrapped other errors and independent context rebuild are explicit.", "source": "server/api/v1/memo_service_converter.go:26-59; memo_share_service.go:203-208"}
+      ]
+    },
+    {
+      "id": "M-108e868d956c",
+      "domains": {"binding": "full", "expiryAndFailures": "full", "accessAndOrder": "partial", "anonymousEntry": "full", "responseAndErrors": "full", "limits": "full"},
+      "coreRelations": {"tokenObject": "correct", "entryActivation": "correct", "contextOrder": "not-covered", "conversionScope": "correct"},
+      "wholeTask": "partial",
+      "severeUnsupportedClaims": [],
+      "adoption": {"usesComputedResults": true, "quote": "That return is an intermediate local authorization context, not the endpoint response.", "qualification": "Explicitly uses the four-field finite return and then checks source beyond it; calls out reference gaps."},
+      "evidence": [
+        {"domain": "accessAndOrder", "quote": "its creator exists ... its visibility is one of the recognized audiences ... context resolution succeeds", "finding": "These are listed as prerequisites rather than the source lookup-before-policy order; exact share and root gates are otherwise correct.", "source": "core/access/memo_resolve.go:31-90"},
+        {"domain": "responseAndErrors", "quote": "It omits ... the second creator lookup ...", "finding": "Contrary to the initial blind review, the answer identifies the second creator lookup and its separate NotFound/wrapped-error table.", "source": "server/api/v1/memo_service_converter.go:26-38; memo_share_service.go:203-208"},
+        {"domain": "anonymousEntry", "quote": "PublicMethods ... AuthBootstrapMethods", "finding": "Correctly ties these registrations to CheckAccess before the private-instance setting.", "source": "server/api/v1/acl_config.go:45-79; authz.go:99-116"}
+      ]
+    },
+    {
+      "id": "M-5bcc0f8fcf48",
+      "domains": {"binding": "full", "expiryAndFailures": "full", "accessAndOrder": "full", "anonymousEntry": "partial", "responseAndErrors": "partial", "limits": "full"},
+      "coreRelations": {"tokenObject": "correct", "entryActivation": "not-covered", "contextOrder": "correct", "conversionScope": "not-covered"},
+      "wholeTask": "partial",
+      "severeUnsupportedClaims": [],
+      "adoption": {"usesComputedResults": true, "quote": "Trials confirmed invalid, expired, and expiry-boundary-valid cases.", "qualification": "Author first answer reports real patch/trial use, not target execution."},
+      "evidence": [
+        {"domain": "accessAndOrder", "quote": "placing policy denial after creator, placement, and membership resolution", "finding": "Explicit source-order explanation; the blind review missed this opening passage.", "source": "core/access/memo_resolve.go:31-90"},
+        {"domain": "anonymousEntry", "quote": "No authentication is required", "finding": "No public/bootstrap registration or authorizer activation.", "source": "server/api/v1/acl_config.go:45-79; authz.go:99-116"},
+        {"domain": "responseAndErrors", "finding": "Correctly retains assigned conversion context-rebuild limits and response graph scope, but lacks independent memo creator reload and missing/other conversion-error split.", "source": "server/api/v1/memo_service_converter.go:26-38; memo_share_service.go:203-208"}
+      ]
+    },
+    {
+      "id": "M-784eb93a5d09",
+      "domains": {"binding": "full", "expiryAndFailures": "full", "accessAndOrder": "partial", "anonymousEntry": "partial", "responseAndErrors": "partial", "limits": "full"},
+      "coreRelations": {"tokenObject": "correct", "entryActivation": "not-covered", "contextOrder": "not-covered", "conversionScope": "correct"},
+      "wholeTask": "partial",
+      "severeUnsupportedClaims": [],
+      "adoption": {"usesComputedResults": false, "quote": "share-alpha returns memo 43", "qualification": "Source/input inference only; this position receives no domain program or execution result."},
+      "evidence": [
+        {"domain": "accessAndOrder", "finding": "Explains exact-share precedence but not creator/placement/member lookup order before policy denial.", "source": "core/access/memo_resolve.go:31-90"},
+        {"domain": "anonymousEntry", "finding": "Local private-instance share override is correct; transport public/bootstrap activation is omitted.", "source": "server/api/v1/acl_config.go:45-79; authz.go:99-116"},
+        {"domain": "responseAndErrors", "quote": "User 22 may appear in the supplied conversion query result, but conversion selects creator ID 17", "finding": "Separate conversion population and missing creator NotFound are explained. Other conversion errors being wrapped remain omitted, so core relation correct but domain partial.", "source": "server/api/v1/memo_service_converter.go:26-38; memo_share_service.go:203-208"}
+      ]
+    }
+  ]
+}

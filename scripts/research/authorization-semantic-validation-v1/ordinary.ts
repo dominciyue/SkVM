@@ -64,7 +64,25 @@ export async function portable(task = "M") {
   if (!result.sameRaw || !result.withdrawn || !result.mutation.originalSourcePreserved) throw new Error("portable-source-boundary-not-verified")
   return { sameRaw: result.sameRaw, withdrawn: result.withdrawn, originalSourcePreserved: result.mutation.originalSourcePreserved }
 }
+export async function reviewPortable(task: string) {
+  const observed = await load(path.join(base, `verification/portability-${task}.json`)), c = observed.comparison, e = c.executableContract?.resourceExecution
+  const stale = e?.events?.filter((event: any) => event.gaps?.some((gap: string) => gap.startsWith("resource-source-stale:"))) ?? []
+  const conditionalWithdrawal = e?.status === "conditional" && stale.length > 0
+    && stale.every((event: any) => event.outcome === "unresolved" && event.outputs.known === false)
+    && e.conditions?.some((condition: any) => condition.controlGaps?.some((gap: string) => gap.startsWith("resource-source-stale:")))
+    && e.events?.findLast((event: any) => event.op === "return")?.outcome === "conditional"
+  const verified = observed.sameRaw && observed.mutation.originalSourcePreserved
+    && c.sourceChanged && c.status === "needs-review" && c.answerReused === false && (!e || conditionalWithdrawal)
+  const review = { task, providerCalls: 0, originalObservationPreserved: true, verified,
+    originalStrictNoExecutionAssertion: observed.withdrawn, conditionalWithdrawal: !!conditionalWithdrawal,
+    staleSteps: stale.map((event: any) => ({ id: event.id, outcome: event.outcome, known: event.outputs.known, gaps: event.gaps })),
+    reason: "Progressive mode can retain downstream values conditionally. Stale guards must be unresolved, their conditions must remain attached through return, and no prior answer is reused. Requiring absence of the entire resourceExecution is stricter than the existing progressive contract; the initial failed assertion is preserved.",
+    semanticQualification: "This tests source invalidation, not correctness of the automatic program." }
+  await save(path.join(base, `verification/portability-${task}-review.json`), review)
+  if (!verified) throw new Error("source-dependent-conclusion-not-withdrawn")
+  return review
+}
 if (import.meta.main) {
   const [command, task] = process.argv.slice(2)
-  console.log(JSON.stringify(command === "ordinary" ? await ordinary(task!) : command === "portable" ? await portable(task) : (() => { throw new Error("ordinary M/G|portable [M/G]") })(), null, 2))
+  console.log(JSON.stringify(command === "ordinary" ? await ordinary(task!) : command === "portable" ? await portable(task) : command === "review-portable" ? await reviewPortable(task!) : (() => { throw new Error("ordinary M/G|portable [M/G]|review-portable M/G") })(), null, 2))
 }

@@ -1,0 +1,117 @@
+┌────────────────────────────────────────────────┐
+│               FINDINGS SUMMARY                 │
+├──────────────┬─────────────────────────────────┤
+│ 🔴 CRITICAL  │ 0                               │
+│ 🟠 HIGH      │ 0                               │
+│ 🟡 MEDIUM    │ 0                               │
+│ 🔵 LOW       │ 0                               │
+│ ⚪ INFO      │ 0                               │
+├──────────────┼─────────────────────────────────┤
+│ TOTAL        │ 0                               │
+└──────────────┴─────────────────────────────────┘
+
+Dependency Audit: Not assessable from the permitted source scope  
+Secrets Scan: 0 exposed credentials found in the bounded pattern scan
+
+# 🔐 Security Review Report
+
+**Project:** `usememos/memos@cb42e326ba9cc266a6a9570c53e0fe04c62793f4`  
+**Scan Date:** 2026-10-21  
+**Scope:** `GetSharedMemo` and its relevant allowed dependencies  
+**Language:** Go  
+**Result:** **No vulnerabilities found in the reviewed flow.** The endpoint deliberately implements an exact-memo Bearer [redacted] no external policy was supplied that would make that behavior an authorization defect.
+
+## GetSharedMemo behavior
+
+### Token-to-memo binding
+
+1. `share_token` is documented as an opaque Bearer [redacted] and is accepted without authentication (`proto/api/v1/memo_service.proto:134-138,644-647`).
+2. `getActiveMemoShare` looks it up as `MemoShare.UID` (`server/api/v1/memo_share_service.go:221-229`).
+3. The returned share row supplies `MemoID`; `GetSharedMemo` fetches exactly that numeric memo ID (`server/api/v1/memo_share_service.go:173-179`).
+4. The read context receives the same `MemoID` as `SharedMemoID` (`server/api/v1/memo_share_service.go:186-189`).
+5. `CheckMemoReadContext` accepts the share only when `memo.ID == *SharedMemoID` and the memo is not `SPACE` visibility (`core/access/memo.go:119-122`).
+
+Thus the token cannot select one share row and then request another memo. `MemoShare.CreatorID` is not consulted during reading; the binding is through the share row’s `MemoID`.
+
+Creation uses a URL-safe, 22-character shortuuid derived from UUIDv4, described as 122 bits of entropy, and records the memo and creating user (`server/api/v1/memo_share_service.go:66-75`).
+
+### Invalid and expired tokens
+
+| Condition | Result |
+|---|---|
+| No share row for the token | `NOT_FOUND: not found` |
+| `ExpiresTs != nil` and current Unix time is greater than it | Same `NOT_FOUND` |
+| Current time equals `ExpiresTs` | Still active |
+| Share-store failure | `INTERNAL: failed to get memo share` |
+
+The strict expiry comparison is at `server/api/v1/memo_share_service.go:216-229`. Invalid and expired tokens are deliberately indistinguishable, but storage failures are not normalized to `NOT_FOUND`.
+
+### Additional controls on a valid token
+
+A valid, unexpired token is necessary but not always sufficient:
+
+- The bound memo must exist, be `NORMAL`, and not have `SPACE` visibility; failures become `NOT_FOUND` (`memo_share_service.go:178-188`).
+- Its creator must exist and be `NORMAL` or `ARCHIVED` (`core/access/memo_resolve.go:36-42`).
+- Unknown visibility and invalid lifecycle values fail closed (`core/access/memo.go:94-105`).
+- Failures resolving the current user, instance access setting, creator, Space, or membership are hidden by `GetSharedMemo` as `NOT_FOUND` (`memo_share_service.go:186-189`).
+- An active instance administrator is accepted before the share-specific branch, but still cannot use this endpoint without first supplying a valid token that resolves to a memo (`core/access/memo.go:107-121`).
+- Reaction or attachment listing failures produce `INTERNAL`; other conversion failures remain wrapped conversion errors (`memo_share_service.go:191-208`).
+
+### Unauthenticated caller in a private instance
+
+The share is an exception to ordinary audience and instance-access checks.
+
+For an anonymous caller, `buildMemoReadContext` consults whether the instance permits anonymous access (`server/api/v1/memo_access.go:17-29`). However, after structural validation, the exact-share branch executes before the normal `PUBLIC`/`PROTECTED`/`PRIVATE` audience switch (`core/access/memo.go:119-145`).
+
+Consequently, a valid token can expose its bound `PRIVATE`, `PROTECTED`, or `PUBLIC` memo to an unauthenticated caller even when the instance access mode is private. This is explicit bearer-capability behavior, not an inferred vulnerability.
+
+An inactive context user is treated as anonymous (`server/api/v1/auth_service_session.go:269-290`).
+
+## Supplied finite scenario
+
+At synthetic time `2000`, `share-alpha` has `ExpiresTs=2000`. Because expiry requires `now > ExpiresTs`, it remains active and binds to `MemoID=43`.
+
+The caller is anonymous and the instance is `PRIVATE`, so ordinary anonymous access is false. Nevertheless, the exact-share branch authorizes normal, private, non-SPACE memo 43.
+
+The resulting source behavior corresponds to:
+
+- memo: `memo-alpha`
+- content: `shared body`
+- creator: author 17, represented on the wire by the creator’s resource name
+- reactions: empty list
+- attachments: empty list
+- relations: empty list
+- parent: removed
+- Space projection: absent
+
+The unrelated `share-other` and memo 89 are never selected.
+
+## What the token exposes—and what it does not
+
+A successful response includes the memo’s converted fields, content and snippet, plus memo-scoped reactions and attachments (`server/api/v1/memo_share_service.go:191-203`; `memo_service_converter.go:40-100`).
+
+It does **not** extend the capability to surrounding objects:
+
+- Relations are passed as `nil` and converted to an empty list.
+- Parent identity may be created during generic conversion, but `GetSharedMemo` explicitly clears it (`memo_share_service.go:203-213`).
+- The share does not authorize either endpoint of a relation (`core/access/memo.go:87-91`).
+- For a non-SPACE memo assigned to a Space, the Space name is projected only for an authenticated author, active Space member, or instance administrator. Token possession alone does not reveal it (`memo_service_converter.go:105-137`).
+- Inclusion of attachment or reaction representations in this response does not establish authorization to independent endpoints for those resources.
+
+## Authored finite-program limitations
+
+The supplied program produces the correct bounded outcome, but several fields are explanatory rather than literal API fields:
+
+- `creator_id`, `share_bound_memo_id`, `instance_allows_anonymous`, and the `share_grants_*` flags are not returned by the protobuf endpoint.
+- The wire response identifies the creator using `BuildUserName(creator.Username)`, not numeric `creator_id` (`memo_service_converter.go:34-49`).
+- “Includes reactions/attachments” means their response lists exist; in this scenario both lists are empty.
+- For an assigned memo, conversion rebuilds read context with `sharedMemoID=nil` (`memo_service_converter.go:50-59`). The finite program does not independently model that second round of lookups or possible errors. This gap does not affect the supplied memo because its `SpaceID` is nil.
+- Reaction conversion can perform additional creator lookups, and reactions whose creators are missing are skipped (`memo_service_converter.go:177-207`).
+- The synthetic `now=2000` models the branch, while production code directly calls `time.Now()`.
+- Transport decoding and final Connect error translation remain outside the local function model.
+
+## Audit limitations
+
+Dependency manifests were outside the permitted source paths, and network access was unavailable, so no CVE conclusion can be made. The secrets check was limited to the allowed indexed files and common credential patterns. This was static source analysis, not runtime testing.
+
+**Review each patch before applying. Nothing has been changed yet.** No patches are proposed because no CRITICAL or HIGH findings were identified.
