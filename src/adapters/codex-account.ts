@@ -1,6 +1,8 @@
 import type { AgentAdapter, AdapterConfig, RunResult } from "../core/types.ts"
 import { emptyTokenUsage } from "../core/types.ts"
-import { createNativeInquiryRuntime } from "../benchmarks/authorization-dsl/inquiry-native.ts"
+import { createNativeInquiryRuntime, type NativeInquiryBudgetUsage } from "../benchmarks/authorization-dsl/inquiry-native.ts"
+import { isDeepStrictEqual } from "node:util"
+import { z } from "zod"
 import { modelSourceDisplay } from "../benchmarks/authorization-dsl/inquiry-tools.ts"
 import { parseInquiryStrategy, isPropertyDirectedInquiryStrategy, type InquiryStrategy } from "../task-dsl/authorization/control-slice.ts"
 import { createInquiryContextEncoder, createInquiryTransmissionMeter, INCREMENTAL_INQUIRY_CONTEXT_GUIDE, PROGRAM_CONTEXT_TRANSPORT_GUIDE } from "../benchmarks/authorization-dsl/inquiry-context.ts"
@@ -15,11 +17,23 @@ import { PROGRAM_RULES_INSTRUCTION } from "../task-dsl/authorization/program-rul
 import { createProgramDelivery, decideFinalProgramDelivery, FINAL_PROGRAM_ANSWER_INSTRUCTION, projectPriorProgramViews, type ProgramDeliveryPhase } from "../task-dsl/authorization/program-delivery.ts"
 export { readCodexAccountThread } from "./codex-account-session.ts"
 
+export interface AccountAuthorRecovery {
+  schemaVersion: "authorization-author-recovery/v1"
+  purpose: string
+  limits: { toolCalls: number; displayBytes: number; readBytes: number; elapsedMs: number; authorContinuations: number }
+  used: NativeInquiryBudgetUsage & { elapsedMs: number; authorTurns: number }
+}
+const budgetCount = z.number().int().nonnegative()
+const AuthorRecoverySchema = z.object({
+  schemaVersion: z.literal("authorization-author-recovery/v1"), purpose: z.string().min(1),
+  limits: z.object({ toolCalls: budgetCount, displayBytes: budgetCount, readBytes: budgetCount, elapsedMs: budgetCount, authorContinuations: budgetCount }),
+  used: z.object({ toolCalls: budgetCount, checks: budgetCount, readBytes: budgetCount, displayBytes: budgetCount, modelSourceBytes: budgetCount, resentSourceBytes: budgetCount, formatRejections: budgetCount, formatCheckCalls: budgetCount, sourceFormatRejections: budgetCount, finalFormatRejections: budgetCount, formatExhausted: z.boolean(), deliveryClosed: z.boolean(), elapsedMs: budgetCount, authorTurns: budgetCount }),
+})
 export interface AccountInquiryOptions {
   sourceStructure?: boolean
   programSupport?: "rules" | "execute"
   purpose?: string; attempt?: string
-  authorResumeAfter?: import("./codex-account-session.ts").AccountSessionResult
+  authorResumeAfter?: import("./codex-account-session.ts").AccountSessionResult & { authorRecovery?: AccountAuthorRecovery }
   maxAuthorContinuations?: 0 | 1 | 2
   authoringTargetMode?: "current-input" | "reusable"; programContext?: import("../task-dsl/authorization/program-consumption-context.ts").ProgramContext; executionPolicy?: import("../task-dsl/authorization/executable-contract.ts").ExecutionPolicy; programMode?: import("../task-dsl/authorization/executable-contract.ts").ProgramMode
   inputFile: string; workDir: string; model: string; method?: "M" | "D0" | "D1"; strategy?: InquiryStrategy; skillContent?: string
@@ -31,12 +45,26 @@ export interface AccountInquiryOptions {
 /** Both account entrances execute the existing native domain core. The official
  * CLI controls generation and history; no provider adapter or second agent loop. */
 export async function runCodexAccountInquiry(options: AccountInquiryOptions) {
-  const started = Date.now(), timeoutMs = options.timeoutMs ?? 1200000
+  const started = Date.now(), inherited = options.authorResumeAfter?.authorRecovery
+  const purpose = options.purpose ?? inherited?.purpose ?? path.basename(options.workDir), attempt = options.attempt ?? "first"
+  const limits = { toolCalls: options.maxToolCalls ?? inherited?.limits?.toolCalls ?? 24, displayBytes: options.maxDisplayBytes ?? inherited?.limits?.displayBytes ?? 262144, readBytes: options.maxReadBytes ?? inherited?.limits?.readBytes ?? 8388608, elapsedMs: options.timeoutMs ?? inherited?.limits?.elapsedMs ?? 1200000, authorContinuations: options.maxAuthorContinuations ?? inherited?.limits?.authorContinuations ?? 2 }
+  const timeoutMs = limits.elapsedMs - (inherited?.used?.elapsedMs ?? 0)
   if (options.authorResumeAfter && (options.programMode !== "edit" || !options.reuse)) throw new Error("account-author-resume-requires-own-restored-edit-state")
+  if (options.authorResumeAfter) {
+    const previous = options.authorResumeAfter, life = previous.lifecycle
+    if (!life?.providerTerminalObserved || life.localExecution !== "closed" || !["completed", "failed", "interrupted"].includes(previous.terminalStatus) || previous.quotaRefused) throw new Error("account-author-resume-requires-known-closed-terminal")
+    if (!inherited || !AuthorRecoverySchema.safeParse(inherited).success) throw new Error("account-author-resume-cumulative-budget-missing")
+    if (purpose !== inherited.purpose || life.purpose !== inherited.purpose) throw new Error("account-author-resume-purpose-mismatch")
+    if (!isDeepStrictEqual(limits, inherited.limits)) throw new Error("account-author-resume-budget-limits-mismatch")
+    if (timeoutMs <= 0 || inherited.used.toolCalls >= limits.toolCalls || inherited.used.authorTurns >= 1 + limits.authorContinuations
+      || inherited.used.readBytes >= limits.readBytes || inherited.used.displayBytes >= limits.displayBytes || inherited.used.modelSourceBytes >= limits.displayBytes
+      || inherited.used.formatExhausted || inherited.used.deliveryClosed) throw new Error("account-author-resume-budget-exhausted")
+  }
+  options = { ...options, maxToolCalls: limits.toolCalls, maxDisplayBytes: limits.displayBytes, maxReadBytes: limits.readBytes, maxAuthorContinuations: limits.authorContinuations as 0 | 1 | 2 }
   if (options.programSupport === "rules" && options.authorResumeAfter && (options.authorResumeAfter as any).programSupport !== "rules") throw new Error("rules-resume-requires-rules-only-history")
   if (options.method === "D0") throw new Error("codex-account-method-D0-unsupported: account runtime supports M or D1; it cannot substitute a different method")
   const instructionSources = await loadCodexAccountBoundary(options.accountBoundaryFile)
-  const runtime = await createNativeInquiryRuntime({ ...options, method: options.method, domainTools: options.domainTools ?? true, traceRedactor: redactCodexEvent })
+  const runtime = await createNativeInquiryRuntime({ ...options, recoverCurrentDraft: !!inherited, initialBudget: inherited?.used, method: options.method, domainTools: options.domainTools ?? true, traceRedactor: redactCodexEvent })
   const definitions = options.programMode === "consume" ? runtime.definitions.filter(t => !["authorization_program", "authorization_program_patch"].includes(t.name)) : runtime.definitions
   const directed = options.programContext === "directed"
   const encode = !directed && isPropertyDirectedInquiryStrategy(options.strategy) ? createInquiryContextEncoder() : undefined
@@ -76,7 +104,7 @@ export async function runCodexAccountInquiry(options: AccountInquiryOptions) {
   const delivery = createProgramDelivery(), deliveryDecisions: ReturnType<typeof decideFinalProgramDelivery>[] = []
   let phase: ProgramDeliveryPhase = "task-answer", finalPhaseUsed = false
   let previousProgress: string | undefined, checkpoint = 0, identity: Record<string, unknown> = {}
-  const purpose = options.purpose ?? path.basename(options.workDir), attempt = options.attempt ?? "first"
+  let hostFailure: string | undefined
   const save = async (name: string, value: unknown) => { if (options.traceDir) await writeFile(path.join(options.traceDir, name), JSON.stringify(redactCodexEvent(value), null, 2) + "\n", { encoding: "utf8", flag: "wx" }) }
   const execute = async (call: Parameters<typeof runtime.execute>[0]) => {
     if (phase === "final-answer") return respond(await runtime.rejectArguments(call, [{ path: "$", keyword: "final-answer-phase", message: "Deliver the standalone task answer now; this final phase does not permit further tools.", expected: null }]), false)
@@ -115,7 +143,7 @@ export async function runCodexAccountInquiry(options: AccountInquiryOptions) {
       await save(`delivery-turn-${turns.length}.json`, delivery.snapshot(runtime.deliveryBasis()))
       if (phase === "final-answer") break
       const currentContext = await runtime.accountContext(false), terminal = account.status === "completed" || account.status === "undelivered" ? account.terminalStatus : account.status
-      const decision = decideProgramAuthorContinuation({ maxContinuations: options.maxAuthorContinuations, mode: options.programMode, terminal, continuations: turns.length - 1, remainingMs: timeoutMs - (Date.now() - started), context: currentContext, previousProgress })
+      const decision = decideProgramAuthorContinuation({ maxContinuations: options.maxAuthorContinuations, mode: options.programMode, terminal, continuations: (inherited?.used.authorTurns ?? 0) + turns.length - 1, remainingMs: timeoutMs - (Date.now() - started), context: currentContext, previousProgress })
       decisions.push(decision)
       if (!decision.continue) {
         const finalDecision = decideFinalProgramDelivery({ delivery: delivery.snapshot(runtime.deliveryBasis()), terminal, controlledToolPhaseClosed: account.lifecycle?.hostFinalization === "budget-reserve" && account.lifecycle.providerTerminalObserved && account.lifecycle.localExecution === "closed" && !account.quotaRefused && !account.terminalError, remainingMs: timeoutMs - (Date.now() - started), budget: (currentContext as any).toolBudget, finalPhaseUsed })
@@ -126,6 +154,12 @@ export async function runCodexAccountInquiry(options: AccountInquiryOptions) {
       phase = "author-edit"
       previousProgress = decision.progress
     }
+  } catch (error) {
+    // A saved provider terminal and the host projection are distinct outcomes.
+    // Preserve the ordinary archive and raw state; never infer an unknown turn.
+    if (!turns.length) throw error
+    hostFailure = String(error)
+    await save("host-failure.json", { error: hostFailure, providerTerminal: turns.at(-1)?.terminalStatus, instruction: "Inspect the original failure. Explicit same-author resume requires a known closed terminal and cumulative budget." })
   } finally { await runtime.close() }
   // Returned reports can be persisted by either entrance. Masking is applied to
   // that archive copy, never the live domain state; altered material hashes will
@@ -137,7 +171,9 @@ export async function runCodexAccountInquiry(options: AccountInquiryOptions) {
   const finalDelivery = delivery.snapshot(runtime.deliveryBasis())
   const usage = turns.every(t => t.usage) ? turns.reduce((sum, t) => ({ input: sum.input + t.usage!.input, output: sum.output + t.usage!.output, cacheRead: sum.cacheRead + t.usage!.cacheRead, cacheWrite: sum.cacheWrite + t.usage!.cacheWrite }), emptyTokenUsage()) : null
   const account = { ...last, programSupport: options.programSupport ?? "execute", text: typeof finalDelivery.answer === "string" ? finalDelivery.answer : last.text, rawLastText: last.text, firstAnswer: finalDelivery.firstAnswer, delivery: { ...finalDelivery, decisions: deliveryDecisions }, answerDelivery: finalDelivery.finalDelivered ? "delivered" as const : "undelivered" as const, usage, usageVisibility: usage ? "observed" as const : "unknown" as const, durationMs: Date.now() - started, inferenceDispatched: turns.some(t => t.inferenceDispatched), tools: turns.flatMap(t => t.tools), toolRejections: turns.flatMap(t => t.toolRejections), events: turns.flatMap(t => t.events), turns, authorContinuation: { decisions, stopReason: decisions.at(-1)?.reason, continuationFailure: turns.at(-1) !== last ? turns.at(-1)?.reason : undefined } }
-  return { account, native, ...(options.reuse ? { reuse: { ...options.reuse.info, materialsUsed: new Set(native.domain?.materialUses?.map(u => u.materialId)).size } } : {}) }
+  const authorRecovery: AccountAuthorRecovery = { schemaVersion: "authorization-author-recovery/v1", purpose, limits, used: { ...runtime.budgetUsage(), elapsedMs: (inherited?.used.elapsedMs ?? 0) + Date.now() - started, authorTurns: (inherited?.used.authorTurns ?? 0) + turns.filter(t => t.inferenceDispatched && !t.lifecycle?.finalizesThreadId).length } }
+  await save("author-recovery.json", authorRecovery)
+  return { account: { ...account, hostFailure, authorRecovery }, native, ...(options.reuse ? { reuse: { ...options.reuse.info, materialsUsed: new Set(native.domain?.materialUses?.map(u => u.materialId)).size } } : {}) }
 }
 
 export class CodexAccountAdapter implements AgentAdapter {
@@ -161,10 +197,10 @@ export class CodexAccountAdapter implements AgentAdapter {
   async run(task: Parameters<AgentAdapter["run"]>[0]): Promise<RunResult> {
     const p = this.config.providerOptions ?? {}, numeric = (key: string) => typeof p[key] === "number" ? p[key] as number : undefined
     const { account, native } = await runCodexAccountInquiry({ programSupport: p.authorizationProgramSupport as AccountInquiryOptions["programSupport"], authoringTargetMode: p.authorizationAuthoringTarget as AccountInquiryOptions["authoringTargetMode"], programMode: p.authorizationProgramMode as AccountInquiryOptions["programMode"], executionPolicy: p.authorizationExecutionPolicy as AccountInquiryOptions["executionPolicy"], programContext: p.authorizationProgramContext as AccountInquiryOptions["programContext"], purpose: typeof p.authorizationPurpose === "string" ? p.authorizationPurpose : undefined, attempt: typeof p.authorizationAttempt === "string" ? p.authorizationAttempt : undefined, inputFile: p.authorizationScope as string, workDir: task.workDir, model: this.config.model, method: parseNativeInquiryMethod(p.authorizationMethod), strategy: parseInquiryStrategy(p.authorizationStrategy), domainTools: p.authorizationDomainTools === true, skillContent: task.skill?.content, maxToolCalls: numeric("authorizationMaxToolCalls"), maxDisplayBytes: numeric("authorizationMaxDisplayBytes"), maxReadBytes: numeric("authorizationMaxReadBytes"), timeoutMs: numeric("authorizationSessionTimeoutMs") ?? task.timeoutMs ?? this.config.timeoutMs, traceDir: typeof p.authorizationTraceDir === "string" ? p.authorizationTraceDir : undefined, domainProgramFile: typeof p.authorizationDomainProgram === "string" ? p.authorizationDomainProgram : undefined, accountBoundaryFile: typeof p.authorizationAccountBoundary === "string" ? p.authorizationAccountBoundary : undefined, transportFactory: this.transportFactory, preparation: p.authorizationPreparation as SourcePreparationOptions | undefined })
-    const runStatus = account.status === "completed" ? "ok" : account.status === "timeout-unknown" ? "timeout" : account.status === "undelivered" ? "parse-failed" : "adapter-crashed"
+    const runStatus = account.hostFailure ? "adapter-crashed" : account.status === "completed" ? "ok" : account.status === "timeout-unknown" ? "timeout" : account.status === "undelivered" ? "parse-failed" : "adapter-crashed"
     // Legacy RunResult requires numeric slots; availability=false prevents them
     // from becoming a zero-cost claim. Visible account tokens live in account.usage.
-    return { text: account.text, steps: [], tokens: account.usage ?? emptyTokenUsage(), cost: 0, usageAvailable: false, durationMs: account.durationMs, llmDurationMs: 0, workDir: task.workDir, skillLoaded: !!task.skill, runStatus, statusDetail: account.reason ?? account.status, authorizationInquiry: { ...native, account }, ...(runStatus !== "ok" ? { adapterError: { exitCode: 1, stderr: account.reason ?? account.status } } : {}) }
+    return { text: account.text, steps: [], tokens: account.usage ?? emptyTokenUsage(), cost: 0, usageAvailable: false, durationMs: account.durationMs, llmDurationMs: 0, workDir: task.workDir, skillLoaded: !!task.skill, runStatus, statusDetail: account.hostFailure ?? account.reason ?? account.status, authorizationInquiry: { ...native, account }, ...(runStatus !== "ok" ? { adapterError: { exitCode: 1, stderr: account.hostFailure ?? account.reason ?? account.status } } : {}) }
   }
   async teardown() {}
 }

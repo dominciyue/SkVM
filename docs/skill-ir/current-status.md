@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-**BT0–BT21已获用户授权，计划已登记，等待新开发线程接管。** [任务书](../superpowers/plans/2026-10-21-authorization-semantic-validation-and-method-diagnosis.md) identity为`authorization-semantic-validation-v1`，从BS最终`03484a23`及本轮计划提交继续。开发模型`gpt-6-astra/high`；实验仍为官方`gpt-5.6-sol/high`，第三方暂停。当前仅完成复核和计划，没有BT生产实现或模型实验。
+**BT0–BT9已实施，正在BT10零模型整合与首次实验登记。** [任务书](../superpowers/plans/2026-10-21-authorization-semantic-validation-and-method-diagnosis.md) identity为`authorization-semantic-validation-v1`，基线`b0ab0c18`。普通账号作者恢复已接通累计预算与当前raw；两类关系检查复用现有coverage、事件与trial。固定M源码8项抽取测试子案例通过（原控制流、类型shim），G采用独立源码评阅；两份独立参考通过声明局部范围内9项检查，未覆盖职责保留。开发模型`gpt-6-astra/high`；实验仍为官方`gpt-5.6-sol/high`，第三方暂停。原`.tmp/`保留，尚无BT模型实验，自动作者与方法收益仍待检验。阶段记录见[execution](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-validation-v1/execution.md)。
 
 本轮先修作者已知终态后的持久恢复与累计预算，再用固定Memos/Gitea源码核验入口、调用、错误与效果关系。自动修订稿与独立参考材料分轨：十个正常用途为两个作者及两个任务各N/RR/RE/AE四种消费，至多四个具名确认；错误自动稿不会继续充作合格执行组，参考材料也不会冒充自动产出。原题、历史评分、原件和默认保持。方法合同见[spec§14.59](skill-ir-aot-optimization-spec.md#1459-bt-semantic-validation-and-method-diagnosis)，原因与决策见[研究§7.81](skill-dsl-research.md#781-bs-复核与-bt-源码语义核验及方法诊断)。有限队列完成后不自动BU。
 

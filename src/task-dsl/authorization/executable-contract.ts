@@ -233,6 +233,6 @@ export async function compileExecutableContract(raw: unknown, options: { tools: 
   // a later return/exception gap cannot invalidate an already covered prefix.
   const evaluation = checkPropertyQueries(options.program, lowered.state, demands, projected.units, [], progressive ? [] : diagnostics, true, "semantic-completion/v1")
   const obligations = await collectProgramObligations(options.tools, contract)
-  const outcome = projectProgramOutcome({ program: contract, resourceExecution, obligations })
+  const outcome = projectProgramOutcome({ program: contract, resourceExecution, obligations, diagnostics })
   return { obligations, outcome, diagnostics, normalizations: normalized.normalizations, resourceExecution, inputBinding: options.inputResolution && programInputBindingSummary(options.inputResolution), contract, revision: digest([contract, options.program, conditions, options.resourceInputs, options.externalAssumptions, options.inputResolution && programInputBindingSummary(options.inputResolution), owners.map(o => o.skeleton.revision)]), scope: contract.scope, assumptions: contract.assumptions, conditions: structuredClone(conditions), units, projectedUnits: projected.units, functionRoots, sourceMaterials: materials.snapshot(), materialUses: projected.uses, materialProjection: { diagnostics: projected.diagnostics, stages: projected.stages }, demands, slice: lowered.state, loweringDiagnostics: lowered.diagnostics, evaluation, requestOperationCertified: false as const, semanticReview: "unreviewed" as const }
 }

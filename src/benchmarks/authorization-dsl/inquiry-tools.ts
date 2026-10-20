@@ -21,6 +21,7 @@ export interface InquiryToolOutput {
   structure?: { symbolId: string; receiverClass?: string; calls: StructureCall[]; revision: string; truncated: boolean; skeleton?: SourceSkeleton }
 }
 export interface InquiryToolsOptions {
+  initialUsage?: { readBytes: number; displayBytes: number }
   sourceRoot: string; allowedPaths: string[]; repository: string; sourceRef: string;
   maxFiles?: number; maxReadBytes?: number; maxDisplayBytes?: number; maxToolCalls?: number;
   reserveFinalRead?: boolean; structure?: boolean; controlSemantics?: "finite-control/v1"; propertyDirected?: boolean; questionDirected?: boolean
@@ -95,11 +96,11 @@ async function prepareInquiryTools(options: InquiryToolsOptions, preparation: Re
   preparation.progress({ totalFiles: paths.length }); preparation.end()
   const snapshotPaths = [...paths]
   const files = new Map<string, SourceBundleFile>(), symbols: DiscoverySymbol[] = []
-  let indexBytes = 0, displayBytes = 0, toolCalls = 0, ioReadBytes = 0, importedEvidenceBytes = 0
+  let indexBytes = 0, displayBytes = options.initialUsage?.displayBytes ?? 0, toolCalls = 0, ioReadBytes = options.initialUsage?.readBytes ?? 0, importedEvidenceBytes = 0
   for (const relative of paths) {
     if (files.size >= maxFiles) { scopeGaps.push({ code: "file-budget", path: relative, detail: "Allowed source exceeds the indexed file limit." }); continue }
     preparation.start("load", relative)
-    const loadStarted = performance.now(), loaded = await loadPortableSourceBundle({ sourceRoot: root, sourceFiles: [relative], repository: options.repository, sourceRef: options.sourceRef, maxBytes: maxReadBytes - indexBytes })
+    const loadStarted = performance.now(), loaded = await loadPortableSourceBundle({ sourceRoot: root, sourceFiles: [relative], repository: options.repository, sourceRef: options.sourceRef, maxBytes: maxReadBytes - ioReadBytes })
     preparation.end({ durationMs: performance.now() - loadStarted })
     if (!loaded.success) { scopeGaps.push(...loaded.diagnostics.map(d => ({ code: d.code, path: relative, detail: d.message }))); continue }
     const source = loaded.bundle.files[0]!

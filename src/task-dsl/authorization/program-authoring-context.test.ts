@@ -175,6 +175,21 @@ test("a stale candidate cannot supply current draft diagnostics or preview avail
   expect(feedback.candidatePreviewAvailable).toBe(false)
   expect(feedback.candidateAdopted).toBeUndefined()
 })
+test("BT relationship feedback belongs to the current draft or the active program, never a stale candidate", () => {
+  const raw = { scope: { questionId: "meaning" }, resourceWorkflow: { inputs: [], steps: [] } }
+  const active = { id: "active", status: "unknown", diagnostics: ["active-gap"] }
+  const stale = { revision: "old", diagnostics: [{ code: "old-error", severity: "error" }], resourceExecution: { returned: 999, events: [] }, outcome: { relations: [{ id: "stale", status: "different" }] } }
+  const report = { program: raw, outcome: { relations: [active] }, candidate: stale }
+  const feedback = author.projectProgramAuthoring(report, questions)
+  expect(feedback.relations).toEqual([active])
+  expect(feedback.candidatePreviewAvailable).toBe(false)
+  expect(feedback.diagnostics).toEqual([])
+  expect(author.projectProgramAuthoring({ ...report, currentDraft: { revision: "new", raw } }, questions).relations).toEqual([])
+})
+test("BT a current relationship difference is actionable within the existing author budget", () => {
+  const context = { authoring: { draftRevision: "r", phase: "repair", feedbackGroups: { relations: [{ status: "different" }] } }, toolBudget: { explorationRemaining: 4, totalRemaining: 6 } }
+  expect(author.decideProgramAuthorContinuation({ mode: "edit", terminal: "completed", continuations: 0, remainingMs: 1000, context }).continue).toBe(true)
+})
 
 test("one missing dataset lists each affected step once across multiple absent input roots", () => {
   const workflow = { inputs: ["left", "right"], steps: [

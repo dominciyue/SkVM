@@ -1,0 +1,326 @@
+{
+  "checkedAt": "2026-10-20T17:44:26.334Z",
+  "providerCalls": 0,
+  "checks": [
+    {
+      "task": "M",
+      "sha256": "5de977bc5d6a3fedaed1c0e3e0ce9d0b3cb6a076aeae7cfda7119c3eb574d571",
+      "qualified": true,
+      "qualification": "declared local scope only; all original question duties remain",
+      "rows": [
+        {
+          "id": "expiry-equality-exact-object",
+          "status": "pass",
+          "expectedOrigin": "fixed-source review plus independently extracted original control flow",
+          "returned": {
+            "memo_id": 43,
+            "share_memo_id": 43,
+            "creator_valid": true,
+            "context_user_id": 0
+          },
+          "order": [
+            "share_error",
+            "share",
+            "share_found",
+            "share_time",
+            "memo_error",
+            "memo",
+            "memo_entry_state",
+            "viewer",
+            "setting_error",
+            "creator_error",
+            "creator",
+            "creator_valid",
+            "creator_decision",
+            "audience_decision",
+            "share_object",
+            "local_read_context"
+          ],
+          "conditions": []
+        },
+        {
+          "id": "invalid-creator-space-error-first",
+          "status": "pass",
+          "expectedOrigin": "fixed-source review plus independently extracted original control flow",
+          "firstStop": "space_error",
+          "order": [
+            "share_error",
+            "share",
+            "share_found",
+            "share_time",
+            "memo_error",
+            "memo",
+            "memo_entry_state",
+            "viewer",
+            "setting_error",
+            "creator_error",
+            "creator",
+            "creator_valid",
+            "space_error"
+          ],
+          "conditions": []
+        },
+        {
+          "id": "invalid-creator-member-error-first",
+          "status": "pass",
+          "expectedOrigin": "fixed-source review plus independently extracted original control flow",
+          "firstStop": "membership_error",
+          "order": [
+            "share_error",
+            "share",
+            "share_found",
+            "share_time",
+            "memo_error",
+            "memo",
+            "memo_entry_state",
+            "viewer_error",
+            "viewer_row",
+            "viewer_found",
+            "viewer",
+            "creator_error",
+            "creator",
+            "creator_valid",
+            "space_error",
+            "space",
+            "membership_error"
+          ],
+          "conditions": []
+        },
+        {
+          "id": "unknown-audience-viewer-error-first",
+          "status": "pass",
+          "expectedOrigin": "fixed-source review plus independently extracted original control flow",
+          "firstStop": "viewer_error",
+          "order": [
+            "share_error",
+            "share",
+            "share_found",
+            "share_time",
+            "memo_error",
+            "memo",
+            "memo_entry_state",
+            "viewer_error"
+          ],
+          "conditions": []
+        },
+        {
+          "id": "expired-share",
+          "status": "pass",
+          "expectedOrigin": "fixed-source review plus independently extracted original control flow",
+          "firstStop": "share_time",
+          "order": [
+            "share_error",
+            "share",
+            "share_found",
+            "share_time"
+          ],
+          "conditions": []
+        }
+      ],
+      "relationChecks": [
+        {
+          "id": "context-before-decision",
+          "kind": "ordered-prefix",
+          "source": {
+            "path": "core/access/memo_resolve.go",
+            "startLine": 85,
+            "endLine": 90,
+            "sha256": "8b1a25c79431f51a5f7b5d8c1d12d7e587b7d45edfcefa853f2d9d02c9cb5d1e"
+          },
+          "stepIds": [
+            "creator_error",
+            "creator",
+            "creator_valid",
+            "space_error",
+            "space",
+            "membership_error",
+            "membership",
+            "creator_decision",
+            "audience_decision",
+            "share_object"
+          ],
+          "status": "consistent",
+          "diagnostics": [],
+          "observedOrder": [
+            "creator_error",
+            "creator",
+            "creator_valid",
+            "creator_decision",
+            "audience_decision",
+            "share_object"
+          ],
+          "effects": [],
+          "semanticSupport": "author-declared-unreviewed",
+          "requestOperationCertified": false,
+          "instruction": "Consistency is only with the declared finite relationships. Independently review source activation, object meaning and call order. Missing call evidence is unknown; an earlier effect request survives a later error. No target operation or durable commit is certified."
+        }
+      ],
+      "independentReview": {
+        "reviewer": "bt_reference_m_audit",
+        "disputedClaim": "Reviewer claimed now==expiry rejected. Rejected on direct verification: upstream memo_share_service.go:218 uses >, reference share_time uses <=, equality case passes. No edit made from incorrect review."
+      }
+    },
+    {
+      "task": "G",
+      "sha256": "902eb5e2cb96617fbba7082d9b1522b0ddf07d0ff90f7bc2f124b8ad70b00091",
+      "qualified": true,
+      "qualification": "declared local scope only; all original question duties remain",
+      "rows": [
+        {
+          "id": "reader-fields",
+          "status": "pass",
+          "expectedOrigin": "independent fixed-source review; no G original execution",
+          "returned": {
+            "can_write": false,
+            "deadline": 0,
+            "milestone": 0,
+            "repository_id": 83,
+            "poster_id": 31,
+            "title_before_model": " finite issue ",
+            "body": "Synthetic issue body",
+            "ref": "main",
+            "converter_load_observation": null
+          },
+          "order": [
+            "issues_mode",
+            "can_write",
+            "deadline",
+            "milestone",
+            "labels",
+            "load_poster",
+            "blocked_owner",
+            "transaction_observation",
+            "transaction_return",
+            "mentions_observation",
+            "mentions_return",
+            "refetch_observation",
+            "refetch_return",
+            "handler_fields"
+          ],
+          "conditions": []
+        },
+        {
+          "id": "reader-refetch-error-after-transaction-return",
+          "status": "pass",
+          "expectedOrigin": "independent fixed-source review; no G original execution",
+          "firstStop": "refetch_return",
+          "order": [
+            "issues_mode",
+            "can_write",
+            "deadline",
+            "milestone",
+            "labels",
+            "load_poster",
+            "blocked_owner",
+            "transaction_observation",
+            "transaction_return",
+            "mentions_observation",
+            "mentions_return",
+            "refetch_observation",
+            "refetch_return"
+          ],
+          "conditions": []
+        },
+        {
+          "id": "reader-close-error-after-transaction-return",
+          "status": "pass",
+          "expectedOrigin": "independent fixed-source review; no G original execution",
+          "firstStop": "close_return",
+          "order": [
+            "issues_mode",
+            "can_write",
+            "deadline",
+            "milestone",
+            "labels",
+            "load_poster",
+            "blocked_owner",
+            "transaction_observation",
+            "transaction_return",
+            "mentions_observation",
+            "mentions_return",
+            "close_observation",
+            "close_return"
+          ],
+          "conditions": []
+        },
+        {
+          "id": "reader-mentions-error-after-transaction-return",
+          "status": "pass",
+          "expectedOrigin": "independent fixed-source review; no G original execution",
+          "firstStop": "mentions_return",
+          "order": [
+            "issues_mode",
+            "can_write",
+            "deadline",
+            "milestone",
+            "labels",
+            "load_poster",
+            "blocked_owner",
+            "transaction_observation",
+            "transaction_return",
+            "mentions_observation",
+            "mentions_return"
+          ],
+          "conditions": []
+        }
+      ],
+      "relationChecks": [
+        {
+          "id": "create-followed-by-refetch",
+          "kind": "ordered-prefix",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 624,
+            "endLine": 652,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "stepIds": [
+            "load_poster",
+            "blocked_owner",
+            "transaction_observation",
+            "transaction_return",
+            "mentions_observation",
+            "mentions_return",
+            "close_observation",
+            "close_return",
+            "refetch_observation",
+            "refetch_return",
+            "handler_fields"
+          ],
+          "status": "consistent",
+          "diagnostics": [],
+          "observedOrder": [
+            "load_poster",
+            "blocked_owner",
+            "transaction_observation",
+            "transaction_return",
+            "mentions_observation",
+            "mentions_return",
+            "refetch_observation",
+            "refetch_return",
+            "handler_fields"
+          ],
+          "effects": [],
+          "semanticSupport": "author-declared-unreviewed",
+          "requestOperationCertified": false,
+          "instruction": "Consistency is only with the declared finite relationships. Independently review source activation, object meaning and call order. Missing call evidence is unknown; an earlier effect request survives a later error. No target operation or durable commit is certified."
+        }
+      ],
+      "independentReview": {
+        "reviewer": "bt_reference_g_audit",
+        "finding": "Reader local scope faithful. Writer assignee lookup/assignability and assignee blocking remain unknown before transaction; do not call changed writer refetch its certified first error."
+      }
+    }
+  ],
+  "evidenceScope": {
+    "M": "8 extracted original Go subcases + source review + finite reference comparison",
+    "G": "independent source review + finite reference comparison; no upstream function execution"
+  },
+  "isolatedSourceTestExecutions": 1,
+  "fullUpstreamModuleExecutions": 0,
+  "businessWrites": 0,
+  "unknownCost": [
+    "developer tokens/USD",
+    "reference preparation effort"
+  ]
+}

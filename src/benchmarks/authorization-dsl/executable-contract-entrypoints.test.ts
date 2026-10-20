@@ -1,4 +1,5 @@
-import { expect, test } from "bun:test"
+import { expect, test, spyOn } from "bun:test"
+import * as obligationsModule from "../../task-dsl/authorization/program-obligations.ts"
 import { mkdtemp, mkdir, writeFile, readFile } from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
@@ -445,6 +446,119 @@ test("public account author continues twice with one runtime budget and archives
   expect(run.account.authorContinuation.stopReason).toBe("author-continuation-limit")
 })
 const at = (startLine: number, endLine = startLine, text?: string) => ({ path: "app.py", startLine, endLine, ...(text ? { text } : {}) })
+test("BT completed provider survives a host projection failure and resumes latest raw with cumulative budgets", async () => {
+  const f = await contractFiles(), methods: string[] = [], prompts: any[] = []
+  const raw = { ...f.contract, queries: [], resourceWorkflow: { inputs: [], steps: [{ id: "result", op: "return", value: { literal: 7 }, source: at(8) }] } }
+  let turn = 0, index = 0, failProjection = false
+  const original = obligationsModule.collectProgramObligations
+  const spy = spyOn(obligationsModule, "collectProgramObligations").mockImplementation(async (...args) => {
+    if (failProjection) throw new Error("BT injected post-terminal projection failure")
+    return original(...args)
+  })
+  const factory: any = () => {
+    let receive = (_m: any) => {}
+    const next = () => {
+      const action = turn === 1 ? [
+        { tool: "source_read", arguments: { path: "app.py", startLine: 1, endLine: 8 } },
+        { tool: "authorization_program", arguments: raw },
+      ][index++] : index++ === 0 ? { tool: "authorization_program_patch", arguments: { baseRevision: prompts[1]?.authoring?.draftRevision, upsertSteps: [{ id: "result", op: "return", value: { literal: 9 }, source: at(8) }] } } : undefined
+      if (action) receive({ id: `rpc-${turn}-${index}`, method: "item/tool/call", params: { threadId: "bt-own", turnId: `t${turn}`, callId: `c${turn}-${index}`, ...action } })
+      else {
+        failProjection = turn === 1
+        receive({ method: "turn/completed", params: { threadId: "bt-own", turn: { id: `t${turn}`, status: "completed", items: [{ type: "agentMessage", phase: "final_answer", text: `answer-${turn}` }] } } })
+      }
+    }
+    return { isolation: { kind: "test-transport", reason: "BT recovery regression" }, onMessage(f: any) { receive = f }, onExit() {}, close() {}, send(m: any) {
+      if (m.method) methods.push(m.method)
+      if (m.method === "initialize") receive({ id: m.id, result: {} })
+      if (m.method === "thread/read") receive({ id: m.id, result: { thread: { id: "bt-own", ephemeral: false, turns: [{ id: `t${turn}`, status: "completed" }] } } })
+      if (["thread/start", "thread/resume"].includes(m.method)) receive({ id: m.id, result: { thread: { id: "bt-own", ephemeral: false }, model: "gpt-5.6-sol" } })
+      if (m.method === "turn/start") { turn++; index = 0; prompts.push(JSON.parse(m.params.input[0].text.split("Current local explanation context: ")[1])); receive({ id: m.id, result: { turn: { id: `t${turn}` } } }); queueMicrotask(next) }
+      if (m.result?.contentItems) queueMicrotask(next)
+    } }
+  }
+  const common = { inputFile: f.inputFile, outDir: path.join(f.root, "bt-recovery"), model: "gpt-5.6-sol", harness: "codex-account" as const, strategy: "question-checked-v1" as const, programContext: "directed" as const, programMode: "edit" as const, executionPolicy: "progressive" as const, purpose: "bt-author", accountTransportFactory: factory, execution: { maxToolCalls: 16, sessionTimeoutMs: 20000, maxAuthorContinuations: 1 as const } }
+  try {
+    const first: any = await executeLocalInquiryRun(common)
+    expect(first.status).toBe("host-failed")
+    expect(first.telemetry.account.terminalStatus).toBe("completed")
+    expect(first.telemetry.account.hostFailure).toContain("BT injected")
+    const retained: any = await inspectLocalInquiry(first.sessionPath)
+    expect(retained.domain.programDraft.currentDraft.raw).toEqual(raw)
+    const used = retained.telemetry.account.authorRecovery.used
+    expect(used.toolCalls).toBeGreaterThanOrEqual(2)
+    failProjection = false
+    const { runCodexAccountInquiry } = await import("../../adapters/codex-account.ts")
+    const previous = retained.telemetry.account
+    const direct: any = { ...common, workDir: f.root, timeoutMs: 20000, maxToolCalls: 16, maxAuthorContinuations: 1, reuse: { info: { change: "unchanged" }, seed: {} }, transportFactory: () => { throw new Error("BT must not dispatch rejected resume") } }
+    for (const status of ["active", "unconfirmed"]) await expect(runCodexAccountInquiry({ ...direct, authorResumeAfter: { ...previous, lifecycle: { ...previous.lifecycle, localExecution: status } } })).rejects.toThrow("account-author-resume-requires-known-closed-terminal")
+    await expect(runCodexAccountInquiry({ ...direct, authorResumeAfter: { ...previous, terminalStatus: "unknown" } })).rejects.toThrow("account-author-resume-requires-known-closed-terminal")
+    await expect(runCodexAccountInquiry({ ...direct, authorResumeAfter: { ...previous, authorRecovery: undefined } })).rejects.toThrow("account-author-resume-cumulative-budget-missing")
+    const missingCounter = structuredClone(previous); delete missingCounter.authorRecovery.used.readBytes
+    await expect(runCodexAccountInquiry({ ...direct, authorResumeAfter: missingCounter })).rejects.toThrow("account-author-resume-cumulative-budget-missing")
+    await expect(runCodexAccountInquiry({ ...direct, purpose: "different", authorResumeAfter: previous })).rejects.toThrow("account-author-resume-purpose-mismatch")
+    for (const counter of ["readBytes", "displayBytes", "modelSourceBytes", "formatExhausted", "deliveryClosed"] as const) {
+      const exhausted = structuredClone(previous)
+      exhausted.authorRecovery.used[counter] = counter === "readBytes" ? exhausted.authorRecovery.limits.readBytes : counter === "formatExhausted" || counter === "deliveryClosed" ? true : exhausted.authorRecovery.limits.displayBytes
+      await expect(runCodexAccountInquiry({ ...direct, authorResumeAfter: exhausted })).rejects.toThrow("account-author-resume-budget-exhausted")
+    }
+    const next: any = await executeLocalInquiryRun({ ...common, previous: first.sessionPath, resumeAuthorThread: true, attempt: "repair" })
+    expect({ status: next.status, error: next.error }).toEqual({ status: "completed", error: undefined })
+    expect(methods.filter(m => m === "thread/start")).toHaveLength(1)
+    expect(methods.filter(m => m === "thread/resume")).toHaveLength(1)
+    expect(prompts[1].toolBudget.totalUsed).toBeGreaterThanOrEqual(used.toolCalls)
+    expect(next.telemetry.account.authorRecovery.used.readBytes).toBeGreaterThan(used.readBytes)
+    expect(next.telemetry.account.authorRecovery.used.elapsedMs).toBeGreaterThan(used.elapsedMs)
+    expect(prompts[1].authoring.candidatePreviewAvailable).toBe(true)
+    expect(next.domain.programDraft.currentDraft.raw.resourceWorkflow.steps[0].value).toEqual({ literal: 9 })
+    expect(next.domain.executableContract.resourceExecution.returned).toBe(9)
+    expect(next.reuse.answerReused).toBe(false)
+  } finally { spy.mockRestore() }
+})
+test("BT ordinary run accepts explicit author resume only with previous account edit state", async () => {
+  const f = await contractFiles()
+  await expect(runAuthorizationInquiryCli(["run", `--input=${f.inputFile}`, `--out=${f.root}/resume`, "--model=gpt-5.6-sol", "--harness=codex-account", "--program-mode=edit", "--resume-author=true"], { stdout() {}, stderr() {} } as any)).rejects.toThrow("account-author-resume-requires-own-previous-account-session")
+})
+test("BT relation checks reach ordinary execution, author details and trial while rules retain only raw", async () => {
+  const f = await contractFiles()
+  const raw = { ...f.contract, queries: [], authoringTarget: { mode: "reusable", coverage: [{ id: "order", source: at(8), stepIds: ["first", "result"], disposition: "implemented", relation: { kind: "ordered-prefix" } }] }, resourceWorkflow: { inputs: [], steps: [{ id: "first", op: "value", value: { literal: 3 }, source: at(8) }, { id: "result", op: "return", value: { ref: "first" }, source: at(8) }] } }
+  await writeFile(f.domainProgramFile, JSON.stringify(raw))
+  const checked: any = await checkAuthorizationInquiry(f.inputFile, "D1", "question-checked-v1", f.domainProgramFile, { executionPolicy: "progressive" })
+  expect(checked.executableContract.outcome.relations[0].status).toBe("consistent")
+  const rules: any = await checkAuthorizationInquiry(f.inputFile, "D1", "question-checked-v1", f.domainProgramFile, { programSupport: "rules", executionPolicy: "progressive" })
+  expect(rules.executableContract).toBeUndefined()
+  expect(rules.ruleProgram.programDraft.currentDraft.raw).toEqual(raw)
+  expect(JSON.stringify(rules.ruleProgram)).not.toContain('"observedOrder"')
+  const runtime = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, strategy: "question-checked-v1", programMode: "edit", programContext: "directed", executionPolicy: "progressive", domainProgramFile: f.domainProgramFile })
+  try {
+    const context: any = await runtime.accountContext(false)
+    expect(context.authoring.relations[0].status).toBe("consistent")
+    const details = JSON.parse((await runtime.execute({ id: "details", name: "authorization_program_details", arguments: { view: "draft" } })).output)
+    expect(details.relations[0].status).toBe("consistent")
+    const trial = JSON.parse((await runtime.execute({ id: "trial", name: "authorization_program_trial", arguments: { expectedRevision: context.authoring.draftRevision, cases: [{ id: "same", resourceInputs: {} }] } })).output)
+    expect(trial.cases[0].outcome.relations[0].status).toBe("consistent")
+  } finally { await runtime.close() }
+})
+test("BT recovery recomputes moved current raw but never adopts a rejected raw or changed-source result", async () => {
+  const f = await contractFiles()
+  const good = { ...f.contract, queries: [], resourceWorkflow: { inputs: [], steps: [{ id: "result", op: "return", value: { literal: 7 }, source: at(8) }] } }
+  const rejected = { ...good, resourceWorkflow: { ...good.resourceWorkflow, steps: [{ id: "result", op: "guard", permission: { literal: "wrong shape" }, source: at(8) }] } }
+  const input = JSON.parse(await readFile(f.inputFile, "utf8"))
+  await mkdir(path.join(f.root, "moved"))
+  await writeFile(path.join(f.root, "moved/app.py"), await readFile(path.join(f.root, "source/app.py")))
+  const movedInput = path.join(f.root, "moved-input.json")
+  await writeFile(movedInput, JSON.stringify({ ...input, sourceRoot: "moved" }))
+  for (const [change, raw, expectedPreview] of [["unchanged", good, true], ["unchanged", rejected, false], ["source-changed", good, false]] as const) {
+    if (change === "source-changed") await writeFile(path.join(f.root, "moved/app.py"), (await readFile(path.join(f.root, "moved/app.py"), "utf8")).replace("return", "# changed source\n    return"))
+    const runtime = await createNativeInquiryRuntime({ inputFile: movedInput, workDir: f.root, domainTools: true, strategy: "question-checked-v1", programMode: "edit", programContext: "directed", executionPolicy: "progressive", recoverCurrentDraft: true, reuse: { info: { previousSessionId: "original", change, answerReused: false, semanticSupport: "unreviewed", reusedRuleKeys: [], invalidatedPolicyKeys: [], invalidatedPremiseKeys: [] }, seed: { delta: { schemaVersion: "authorization-control-slice/v1", rules: [], dependencies: [], bindings: [], policyRules: [] }, evidence: [], programDraft: createProgramDraft(raw) } } })
+    try {
+      expect(runtime.report().domain?.programDraft?.currentDraft?.raw).toEqual(raw)
+      const contract = runtime.report().domain?.executableContract
+      expect(!!contract?.resourceExecution).toBe(expectedPreview)
+      if (expectedPreview) expect(contract?.resourceExecution?.returned).toBe(7)
+    } finally { await runtime.close() }
+  }
+})
 for (const ending of ["interrupted", "unknown"] as const) test(`failed ${ending} final phase preserves the stale task answer in ordinary inspect without another turn`, async () => {
   const f = await contractFiles(), raw = { ...f.contract, queries: [], resourceWorkflow: { inputs: [], steps: [{ id: "result", op: "return", value: { literal: 7 }, source: at(8) }] } }
   let turn = 0, calls = 0

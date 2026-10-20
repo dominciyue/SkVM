@@ -1,3 +1,5 @@
+import { projectProgramRelations } from "./program-relations.ts"
+
 /** Structural expression dependencies annotated with existing actual events.
  * Both branches of choose remain possible dependencies; this is not dynamic taint. */
 function returnBasis(program: any, execution: any, returnedStep: any) {
@@ -43,7 +45,7 @@ export function projectProgramOutcome(report: any) {
   const prefix = stop ? events.slice(0, events.indexOf(stop)) : events
   return { execution: !e ? "unresolved" : premises.length ? "conditional" : denied ? "denied" : executionGaps.length ? "conditional" : e.termination === "return" && e.returned !== undefined ? "computed" : "unresolved",
     value: denied ? undefined : e?.returned, termination: e?.termination, requiredPremises: premises, executionGaps, coverageGaps,
-    eventOrder: events.map(x => x.id),
+    eventOrder: events.map(x => x.id), relations: projectProgramRelations(report?.program, e, report?.diagnostics),
     stoppedAt: stop && { id: stop.id, source: stop.source, termination: e?.termination },
     priorCalls: prefix.filter(x => x.op === "external" && x.outcome !== "skipped").map(x => ({ id: x.id, outcome: x.outcome, value: x.outputs?.value, source: x.source, meaningOrigin: x.inputs?.assumption ? "supplied-unreviewed" : "unresolved-external-fact", targetExecution: false })),
     orderScope: "Actual finite event order; source order and business effects require source review. Earlier simulated calls survive a later error. No target service or database was executed.",

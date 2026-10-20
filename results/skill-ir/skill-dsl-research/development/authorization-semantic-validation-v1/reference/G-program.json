@@ -1,0 +1,615 @@
+{
+  "schemaVersion": "authorization-executable-contract/v1",
+  "id": "independent-reference-G",
+  "description": "Developer-prepared source-derived finite reference. Not an automatically authored program, final answer or safety certificate.",
+  "scope": {
+    "kind": "function-contract",
+    "questionId": "create-issue",
+    "root": {
+      "path": "routers/api/v1/repo/issue.go",
+      "symbol": "CreateIssue"
+    },
+    "upstream": [
+      "Conditional handler-local reference: original parent route mustEnableIssuesOrPulls, token scope/public-only/repository assignment, reqToken, archive, binding and issues reader checks remain mandatory upstream source investigation. This reference does not prove handler reachability.",
+      "Finite permission assumes supplied IssuesUnitMode is a present unitsMode entry; absent entry/everyone/anonymous fallback needs original source. AccessMode >= ADMIN overrides the entry.",
+      "Writer-assignee name resolution/lookup/assignability is an unresolved external boundary, including empty-name handling and blocking by any assignee before the transaction. Supplied assignee populations are retained for original source review; no artificial success fact is injected. Reader path has no assignee IDs and skips it. Later writer events remain conditional, not a certified first error.",
+      "Observed error fields model call-return order only. They do not execute creation, prove a committed write, reproduce notifications, model title truncation/trim or convert the complete response. Transaction internals and converter behavior require source review."
+    ]
+  },
+  "sourceDeclarations": [
+    {
+      "source": {
+        "path": "routers/api/v1/repo/issue.go",
+        "symbol": "CreateIssue"
+      },
+      "statements": []
+    }
+  ],
+  "queries": [],
+  "assumptions": [],
+  "resourceWorkflow": {
+    "inputs": [
+      "request",
+      "principal",
+      "repository",
+      "permission",
+      "token",
+      "tokenScopes",
+      "form",
+      "formLabels",
+      "formAssignees",
+      "formProjects",
+      "assignees",
+      "blockedUserIDs",
+      "createdIssue",
+      "errors"
+    ],
+    "steps": [
+      {
+        "id": "issues_mode",
+        "op": "value",
+        "value": {
+          "choose": {
+            "test": {
+              "op": "gte",
+              "left": {
+                "binding": "permission.AccessMode"
+              },
+              "right": {
+                "literal": 3
+              }
+            },
+            "then": {
+              "field": {
+                "of": {
+                  "ref": "permission"
+                },
+                "key": "AccessMode"
+              }
+            },
+            "else": {
+              "field": {
+                "of": {
+                  "ref": "permission"
+                },
+                "key": "IssuesUnitMode"
+              }
+            }
+          }
+        },
+        "source": {
+          "path": "models/perm/access/repo_permission.go",
+          "startLine": 95,
+          "endLine": 108
+        }
+      },
+      {
+        "id": "can_write",
+        "op": "value",
+        "value": {
+          "test": {
+            "op": "gte",
+            "left": {
+              "binding": "issues_mode"
+            },
+            "right": {
+              "literal": 2
+            }
+          }
+        },
+        "source": {
+          "path": "models/perm/access/repo_permission.go",
+          "startLine": 152,
+          "endLine": 155
+        }
+      },
+      {
+        "id": "deadline",
+        "op": "value",
+        "value": {
+          "choose": {
+            "test": {
+              "op": "all",
+              "args": [
+                {
+                  "op": "not",
+                  "arg": {
+                    "op": "is-null",
+                    "value": {
+                      "binding": "form.Deadline"
+                    }
+                  }
+                },
+                {
+                  "op": "eq",
+                  "left": {
+                    "binding": "can_write"
+                  },
+                  "right": {
+                    "literal": true
+                  }
+                }
+              ]
+            },
+            "then": {
+              "field": {
+                "of": {
+                  "ref": "form"
+                },
+                "key": "Deadline"
+              }
+            },
+            "else": {
+              "literal": 0
+            }
+          }
+        },
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 570,
+          "endLine": 585
+        }
+      },
+      {
+        "id": "milestone",
+        "op": "value",
+        "value": {
+          "choose": {
+            "test": {
+              "op": "eq",
+              "left": {
+                "binding": "can_write"
+              },
+              "right": {
+                "literal": true
+              }
+            },
+            "then": {
+              "field": {
+                "of": {
+                  "ref": "form"
+                },
+                "key": "Milestone"
+              }
+            },
+            "else": {
+              "literal": 0
+            }
+          }
+        },
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 587,
+          "endLine": 622
+        }
+      },
+      {
+        "id": "labels",
+        "op": "value",
+        "value": {
+          "choose": {
+            "test": {
+              "op": "eq",
+              "left": {
+                "binding": "can_write"
+              },
+              "right": {
+                "literal": true
+              }
+            },
+            "then": {
+              "ref": "formLabels"
+            },
+            "else": {
+              "literal": []
+            }
+          }
+        },
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 619,
+          "endLine": 624
+        }
+      },
+      {
+        "id": "assignee_names_error",
+        "op": "guard",
+        "test": {
+          "op": "is-null",
+          "value": {
+            "binding": "errors.assigneeNames"
+          }
+        },
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 589,
+          "endLine": 599
+        },
+        "failure": "assignee-name-error",
+        "when": {
+          "op": "eq",
+          "left": {
+            "binding": "can_write"
+          },
+          "right": {
+            "literal": true
+          }
+        }
+      },
+      {
+        "id": "writer_assignees",
+        "op": "external",
+        "name": "source_writer_assignee_validation",
+        "arguments": {
+          "single": {
+            "field": {
+              "of": {
+                "ref": "form"
+              },
+              "key": "Assignee"
+            }
+          },
+          "names": {
+            "ref": "formAssignees"
+          },
+          "repository": {
+            "field": {
+              "of": {
+                "ref": "repository"
+              },
+              "key": "ID"
+            }
+          }
+        },
+        "when": {
+          "op": "eq",
+          "left": {
+            "binding": "can_write"
+          },
+          "right": {
+            "literal": true
+          }
+        },
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 591,
+          "endLine": 618
+        }
+      },
+      {
+        "id": "writer_assignees_complete",
+        "op": "guard",
+        "test": {
+          "op": "eq",
+          "left": {
+            "binding": "writer_assignees"
+          },
+          "right": {
+            "literal": true
+          }
+        },
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 591,
+          "endLine": 618
+        },
+        "failure": "writer-assignee-validation-failed",
+        "when": {
+          "op": "eq",
+          "left": {
+            "binding": "can_write"
+          },
+          "right": {
+            "literal": true
+          }
+        }
+      },
+      {
+        "id": "load_poster",
+        "op": "guard",
+        "test": {
+          "op": "is-null",
+          "value": {
+            "binding": "errors.loadPoster"
+          }
+        },
+        "source": {
+          "path": "services/issue/issue.go",
+          "startLine": 25,
+          "endLine": 28
+        },
+        "failure": "load-poster-error"
+      },
+      {
+        "id": "blocked_owner",
+        "op": "guard",
+        "test": {
+          "op": "not",
+          "arg": {
+            "op": "member",
+            "value": {
+              "binding": "repository.OwnerID"
+            },
+            "set": {
+              "binding": "blockedUserIDs"
+            }
+          }
+        },
+        "source": {
+          "path": "services/issue/issue.go",
+          "startLine": 30,
+          "endLine": 32
+        },
+        "failure": "blocked-user"
+      },
+      {
+        "id": "transaction_observation",
+        "op": "value",
+        "value": {
+          "field": {
+            "of": {
+              "ref": "errors"
+            },
+            "key": "createTransaction"
+          }
+        },
+        "source": {
+          "path": "services/issue/issue.go",
+          "startLine": 36,
+          "endLine": 62
+        }
+      },
+      {
+        "id": "transaction_return",
+        "op": "guard",
+        "test": {
+          "op": "is-null",
+          "value": {
+            "binding": "transaction_observation"
+          }
+        },
+        "source": {
+          "path": "services/issue/issue.go",
+          "startLine": 60,
+          "endLine": 62
+        },
+        "failure": "create-transaction-error"
+      },
+      {
+        "id": "mentions_observation",
+        "op": "value",
+        "value": {
+          "field": {
+            "of": {
+              "ref": "errors"
+            },
+            "key": "mentions"
+          }
+        },
+        "source": {
+          "path": "services/issue/issue.go",
+          "startLine": 64,
+          "endLine": 67
+        }
+      },
+      {
+        "id": "mentions_return",
+        "op": "guard",
+        "test": {
+          "op": "is-null",
+          "value": {
+            "binding": "mentions_observation"
+          }
+        },
+        "source": {
+          "path": "services/issue/issue.go",
+          "startLine": 64,
+          "endLine": 67
+        },
+        "failure": "mentions-error"
+      },
+      {
+        "id": "close_observation",
+        "op": "value",
+        "value": {
+          "field": {
+            "of": {
+              "ref": "errors"
+            },
+            "key": "close"
+          }
+        },
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 635,
+          "endLine": 644
+        },
+        "when": {
+          "op": "eq",
+          "left": {
+            "binding": "form.Closed"
+          },
+          "right": {
+            "literal": true
+          }
+        }
+      },
+      {
+        "id": "close_return",
+        "op": "guard",
+        "test": {
+          "op": "is-null",
+          "value": {
+            "binding": "close_observation"
+          }
+        },
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 635,
+          "endLine": 644
+        },
+        "failure": "close-error",
+        "when": {
+          "op": "eq",
+          "left": {
+            "binding": "form.Closed"
+          },
+          "right": {
+            "literal": true
+          }
+        }
+      },
+      {
+        "id": "refetch_observation",
+        "op": "value",
+        "value": {
+          "field": {
+            "of": {
+              "ref": "errors"
+            },
+            "key": "refetch"
+          }
+        },
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 646,
+          "endLine": 651
+        }
+      },
+      {
+        "id": "refetch_return",
+        "op": "guard",
+        "test": {
+          "op": "is-null",
+          "value": {
+            "binding": "refetch_observation"
+          }
+        },
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 648,
+          "endLine": 651
+        },
+        "failure": "refetch-error"
+      },
+      {
+        "id": "handler_fields",
+        "op": "return",
+        "value": {
+          "record": {
+            "can_write": {
+              "ref": "can_write"
+            },
+            "deadline": {
+              "ref": "deadline"
+            },
+            "milestone": {
+              "ref": "milestone"
+            },
+            "repository_id": {
+              "field": {
+                "of": {
+                  "ref": "repository"
+                },
+                "key": "ID"
+              }
+            },
+            "poster_id": {
+              "field": {
+                "of": {
+                  "ref": "principal"
+                },
+                "key": "ID"
+              }
+            },
+            "title_before_model": {
+              "field": {
+                "of": {
+                  "ref": "form"
+                },
+                "key": "Title"
+              }
+            },
+            "body": {
+              "field": {
+                "of": {
+                  "ref": "form"
+                },
+                "key": "Body"
+              }
+            },
+            "ref": {
+              "field": {
+                "of": {
+                  "ref": "form"
+                },
+                "key": "Ref"
+              }
+            },
+            "converter_load_observation": {
+              "field": {
+                "of": {
+                  "ref": "errors"
+                },
+                "key": "responseLoad"
+              }
+            }
+          }
+        },
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 570,
+          "endLine": 652
+        }
+      }
+    ],
+    "gaps": [
+      "Conditional handler-local reference: original parent route mustEnableIssuesOrPulls, token scope/public-only/repository assignment, reqToken, archive, binding and issues reader checks remain mandatory upstream source investigation. This reference does not prove handler reachability.",
+      "Finite permission assumes supplied IssuesUnitMode is a present unitsMode entry; absent entry/everyone/anonymous fallback needs original source. AccessMode >= ADMIN overrides the entry.",
+      "Writer-assignee name resolution/lookup/assignability is an unresolved external boundary, including empty-name handling and blocking by any assignee before the transaction. Supplied assignee populations are retained for original source review; no artificial success fact is injected. Reader path has no assignee IDs and skips it. Later writer events remain conditional, not a certified first error.",
+      "Observed error fields model call-return order only. They do not execute creation, prove a committed write, reproduce notifications, model title truncation/trim or convert the complete response. Transaction internals and converter behavior require source review."
+    ]
+  },
+  "authoringTarget": {
+    "mode": "reusable",
+    "coverage": [
+      {
+        "id": "create-followed-by-refetch",
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 624,
+          "endLine": 652
+        },
+        "stepIds": [
+          "load_poster",
+          "blocked_owner",
+          "transaction_observation",
+          "transaction_return",
+          "mentions_observation",
+          "mentions_return",
+          "close_observation",
+          "close_return",
+          "refetch_observation",
+          "refetch_return",
+          "handler_fields"
+        ],
+        "disposition": "implemented",
+        "relation": {
+          "kind": "ordered-prefix"
+        },
+        "reason": "Source-derived order of finite observations and exits; effects/commit are not executed or inferred."
+      },
+      {
+        "id": "parent-route-required",
+        "source": {
+          "path": "routers/api/v1/api.go",
+          "startLine": 1647,
+          "endLine": 1766
+        },
+        "stepIds": [],
+        "disposition": "unwritten",
+        "reason": "Conditional handler-local reference: original parent route mustEnableIssuesOrPulls, token scope/public-only/repository assignment, reqToken, archive, binding and issues reader checks remain mandatory upstream source investigation. This reference does not prove handler reachability."
+      }
+    ]
+  }
+}

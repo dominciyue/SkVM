@@ -1,0 +1,769 @@
+{
+  "schemaVersion": "authorization-executable-contract/v1",
+  "id": "independent-reference-M",
+  "description": "Developer-prepared source-derived finite reference. Not an automatically authored program, final answer or safety certificate.",
+  "scope": {
+    "kind": "function-contract",
+    "questionId": "shared-memo-access",
+    "root": {
+      "path": "server/api/v1/memo_share_service.go",
+      "symbol": "GetSharedMemo"
+    },
+    "upstream": [
+      "Evaluation begins at GetSharedMemo function entry. Public/bootstrap registration and private-instance transport activation require original source review; this finite function does not establish deployment reachability.",
+      "This reference stops after shared local read access. Reaction/attachment reads, second creator lookup, conversion failures, payload and placement projection remain original task duties.",
+      "Inputs are synthetic complete populations and observed error fields. No storage call or live service is executed."
+    ]
+  },
+  "sourceDeclarations": [
+    {
+      "source": {
+        "path": "server/api/v1/memo_share_service.go",
+        "symbol": "GetSharedMemo"
+      },
+      "statements": []
+    },
+    {
+      "source": {
+        "path": "core/access/memo_resolve.go",
+        "symbol": "ResolveMemoReadContext"
+      },
+      "statements": []
+    }
+  ],
+  "queries": [],
+  "assumptions": [],
+  "resourceWorkflow": {
+    "inputs": [
+      "request",
+      "now",
+      "contextUserID",
+      "instanceAccessMode",
+      "shares",
+      "memos",
+      "users",
+      "spaces",
+      "memberships",
+      "reactions",
+      "attachments",
+      "storeErrors",
+      "conversionUsers"
+    ],
+    "steps": [
+      {
+        "id": "share_error",
+        "op": "guard",
+        "test": {
+          "op": "is-null",
+          "value": {
+            "binding": "storeErrors.share"
+          }
+        },
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 221,
+          "endLine": 225
+        },
+        "failure": "share-store-error"
+      },
+      {
+        "id": "share",
+        "op": "select",
+        "from": "shares",
+        "where": {
+          "op": "eq",
+          "left": {
+            "binding": "row.UID"
+          },
+          "right": {
+            "binding": "request.ShareToken"
+          }
+        },
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 221,
+          "endLine": 229
+        }
+      },
+      {
+        "id": "share_found",
+        "op": "guard",
+        "test": {
+          "op": "not",
+          "arg": {
+            "op": "is-null",
+            "value": {
+              "binding": "share"
+            }
+          }
+        },
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 226,
+          "endLine": 229
+        },
+        "failure": "share-not-found"
+      },
+      {
+        "id": "share_time",
+        "op": "guard",
+        "test": {
+          "op": "any",
+          "args": [
+            {
+              "op": "is-null",
+              "value": {
+                "binding": "share.ExpiresTs"
+              }
+            },
+            {
+              "op": "lte",
+              "left": {
+                "binding": "now"
+              },
+              "right": {
+                "binding": "share.ExpiresTs"
+              }
+            }
+          ]
+        },
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 216,
+          "endLine": 229
+        },
+        "failure": "share-expired"
+      },
+      {
+        "id": "memo_error",
+        "op": "guard",
+        "test": {
+          "op": "is-null",
+          "value": {
+            "binding": "storeErrors.memo"
+          }
+        },
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 178,
+          "endLine": 181
+        },
+        "failure": "memo-store-error"
+      },
+      {
+        "id": "memo",
+        "op": "select",
+        "from": "memos",
+        "where": {
+          "op": "eq",
+          "left": {
+            "binding": "row.ID"
+          },
+          "right": {
+            "binding": "share.MemoID"
+          }
+        },
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 178,
+          "endLine": 185
+        }
+      },
+      {
+        "id": "memo_entry_state",
+        "op": "guard",
+        "test": {
+          "op": "all",
+          "args": [
+            {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "memo"
+                }
+              }
+            },
+            {
+              "op": "eq",
+              "left": {
+                "binding": "memo.RowStatus"
+              },
+              "right": {
+                "literal": "NORMAL"
+              }
+            },
+            {
+              "op": "not",
+              "arg": {
+                "op": "eq",
+                "left": {
+                  "binding": "memo.Visibility"
+                },
+                "right": {
+                  "literal": "SPACE"
+                }
+              }
+            }
+          ]
+        },
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 182,
+          "endLine": 184
+        },
+        "failure": "memo-entry-denied"
+      },
+      {
+        "id": "viewer_error",
+        "op": "guard",
+        "test": {
+          "op": "is-null",
+          "value": {
+            "binding": "storeErrors.viewer"
+          }
+        },
+        "source": {
+          "path": "server/api/v1/auth_service_session.go",
+          "startLine": 269,
+          "endLine": 286
+        },
+        "failure": "context-error",
+        "when": {
+          "op": "not",
+          "arg": {
+            "op": "eq",
+            "left": {
+              "binding": "contextUserID"
+            },
+            "right": {
+              "literal": 0
+            }
+          }
+        }
+      },
+      {
+        "id": "viewer_row",
+        "op": "select",
+        "from": "users",
+        "where": {
+          "op": "eq",
+          "left": {
+            "binding": "row.ID"
+          },
+          "right": {
+            "binding": "contextUserID"
+          }
+        },
+        "source": {
+          "path": "server/api/v1/auth_service_session.go",
+          "startLine": 269,
+          "endLine": 286
+        },
+        "when": {
+          "op": "not",
+          "arg": {
+            "op": "eq",
+            "left": {
+              "binding": "contextUserID"
+            },
+            "right": {
+              "literal": 0
+            }
+          }
+        }
+      },
+      {
+        "id": "viewer_found",
+        "op": "guard",
+        "test": {
+          "op": "not",
+          "arg": {
+            "op": "is-null",
+            "value": {
+              "binding": "viewer_row"
+            }
+          }
+        },
+        "source": {
+          "path": "server/api/v1/auth_service_session.go",
+          "startLine": 279,
+          "endLine": 286
+        },
+        "failure": "context-error",
+        "when": {
+          "op": "not",
+          "arg": {
+            "op": "eq",
+            "left": {
+              "binding": "contextUserID"
+            },
+            "right": {
+              "literal": 0
+            }
+          }
+        }
+      },
+      {
+        "id": "viewer",
+        "op": "value",
+        "value": {
+          "choose": {
+            "test": {
+              "op": "all",
+              "args": [
+                {
+                  "op": "not",
+                  "arg": {
+                    "op": "is-null",
+                    "value": {
+                      "binding": "viewer_row"
+                    }
+                  }
+                },
+                {
+                  "op": "eq",
+                  "left": {
+                    "binding": "viewer_row.RowStatus"
+                  },
+                  "right": {
+                    "literal": "NORMAL"
+                  }
+                }
+              ]
+            },
+            "then": {
+              "ref": "viewer_row"
+            },
+            "else": {
+              "literal": null
+            }
+          }
+        },
+        "source": {
+          "path": "server/api/v1/auth_service_session.go",
+          "startLine": 269,
+          "endLine": 290
+        }
+      },
+      {
+        "id": "setting_error",
+        "op": "guard",
+        "test": {
+          "op": "is-null",
+          "value": {
+            "binding": "storeErrors.instanceSetting"
+          }
+        },
+        "source": {
+          "path": "server/api/v1/memo_access.go",
+          "startLine": 17,
+          "endLine": 29
+        },
+        "failure": "context-error",
+        "when": {
+          "op": "is-null",
+          "value": {
+            "binding": "viewer"
+          }
+        }
+      },
+      {
+        "id": "creator_error",
+        "op": "guard",
+        "test": {
+          "op": "is-null",
+          "value": {
+            "binding": "storeErrors.creator"
+          }
+        },
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 36,
+          "endLine": 42
+        },
+        "failure": "context-error"
+      },
+      {
+        "id": "creator",
+        "op": "select",
+        "from": "users",
+        "where": {
+          "op": "eq",
+          "left": {
+            "binding": "row.ID"
+          },
+          "right": {
+            "binding": "memo.CreatorID"
+          }
+        },
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 36,
+          "endLine": 42
+        }
+      },
+      {
+        "id": "creator_valid",
+        "op": "value",
+        "value": {
+          "test": {
+            "op": "all",
+            "args": [
+              {
+                "op": "not",
+                "arg": {
+                  "op": "is-null",
+                  "value": {
+                    "binding": "creator"
+                  }
+                }
+              },
+              {
+                "op": "eq",
+                "left": {
+                  "binding": "creator.ID"
+                },
+                "right": {
+                  "binding": "memo.CreatorID"
+                }
+              },
+              {
+                "op": "member",
+                "value": {
+                  "binding": "creator.RowStatus"
+                },
+                "set": {
+                  "literal": [
+                    "NORMAL",
+                    "ARCHIVED"
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 41,
+          "endLine": 42
+        }
+      },
+      {
+        "id": "space_error",
+        "op": "guard",
+        "test": {
+          "op": "is-null",
+          "value": {
+            "binding": "storeErrors.space"
+          }
+        },
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 44,
+          "endLine": 51
+        },
+        "failure": "context-error",
+        "when": {
+          "op": "not",
+          "arg": {
+            "op": "is-null",
+            "value": {
+              "binding": "memo.SpaceID"
+            }
+          }
+        }
+      },
+      {
+        "id": "space",
+        "op": "select",
+        "from": "spaces",
+        "where": {
+          "op": "eq",
+          "left": {
+            "binding": "row.ID"
+          },
+          "right": {
+            "binding": "memo.SpaceID"
+          }
+        },
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 44,
+          "endLine": 51
+        },
+        "when": {
+          "op": "not",
+          "arg": {
+            "op": "is-null",
+            "value": {
+              "binding": "memo.SpaceID"
+            }
+          }
+        }
+      },
+      {
+        "id": "membership_error",
+        "op": "guard",
+        "test": {
+          "op": "is-null",
+          "value": {
+            "binding": "storeErrors.membership"
+          }
+        },
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 67,
+          "endLine": 79
+        },
+        "failure": "context-error",
+        "when": {
+          "op": "all",
+          "args": [
+            {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "space"
+                }
+              }
+            },
+            {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "viewer"
+                }
+              }
+            },
+            {
+              "op": "not",
+              "arg": {
+                "op": "eq",
+                "left": {
+                  "binding": "viewer.Role"
+                },
+                "right": {
+                  "literal": "ADMIN"
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "membership",
+        "op": "select",
+        "from": "memberships",
+        "where": {
+          "op": "all",
+          "args": [
+            {
+              "op": "eq",
+              "left": {
+                "binding": "row.SpaceID"
+              },
+              "right": {
+                "binding": "memo.SpaceID"
+              }
+            },
+            {
+              "op": "eq",
+              "left": {
+                "binding": "row.UserID"
+              },
+              "right": {
+                "binding": "viewer.ID"
+              }
+            }
+          ]
+        },
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 75,
+          "endLine": 79
+        },
+        "when": {
+          "op": "all",
+          "args": [
+            {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "space"
+                }
+              }
+            },
+            {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "viewer"
+                }
+              }
+            },
+            {
+              "op": "not",
+              "arg": {
+                "op": "eq",
+                "left": {
+                  "binding": "viewer.Role"
+                },
+                "right": {
+                  "literal": "ADMIN"
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": "creator_decision",
+        "op": "guard",
+        "test": {
+          "op": "eq",
+          "left": {
+            "binding": "creator_valid"
+          },
+          "right": {
+            "literal": true
+          }
+        },
+        "source": {
+          "path": "core/access/memo.go",
+          "startLine": 92,
+          "endLine": 96
+        },
+        "failure": "memo-not-found"
+      },
+      {
+        "id": "audience_decision",
+        "op": "guard",
+        "test": {
+          "op": "member",
+          "value": {
+            "binding": "memo.Visibility"
+          },
+          "set": {
+            "literal": [
+              "PUBLIC",
+              "PROTECTED",
+              "PRIVATE",
+              "SPACE"
+            ]
+          }
+        },
+        "source": {
+          "path": "core/access/memo.go",
+          "startLine": 97,
+          "endLine": 99
+        },
+        "failure": "memo-not-found"
+      },
+      {
+        "id": "share_object",
+        "op": "guard",
+        "test": {
+          "op": "eq",
+          "left": {
+            "binding": "share.MemoID"
+          },
+          "right": {
+            "binding": "memo.ID"
+          }
+        },
+        "source": {
+          "path": "core/access/memo.go",
+          "startLine": 119,
+          "endLine": 122
+        },
+        "failure": "share-object-not-bound"
+      },
+      {
+        "id": "local_read_context",
+        "op": "return",
+        "value": {
+          "record": {
+            "memo_id": {
+              "field": {
+                "of": {
+                  "ref": "memo"
+                },
+                "key": "ID"
+              }
+            },
+            "share_memo_id": {
+              "field": {
+                "of": {
+                  "ref": "share"
+                },
+                "key": "MemoID"
+              }
+            },
+            "creator_valid": {
+              "ref": "creator_valid"
+            },
+            "context_user_id": {
+              "ref": "contextUserID"
+            }
+          }
+        },
+        "source": {
+          "path": "core/access/memo.go",
+          "startLine": 119,
+          "endLine": 122
+        }
+      }
+    ],
+    "gaps": [
+      "Evaluation begins at GetSharedMemo function entry. Public/bootstrap registration and private-instance transport activation require original source review; this finite function does not establish deployment reachability.",
+      "This reference stops after shared local read access. Reaction/attachment reads, second creator lookup, conversion failures, payload and placement projection remain original task duties.",
+      "Inputs are synthetic complete populations and observed error fields. No storage call or live service is executed."
+    ]
+  },
+  "authoringTarget": {
+    "mode": "reusable",
+    "coverage": [
+      {
+        "id": "context-before-decision",
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 85,
+          "endLine": 90
+        },
+        "stepIds": [
+          "creator_error",
+          "creator",
+          "creator_valid",
+          "space_error",
+          "space",
+          "membership_error",
+          "membership",
+          "creator_decision",
+          "audience_decision",
+          "share_object"
+        ],
+        "disposition": "implemented",
+        "relation": {
+          "kind": "ordered-prefix"
+        },
+        "reason": "Source-derived order of finite observations and exits; effects/commit are not executed or inferred."
+      },
+      {
+        "id": "remaining-handler",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 191,
+          "endLine": 213
+        },
+        "stepIds": [],
+        "disposition": "unwritten",
+        "reason": "This reference stops after shared local read access. Reaction/attachment reads, second creator lookup, conversion failures, payload and placement projection remain original task duties."
+      }
+    ]
+  }
+}
