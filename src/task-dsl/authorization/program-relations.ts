@@ -56,8 +56,10 @@ export function projectProgramRelations(raw: any, execution?: any, diagnostics: 
     }
     const effects = (relation?.kind === "ordered-prefix" ? relation.effectStepIds : relation?.kind === "guard-effect" ? [relation.effectStepId] : []).map(stepId => {
       const e = event(stepId), call = calls.find(c => c.stepId === stepId)
+      const external = steps.find(s => s.id === stepId)?.op === "external"
+      if (!external) unknown.push(`effect-call-evidence-unavailable:${stepId}`)
       const completed = call?.relation?.completion === "required" && call.completionGuard?.outcome === "computed" && !call.diagnostics.length
-      return { stepId, request: active(e) && e.op === "external" ? "observed" : execution ? "not-observed" : "unknown",
+      return { stepId, request: !external || !execution || !e && !firstStop ? "unknown" : active(e) && e.op === "external" ? "observed" : "not-observed",
         completion: completed ? call.relation?.completionMeaning === "normal-return" ? "declared-normal-return" : "declared-finite-marker" : "unknown",
         durableCommit: "unknown", targetExecution: false, origin: "finite-program", assumption: e?.inputs?.assumption }
     })

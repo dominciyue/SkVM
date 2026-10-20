@@ -33,6 +33,13 @@ test("BT an unrelated rejected guard cannot certify an unobserved relation tail"
   expect(out.relations[0].status).toBe("unknown")
   expect(out.relations[0].diagnostics).toContain("order-tail-not-observed")
 })
+test("BT an effect declaration on a value step cannot claim that a source call did not occur", () => {
+  const claim = { ...relation("ordered-prefix", { effectStepIds: ["summary"] }), stepIds: ["summary"] }
+  const out = outcome([value("summary", true)], claim).relations[0]
+  expect(out.status).toBe("unknown")
+  expect(out.diagnostics).toContain("effect-call-evidence-unavailable:summary")
+  expect(out.effects[0].request).toBe("unknown")
+})
 test("BT create then refetch failure preserves effect request, completion and unknown commit", () => {
   const claim = { ...relation("ordered-prefix", { effectStepIds: ["create"] }), stepIds: ["create", "created", "refetch", "readOK"] }
   const steps = [call("create"), guard("created", true), call("refetch"), guard("readOK", false)]

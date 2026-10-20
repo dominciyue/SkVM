@@ -29,7 +29,7 @@ export function optionsFor(position: string) {
     programSupport: position.startsWith("RR-") ? "rules" as const : "execute" as const,
     programMode: author ? "edit" as const : "consume" as const, strategy: native ? "legacy" as const : "question-checked-v1" as const }
 }
-async function checkRegistration() {
+export async function checkRegistration() {
   const r = await load(path.join(base, "registration.json"))
   for (const [file, sha] of Object.entries(r.files)) if (hash(await readFile(path.resolve(repo, file))) !== sha) throw new Error(`registered-bytes-changed:${file}`)
   return r
