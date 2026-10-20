@@ -3206,6 +3206,20 @@ BM8实施细节：当前协议只在thread/start注册dynamicTools。宿主预�
 
 **完成后的证据边界。** 九用途及一次具名确认已全部关闭。固定25步原稿在20个已知结果/选定标量案例匹配、2个缺输入案例保留条件；同稿仅改clock可由返回变为拒绝，普通搬移及source失效通过。但提早的visibility/creator检查改变源码调用顺序，转换只给摘要而非完整protobuf/placement；不得把有限结果一致提升为源语义完整。Download两答完整，Memos六答均partial，执行未建立稳定质量或净收益。作者续作的progress消息不计为未交付整题；真实首答/终答另评。归档脱敏转义仅离线窄修复，不改发送内容或已知终态。以completed-with-unmet-criteria收束，不自动BS；详细复盘和成本集中研究§7.79与BR结果目录。
 
+### 14.58 BS task coverage and semantic transfer
+
+2026-10-20用户授权[BS0–BS22](../superpowers/plans/2026-10-20-authorization-task-coverage-and-semantic-transfer.md)，规划基线BR最终2100085b，identity为`authorization-task-coverage-v1`。本节为当前实施合同。开发gpt-6-astra/high，实验官方gpt-5.6-sol/high，第三方暂停；继续skill-ir-aot，仅用户origin。当前只有计划，尚无BS工程或实验结论。
+
+**原题与共享机制。** 复用program-obligations/call relations、trial、consumption context、details、delivery和普通入口，显示全部原问题、当前计算/轨迹及仍需源码调查的责任。宿主提供可机械核实的来源/关系，不预填授权含义；读过/映射/格式有效不升级为语义完整。不新增必填答案协议或平行状态系统。完整JSON保留，可读execution摘要不再吞入全部结构目录；报告体积和实际模型上下文分别测量。
+
+**自动程序。** Memos修订BR最后模型原稿；Gitea CreateIssue从空稿开始。业务修复通过模型实际patch完成，开发者不代写或选最高分版本。值、调用到达、首个错误、effect和响应分开验证；相同返回不足以证明错误顺序相同。安全相关转换和创建后错误优先，完整protobuf、通用Go/Python语义及真实服务执行不在本轮。共享新字段须有两个匿名结构的实际需要。
+
+**来源与政策。** Gitea固定已暴露fc28937a8d772fe9e4025c9b5f24d5db4d86610b，保留旧自然brief及实验用户政策；issues-unit写权限要求不称上游既定政策或自动漏洞判据。先据源码定问题/案例/oracle，后运行作者；oracle/旧答案/开发者业务稿与被测会话隔离。M/G合成运行事实、真实代码、真实完整skill分别注明，非held-out/liveAPI。Download只零模型兼容，不继续扩其付费面板。
+
+**比较与修复。** 14正常用途为2作者及M0/M1/G0/G1的N/R/E十二消费者，最多4具名确认。同块同模型、原题、事实、源码和预算，R/E同最后原稿，R不见执行结果。N→R含准备/材料，R→E检验执行增量；变化输入不冒充随机重复。共享故障即时红绿修复，影响配对时分epoch；自然遗漏不自动重抽。未知请求只读核对，额度/认证或重复路由失败暂停对应通道，独立离线工作继续。
+
+**交付。** 完整原题逐项/整题、当前程序语义、实际采用、普通复用与成本分别报告。局部正向须同表给出退步和未达；有限队列完成不预设研究成功。维护研究§7.80、当前状态/执行计划和原普通示例，结束不自动BT。
+
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 
 
