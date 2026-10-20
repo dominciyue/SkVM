@@ -129,12 +129,14 @@ export function projectProgramObligations(skeletons: readonly SourceSkeleton[], 
   const kinds = { condition: "branch-exit", raise: "error-exit", return: "return-exit", call: "call-completion" } as const
   const steps = new Set((Array.isArray(raw?.resourceWorkflow?.steps) ? raw.resourceWorkflow.steps : []).map((s: any) => s?.id))
   const seen = new Set<string>(), result: ProgramObligation[] = []
+  const owners = new Map<string, { skeleton: SourceSkeleton; anchor: SourceSkeleton["anchors"][number] }>()
   for (const skeleton of skeletons.filter(s => s.modelCovered)) for (const anchor of skeleton.anchors) {
     const kind = kinds[anchor.kind as keyof typeof kinds]; if (!kind) continue
     if (anchor.selector.startLine === undefined) continue
     const source = { path: skeleton.source.path, startLine: anchor.selector.startLine, endLine: anchor.selector.endLine ?? anchor.selector.startLine, sha256: skeleton.source.sha256 }
     const id = "obligation-" + createHash("sha256").update(JSON.stringify([source, anchor.id, kind])).digest("hex").slice(0, 24)
     if (seen.has(id)) continue; seen.add(id)
+    owners.set(id, { skeleton, anchor })
     const claims: any[] = (raw?.authoringTarget?.coverage ?? []).filter((c: any) => c.source?.path === source.path && c.source.startLine === source.startLine && (c.source.endLine ?? c.source.startLine) === source.endLine)
     const current = claims.filter(c => (!c.source.sha256 || c.source.sha256 === source.sha256) && c.stepIds?.every((id: string) => steps.has(id)))
     const mapped = current.filter(c => c.disposition === "implemented" && c.stepIds.length), external = current.filter(c => c.disposition === "external")
@@ -161,8 +163,7 @@ export function projectProgramObligations(skeletons: readonly SourceSkeleton[], 
     walk(s.flow, []); return found
   }
   return result.map(o => {
-    const s = skeletons.filter(s => s.modelCovered && s.source.path === o.source.path && s.source.startLine <= o.source.startLine && s.source.endLine >= o.source.endLine).sort((a, b) => a.source.endLine - a.source.startLine - (b.source.endLine - b.source.startLine))[0]!
-    const a = s.anchors.find(a => a.id === o.anchorId)!
+    const { skeleton: s, anchor: a } = owners.get(o.id)!
     const callers: SourceCaller[] = indexedCalls.filter(c => c.candidateIds.includes(s.sourceId)).map(c => {
       const caller = skeletons.find(owner => owner.modelCovered && owner.sourceId === c.ownerId && owner.source.sha256 === c.sha256)
       const anchor = caller?.anchors.find(a => a.call?.sourceCallId === c.id)

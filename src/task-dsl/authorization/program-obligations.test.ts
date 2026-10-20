@@ -213,3 +213,12 @@ test("same-span calls retain distinct anchor identities and report ambiguity ins
   expect(context.status).toBe("ambiguous-call-span")
   expect(context.calls.map((c: any) => c.call.sourceCallId)).toEqual(["first", "second"])
 })
+test("overlapping nested functions keep each candidate's original owner and revision", () => {
+  const outer = { ...skeleton, anchors: [skeleton.anchors[3]], revision: "outer-revision" }
+  const inner = { ...skeleton, sourceId: "inner", source: { ...source, id: "inner", startLine: 4, endLine: 7 }, revision: "inner-revision", anchors: [{ ...skeleton.anchors[3], id: "inner-call" }] }
+  for (const owners of [[outer, inner], [inner, outer]]) {
+    const result = api.projectProgramObligations(owners, {})
+    expect(result.find((o: any) => o.anchorId === "call")).toMatchObject({ function: outer.source, sourceRevision: "outer-revision" })
+    expect(result.find((o: any) => o.anchorId === "inner-call")).toMatchObject({ function: inner.source, sourceRevision: "inner-revision" })
+  }
+})
