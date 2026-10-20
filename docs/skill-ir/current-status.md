@@ -4,6 +4,12 @@
 
 ## 当前工作
 
+**BT0–BT21已获用户授权，计划已登记，等待新开发线程接管。** [任务书](../superpowers/plans/2026-10-21-authorization-semantic-validation-and-method-diagnosis.md) identity为`authorization-semantic-validation-v1`，从BS最终`03484a23`及本轮计划提交继续。开发模型`gpt-6-astra/high`；实验仍为官方`gpt-5.6-sol/high`，第三方暂停。当前仅完成复核和计划，没有BT生产实现或模型实验。
+
+本轮先修作者已知终态后的持久恢复与累计预算，再用固定Memos/Gitea源码核验入口、调用、错误与效果关系。自动修订稿与独立参考材料分轨：十个正常用途为两个作者及两个任务各N/RR/RE/AE四种消费，至多四个具名确认；错误自动稿不会继续充作合格执行组，参考材料也不会冒充自动产出。原题、历史评分、原件和默认保持。方法合同见[spec§14.59](skill-ir-aot-optimization-spec.md#1459-bt-semantic-validation-and-method-diagnosis)，原因与决策见[研究§7.81](skill-dsl-research.md#781-bs-复核与-bt-源码语义核验及方法诊断)。有限队列完成后不自动BU。
+
+## BS 已结束的实际结果
+
 **BS0–BS22已完成并发布，以completed-with-unmet-criteria收束。** [任务书](../superpowers/plans/2026-10-20-authorization-task-coverage-and-semantic-transfer.md) identity为`authorization-task-coverage-v1`，从BR最终2100085b继续。14用途、15attempt、18观察turn全部关闭，使用1/4具名确认，无本轮active/unknown。开发`gpt-6-astra/high`，实验官方`gpt-5.6-sol/high`，第三方暂停。共享原题调查、事件反馈及普通报告已实施，嵌套函数owner故障红绿修复，生产至c3be4cc2。
 
 M最后30步原稿29案有限值/条件一致但3案顺序错误；G最后7步原稿因route guard schema错误仅有条件字段结果，16案完整创建均未达。十二消费者整题0/12 full、六域43/72 full；E实际采用有限结果，但有补充也有退步，稳定净收益未建立。E/R观察token比M0/M1/G0/G1为1.659/0.752/0.967/1.081，同块同epoch同raw；M/G分epoch。普通M/G原/变输入、搬移、源码变化撤回和Download零模型兼容通过；127定向测试/984断言、主/研究类型及15文档测试通过。A-G恢复交付后宿主崩溃的原件与partial报告保持，两个turn usage未知；known input14,115,853（含cache12,484,224一次）/output104,905，实际USD等未知。见[验收](../../results/skill-ir/skill-dsl-research/development/authorization-task-coverage-v1/verification/acceptance-matrix.json)、[执行记录](../../results/skill-ir/skill-dsl-research/development/authorization-task-coverage-v1/execution.md)、[spec§14.58](skill-ir-aot-optimization-spec.md#1458-bs-task-coverage-and-semantic-transfer)、[研究§7.80](skill-dsl-research.md#780-br-复核与-bs-原题覆盖和跨结构语义使用)。900原件已无损打包并逐件读回核验，553登记来源已有Git留存。本地原件及`.tmp/`保持。实质成果17edc5c3已推用户origin并核对同SHA，见[发布回执](../../results/skill-ir/skill-dsl-research/development/authorization-task-coverage-v1/publication.json)。本轮停止，不自动BT。
