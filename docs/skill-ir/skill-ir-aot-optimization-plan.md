@@ -2,7 +2,7 @@
 
 更新于2026-10-21。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BS0–BS22](../superpowers/plans/2026-10-20-authorization-task-coverage-and-semantic-transfer.md)，用户已授权，有限队列完成；BS0–BS21已执行，900原件归档核验完成，用户origin发布进行中。M最后30步仍有3个顺序错误；G最后7步仅带条件的字段准备，创建链未达。共享嵌套owner故障已修，作者原件保持。
+- 当前任务书：[BS0–BS22](../superpowers/plans/2026-10-20-authorization-task-coverage-and-semantic-transfer.md)，用户已授权，completed-with-unmet-criteria；BS0–BS22完成，900原件归档核验，17edc5c3已推用户origin并核对同SHA。M最后30步仍有3个顺序错误；G最后7步仅带条件的字段准备，创建链未达。共享嵌套owner故障已修，作者原件保持。
 - 方法合同：[spec §14.58](skill-ir-aot-optimization-spec.md#1458-bs-task-coverage-and-semantic-transfer)；复核与开发过程统一在[研究 §7.80](skill-dsl-research.md#780-br-复核与-bs-原题覆盖和跨结构语义使用)。BR/BQ/BP历史结论保持。
 - identity：`authorization-task-coverage-v1`，规划基线`2100085ba37e1f01ef9fc7002905feeeb78e7042`。继续`skill-ir-aot`，只推用户origin，不建分支/worktree；父线程交付计划后，新开发线程独占代码、共享方法文档与Git写入。
 - 开发`gpt-6-astra/high`，按用户指定；实验沿已授权官方账号`gpt-5.6-sol/high`。第三方暂停；旧未知与保护证据保持。接管时tracked干净，原有未跟踪`.tmp/`不清理。

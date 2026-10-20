@@ -100,7 +100,7 @@ G 的问题保留路由入口、主体与 issues-unit 权限、字段处理、�
 - [x] **BS19 独立评价。** 输出逐问题和整题结果、关键错误/遗漏、当前证据充分性；对好坏与分歧按同一来源裁定。按下表分轴总结，报告用途/attempt/turn及成本，不用通过测试数替代质量结果。
 - [x] **BS20 最终验证与回放。** 跑受影响测试集合、主及本轮研究类型、文档测试和修改文档链接；零调用复算固定案例/汇总。原件压缩沿现有工具，必要读回一次；不重跑全历史模型/全仓审计。
 - [x] **BS21 文档与普通交付。** 同步 current-status、本计划执行状态、spec§14.58、研究§7.80、当前执行计划、必要使用示例和本地交接日志。若 G 形成可复用普通示例，放现有 examples/authorization-assessment 下；不在 docs/skill-ir 新建一运行一文档。写明具体运行结果及未达范围。
-- [ ] **BS22 发布并停止。** 白名单提交本轮文件到 `origin/skill-ir-aot`，核对远端，记录 active/unknown 请求和是否仍有他人改动。有限队列完成、工程完成、质量与研究目标各自给终态；不得自动 BT。
+- [x] **BS22 发布并停止。** 白名单提交本轮文件到 `origin/skill-ir-aot`，核对远端，记录 active/unknown 请求和是否仍有他人改动。有限队列完成、工程完成、质量与研究目标各自给终态；不得自动 BT。
 
 ## 6. 有限调用、当场修复与恢复
 
@@ -172,3 +172,5 @@ BS14首/终稿各16案完成零模型复算，均无完整创建案例。末稿�
 2026-10-21：BS20–21完成。127受影响测试/984断言、主与研究类型、15文档单测通过；9份改动文档新增坏链接0、范围内既有坏链接4，git diff --check通过。14实际client包无decode/rules泄漏；零调用汇总与生命周期核验全部closed。900原件打包2分片并逐件SHA256读回核验，本地原件保留，553登记来源已tracked。当前状态、spec§14.58、研究§7.80、执行计划、M/G普通示例及本地交接日志同步。BS22待用户origin推送与SHA核对。
 
 2026-10-21发布前校验：发现results默认text eol=lf会改变压缩分片暂存字节；本轮目录新增.gitattributes，将archives/*.part*标为binary，显式git add --renormalize后两分片暂存SHA与归档清单完全一致，M/G固定raw暂存字节同原件。原压缩包与本地证据未变；失败前/后哈希保留verification/git-byte-retention.json。
+
+2026-10-21：BS22完成。实质成果17edc5c3b6aa5130589fa45c1e7d253bec5ca9ab已推origin/skill-ir-aot，git ls-remote核对同SHA；未推upstream。本轮请求active/unknown均空，历史未知保持；tracked无他人未提交改动，原.tmp及未跟踪材料保留。有限队列与工程完成、完整语义/自然质量/稳定净收益未达分列，状态completed-with-unmet-criteria。发布回执及终态文档另作收束提交；停止，不自动BT。
