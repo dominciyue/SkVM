@@ -1,0 +1,45 @@
+{
+  "reviewedAt": "2026-10-20T15:09:07.229Z",
+  "program": "authoring/G-automatic-program.json",
+  "sha256": "0a788fe597115c5674a9db63943eff159abba39e4be605fbb6d7f61e95de28aa",
+  "steps": 7,
+  "wholeProgram": "partial",
+  "developerSemanticEdits": false,
+  "sourceBasis": [
+    "routers/api/v1/api.go:327-423,472-479,782-805,877-882,1649",
+    "routers/api/v1/repo/issue.go:570-652",
+    "services/issue/issue.go:25-83",
+    "services/convert/issue.go:32-117"
+  ],
+  "supported": [
+    "Reader/writer field scalars are conditionally computed beneath unresolved malformed guard; not unconditional source outcome.",
+    "Identity fields derive from supplied context; missing permission remains conditional."
+  ],
+  "missing": [
+    "Route guard conflates signed identity, issues read and archive; no token scope, issues-or-pulls earlier404, admin exceptions, status mapping or binding errors.",
+    "No assignee validation, service NewIssue, blocking, transaction callback, project assignment, mentions, optional CloseIssue, refetch or response conversion.",
+    "Returns a field record without creation outcome, effect or HTTP status. G1 refetch error is unused, not a successful response.",
+    "Source assertions and gaps do not prove call order or complete policy behavior."
+  ],
+  "authorAnswer": {
+    "status": "partial",
+    "falseClaim": "A 201 response does not establish successful internal conversion: toIssue returns empty api.Issue on load failures while handler still returns201.",
+    "otherGaps": "Route helpers/service internals remained unread or not fully adopted; policy conclusion qualified, but creation/transaction sequence incomplete."
+  },
+  "hostFailure": {
+    "providerCompleted": true,
+    "normalContinuationPrevented": true,
+    "fix": "source candidate owner retained",
+    "originalRawPreserved": true
+  },
+  "targetExecutions": 0,
+  "databaseCommitOrRollback": "unknown",
+  "policyOrigin": "experimental-user-brief:gitea-issue-policy/v1; not upstream intent",
+  "schemaFailure": {
+    "step": "route_reader_gate",
+    "path": "resourceWorkflow.steps.0.permission",
+    "diagnostic": "Expected string, received object",
+    "effect": "All later values conditional; no route decision established",
+    "authorClaim": "Valid persistent program, diagnostics none is false for last raw"
+  }
+}

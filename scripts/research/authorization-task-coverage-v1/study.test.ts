@@ -18,5 +18,8 @@ test("same fixed raw is used by R and E while invalid drafts retain source consu
   expect(api.optionsFor("G1-R").domainProgramFile).toBe(api.optionsFor("G1-E").domainProgramFile)
   expect(api.optionsFor("M0-N").domainProgramFile).toBeUndefined()
   expect(api.programDisposition({ status: "invalid" })).toMatchObject({ dispatchSourceConsumer: true, executionComparable: false })
+  expect(api.consumerSupport("execute", { status: "invalid" })).toBe("rules")
+  expect(api.consumerSupport("rules", { status: "valid" })).toBe("rules")
+  expect(api.consumerSupport("execute", { status: "valid" })).toBe("execute")
   expect(api.chooseLastRaw({ programDraft: { currentDraft: { raw: { broken: true } } }, executableContract: { program: { good: true } } })).toEqual({ broken: true })
 })

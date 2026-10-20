@@ -1,0 +1,974 @@
+[
+  {
+    "name": "expiry-equal-private-anonymous",
+    "expected": {
+      "disposition": "return",
+      "memoID": 43,
+      "content": "shared body",
+      "parent": null,
+      "relations": [],
+      "sourceAccessHelperRequired": true
+    },
+    "failure": "Error: resource-input-not-declared:conversionUsers"
+  },
+  {
+    "name": "expiry-passed",
+    "expected": {
+      "disposition": "NotFound",
+      "returned": false
+    },
+    "failure": "Error: resource-input-not-declared:conversionUsers"
+  },
+  {
+    "name": "expiry-future",
+    "expected": {
+      "disposition": "return",
+      "memoID": 43,
+      "content": "shared body",
+      "parent": null,
+      "relations": [],
+      "sourceAccessHelperRequired": true
+    },
+    "failure": "Error: resource-input-not-declared:conversionUsers"
+  },
+  {
+    "name": "no-expiry",
+    "expected": {
+      "disposition": "return",
+      "memoID": 43,
+      "content": "shared body",
+      "parent": null,
+      "relations": [],
+      "sourceAccessHelperRequired": true
+    },
+    "failure": "Error: resource-input-not-declared:conversionUsers"
+  },
+  {
+    "name": "invalid-token",
+    "expected": {
+      "disposition": "NotFound",
+      "returned": false
+    },
+    "failure": "Error: resource-input-not-declared:conversionUsers"
+  },
+  {
+    "name": "revoked-token",
+    "expected": {
+      "disposition": "NotFound",
+      "returned": false
+    },
+    "failure": "Error: resource-input-not-declared:conversionUsers"
+  },
+  {
+    "name": "token-rebound",
+    "expected": {
+      "disposition": "return",
+      "memoID": 89,
+      "content": "unrelated body",
+      "parent": null,
+      "relations": [],
+      "sourceAccessHelperRequired": true
+    },
+    "failure": "Error: resource-input-not-declared:conversionUsers"
+  },
+  {
+    "name": "memo-missing",
+    "expected": {
+      "disposition": "NotFound",
+      "returned": false
+    },
+    "failure": "Error: resource-input-not-declared:conversionUsers"
+  },
+  {
+    "name": "memo-archived",
+    "expected": {
+      "disposition": "NotFound",
+      "returned": false
+    },
+    "failure": "Error: resource-input-not-declared:conversionUsers"
+  },
+  {
+    "name": "memo-space-audience",
+    "expected": {
+      "disposition": "NotFound",
+      "returned": false
+    },
+    "failure": "Error: resource-input-not-declared:conversionUsers"
+  },
+  {
+    "name": "unknown-audience",
+    "expected": {
+      "disposition": "NotFound",
+      "returned": false
+    },
+    "failure": "Error: resource-input-not-declared:conversionUsers"
+  },
+  {
+    "name": "creator-missing",
+    "expected": {
+      "disposition": "NotFound",
+      "returned": false
+    },
+    "failure": "Error: resource-input-not-declared:conversionUsers"
+  },
+  {
+    "name": "creator-archived",
+    "expected": {
+      "disposition": "return",
+      "memoID": 43,
+      "content": "shared body",
+      "parent": null,
+      "relations": [],
+      "sourceAccessHelperRequired": true
+    },
+    "failure": "Error: resource-input-not-declared:conversionUsers"
+  },
+  {
+    "name": "creator-invalid-state",
+    "expected": {
+      "disposition": "NotFound",
+      "returned": false
+    },
+    "failure": "Error: resource-input-not-declared:conversionUsers"
+  },
+  {
+    "name": "dangling-nonspace-placement",
+    "expected": {
+      "disposition": "return",
+      "memoID": 43,
+      "content": "shared body",
+      "parent": null,
+      "relations": [],
+      "sourceAccessHelperRequired": true
+    },
+    "failure": "Error: resource-input-not-declared:conversionUsers"
+  },
+  {
+    "name": "share-store-error",
+    "expected": {
+      "disposition": "Internal",
+      "returned": false
+    },
+    "failure": "Error: resource-input-not-declared:conversionUsers"
+  },
+  {
+    "name": "context-policy-error",
+    "expected": {
+      "disposition": "NotFound",
+      "returned": false
+    },
+    "failure": "Error: resource-input-not-declared:conversionUsers"
+  },
+  {
+    "name": "missing-clock",
+    "expected": {
+      "disposition": "unknown",
+      "blocked": "expiry"
+    },
+    "failure": "Error: resource-input-not-declared:conversionUsers"
+  },
+  {
+    "name": "missing-users-population",
+    "expected": {
+      "disposition": "unknown",
+      "blocked": "creator lookup"
+    },
+    "actual": {
+      "termination": "return",
+      "conditions": [
+        {
+          "step": "creator_valid",
+          "test": {
+            "op": "all",
+            "args": [
+              {
+                "op": "not",
+                "arg": {
+                  "op": "is-null",
+                  "value": {
+                    "binding": "creator"
+                  }
+                }
+              },
+              {
+                "op": "eq",
+                "left": {
+                  "binding": "creator.ID"
+                },
+                "right": {
+                  "literal": 17
+                }
+              },
+              {
+                "op": "member",
+                "value": {
+                  "binding": "creator.RowStatus"
+                },
+                "set": {
+                  "literal": [
+                    "NORMAL",
+                    "ARCHIVED"
+                  ]
+                }
+              }
+            ]
+          },
+          "otherwise": "NOT_FOUND: not found"
+        }
+      ],
+      "gaps": [
+        "The finite workflow records response inclusion of memo-scoped reactions and attachments but does not materialize every converted collection row.",
+        "Full protobuf field conversion, snippet generation, placement projection, and Connect transport error mapping are outside the requested token-access relation model.",
+        "users",
+        "creator",
+        "creator.ID",
+        "creator.RowStatus"
+      ],
+      "events": [
+        {
+          "id": "share_store_ok",
+          "op": "guard",
+          "source": {
+            "path": "server/api/v1/memo_share_service.go",
+            "startLine": 221,
+            "endLine": 225
+          },
+          "outcome": "computed",
+          "value": true
+        },
+        {
+          "id": "share",
+          "op": "select",
+          "source": {
+            "path": "server/api/v1/memo_share_service.go",
+            "startLine": 221,
+            "endLine": 229
+          },
+          "outcome": "computed",
+          "value": {
+            "ID": 71,
+            "UID": "share-alpha",
+            "MemoID": 43,
+            "CreatorID": 17,
+            "ExpiresTs": 2000
+          }
+        },
+        {
+          "id": "share_found",
+          "op": "guard",
+          "source": {
+            "path": "server/api/v1/memo_share_service.go",
+            "startLine": 221,
+            "endLine": 229
+          },
+          "outcome": "computed",
+          "value": true
+        },
+        {
+          "id": "share_active",
+          "op": "guard",
+          "source": {
+            "path": "server/api/v1/memo_share_service.go",
+            "startLine": 216,
+            "endLine": 229
+          },
+          "outcome": "computed",
+          "value": true
+        },
+        {
+          "id": "memo_store_ok",
+          "op": "guard",
+          "source": {
+            "path": "server/api/v1/memo_share_service.go",
+            "startLine": 178,
+            "endLine": 181
+          },
+          "outcome": "computed",
+          "value": true
+        },
+        {
+          "id": "memo",
+          "op": "select",
+          "source": {
+            "path": "server/api/v1/memo_share_service.go",
+            "startLine": 172,
+            "endLine": 185
+          },
+          "outcome": "computed",
+          "value": {
+            "ID": 43,
+            "UID": "memo-alpha",
+            "CreatorID": 17,
+            "RowStatus": "NORMAL",
+            "Visibility": "PRIVATE",
+            "SpaceID": null,
+            "ParentUID": "parent-private",
+            "Content": "shared body"
+          }
+        },
+        {
+          "id": "memo_visible_state",
+          "op": "guard",
+          "source": {
+            "path": "server/api/v1/memo_share_service.go",
+            "startLine": 182,
+            "endLine": 189
+          },
+          "outcome": "computed",
+          "value": true
+        },
+        {
+          "id": "viewer_store_ok",
+          "op": "guard",
+          "source": {
+            "path": "server/api/v1/auth_service_session.go",
+            "startLine": 269,
+            "endLine": 286
+          },
+          "outcome": "skipped",
+          "value": null
+        },
+        {
+          "id": "viewer_row",
+          "op": "select",
+          "source": {
+            "path": "server/api/v1/auth_service_session.go",
+            "startLine": 269,
+            "endLine": 286
+          },
+          "outcome": "skipped",
+          "value": null
+        },
+        {
+          "id": "viewer_exists",
+          "op": "guard",
+          "source": {
+            "path": "server/api/v1/auth_service_session.go",
+            "startLine": 269,
+            "endLine": 286
+          },
+          "outcome": "skipped",
+          "value": null
+        },
+        {
+          "id": "viewer",
+          "op": "value",
+          "source": {
+            "path": "server/api/v1/auth_service_session.go",
+            "startLine": 269,
+            "endLine": 290
+          },
+          "outcome": "computed",
+          "value": null
+        },
+        {
+          "id": "instance_setting_ok",
+          "op": "guard",
+          "source": {
+            "path": "server/api/v1/memo_access.go",
+            "startLine": 17,
+            "endLine": 29
+          },
+          "outcome": "computed",
+          "value": true
+        },
+        {
+          "id": "allow_anonymous",
+          "op": "value",
+          "source": {
+            "path": "store/instance_setting.go",
+            "startLine": 255,
+            "endLine": 262
+          },
+          "outcome": "computed",
+          "value": false
+        },
+        {
+          "id": "creator_store_ok",
+          "op": "guard",
+          "source": {
+            "path": "core/access/memo_resolve.go",
+            "startLine": 31,
+            "endLine": 42
+          },
+          "outcome": "computed",
+          "value": true
+        },
+        {
+          "id": "creator",
+          "op": "select",
+          "source": {
+            "path": "core/access/memo_resolve.go",
+            "startLine": 31,
+            "endLine": 42
+          },
+          "outcome": "unresolved"
+        },
+        {
+          "id": "creator_valid",
+          "op": "guard",
+          "source": {
+            "path": "core/access/memo.go",
+            "startLine": 87,
+            "endLine": 121
+          },
+          "outcome": "unresolved"
+        },
+        {
+          "id": "space_store_ok",
+          "op": "guard",
+          "source": {
+            "path": "core/access/memo_resolve.go",
+            "startLine": 44,
+            "endLine": 51
+          },
+          "outcome": "skipped",
+          "value": null
+        },
+        {
+          "id": "space",
+          "op": "select",
+          "source": {
+            "path": "core/access/memo_resolve.go",
+            "startLine": 44,
+            "endLine": 51
+          },
+          "outcome": "skipped",
+          "value": null
+        },
+        {
+          "id": "membership_store_ok",
+          "op": "guard",
+          "source": {
+            "path": "core/access/memo_resolve.go",
+            "startLine": 58,
+            "endLine": 80
+          },
+          "outcome": "skipped",
+          "value": null
+        },
+        {
+          "id": "membership",
+          "op": "select",
+          "source": {
+            "path": "core/access/memo_resolve.go",
+            "startLine": 58,
+            "endLine": 80
+          },
+          "outcome": "skipped",
+          "value": null
+        },
+        {
+          "id": "share_exact_memo_access",
+          "op": "guard",
+          "source": {
+            "path": "core/access/memo.go",
+            "startLine": 87,
+            "endLine": 122
+          },
+          "outcome": "conditional",
+          "value": true
+        },
+        {
+          "id": "reactions_store_ok",
+          "op": "guard",
+          "source": {
+            "path": "server/api/v1/memo_share_service.go",
+            "startLine": 191,
+            "endLine": 196
+          },
+          "outcome": "conditional",
+          "value": true
+        },
+        {
+          "id": "attachments_store_ok",
+          "op": "guard",
+          "source": {
+            "path": "server/api/v1/memo_share_service.go",
+            "startLine": 198,
+            "endLine": 201
+          },
+          "outcome": "conditional",
+          "value": true
+        },
+        {
+          "id": "conversion_ok",
+          "op": "guard",
+          "source": {
+            "path": "server/api/v1/memo_share_service.go",
+            "startLine": 203,
+            "endLine": 209
+          },
+          "outcome": "conditional",
+          "value": true
+        },
+        {
+          "id": "result",
+          "op": "return",
+          "source": {
+            "path": "server/api/v1/memo_share_service.go",
+            "startLine": 186,
+            "endLine": 213
+          },
+          "outcome": "unresolved"
+        }
+      ]
+    }
+  },
+  {
+    "name": "renamed-identities",
+    "expected": {
+      "disposition": "return",
+      "memoID": 143,
+      "content": "shared body",
+      "parent": null,
+      "relations": [],
+      "sourceAccessHelperRequired": true
+    },
+    "failure": "Error: resource-input-not-declared:conversionUsers"
+  },
+  {
+    "name": "reordered-populations",
+    "expected": {
+      "disposition": "return",
+      "memoID": 43,
+      "content": "shared body",
+      "parent": null,
+      "relations": [],
+      "sourceAccessHelperRequired": true
+    },
+    "failure": "Error: resource-input-not-declared:conversionUsers"
+  },
+  {
+    "name": "unrelated-fields",
+    "expected": {
+      "disposition": "return",
+      "memoID": 43,
+      "content": "shared body",
+      "parent": null,
+      "relations": [],
+      "sourceAccessHelperRequired": true
+    },
+    "failure": "Error: resource-input-not-declared:conversionUsers"
+  },
+  {
+    "name": "unrecognized-audience-after-context-error",
+    "expected": {
+      "disposition": "NotFound",
+      "order": [
+        "memo lookup",
+        "viewer lookup error"
+      ],
+      "notReached": [
+        "creator lookup",
+        "audience guard"
+      ],
+      "note": "Same final error as old raw is not order fidelity"
+    },
+    "failure": "Error: resource-input-not-declared:conversionUsers"
+  },
+  {
+    "name": "invalid-creator-still-resolves-space",
+    "expected": {
+      "disposition": "NotFound",
+      "order": [
+        "creator lookup",
+        "space lookup error"
+      ],
+      "notReached": [
+        "creator-valid guard"
+      ]
+    },
+    "failure": "Error: resource-input-not-declared:conversionUsers"
+  },
+  {
+    "name": "invalid-creator-still-resolves-member",
+    "expected": {
+      "disposition": "NotFound",
+      "order": [
+        "creator lookup",
+        "space lookup",
+        "membership lookup error"
+      ],
+      "notReached": [
+        "creator-valid guard"
+      ]
+    },
+    "failure": "Error: resource-input-not-declared:conversionUsers"
+  },
+  {
+    "name": "conversion-creator-disappeared",
+    "expected": {
+      "disposition": "NotFound",
+      "order": [
+        "reactions",
+        "attachments",
+        "conversion creator lookup"
+      ],
+      "notReached": [
+        "response return"
+      ]
+    },
+    "failure": "Error: resource-input-not-declared:conversionUsers"
+  },
+  {
+    "name": "conversion-creator-database-error",
+    "expected": {
+      "disposition": "wrapped-conversion-error",
+      "notEquivalentTo": "NotFound",
+      "order": [
+        "reactions",
+        "attachments",
+        "conversion creator lookup"
+      ]
+    },
+    "failure": "Error: resource-input-not-declared:conversionUsers"
+  },
+  {
+    "name": "reactions-error-precedes-attachments",
+    "expected": {
+      "disposition": "Internal",
+      "firstError": "reactions",
+      "notReached": [
+        "attachments",
+        "conversion"
+      ]
+    },
+    "failure": "Error: resource-input-not-declared:conversionUsers"
+  },
+  {
+    "name": "missing-conversion-population",
+    "expected": {
+      "disposition": "unknown",
+      "blocked": "conversion creator lookup"
+    },
+    "actual": {
+      "returned": {
+        "memo_id": 43,
+        "memo_uid": "memo-alpha",
+        "content": "shared body",
+        "creator_id": 17,
+        "share_bound_memo_id": 43,
+        "instance_allows_anonymous": false,
+        "includes_memo_reactions": true,
+        "includes_memo_attachments": true,
+        "relation_count": 0,
+        "parent": null
+      },
+      "termination": "return",
+      "conditions": [],
+      "gaps": [
+        "The finite workflow records response inclusion of memo-scoped reactions and attachments but does not materialize every converted collection row.",
+        "Full protobuf field conversion, snippet generation, placement projection, and Connect transport error mapping are outside the requested token-access relation model."
+      ],
+      "events": [
+        {
+          "id": "share_store_ok",
+          "op": "guard",
+          "source": {
+            "path": "server/api/v1/memo_share_service.go",
+            "startLine": 221,
+            "endLine": 225
+          },
+          "outcome": "computed",
+          "value": true
+        },
+        {
+          "id": "share",
+          "op": "select",
+          "source": {
+            "path": "server/api/v1/memo_share_service.go",
+            "startLine": 221,
+            "endLine": 229
+          },
+          "outcome": "computed",
+          "value": {
+            "ID": 71,
+            "UID": "share-alpha",
+            "MemoID": 43,
+            "CreatorID": 17,
+            "ExpiresTs": 2000
+          }
+        },
+        {
+          "id": "share_found",
+          "op": "guard",
+          "source": {
+            "path": "server/api/v1/memo_share_service.go",
+            "startLine": 221,
+            "endLine": 229
+          },
+          "outcome": "computed",
+          "value": true
+        },
+        {
+          "id": "share_active",
+          "op": "guard",
+          "source": {
+            "path": "server/api/v1/memo_share_service.go",
+            "startLine": 216,
+            "endLine": 229
+          },
+          "outcome": "computed",
+          "value": true
+        },
+        {
+          "id": "memo_store_ok",
+          "op": "guard",
+          "source": {
+            "path": "server/api/v1/memo_share_service.go",
+            "startLine": 178,
+            "endLine": 181
+          },
+          "outcome": "computed",
+          "value": true
+        },
+        {
+          "id": "memo",
+          "op": "select",
+          "source": {
+            "path": "server/api/v1/memo_share_service.go",
+            "startLine": 172,
+            "endLine": 185
+          },
+          "outcome": "computed",
+          "value": {
+            "ID": 43,
+            "UID": "memo-alpha",
+            "CreatorID": 17,
+            "RowStatus": "NORMAL",
+            "Visibility": "PRIVATE",
+            "SpaceID": null,
+            "ParentUID": "parent-private",
+            "Content": "shared body"
+          }
+        },
+        {
+          "id": "memo_visible_state",
+          "op": "guard",
+          "source": {
+            "path": "server/api/v1/memo_share_service.go",
+            "startLine": 182,
+            "endLine": 189
+          },
+          "outcome": "computed",
+          "value": true
+        },
+        {
+          "id": "viewer_store_ok",
+          "op": "guard",
+          "source": {
+            "path": "server/api/v1/auth_service_session.go",
+            "startLine": 269,
+            "endLine": 286
+          },
+          "outcome": "skipped",
+          "value": null
+        },
+        {
+          "id": "viewer_row",
+          "op": "select",
+          "source": {
+            "path": "server/api/v1/auth_service_session.go",
+            "startLine": 269,
+            "endLine": 286
+          },
+          "outcome": "skipped",
+          "value": null
+        },
+        {
+          "id": "viewer_exists",
+          "op": "guard",
+          "source": {
+            "path": "server/api/v1/auth_service_session.go",
+            "startLine": 269,
+            "endLine": 286
+          },
+          "outcome": "skipped",
+          "value": null
+        },
+        {
+          "id": "viewer",
+          "op": "value",
+          "source": {
+            "path": "server/api/v1/auth_service_session.go",
+            "startLine": 269,
+            "endLine": 290
+          },
+          "outcome": "computed",
+          "value": null
+        },
+        {
+          "id": "instance_setting_ok",
+          "op": "guard",
+          "source": {
+            "path": "server/api/v1/memo_access.go",
+            "startLine": 17,
+            "endLine": 29
+          },
+          "outcome": "computed",
+          "value": true
+        },
+        {
+          "id": "allow_anonymous",
+          "op": "value",
+          "source": {
+            "path": "store/instance_setting.go",
+            "startLine": 255,
+            "endLine": 262
+          },
+          "outcome": "computed",
+          "value": false
+        },
+        {
+          "id": "creator_store_ok",
+          "op": "guard",
+          "source": {
+            "path": "core/access/memo_resolve.go",
+            "startLine": 31,
+            "endLine": 42
+          },
+          "outcome": "computed",
+          "value": true
+        },
+        {
+          "id": "creator",
+          "op": "select",
+          "source": {
+            "path": "core/access/memo_resolve.go",
+            "startLine": 31,
+            "endLine": 42
+          },
+          "outcome": "computed",
+          "value": {
+            "ID": 17,
+            "Username": "author-a",
+            "RowStatus": "NORMAL",
+            "Role": "USER"
+          }
+        },
+        {
+          "id": "creator_valid",
+          "op": "guard",
+          "source": {
+            "path": "core/access/memo.go",
+            "startLine": 87,
+            "endLine": 121
+          },
+          "outcome": "computed",
+          "value": true
+        },
+        {
+          "id": "space_store_ok",
+          "op": "guard",
+          "source": {
+            "path": "core/access/memo_resolve.go",
+            "startLine": 44,
+            "endLine": 51
+          },
+          "outcome": "skipped",
+          "value": null
+        },
+        {
+          "id": "space",
+          "op": "select",
+          "source": {
+            "path": "core/access/memo_resolve.go",
+            "startLine": 44,
+            "endLine": 51
+          },
+          "outcome": "skipped",
+          "value": null
+        },
+        {
+          "id": "membership_store_ok",
+          "op": "guard",
+          "source": {
+            "path": "core/access/memo_resolve.go",
+            "startLine": 58,
+            "endLine": 80
+          },
+          "outcome": "skipped",
+          "value": null
+        },
+        {
+          "id": "membership",
+          "op": "select",
+          "source": {
+            "path": "core/access/memo_resolve.go",
+            "startLine": 58,
+            "endLine": 80
+          },
+          "outcome": "skipped",
+          "value": null
+        },
+        {
+          "id": "share_exact_memo_access",
+          "op": "guard",
+          "source": {
+            "path": "core/access/memo.go",
+            "startLine": 87,
+            "endLine": 122
+          },
+          "outcome": "computed",
+          "value": true
+        },
+        {
+          "id": "reactions_store_ok",
+          "op": "guard",
+          "source": {
+            "path": "server/api/v1/memo_share_service.go",
+            "startLine": 191,
+            "endLine": 196
+          },
+          "outcome": "computed",
+          "value": true
+        },
+        {
+          "id": "attachments_store_ok",
+          "op": "guard",
+          "source": {
+            "path": "server/api/v1/memo_share_service.go",
+            "startLine": 198,
+            "endLine": 201
+          },
+          "outcome": "computed",
+          "value": true
+        },
+        {
+          "id": "conversion_ok",
+          "op": "guard",
+          "source": {
+            "path": "server/api/v1/memo_share_service.go",
+            "startLine": 203,
+            "endLine": 209
+          },
+          "outcome": "computed",
+          "value": true
+        },
+        {
+          "id": "result",
+          "op": "return",
+          "source": {
+            "path": "server/api/v1/memo_share_service.go",
+            "startLine": 186,
+            "endLine": 213
+          },
+          "outcome": "computed",
+          "value": {
+            "memo_id": 43,
+            "memo_uid": "memo-alpha",
+            "content": "shared body",
+            "creator_id": 17,
+            "share_bound_memo_id": 43,
+            "instance_allows_anonymous": false,
+            "includes_memo_reactions": true,
+            "includes_memo_attachments": true,
+            "relation_count": 0,
+            "parent": null
+          }
+        }
+      ]
+    }
+  }
+]

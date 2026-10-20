@@ -1,0 +1,27 @@
+{
+  "reviewedAt": "2026-10-20",
+  "agent": "bs_g_oracle_check",
+  "role": "read-only",
+  "providerCalls": 0,
+  "registeredBytesChanged": false,
+  "scope": "Three subtle frozen oracle claims only; not general source certification",
+  "findings": [
+    {
+      "claim": "Issues reader can reach creation; writer gates selected fields, labels cleared for reader while Projects forwarded",
+      "result": "confirmed",
+      "source": ["routers/api/v1/api.go:1647-1650", "routers/api/v1/repo/issue.go:570-624", "models/perm/access/repo_permission.go:118-155"]
+    },
+    {
+      "claim": "Later close/refetch error establishes creation-call reachability, not proven transaction commit",
+      "result": "confirmed",
+      "source": ["services/issue/issue.go:36-60", "models/issues/issue_update.go:452-476", "routers/api/v1/repo/issue.go:635-650"],
+      "limit": "db.WithTx implementation absent from archived allowed source"
+    },
+    {
+      "claim": "Converter load failure returns empty api.Issue; handler still returns201",
+      "result": "confirmed",
+      "source": ["services/convert/issue.go:36-48,69-77,91-99,105-117", "routers/api/v1/repo/issue.go:646-652"]
+    }
+  ],
+  "mainDisposition": "Consistent with main's prior direct source inspection; retain frozen cases and limitations."
+}

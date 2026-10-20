@@ -1,0 +1,2192 @@
+[
+  {
+    "name": "reader-create",
+    "expected": {
+      "status": 201,
+      "reachesCreation": true,
+      "fields": {
+        "DeadlineUnix": 0,
+        "MilestoneID": 0,
+        "Labels": [],
+        "Assignees": []
+      },
+      "policy": "nonconforming-to-supplied-policy",
+      "response": "issue representation",
+      "targetExecution": false,
+      "databaseCommitOrRollback": "unknown"
+    },
+    "actual": {
+      "returned": {
+        "can_write_issues": false,
+        "labels_allowed": false,
+        "repo_id": 83,
+        "poster_id": 31,
+        "deadline": 0,
+        "milestone_id": 0
+      },
+      "termination": "return",
+      "conditions": [
+        {
+          "step": "route_reader_gate",
+          "controlGaps": [
+            "resource-step:steps.0.permission:Expected string, received object"
+          ],
+          "otherwise": "unresolved-control"
+        }
+      ],
+      "gaps": [
+        "The handler does not make CanWrite(TypeIssues) a precondition for issue creation; it gates only deadline, milestone, labels, and assignee handling in the modeled span.",
+        "The finite permission inputs do not expose every UnitAccessMode construction branch, including anonymous/everyone maps.",
+        "Route middleware, binding failures, assignee lookup and assignability, NewIssue transaction effects, optional close, refetch, and response conversion are not yet modeled.",
+        "resource-step:steps.0.permission:Expected string, received object"
+      ],
+      "events": [
+        {
+          "id": "route_reader_gate",
+          "op": "guard",
+          "source": {
+            "path": "routers/api/v1/api.go",
+            "startLine": 1649,
+            "endLine": 1649,
+            "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6"
+          },
+          "outcome": "unresolved"
+        },
+        {
+          "id": "can_write_issues",
+          "op": "value",
+          "source": {
+            "path": "models/perm/access/repo_permission.go",
+            "startLine": 152,
+            "endLine": 155,
+            "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58"
+          },
+          "outcome": "conditional",
+          "value": false
+        },
+        {
+          "id": "deadline_value",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 585,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": 0
+        },
+        {
+          "id": "labels_for_create",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 587,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": []
+        },
+        {
+          "id": "milestone_value",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 587,
+            "endLine": 622,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": 0
+        },
+        {
+          "id": "prepared_issue",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": {
+            "repo_id": 83,
+            "title": " finite issue ",
+            "poster_id": 31,
+            "content": "Synthetic issue body",
+            "ref": "main",
+            "deadline": 0,
+            "milestone_id": 0
+          }
+        },
+        {
+          "id": "result",
+          "op": "return",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": {
+            "can_write_issues": false,
+            "labels_allowed": false,
+            "repo_id": 83,
+            "poster_id": 31,
+            "deadline": 0,
+            "milestone_id": 0
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "writer-create",
+    "expected": {
+      "status": 201,
+      "reachesCreation": true,
+      "fields": {
+        "DeadlineUnix": 2000,
+        "MilestoneID": 12,
+        "Labels": [
+          5
+        ]
+      },
+      "policy": "satisfies-write-requirement",
+      "targetExecution": false,
+      "databaseCommitOrRollback": "unknown"
+    },
+    "actual": {
+      "returned": {
+        "can_write_issues": true,
+        "labels_allowed": true,
+        "repo_id": 83,
+        "poster_id": 31,
+        "deadline": 2000,
+        "milestone_id": 12
+      },
+      "termination": "return",
+      "conditions": [
+        {
+          "step": "route_reader_gate",
+          "controlGaps": [
+            "resource-step:steps.0.permission:Expected string, received object"
+          ],
+          "otherwise": "unresolved-control"
+        }
+      ],
+      "gaps": [
+        "The handler does not make CanWrite(TypeIssues) a precondition for issue creation; it gates only deadline, milestone, labels, and assignee handling in the modeled span.",
+        "The finite permission inputs do not expose every UnitAccessMode construction branch, including anonymous/everyone maps.",
+        "Route middleware, binding failures, assignee lookup and assignability, NewIssue transaction effects, optional close, refetch, and response conversion are not yet modeled.",
+        "resource-step:steps.0.permission:Expected string, received object"
+      ],
+      "events": [
+        {
+          "id": "route_reader_gate",
+          "op": "guard",
+          "source": {
+            "path": "routers/api/v1/api.go",
+            "startLine": 1649,
+            "endLine": 1649,
+            "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6"
+          },
+          "outcome": "unresolved"
+        },
+        {
+          "id": "can_write_issues",
+          "op": "value",
+          "source": {
+            "path": "models/perm/access/repo_permission.go",
+            "startLine": 152,
+            "endLine": 155,
+            "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58"
+          },
+          "outcome": "conditional",
+          "value": true
+        },
+        {
+          "id": "deadline_value",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 585,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": 2000
+        },
+        {
+          "id": "labels_for_create",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 587,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": [
+            5
+          ]
+        },
+        {
+          "id": "milestone_value",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 587,
+            "endLine": 622,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": 12
+        },
+        {
+          "id": "prepared_issue",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": {
+            "repo_id": 83,
+            "title": " finite issue ",
+            "poster_id": 31,
+            "content": "Synthetic issue body",
+            "ref": "main",
+            "deadline": 2000,
+            "milestone_id": 12
+          }
+        },
+        {
+          "id": "result",
+          "op": "return",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": {
+            "can_write_issues": true,
+            "labels_allowed": true,
+            "repo_id": 83,
+            "poster_id": 31,
+            "deadline": 2000,
+            "milestone_id": 12
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "anonymous-readable-repository",
+    "expected": {
+      "status": 401,
+      "reachesCreation": false,
+      "targetExecution": false,
+      "databaseCommitOrRollback": "unknown"
+    },
+    "actual": {
+      "returned": {
+        "can_write_issues": false,
+        "labels_allowed": false,
+        "repo_id": 83,
+        "poster_id": 31,
+        "deadline": 0,
+        "milestone_id": 0
+      },
+      "termination": "return",
+      "conditions": [
+        {
+          "step": "route_reader_gate",
+          "controlGaps": [
+            "resource-step:steps.0.permission:Expected string, received object"
+          ],
+          "otherwise": "unresolved-control"
+        }
+      ],
+      "gaps": [
+        "The handler does not make CanWrite(TypeIssues) a precondition for issue creation; it gates only deadline, milestone, labels, and assignee handling in the modeled span.",
+        "The finite permission inputs do not expose every UnitAccessMode construction branch, including anonymous/everyone maps.",
+        "Route middleware, binding failures, assignee lookup and assignability, NewIssue transaction effects, optional close, refetch, and response conversion are not yet modeled.",
+        "resource-step:steps.0.permission:Expected string, received object"
+      ],
+      "events": [
+        {
+          "id": "route_reader_gate",
+          "op": "guard",
+          "source": {
+            "path": "routers/api/v1/api.go",
+            "startLine": 1649,
+            "endLine": 1649,
+            "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6"
+          },
+          "outcome": "unresolved"
+        },
+        {
+          "id": "can_write_issues",
+          "op": "value",
+          "source": {
+            "path": "models/perm/access/repo_permission.go",
+            "startLine": 152,
+            "endLine": 155,
+            "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58"
+          },
+          "outcome": "conditional",
+          "value": false
+        },
+        {
+          "id": "deadline_value",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 585,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": 0
+        },
+        {
+          "id": "labels_for_create",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 587,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": []
+        },
+        {
+          "id": "milestone_value",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 587,
+            "endLine": 622,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": 0
+        },
+        {
+          "id": "prepared_issue",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": {
+            "repo_id": 83,
+            "title": " finite issue ",
+            "poster_id": 31,
+            "content": "Synthetic issue body",
+            "ref": "main",
+            "deadline": 0,
+            "milestone_id": 0
+          }
+        },
+        {
+          "id": "result",
+          "op": "return",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": {
+            "can_write_issues": false,
+            "labels_allowed": false,
+            "repo_id": 83,
+            "poster_id": 31,
+            "deadline": 0,
+            "milestone_id": 0
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "archived-repository",
+    "expected": {
+      "status": 423,
+      "reachesCreation": false,
+      "targetExecution": false,
+      "databaseCommitOrRollback": "unknown"
+    },
+    "actual": {
+      "returned": {
+        "can_write_issues": false,
+        "labels_allowed": false,
+        "repo_id": 83,
+        "poster_id": 31,
+        "deadline": 0,
+        "milestone_id": 0
+      },
+      "termination": "return",
+      "conditions": [
+        {
+          "step": "route_reader_gate",
+          "controlGaps": [
+            "resource-step:steps.0.permission:Expected string, received object"
+          ],
+          "otherwise": "unresolved-control"
+        }
+      ],
+      "gaps": [
+        "The handler does not make CanWrite(TypeIssues) a precondition for issue creation; it gates only deadline, milestone, labels, and assignee handling in the modeled span.",
+        "The finite permission inputs do not expose every UnitAccessMode construction branch, including anonymous/everyone maps.",
+        "Route middleware, binding failures, assignee lookup and assignability, NewIssue transaction effects, optional close, refetch, and response conversion are not yet modeled.",
+        "resource-step:steps.0.permission:Expected string, received object"
+      ],
+      "events": [
+        {
+          "id": "route_reader_gate",
+          "op": "guard",
+          "source": {
+            "path": "routers/api/v1/api.go",
+            "startLine": 1649,
+            "endLine": 1649,
+            "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6"
+          },
+          "outcome": "unresolved"
+        },
+        {
+          "id": "can_write_issues",
+          "op": "value",
+          "source": {
+            "path": "models/perm/access/repo_permission.go",
+            "startLine": 152,
+            "endLine": 155,
+            "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58"
+          },
+          "outcome": "conditional",
+          "value": false
+        },
+        {
+          "id": "deadline_value",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 585,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": 0
+        },
+        {
+          "id": "labels_for_create",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 587,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": []
+        },
+        {
+          "id": "milestone_value",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 587,
+            "endLine": 622,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": 0
+        },
+        {
+          "id": "prepared_issue",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": {
+            "repo_id": 83,
+            "title": " finite issue ",
+            "poster_id": 31,
+            "content": "Synthetic issue body",
+            "ref": "main",
+            "deadline": 0,
+            "milestone_id": 0
+          }
+        },
+        {
+          "id": "result",
+          "op": "return",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": {
+            "can_write_issues": false,
+            "labels_allowed": false,
+            "repo_id": 83,
+            "poster_id": 31,
+            "deadline": 0,
+            "milestone_id": 0
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "repository-reader-without-issue-read",
+    "expected": {
+      "status": 403,
+      "reachesCreation": false,
+      "note": "Readable pull unit reaches route-specific issues reader guard",
+      "targetExecution": false,
+      "databaseCommitOrRollback": "unknown"
+    },
+    "actual": {
+      "returned": {
+        "can_write_issues": false,
+        "labels_allowed": false,
+        "repo_id": 83,
+        "poster_id": 31,
+        "deadline": 0,
+        "milestone_id": 0
+      },
+      "termination": "return",
+      "conditions": [
+        {
+          "step": "route_reader_gate",
+          "controlGaps": [
+            "resource-step:steps.0.permission:Expected string, received object"
+          ],
+          "otherwise": "unresolved-control"
+        }
+      ],
+      "gaps": [
+        "The handler does not make CanWrite(TypeIssues) a precondition for issue creation; it gates only deadline, milestone, labels, and assignee handling in the modeled span.",
+        "The finite permission inputs do not expose every UnitAccessMode construction branch, including anonymous/everyone maps.",
+        "Route middleware, binding failures, assignee lookup and assignability, NewIssue transaction effects, optional close, refetch, and response conversion are not yet modeled.",
+        "resource-step:steps.0.permission:Expected string, received object"
+      ],
+      "events": [
+        {
+          "id": "route_reader_gate",
+          "op": "guard",
+          "source": {
+            "path": "routers/api/v1/api.go",
+            "startLine": 1649,
+            "endLine": 1649,
+            "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6"
+          },
+          "outcome": "unresolved"
+        },
+        {
+          "id": "can_write_issues",
+          "op": "value",
+          "source": {
+            "path": "models/perm/access/repo_permission.go",
+            "startLine": 152,
+            "endLine": 155,
+            "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58"
+          },
+          "outcome": "conditional",
+          "value": false
+        },
+        {
+          "id": "deadline_value",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 585,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": 0
+        },
+        {
+          "id": "labels_for_create",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 587,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": []
+        },
+        {
+          "id": "milestone_value",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 587,
+            "endLine": 622,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": 0
+        },
+        {
+          "id": "prepared_issue",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": {
+            "repo_id": 83,
+            "title": " finite issue ",
+            "poster_id": 31,
+            "content": "Synthetic issue body",
+            "ref": "main",
+            "deadline": 0,
+            "milestone_id": 0
+          }
+        },
+        {
+          "id": "result",
+          "op": "return",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": {
+            "can_write_issues": false,
+            "labels_allowed": false,
+            "repo_id": 83,
+            "poster_id": 31,
+            "deadline": 0,
+            "milestone_id": 0
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "no-readable-issue-or-pull-unit",
+    "expected": {
+      "status": 404,
+      "reachesCreation": false,
+      "targetExecution": false,
+      "databaseCommitOrRollback": "unknown"
+    },
+    "actual": {
+      "returned": {
+        "can_write_issues": false,
+        "labels_allowed": false,
+        "repo_id": 83,
+        "poster_id": 31,
+        "deadline": 0,
+        "milestone_id": 0
+      },
+      "termination": "return",
+      "conditions": [
+        {
+          "step": "route_reader_gate",
+          "controlGaps": [
+            "resource-step:steps.0.permission:Expected string, received object"
+          ],
+          "otherwise": "unresolved-control"
+        }
+      ],
+      "gaps": [
+        "The handler does not make CanWrite(TypeIssues) a precondition for issue creation; it gates only deadline, milestone, labels, and assignee handling in the modeled span.",
+        "The finite permission inputs do not expose every UnitAccessMode construction branch, including anonymous/everyone maps.",
+        "Route middleware, binding failures, assignee lookup and assignability, NewIssue transaction effects, optional close, refetch, and response conversion are not yet modeled.",
+        "resource-step:steps.0.permission:Expected string, received object"
+      ],
+      "events": [
+        {
+          "id": "route_reader_gate",
+          "op": "guard",
+          "source": {
+            "path": "routers/api/v1/api.go",
+            "startLine": 1649,
+            "endLine": 1649,
+            "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6"
+          },
+          "outcome": "unresolved"
+        },
+        {
+          "id": "can_write_issues",
+          "op": "value",
+          "source": {
+            "path": "models/perm/access/repo_permission.go",
+            "startLine": 152,
+            "endLine": 155,
+            "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58"
+          },
+          "outcome": "conditional",
+          "value": false
+        },
+        {
+          "id": "deadline_value",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 585,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": 0
+        },
+        {
+          "id": "labels_for_create",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 587,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": []
+        },
+        {
+          "id": "milestone_value",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 587,
+            "endLine": 622,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": 0
+        },
+        {
+          "id": "prepared_issue",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": {
+            "repo_id": 83,
+            "title": " finite issue ",
+            "poster_id": 31,
+            "content": "Synthetic issue body",
+            "ref": "main",
+            "deadline": 0,
+            "milestone_id": 0
+          }
+        },
+        {
+          "id": "result",
+          "op": "return",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": {
+            "can_write_issues": false,
+            "labels_allowed": false,
+            "repo_id": 83,
+            "poster_id": 31,
+            "deadline": 0,
+            "milestone_id": 0
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "read-only-issue-token",
+    "expected": {
+      "status": 403,
+      "reachesCreation": false,
+      "note": "Token write scope differs from repository unit write access",
+      "targetExecution": false,
+      "databaseCommitOrRollback": "unknown"
+    },
+    "actual": {
+      "returned": {
+        "can_write_issues": false,
+        "labels_allowed": false,
+        "repo_id": 83,
+        "poster_id": 31,
+        "deadline": 0,
+        "milestone_id": 0
+      },
+      "termination": "return",
+      "conditions": [
+        {
+          "step": "route_reader_gate",
+          "controlGaps": [
+            "resource-step:steps.0.permission:Expected string, received object"
+          ],
+          "otherwise": "unresolved-control"
+        }
+      ],
+      "gaps": [
+        "The handler does not make CanWrite(TypeIssues) a precondition for issue creation; it gates only deadline, milestone, labels, and assignee handling in the modeled span.",
+        "The finite permission inputs do not expose every UnitAccessMode construction branch, including anonymous/everyone maps.",
+        "Route middleware, binding failures, assignee lookup and assignability, NewIssue transaction effects, optional close, refetch, and response conversion are not yet modeled.",
+        "resource-step:steps.0.permission:Expected string, received object"
+      ],
+      "events": [
+        {
+          "id": "route_reader_gate",
+          "op": "guard",
+          "source": {
+            "path": "routers/api/v1/api.go",
+            "startLine": 1649,
+            "endLine": 1649,
+            "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6"
+          },
+          "outcome": "unresolved"
+        },
+        {
+          "id": "can_write_issues",
+          "op": "value",
+          "source": {
+            "path": "models/perm/access/repo_permission.go",
+            "startLine": 152,
+            "endLine": 155,
+            "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58"
+          },
+          "outcome": "conditional",
+          "value": false
+        },
+        {
+          "id": "deadline_value",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 585,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": 0
+        },
+        {
+          "id": "labels_for_create",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 587,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": []
+        },
+        {
+          "id": "milestone_value",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 587,
+            "endLine": 622,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": 0
+        },
+        {
+          "id": "prepared_issue",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": {
+            "repo_id": 83,
+            "title": " finite issue ",
+            "poster_id": 31,
+            "content": "Synthetic issue body",
+            "ref": "main",
+            "deadline": 0,
+            "milestone_id": 0
+          }
+        },
+        {
+          "id": "result",
+          "op": "return",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": {
+            "can_write_issues": false,
+            "labels_allowed": false,
+            "repo_id": 83,
+            "poster_id": 31,
+            "deadline": 0,
+            "milestone_id": 0
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "writer-assignee-name-missing",
+    "expected": {
+      "status": 422,
+      "reachesCreation": false,
+      "targetExecution": false,
+      "databaseCommitOrRollback": "unknown"
+    },
+    "actual": {
+      "returned": {
+        "can_write_issues": true,
+        "labels_allowed": true,
+        "repo_id": 83,
+        "poster_id": 31,
+        "deadline": 2000,
+        "milestone_id": 12
+      },
+      "termination": "return",
+      "conditions": [
+        {
+          "step": "route_reader_gate",
+          "controlGaps": [
+            "resource-step:steps.0.permission:Expected string, received object"
+          ],
+          "otherwise": "unresolved-control"
+        }
+      ],
+      "gaps": [
+        "The handler does not make CanWrite(TypeIssues) a precondition for issue creation; it gates only deadline, milestone, labels, and assignee handling in the modeled span.",
+        "The finite permission inputs do not expose every UnitAccessMode construction branch, including anonymous/everyone maps.",
+        "Route middleware, binding failures, assignee lookup and assignability, NewIssue transaction effects, optional close, refetch, and response conversion are not yet modeled.",
+        "resource-step:steps.0.permission:Expected string, received object"
+      ],
+      "events": [
+        {
+          "id": "route_reader_gate",
+          "op": "guard",
+          "source": {
+            "path": "routers/api/v1/api.go",
+            "startLine": 1649,
+            "endLine": 1649,
+            "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6"
+          },
+          "outcome": "unresolved"
+        },
+        {
+          "id": "can_write_issues",
+          "op": "value",
+          "source": {
+            "path": "models/perm/access/repo_permission.go",
+            "startLine": 152,
+            "endLine": 155,
+            "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58"
+          },
+          "outcome": "conditional",
+          "value": true
+        },
+        {
+          "id": "deadline_value",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 585,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": 2000
+        },
+        {
+          "id": "labels_for_create",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 587,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": [
+            5
+          ]
+        },
+        {
+          "id": "milestone_value",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 587,
+            "endLine": 622,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": 12
+        },
+        {
+          "id": "prepared_issue",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": {
+            "repo_id": 83,
+            "title": " finite issue ",
+            "poster_id": 31,
+            "content": "Synthetic issue body",
+            "ref": "main",
+            "deadline": 2000,
+            "milestone_id": 12
+          }
+        },
+        {
+          "id": "result",
+          "op": "return",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": {
+            "can_write_issues": true,
+            "labels_allowed": true,
+            "repo_id": 83,
+            "poster_id": 31,
+            "deadline": 2000,
+            "milestone_id": 12
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "blocked-poster",
+    "expected": {
+      "status": 403,
+      "reachesCreation": false,
+      "note": "LoadPoster then blocker before transaction callback",
+      "targetExecution": false,
+      "databaseCommitOrRollback": "unknown"
+    },
+    "actual": {
+      "returned": {
+        "can_write_issues": false,
+        "labels_allowed": false,
+        "repo_id": 83,
+        "poster_id": 31,
+        "deadline": 0,
+        "milestone_id": 0
+      },
+      "termination": "return",
+      "conditions": [
+        {
+          "step": "route_reader_gate",
+          "controlGaps": [
+            "resource-step:steps.0.permission:Expected string, received object"
+          ],
+          "otherwise": "unresolved-control"
+        }
+      ],
+      "gaps": [
+        "The handler does not make CanWrite(TypeIssues) a precondition for issue creation; it gates only deadline, milestone, labels, and assignee handling in the modeled span.",
+        "The finite permission inputs do not expose every UnitAccessMode construction branch, including anonymous/everyone maps.",
+        "Route middleware, binding failures, assignee lookup and assignability, NewIssue transaction effects, optional close, refetch, and response conversion are not yet modeled.",
+        "resource-step:steps.0.permission:Expected string, received object"
+      ],
+      "events": [
+        {
+          "id": "route_reader_gate",
+          "op": "guard",
+          "source": {
+            "path": "routers/api/v1/api.go",
+            "startLine": 1649,
+            "endLine": 1649,
+            "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6"
+          },
+          "outcome": "unresolved"
+        },
+        {
+          "id": "can_write_issues",
+          "op": "value",
+          "source": {
+            "path": "models/perm/access/repo_permission.go",
+            "startLine": 152,
+            "endLine": 155,
+            "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58"
+          },
+          "outcome": "conditional",
+          "value": false
+        },
+        {
+          "id": "deadline_value",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 585,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": 0
+        },
+        {
+          "id": "labels_for_create",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 587,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": []
+        },
+        {
+          "id": "milestone_value",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 587,
+            "endLine": 622,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": 0
+        },
+        {
+          "id": "prepared_issue",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": {
+            "repo_id": 83,
+            "title": " finite issue ",
+            "poster_id": 31,
+            "content": "Synthetic issue body",
+            "ref": "main",
+            "deadline": 0,
+            "milestone_id": 0
+          }
+        },
+        {
+          "id": "result",
+          "op": "return",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": {
+            "can_write_issues": false,
+            "labels_allowed": false,
+            "repo_id": 83,
+            "poster_id": 31,
+            "deadline": 0,
+            "milestone_id": 0
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "creation-transaction-error",
+    "expected": {
+      "status": 500,
+      "reachesCreation": true,
+      "firstError": "transaction",
+      "notReached": [
+        "mentions",
+        "close",
+        "refetch"
+      ],
+      "databaseOutcome": "not established by available implementation",
+      "targetExecution": false,
+      "databaseCommitOrRollback": "unknown"
+    },
+    "actual": {
+      "returned": {
+        "can_write_issues": false,
+        "labels_allowed": false,
+        "repo_id": 83,
+        "poster_id": 31,
+        "deadline": 0,
+        "milestone_id": 0
+      },
+      "termination": "return",
+      "conditions": [
+        {
+          "step": "route_reader_gate",
+          "controlGaps": [
+            "resource-step:steps.0.permission:Expected string, received object"
+          ],
+          "otherwise": "unresolved-control"
+        }
+      ],
+      "gaps": [
+        "The handler does not make CanWrite(TypeIssues) a precondition for issue creation; it gates only deadline, milestone, labels, and assignee handling in the modeled span.",
+        "The finite permission inputs do not expose every UnitAccessMode construction branch, including anonymous/everyone maps.",
+        "Route middleware, binding failures, assignee lookup and assignability, NewIssue transaction effects, optional close, refetch, and response conversion are not yet modeled.",
+        "resource-step:steps.0.permission:Expected string, received object"
+      ],
+      "events": [
+        {
+          "id": "route_reader_gate",
+          "op": "guard",
+          "source": {
+            "path": "routers/api/v1/api.go",
+            "startLine": 1649,
+            "endLine": 1649,
+            "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6"
+          },
+          "outcome": "unresolved"
+        },
+        {
+          "id": "can_write_issues",
+          "op": "value",
+          "source": {
+            "path": "models/perm/access/repo_permission.go",
+            "startLine": 152,
+            "endLine": 155,
+            "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58"
+          },
+          "outcome": "conditional",
+          "value": false
+        },
+        {
+          "id": "deadline_value",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 585,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": 0
+        },
+        {
+          "id": "labels_for_create",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 587,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": []
+        },
+        {
+          "id": "milestone_value",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 587,
+            "endLine": 622,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": 0
+        },
+        {
+          "id": "prepared_issue",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": {
+            "repo_id": 83,
+            "title": " finite issue ",
+            "poster_id": 31,
+            "content": "Synthetic issue body",
+            "ref": "main",
+            "deadline": 0,
+            "milestone_id": 0
+          }
+        },
+        {
+          "id": "result",
+          "op": "return",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": {
+            "can_write_issues": false,
+            "labels_allowed": false,
+            "repo_id": 83,
+            "poster_id": 31,
+            "deadline": 0,
+            "milestone_id": 0
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "creation-policy-error",
+    "expected": {
+      "status": 400,
+      "reachesCreation": true,
+      "targetExecution": false,
+      "databaseCommitOrRollback": "unknown"
+    },
+    "actual": {
+      "returned": {
+        "can_write_issues": false,
+        "labels_allowed": false,
+        "repo_id": 83,
+        "poster_id": 31,
+        "deadline": 0,
+        "milestone_id": 0
+      },
+      "termination": "return",
+      "conditions": [
+        {
+          "step": "route_reader_gate",
+          "controlGaps": [
+            "resource-step:steps.0.permission:Expected string, received object"
+          ],
+          "otherwise": "unresolved-control"
+        }
+      ],
+      "gaps": [
+        "The handler does not make CanWrite(TypeIssues) a precondition for issue creation; it gates only deadline, milestone, labels, and assignee handling in the modeled span.",
+        "The finite permission inputs do not expose every UnitAccessMode construction branch, including anonymous/everyone maps.",
+        "Route middleware, binding failures, assignee lookup and assignability, NewIssue transaction effects, optional close, refetch, and response conversion are not yet modeled.",
+        "resource-step:steps.0.permission:Expected string, received object"
+      ],
+      "events": [
+        {
+          "id": "route_reader_gate",
+          "op": "guard",
+          "source": {
+            "path": "routers/api/v1/api.go",
+            "startLine": 1649,
+            "endLine": 1649,
+            "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6"
+          },
+          "outcome": "unresolved"
+        },
+        {
+          "id": "can_write_issues",
+          "op": "value",
+          "source": {
+            "path": "models/perm/access/repo_permission.go",
+            "startLine": 152,
+            "endLine": 155,
+            "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58"
+          },
+          "outcome": "conditional",
+          "value": false
+        },
+        {
+          "id": "deadline_value",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 585,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": 0
+        },
+        {
+          "id": "labels_for_create",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 587,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": []
+        },
+        {
+          "id": "milestone_value",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 587,
+            "endLine": 622,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": 0
+        },
+        {
+          "id": "prepared_issue",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": {
+            "repo_id": 83,
+            "title": " finite issue ",
+            "poster_id": 31,
+            "content": "Synthetic issue body",
+            "ref": "main",
+            "deadline": 0,
+            "milestone_id": 0
+          }
+        },
+        {
+          "id": "result",
+          "op": "return",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": {
+            "can_write_issues": false,
+            "labels_allowed": false,
+            "repo_id": 83,
+            "poster_id": 31,
+            "deadline": 0,
+            "milestone_id": 0
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "mentions-error-after-transaction-call",
+    "expected": {
+      "status": 500,
+      "reachesCreation": true,
+      "order": [
+        "transaction call normal completion",
+        "mentions error"
+      ],
+      "notReached": [
+        "refetch"
+      ],
+      "targetExecution": false,
+      "databaseCommitOrRollback": "unknown"
+    },
+    "actual": {
+      "returned": {
+        "can_write_issues": false,
+        "labels_allowed": false,
+        "repo_id": 83,
+        "poster_id": 31,
+        "deadline": 0,
+        "milestone_id": 0
+      },
+      "termination": "return",
+      "conditions": [
+        {
+          "step": "route_reader_gate",
+          "controlGaps": [
+            "resource-step:steps.0.permission:Expected string, received object"
+          ],
+          "otherwise": "unresolved-control"
+        }
+      ],
+      "gaps": [
+        "The handler does not make CanWrite(TypeIssues) a precondition for issue creation; it gates only deadline, milestone, labels, and assignee handling in the modeled span.",
+        "The finite permission inputs do not expose every UnitAccessMode construction branch, including anonymous/everyone maps.",
+        "Route middleware, binding failures, assignee lookup and assignability, NewIssue transaction effects, optional close, refetch, and response conversion are not yet modeled.",
+        "resource-step:steps.0.permission:Expected string, received object"
+      ],
+      "events": [
+        {
+          "id": "route_reader_gate",
+          "op": "guard",
+          "source": {
+            "path": "routers/api/v1/api.go",
+            "startLine": 1649,
+            "endLine": 1649,
+            "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6"
+          },
+          "outcome": "unresolved"
+        },
+        {
+          "id": "can_write_issues",
+          "op": "value",
+          "source": {
+            "path": "models/perm/access/repo_permission.go",
+            "startLine": 152,
+            "endLine": 155,
+            "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58"
+          },
+          "outcome": "conditional",
+          "value": false
+        },
+        {
+          "id": "deadline_value",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 585,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": 0
+        },
+        {
+          "id": "labels_for_create",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 587,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": []
+        },
+        {
+          "id": "milestone_value",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 587,
+            "endLine": 622,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": 0
+        },
+        {
+          "id": "prepared_issue",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": {
+            "repo_id": 83,
+            "title": " finite issue ",
+            "poster_id": 31,
+            "content": "Synthetic issue body",
+            "ref": "main",
+            "deadline": 0,
+            "milestone_id": 0
+          }
+        },
+        {
+          "id": "result",
+          "op": "return",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": {
+            "can_write_issues": false,
+            "labels_allowed": false,
+            "repo_id": 83,
+            "poster_id": 31,
+            "deadline": 0,
+            "milestone_id": 0
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "close-dependency-after-create",
+    "expected": {
+      "status": 412,
+      "reachesCreation": true,
+      "order": [
+        "NewIssue normal completion",
+        "CloseIssue error"
+      ],
+      "notReached": [
+        "refetch"
+      ],
+      "targetExecution": false,
+      "databaseCommitOrRollback": "unknown"
+    },
+    "actual": {
+      "returned": {
+        "can_write_issues": false,
+        "labels_allowed": false,
+        "repo_id": 83,
+        "poster_id": 31,
+        "deadline": 0,
+        "milestone_id": 0
+      },
+      "termination": "return",
+      "conditions": [
+        {
+          "step": "route_reader_gate",
+          "controlGaps": [
+            "resource-step:steps.0.permission:Expected string, received object"
+          ],
+          "otherwise": "unresolved-control"
+        }
+      ],
+      "gaps": [
+        "The handler does not make CanWrite(TypeIssues) a precondition for issue creation; it gates only deadline, milestone, labels, and assignee handling in the modeled span.",
+        "The finite permission inputs do not expose every UnitAccessMode construction branch, including anonymous/everyone maps.",
+        "Route middleware, binding failures, assignee lookup and assignability, NewIssue transaction effects, optional close, refetch, and response conversion are not yet modeled.",
+        "resource-step:steps.0.permission:Expected string, received object"
+      ],
+      "events": [
+        {
+          "id": "route_reader_gate",
+          "op": "guard",
+          "source": {
+            "path": "routers/api/v1/api.go",
+            "startLine": 1649,
+            "endLine": 1649,
+            "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6"
+          },
+          "outcome": "unresolved"
+        },
+        {
+          "id": "can_write_issues",
+          "op": "value",
+          "source": {
+            "path": "models/perm/access/repo_permission.go",
+            "startLine": 152,
+            "endLine": 155,
+            "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58"
+          },
+          "outcome": "conditional",
+          "value": false
+        },
+        {
+          "id": "deadline_value",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 585,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": 0
+        },
+        {
+          "id": "labels_for_create",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 587,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": []
+        },
+        {
+          "id": "milestone_value",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 587,
+            "endLine": 622,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": 0
+        },
+        {
+          "id": "prepared_issue",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": {
+            "repo_id": 83,
+            "title": " finite issue ",
+            "poster_id": 31,
+            "content": "Synthetic issue body",
+            "ref": "main",
+            "deadline": 0,
+            "milestone_id": 0
+          }
+        },
+        {
+          "id": "result",
+          "op": "return",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": {
+            "can_write_issues": false,
+            "labels_allowed": false,
+            "repo_id": 83,
+            "poster_id": 31,
+            "deadline": 0,
+            "milestone_id": 0
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "writer-refetch-error",
+    "expected": {
+      "status": 500,
+      "reachesCreation": true,
+      "order": [
+        "NewIssue normal completion",
+        "refetch error"
+      ],
+      "notReached": [
+        "ToAPIIssue"
+      ],
+      "policy": "write requirement satisfied, response failure distinct",
+      "targetExecution": false,
+      "databaseCommitOrRollback": "unknown"
+    },
+    "actual": {
+      "returned": {
+        "can_write_issues": true,
+        "labels_allowed": true,
+        "repo_id": 83,
+        "poster_id": 31,
+        "deadline": 2000,
+        "milestone_id": 12
+      },
+      "termination": "return",
+      "conditions": [
+        {
+          "step": "route_reader_gate",
+          "controlGaps": [
+            "resource-step:steps.0.permission:Expected string, received object"
+          ],
+          "otherwise": "unresolved-control"
+        }
+      ],
+      "gaps": [
+        "The handler does not make CanWrite(TypeIssues) a precondition for issue creation; it gates only deadline, milestone, labels, and assignee handling in the modeled span.",
+        "The finite permission inputs do not expose every UnitAccessMode construction branch, including anonymous/everyone maps.",
+        "Route middleware, binding failures, assignee lookup and assignability, NewIssue transaction effects, optional close, refetch, and response conversion are not yet modeled.",
+        "resource-step:steps.0.permission:Expected string, received object"
+      ],
+      "events": [
+        {
+          "id": "route_reader_gate",
+          "op": "guard",
+          "source": {
+            "path": "routers/api/v1/api.go",
+            "startLine": 1649,
+            "endLine": 1649,
+            "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6"
+          },
+          "outcome": "unresolved"
+        },
+        {
+          "id": "can_write_issues",
+          "op": "value",
+          "source": {
+            "path": "models/perm/access/repo_permission.go",
+            "startLine": 152,
+            "endLine": 155,
+            "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58"
+          },
+          "outcome": "conditional",
+          "value": true
+        },
+        {
+          "id": "deadline_value",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 585,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": 2000
+        },
+        {
+          "id": "labels_for_create",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 587,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": [
+            5
+          ]
+        },
+        {
+          "id": "milestone_value",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 587,
+            "endLine": 622,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": 12
+        },
+        {
+          "id": "prepared_issue",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": {
+            "repo_id": 83,
+            "title": " finite issue ",
+            "poster_id": 31,
+            "content": "Synthetic issue body",
+            "ref": "main",
+            "deadline": 2000,
+            "milestone_id": 12
+          }
+        },
+        {
+          "id": "result",
+          "op": "return",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": {
+            "can_write_issues": true,
+            "labels_allowed": true,
+            "repo_id": 83,
+            "poster_id": 31,
+            "deadline": 2000,
+            "milestone_id": 12
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "converter-load-error-is-empty-created-response",
+    "expected": {
+      "status": 201,
+      "reachesCreation": true,
+      "response": "empty issue object; converter has no error return",
+      "targetExecution": false,
+      "databaseCommitOrRollback": "unknown"
+    },
+    "actual": {
+      "returned": {
+        "can_write_issues": false,
+        "labels_allowed": false,
+        "repo_id": 83,
+        "poster_id": 31,
+        "deadline": 0,
+        "milestone_id": 0
+      },
+      "termination": "return",
+      "conditions": [
+        {
+          "step": "route_reader_gate",
+          "controlGaps": [
+            "resource-step:steps.0.permission:Expected string, received object"
+          ],
+          "otherwise": "unresolved-control"
+        }
+      ],
+      "gaps": [
+        "The handler does not make CanWrite(TypeIssues) a precondition for issue creation; it gates only deadline, milestone, labels, and assignee handling in the modeled span.",
+        "The finite permission inputs do not expose every UnitAccessMode construction branch, including anonymous/everyone maps.",
+        "Route middleware, binding failures, assignee lookup and assignability, NewIssue transaction effects, optional close, refetch, and response conversion are not yet modeled.",
+        "resource-step:steps.0.permission:Expected string, received object"
+      ],
+      "events": [
+        {
+          "id": "route_reader_gate",
+          "op": "guard",
+          "source": {
+            "path": "routers/api/v1/api.go",
+            "startLine": 1649,
+            "endLine": 1649,
+            "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6"
+          },
+          "outcome": "unresolved"
+        },
+        {
+          "id": "can_write_issues",
+          "op": "value",
+          "source": {
+            "path": "models/perm/access/repo_permission.go",
+            "startLine": 152,
+            "endLine": 155,
+            "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58"
+          },
+          "outcome": "conditional",
+          "value": false
+        },
+        {
+          "id": "deadline_value",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 585,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": 0
+        },
+        {
+          "id": "labels_for_create",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 587,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": []
+        },
+        {
+          "id": "milestone_value",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 587,
+            "endLine": 622,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": 0
+        },
+        {
+          "id": "prepared_issue",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": {
+            "repo_id": 83,
+            "title": " finite issue ",
+            "poster_id": 31,
+            "content": "Synthetic issue body",
+            "ref": "main",
+            "deadline": 0,
+            "milestone_id": 0
+          }
+        },
+        {
+          "id": "result",
+          "op": "return",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "conditional",
+          "value": {
+            "can_write_issues": false,
+            "labels_allowed": false,
+            "repo_id": 83,
+            "poster_id": 31,
+            "deadline": 0,
+            "milestone_id": 0
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "missing-permission-context",
+    "expected": {
+      "status": "unknown",
+      "reachesCreation": "unknown",
+      "blocked": "issues-unit access",
+      "targetExecution": false,
+      "databaseCommitOrRollback": "unknown"
+    },
+    "actual": {
+      "termination": "return",
+      "conditions": [
+        {
+          "step": "route_reader_gate",
+          "controlGaps": [
+            "resource-step:steps.0.permission:Expected string, received object"
+          ],
+          "otherwise": "unresolved-control"
+        }
+      ],
+      "gaps": [
+        "The handler does not make CanWrite(TypeIssues) a precondition for issue creation; it gates only deadline, milestone, labels, and assignee handling in the modeled span.",
+        "The finite permission inputs do not expose every UnitAccessMode construction branch, including anonymous/everyone maps.",
+        "Route middleware, binding failures, assignee lookup and assignability, NewIssue transaction effects, optional close, refetch, and response conversion are not yet modeled.",
+        "resource-step:steps.0.permission:Expected string, received object",
+        "permission.IssuesUnitMode",
+        "permission.IssuesUnitPresent",
+        "can_write_issues"
+      ],
+      "events": [
+        {
+          "id": "route_reader_gate",
+          "op": "guard",
+          "source": {
+            "path": "routers/api/v1/api.go",
+            "startLine": 1649,
+            "endLine": 1649,
+            "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6"
+          },
+          "outcome": "unresolved"
+        },
+        {
+          "id": "can_write_issues",
+          "op": "value",
+          "source": {
+            "path": "models/perm/access/repo_permission.go",
+            "startLine": 152,
+            "endLine": 155,
+            "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58"
+          },
+          "outcome": "unresolved"
+        },
+        {
+          "id": "deadline_value",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 585,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "unresolved"
+        },
+        {
+          "id": "labels_for_create",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 587,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "unresolved"
+        },
+        {
+          "id": "milestone_value",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 587,
+            "endLine": 622,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "unresolved"
+        },
+        {
+          "id": "prepared_issue",
+          "op": "value",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "unresolved"
+        },
+        {
+          "id": "result",
+          "op": "return",
+          "source": {
+            "path": "routers/api/v1/repo/issue.go",
+            "startLine": 570,
+            "endLine": 624,
+            "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+          },
+          "outcome": "unresolved"
+        }
+      ]
+    }
+  }
+]

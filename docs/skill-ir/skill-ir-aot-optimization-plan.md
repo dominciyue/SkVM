@@ -1,8 +1,8 @@
 # Skill IR AOT 当前执行计划
 
-更新于2026-10-20。唯一实时入口为[current-status](current-status.md)。
+更新于2026-10-21。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BS0–BS22](../superpowers/plans/2026-10-20-authorization-task-coverage-and-semantic-transfer.md)，用户已授权，in-progress；已完成BS0–BS8共享工程与首次调用前登记，尚未派发账号实验。原题覆盖、源码执行顺序与自然回答接线共同推进，避免继续只修Download。
+- 当前任务书：[BS0–BS22](../superpowers/plans/2026-10-20-authorization-task-coverage-and-semantic-transfer.md)，用户已授权，有限队列完成；BS0–BS21已执行，900原件归档核验完成，用户origin发布进行中。M最后30步仍有3个顺序错误；G最后7步仅带条件的字段准备，创建链未达。共享嵌套owner故障已修，作者原件保持。
 - 方法合同：[spec §14.58](skill-ir-aot-optimization-spec.md#1458-bs-task-coverage-and-semantic-transfer)；复核与开发过程统一在[研究 §7.80](skill-dsl-research.md#780-br-复核与-bs-原题覆盖和跨结构语义使用)。BR/BQ/BP历史结论保持。
 - identity：`authorization-task-coverage-v1`，规划基线`2100085ba37e1f01ef9fc7002905feeeb78e7042`。继续`skill-ir-aot`，只推用户origin，不建分支/worktree；父线程交付计划后，新开发线程独占代码、共享方法文档与Git写入。
 - 开发`gpt-6-astra/high`，按用户指定；实验沿已授权官方账号`gpt-5.6-sol/high`。第三方暂停；旧未知与保护证据保持。接管时tracked干净，原有未跟踪`.tmp/`不清理。
@@ -20,7 +20,7 @@ BS正常用途14个：Memos修稿与Gitea空稿两个作者，两个任务各原
 | 评价 | N/R/E同信息，完整原问题保留 | 14正常用途/4确认上限；值、顺序、答案、实际采用与成本分轴 |
 | 交付 | 现有CLI和报告已有接口 | 改可读投影及同核普通入口；完整JSON保留，不新增展示系统 |
 
-普通入口保留现有默认，[Download说明](../../examples/authorization-assessment/download-workflow/README.md#current-bq-explicit-program)与[Memos说明](../../examples/authorization-assessment/shared-link-workflow/README.md)继续可用。BS不得将研究runner成功代替普通入口，更新说明应注明原稿版本和真实范围。新结果集中BS identity，历史原件不回填。
+普通入口保留现有默认，[Download说明](../../examples/authorization-assessment/download-workflow/README.md#current-bq-explicit-program)、[Memos说明](../../examples/authorization-assessment/shared-link-workflow/README.md)与[Gitea说明](../../examples/authorization-assessment/issue-create-workflow/README.md)提供普通命令、原稿版本和真实partial范围。M/G原/变输入均已运行，搬移和失效撤回已验证；不把研究runner成功替代普通入口或源码完整性。新结果集中BS identity，历史原件不回填。
 
 ## 继承的真实结果
 

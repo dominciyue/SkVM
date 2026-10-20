@@ -3208,7 +3208,7 @@ BM8实施细节：当前协议只在thread/start注册dynamicTools。宿主预�
 
 ### 14.58 BS task coverage and semantic transfer
 
-2026-10-20用户授权[BS0–BS22](../superpowers/plans/2026-10-20-authorization-task-coverage-and-semantic-transfer.md)，规划基线BR最终2100085b，identity为`authorization-task-coverage-v1`。本节为当前实施合同。开发gpt-6-astra/high，实验官方gpt-5.6-sol/high，第三方暂停；继续skill-ir-aot，仅用户origin。BS0–BS8已实施：原题调查引用、实际事件顺序/停止与前序调用、规则及执行共享接线、普通报告已通过定向验证。首次调用前冻结29个M案例和16个G案例；尚无账号实验或质量结论。
+2026-10-20用户授权[BS0–BS22](../superpowers/plans/2026-10-20-authorization-task-coverage-and-semantic-transfer.md)，规划基线BR最终2100085b，identity为`authorization-task-coverage-v1`。本节为实施合同与收束边界。开发gpt-6-astra/high，实验官方gpt-5.6-sol/high，第三方暂停；继续skill-ir-aot，仅用户origin。有限队列14用途、15attempt、18观察turn已全部关闭，使用1次同身份宿主恢复。共享工程通过，固定M/G原稿、12自然回答均未达到整题完整；不把工程完成或有限字段执行称为研究目标达成。
 
 **原题与共享机制。** 复用program-obligations/call relations、trial、consumption context、details、delivery和普通入口，显示全部原问题、当前计算/轨迹及仍需源码调查的责任。宿主提供可机械核实的来源/关系，不预填授权含义；读过/映射/格式有效不升级为语义完整。不新增必填答案协议或平行状态系统。完整JSON保留，可读execution摘要不再吞入全部结构目录；报告体积和实际模型上下文分别测量。
 

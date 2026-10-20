@@ -1,0 +1,1069 @@
+{
+  "schemaVersion": "authorization-executable-contract/v1",
+  "id": "shared-memo-access",
+  "description": "Reusable finite source model of GetSharedMemo token binding, denial normalization, read-context checks, and response boundary.",
+  "scope": {
+    "kind": "function-contract",
+    "questionId": "shared-memo-access",
+    "root": {
+      "path": "server/api/v1/memo_share_service.go",
+      "symbol": "GetSharedMemo"
+    },
+    "upstream": [
+      "Connect transport decoding/error conversion is outside the local function contract."
+    ]
+  },
+  "inputBinding": {
+    "questionId": "shared-memo-access"
+  },
+  "sourceDeclarations": [
+    {
+      "source": {
+        "path": "server/api/v1/memo_share_service.go",
+        "symbol": "GetSharedMemo"
+      },
+      "statements": []
+    },
+    {
+      "source": {
+        "path": "server/api/v1/memo_share_service.go",
+        "symbol": "getActiveMemoShare"
+      },
+      "statements": []
+    },
+    {
+      "source": {
+        "path": "server/api/v1/memo_share_service.go",
+        "symbol": "isMemoShareExpired"
+      },
+      "statements": []
+    },
+    {
+      "source": {
+        "path": "server/api/v1/auth_service_session.go",
+        "symbol": "fetchCurrentUser"
+      },
+      "statements": []
+    },
+    {
+      "source": {
+        "path": "server/api/v1/memo_access.go",
+        "symbol": "buildMemoReadContext"
+      },
+      "statements": []
+    },
+    {
+      "source": {
+        "path": "core/access/memo_resolve.go",
+        "symbol": "ResolveMemoReadContext"
+      },
+      "statements": []
+    },
+    {
+      "source": {
+        "path": "core/access/memo.go",
+        "symbol": "CheckMemoReadContext"
+      },
+      "statements": []
+    },
+    {
+      "source": {
+        "path": "store/instance_setting.go",
+        "symbol": "AllowsAnonymousAccess"
+      },
+      "statements": []
+    },
+    {
+      "source": {
+        "path": "server/api/v1/memo_service_converter.go",
+        "symbol": "convertMemoFromStore"
+      },
+      "statements": []
+    }
+  ],
+  "queries": [],
+  "assumptions": [],
+  "resourceWorkflow": {
+    "inputs": [
+      "request",
+      "now",
+      "contextUserID",
+      "instanceAccessMode",
+      "shares",
+      "memos",
+      "users",
+      "spaces",
+      "memberships",
+      "reactions",
+      "attachments",
+      "storeErrors",
+      "conversionUsers"
+    ],
+    "steps": [
+      {
+        "id": "share_store_ok",
+        "op": "guard",
+        "test": {
+          "op": "is-null",
+          "value": {
+            "binding": "storeErrors.share"
+          }
+        },
+        "failure": "INTERNAL: failed to get memo share",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 221,
+          "endLine": 225
+        }
+      },
+      {
+        "id": "share",
+        "op": "select",
+        "from": "shares",
+        "where": {
+          "op": "eq",
+          "left": {
+            "binding": "row.UID"
+          },
+          "right": {
+            "binding": "request.ShareToken"
+          }
+        },
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 221,
+          "endLine": 229
+        },
+        "because": "The supplied token is looked up as MemoShare.UID."
+      },
+      {
+        "id": "share_found",
+        "op": "guard",
+        "test": {
+          "op": "not",
+          "arg": {
+            "op": "is-null",
+            "value": {
+              "binding": "share"
+            }
+          }
+        },
+        "failure": "NOT_FOUND: not found",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 221,
+          "endLine": 229
+        }
+      },
+      {
+        "id": "share_active",
+        "op": "guard",
+        "test": {
+          "op": "any",
+          "args": [
+            {
+              "op": "is-null",
+              "value": {
+                "binding": "share.ExpiresTs"
+              }
+            },
+            {
+              "op": "lte",
+              "left": {
+                "binding": "now"
+              },
+              "right": {
+                "binding": "share.ExpiresTs"
+              }
+            }
+          ]
+        },
+        "failure": "NOT_FOUND: not found",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 216,
+          "endLine": 229
+        },
+        "because": "Expiry is strict: a share is expired only when now is greater than ExpiresTs."
+      },
+      {
+        "id": "memo_store_ok",
+        "op": "guard",
+        "test": {
+          "op": "is-null",
+          "value": {
+            "binding": "storeErrors.memo"
+          }
+        },
+        "failure": "INTERNAL: failed to get memo",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 178,
+          "endLine": 181
+        }
+      },
+      {
+        "id": "memo",
+        "op": "select",
+        "from": "memos",
+        "where": {
+          "op": "eq",
+          "left": {
+            "binding": "row.ID"
+          },
+          "right": {
+            "binding": "share.MemoID"
+          }
+        },
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 172,
+          "endLine": 185
+        },
+        "because": "The selected share row's MemoID binds the returned memo."
+      },
+      {
+        "id": "memo_visible_state",
+        "op": "guard",
+        "test": {
+          "op": "all",
+          "args": [
+            {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "memo"
+                }
+              }
+            },
+            {
+              "op": "eq",
+              "left": {
+                "binding": "memo.RowStatus"
+              },
+              "right": {
+                "literal": "NORMAL"
+              }
+            },
+            {
+              "op": "member",
+              "value": {
+                "binding": "memo.Visibility"
+              },
+              "set": {
+                "literal": [
+                  "PUBLIC",
+                  "PROTECTED",
+                  "PRIVATE"
+                ]
+              }
+            }
+          ]
+        },
+        "failure": "NOT_FOUND: not found",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 182,
+          "endLine": 189
+        }
+      },
+      {
+        "id": "viewer_store_ok",
+        "op": "guard",
+        "when": {
+          "op": "neq",
+          "left": {
+            "binding": "contextUserID"
+          },
+          "right": {
+            "literal": 0
+          }
+        },
+        "test": {
+          "op": "is-null",
+          "value": {
+            "binding": "storeErrors.viewer"
+          }
+        },
+        "failure": "NOT_FOUND: not found (current-user resolution error is hidden by GetSharedMemo)",
+        "source": {
+          "path": "server/api/v1/auth_service_session.go",
+          "startLine": 269,
+          "endLine": 286
+        }
+      },
+      {
+        "id": "viewer_row",
+        "op": "select",
+        "when": {
+          "op": "neq",
+          "left": {
+            "binding": "contextUserID"
+          },
+          "right": {
+            "literal": 0
+          }
+        },
+        "from": "users",
+        "where": {
+          "op": "eq",
+          "left": {
+            "binding": "row.ID"
+          },
+          "right": {
+            "binding": "contextUserID"
+          }
+        },
+        "source": {
+          "path": "server/api/v1/auth_service_session.go",
+          "startLine": 269,
+          "endLine": 286
+        }
+      },
+      {
+        "id": "viewer_exists",
+        "op": "guard",
+        "when": {
+          "op": "neq",
+          "left": {
+            "binding": "contextUserID"
+          },
+          "right": {
+            "literal": 0
+          }
+        },
+        "test": {
+          "op": "not",
+          "arg": {
+            "op": "is-null",
+            "value": {
+              "binding": "viewer_row"
+            }
+          }
+        },
+        "failure": "NOT_FOUND: not found (current-user resolution error is hidden by GetSharedMemo)",
+        "source": {
+          "path": "server/api/v1/auth_service_session.go",
+          "startLine": 269,
+          "endLine": 286
+        }
+      },
+      {
+        "id": "viewer",
+        "op": "value",
+        "value": {
+          "choose": {
+            "test": {
+              "op": "all",
+              "args": [
+                {
+                  "op": "not",
+                  "arg": {
+                    "op": "is-null",
+                    "value": {
+                      "binding": "viewer_row"
+                    }
+                  }
+                },
+                {
+                  "op": "eq",
+                  "left": {
+                    "binding": "viewer_row.RowStatus"
+                  },
+                  "right": {
+                    "literal": "NORMAL"
+                  }
+                }
+              ]
+            },
+            "then": {
+              "ref": "viewer_row"
+            },
+            "else": {
+              "literal": null
+            }
+          }
+        },
+        "source": {
+          "path": "server/api/v1/auth_service_session.go",
+          "startLine": 269,
+          "endLine": 290
+        }
+      },
+      {
+        "id": "instance_setting_ok",
+        "op": "guard",
+        "when": {
+          "op": "is-null",
+          "value": {
+            "binding": "viewer"
+          }
+        },
+        "test": {
+          "op": "is-null",
+          "value": {
+            "binding": "storeErrors.instanceSetting"
+          }
+        },
+        "failure": "NOT_FOUND: not found (instance-access lookup error is hidden by GetSharedMemo)",
+        "source": {
+          "path": "server/api/v1/memo_access.go",
+          "startLine": 17,
+          "endLine": 29
+        }
+      },
+      {
+        "id": "allow_anonymous",
+        "op": "value",
+        "value": {
+          "choose": {
+            "test": {
+              "op": "all",
+              "args": [
+                {
+                  "op": "is-null",
+                  "value": {
+                    "binding": "viewer"
+                  }
+                },
+                {
+                  "op": "eq",
+                  "left": {
+                    "binding": "instanceAccessMode"
+                  },
+                  "right": {
+                    "literal": "PUBLIC"
+                  }
+                }
+              ]
+            },
+            "then": {
+              "literal": true
+            },
+            "else": {
+              "literal": false
+            }
+          }
+        },
+        "source": {
+          "path": "store/instance_setting.go",
+          "startLine": 255,
+          "endLine": 262
+        }
+      },
+      {
+        "id": "creator_store_ok",
+        "op": "guard",
+        "test": {
+          "op": "is-null",
+          "value": {
+            "binding": "storeErrors.creator"
+          }
+        },
+        "failure": "NOT_FOUND: not found (read-context error is hidden by GetSharedMemo)",
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 31,
+          "endLine": 42
+        }
+      },
+      {
+        "id": "creator",
+        "op": "select",
+        "from": "users",
+        "where": {
+          "op": "eq",
+          "left": {
+            "binding": "row.ID"
+          },
+          "right": {
+            "binding": "memo.CreatorID"
+          }
+        },
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 31,
+          "endLine": 42
+        }
+      },
+      {
+        "id": "creator_valid",
+        "op": "guard",
+        "test": {
+          "op": "all",
+          "args": [
+            {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "creator"
+                }
+              }
+            },
+            {
+              "op": "eq",
+              "left": {
+                "binding": "creator.ID"
+              },
+              "right": {
+                "binding": "memo.CreatorID"
+              }
+            },
+            {
+              "op": "member",
+              "value": {
+                "binding": "creator.RowStatus"
+              },
+              "set": {
+                "literal": [
+                  "NORMAL",
+                  "ARCHIVED"
+                ]
+              }
+            }
+          ]
+        },
+        "failure": "NOT_FOUND: not found",
+        "source": {
+          "path": "core/access/memo.go",
+          "startLine": 87,
+          "endLine": 121
+        }
+      },
+      {
+        "id": "space_store_ok",
+        "op": "guard",
+        "when": {
+          "op": "not",
+          "arg": {
+            "op": "is-null",
+            "value": {
+              "binding": "memo.SpaceID"
+            }
+          }
+        },
+        "test": {
+          "op": "is-null",
+          "value": {
+            "binding": "storeErrors.space"
+          }
+        },
+        "failure": "NOT_FOUND: not found (read-context error is hidden by GetSharedMemo)",
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 44,
+          "endLine": 51
+        }
+      },
+      {
+        "id": "space",
+        "op": "select",
+        "when": {
+          "op": "not",
+          "arg": {
+            "op": "is-null",
+            "value": {
+              "binding": "memo.SpaceID"
+            }
+          }
+        },
+        "from": "spaces",
+        "where": {
+          "op": "eq",
+          "left": {
+            "binding": "row.ID"
+          },
+          "right": {
+            "binding": "memo.SpaceID"
+          }
+        },
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 44,
+          "endLine": 51
+        }
+      },
+      {
+        "id": "membership_store_ok",
+        "op": "guard",
+        "when": {
+          "op": "all",
+          "args": [
+            {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "viewer"
+                }
+              }
+            },
+            {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "space"
+                }
+              }
+            },
+            {
+              "op": "neq",
+              "left": {
+                "binding": "viewer.Role"
+              },
+              "right": {
+                "literal": "ADMIN"
+              }
+            }
+          ]
+        },
+        "test": {
+          "op": "is-null",
+          "value": {
+            "binding": "storeErrors.membership"
+          }
+        },
+        "failure": "NOT_FOUND: not found (read-context error is hidden by GetSharedMemo)",
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 58,
+          "endLine": 80
+        }
+      },
+      {
+        "id": "membership",
+        "op": "select",
+        "when": {
+          "op": "all",
+          "args": [
+            {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "viewer"
+                }
+              }
+            },
+            {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "space"
+                }
+              }
+            },
+            {
+              "op": "neq",
+              "left": {
+                "binding": "viewer.Role"
+              },
+              "right": {
+                "literal": "ADMIN"
+              }
+            }
+          ]
+        },
+        "from": "memberships",
+        "where": {
+          "op": "all",
+          "args": [
+            {
+              "op": "eq",
+              "left": {
+                "binding": "row.SpaceID"
+              },
+              "right": {
+                "binding": "memo.SpaceID"
+              }
+            },
+            {
+              "op": "eq",
+              "left": {
+                "binding": "row.UserID"
+              },
+              "right": {
+                "binding": "viewer.ID"
+              }
+            }
+          ]
+        },
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 58,
+          "endLine": 80
+        }
+      },
+      {
+        "id": "share_exact_memo_access",
+        "op": "guard",
+        "test": {
+          "op": "all",
+          "args": [
+            {
+              "op": "eq",
+              "left": {
+                "binding": "share.MemoID"
+              },
+              "right": {
+                "binding": "memo.ID"
+              }
+            },
+            {
+              "op": "neq",
+              "left": {
+                "binding": "memo.Visibility"
+              },
+              "right": {
+                "literal": "SPACE"
+              }
+            }
+          ]
+        },
+        "failure": "NOT_FOUND: not found",
+        "source": {
+          "path": "core/access/memo.go",
+          "startLine": 87,
+          "endLine": 122
+        },
+        "because": "SharedMemoID is the share row's MemoID, so the share branch applies only to that exact non-SPACE memo."
+      },
+      {
+        "id": "reactions_store_ok",
+        "op": "guard",
+        "test": {
+          "op": "is-null",
+          "value": {
+            "binding": "storeErrors.reactions"
+          }
+        },
+        "failure": "INTERNAL: failed to list reactions",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 191,
+          "endLine": 196
+        }
+      },
+      {
+        "id": "attachments_store_ok",
+        "op": "guard",
+        "test": {
+          "op": "is-null",
+          "value": {
+            "binding": "storeErrors.attachments"
+          }
+        },
+        "failure": "INTERNAL: failed to list attachments",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 198,
+          "endLine": 201
+        }
+      },
+      {
+        "id": "conversion_creator_store_ok",
+        "op": "guard",
+        "test": {
+          "op": "is-null",
+          "value": {
+            "binding": "storeErrors.conversionCreator"
+          }
+        },
+        "failure": "CONVERSION ERROR: failed to list memo creators",
+        "source": {
+          "path": "server/api/v1/memo_service_converter.go",
+          "startLine": 26,
+          "endLine": 31
+        },
+        "because": "Conversion first lists the memo creator; a listing error is wrapped and then wrapped again by GetSharedMemo."
+      },
+      {
+        "id": "conversion_creator",
+        "op": "select",
+        "from": "conversionUsers",
+        "where": {
+          "op": "eq",
+          "left": {
+            "binding": "row.ID"
+          },
+          "right": {
+            "binding": "memo.CreatorID"
+          }
+        },
+        "source": {
+          "path": "server/api/v1/memo_service_converter.go",
+          "startLine": 26,
+          "endLine": 38
+        },
+        "because": "The response creator is independently resolved during conversion, not reused from access-context resolution."
+      },
+      {
+        "id": "conversion_creator_found",
+        "op": "guard",
+        "test": {
+          "op": "not",
+          "arg": {
+            "op": "is-null",
+            "value": {
+              "binding": "conversion_creator"
+            }
+          }
+        },
+        "failure": "NOT_FOUND: not found",
+        "source": {
+          "path": "server/api/v1/memo_service_converter.go",
+          "startLine": 34,
+          "endLine": 39
+        },
+        "because": "A missing conversion creator returns errMemoCreatorNotFound, which GetSharedMemo normalizes to NOT_FOUND."
+      },
+      {
+        "id": "conversion_ok",
+        "op": "guard",
+        "test": {
+          "op": "is-null",
+          "value": {
+            "binding": "storeErrors.conversion"
+          }
+        },
+        "failure": "CONVERSION ERROR: failed to convert memo",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 203,
+          "endLine": 209
+        }
+      },
+      {
+        "id": "result",
+        "op": "return",
+        "value": {
+          "record": {
+            "memo_id": {
+              "field": {
+                "of": {
+                  "ref": "memo"
+                },
+                "key": "ID"
+              }
+            },
+            "memo_uid": {
+              "field": {
+                "of": {
+                  "ref": "memo"
+                },
+                "key": "UID"
+              }
+            },
+            "content": {
+              "field": {
+                "of": {
+                  "ref": "memo"
+                },
+                "key": "Content"
+              }
+            },
+            "creator_id": {
+              "field": {
+                "of": {
+                  "ref": "conversion_creator"
+                },
+                "key": "ID"
+              }
+            },
+            "share_bound_memo_id": {
+              "field": {
+                "of": {
+                  "ref": "share"
+                },
+                "key": "MemoID"
+              }
+            },
+            "instance_allows_anonymous": {
+              "ref": "allow_anonymous"
+            },
+            "includes_memo_reactions": {
+              "literal": true
+            },
+            "includes_memo_attachments": {
+              "literal": true
+            },
+            "share_grants_parent_access": {
+              "literal": false
+            },
+            "share_grants_relation_access": {
+              "literal": false
+            },
+            "relation_count": {
+              "literal": 0
+            },
+            "parent": {
+              "literal": null
+            }
+          }
+        },
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 186,
+          "endLine": 213
+        },
+        "because": "The token gates this memo; conversion includes memo-scoped reactions and attachments, passes nil relations, and GetSharedMemo clears Parent."
+      }
+    ],
+    "gaps": [
+      "The finite workflow records response inclusion of memo-scoped reactions and attachments but does not materialize every converted collection row.",
+      "Full protobuf field conversion, snippet generation, placement projection, and Connect transport error mapping are outside the requested token-access relation model."
+    ]
+  },
+  "authoringTarget": {
+    "mode": "reusable",
+    "coverage": [
+      {
+        "id": "root-get-shared-memo",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 172,
+          "endLine": 214
+        },
+        "stepIds": [
+          "memo_store_ok",
+          "memo",
+          "memo_visible_state",
+          "share_exact_memo_access",
+          "reactions_store_ok",
+          "attachments_store_ok",
+          "conversion_creator_store_ok",
+          "conversion_creator",
+          "conversion_creator_found",
+          "conversion_ok",
+          "result"
+        ],
+        "disposition": "implemented",
+        "reason": "Token resolution, memo lookup and visible root exits through the response boundary are represented."
+      },
+      {
+        "id": "active-share",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 216,
+          "endLine": 230
+        },
+        "stepIds": [
+          "share_store_ok",
+          "share",
+          "share_found",
+          "share_active"
+        ],
+        "disposition": "implemented",
+        "reason": "Store error, absent token, strict expiry, and active share are represented."
+      },
+      {
+        "id": "viewer-resolution",
+        "source": {
+          "path": "server/api/v1/auth_service_session.go",
+          "startLine": 269,
+          "endLine": 290
+        },
+        "stepIds": [
+          "viewer_store_ok",
+          "viewer_row",
+          "viewer_exists",
+          "viewer"
+        ],
+        "disposition": "implemented",
+        "reason": "Anonymous, missing, inactive and active current-user outcomes are represented."
+      },
+      {
+        "id": "read-context-entry",
+        "source": {
+          "path": "server/api/v1/memo_access.go",
+          "startLine": 17,
+          "endLine": 40
+        },
+        "stepIds": [
+          "viewer_store_ok",
+          "viewer_row",
+          "viewer_exists",
+          "viewer",
+          "instance_setting_ok",
+          "allow_anonymous",
+          "creator_store_ok",
+          "creator",
+          "space_store_ok",
+          "space",
+          "membership_store_ok",
+          "membership"
+        ],
+        "disposition": "implemented",
+        "reason": "Viewer, anonymous setting and delegated read-context resolution are represented."
+      },
+      {
+        "id": "read-facts-and-viewer",
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 20,
+          "endLine": 84
+        },
+        "stepIds": [
+          "creator_store_ok",
+          "creator",
+          "creator_valid",
+          "space_store_ok",
+          "space",
+          "membership_store_ok",
+          "membership"
+        ],
+        "disposition": "implemented",
+        "reason": "Creator, optional placement and conditional viewer membership lookups are represented; membership role affects ordinary SPACE access but cannot make the shared non-SPACE branch broader."
+      },
+      {
+        "id": "shared-policy-prefix",
+        "source": {
+          "path": "core/access/memo.go",
+          "startLine": 92,
+          "endLine": 122
+        },
+        "stepIds": [
+          "memo_visible_state",
+          "creator_valid",
+          "share_exact_memo_access"
+        ],
+        "disposition": "implemented",
+        "reason": "GetSharedMemo pre-rejects archived and SPACE memos; for a normal non-SPACE memo the exact selected MemoID reaches the share branch before ordinary audience rules."
+      },
+      {
+        "id": "conversion-response",
+        "source": {
+          "path": "server/api/v1/memo_service_converter.go",
+          "startLine": 26,
+          "endLine": 102
+        },
+        "stepIds": [
+          "conversion_creator_store_ok",
+          "conversion_creator",
+          "conversion_creator_found",
+          "conversion_ok",
+          "result"
+        ],
+        "disposition": "implemented",
+        "reason": "Independent creator lookup, memo-scoped reaction/attachment inclusion, empty relations, and successful conversion boundary are represented; complete protobuf projection remains outside the finite result."
+      },
+      {
+        "id": "response-scope",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 210,
+          "endLine": 213
+        },
+        "stepIds": [
+          "result"
+        ],
+        "disposition": "implemented",
+        "reason": "The returned parent is cleared and the share does not extend to the surrounding conversation or relation graph."
+      }
+    ]
+  }
+}

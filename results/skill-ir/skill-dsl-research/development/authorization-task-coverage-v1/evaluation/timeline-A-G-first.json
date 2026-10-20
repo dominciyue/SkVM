@@ -1,0 +1,328 @@
+{
+  "schemaVersion": "authorization-author-timeline/v1",
+  "restoredDraftRevision": null,
+  "firstProgramAttemptToolUnit": 8,
+  "firstProposalToolUnit": 8,
+  "firstValidDraftToolUnit": 10,
+  "firstExecutionToolUnit": 8,
+  "patchCount": 2,
+  "timeline": [
+    {
+      "historyOrdinal": 1,
+      "toolUnit": 1,
+      "name": "authorization_program_details"
+    },
+    {
+      "historyOrdinal": 2,
+      "toolUnit": 2,
+      "name": "source_symbol",
+      "source": {
+        "name": "CreateIssue",
+        "path": "routers/api/v1/repo"
+      }
+    },
+    {
+      "historyOrdinal": 3,
+      "toolUnit": 3,
+      "name": "source_read",
+      "source": {
+        "path": "routers/api/v1/repo/issue.go",
+        "startLine": 500,
+        "endLine": 680
+      }
+    },
+    {
+      "historyOrdinal": 4,
+      "toolUnit": 4,
+      "name": "source_symbol",
+      "source": {
+        "name": "CanWrite",
+        "path": "models/perm"
+      }
+    },
+    {
+      "historyOrdinal": 5,
+      "toolUnit": 5,
+      "name": "source_read",
+      "source": {
+        "path": "models/perm/access/repo_permission.go",
+        "startLine": 120,
+        "endLine": 175
+      }
+    },
+    {
+      "historyOrdinal": 6,
+      "toolUnit": 6,
+      "name": "source_read",
+      "source": {
+        "path": "models/perm/access/repo_permission.go",
+        "startLine": 70,
+        "endLine": 125
+      }
+    },
+    {
+      "historyOrdinal": 7,
+      "toolUnit": 7,
+      "name": "source_search",
+      "source": {
+        "text": "AccessModeWrite",
+        "path": "models/perm"
+      }
+    },
+    {
+      "historyOrdinal": 8,
+      "toolUnit": 8,
+      "name": "authorization_program",
+      "draftRevision": "bc8716e6a75cbee74887049a711cad44a59569541ec1be5006de6edbd3bcb265",
+      "valid": false,
+      "adopted": true,
+      "activeRevision": "ab7b851c8eae7e636f575c446bb2bd74a659954ae9ba87638f28d42a5673e248",
+      "diagnostics": [
+        {
+          "code": "contract-source-owner",
+          "path": "sourceDeclarations.1.source",
+          "severity": "error"
+        },
+        {
+          "code": "contract-source-owner",
+          "path": "sourceDeclarations.2.source",
+          "severity": "error"
+        },
+        {
+          "code": "contract-resource-source",
+          "path": "resourceWorkflow.steps.0.source",
+          "severity": "error"
+        },
+        {
+          "code": "contract-coverage-reference",
+          "path": "authoringTarget.coverage.2",
+          "severity": "warning"
+        }
+      ],
+      "execution": {
+        "termination": "return",
+        "conditions": [],
+        "gaps": [
+          "The visible handler does not make CanWrite(TypeIssues) a precondition for issue creation; write permission only gates deadline, milestone, labels, and assignee handling in the modeled span.",
+          "The finite permission inputs omit anonymous/everyone access maps and do not distinguish every internal unitsMode-map branch, so can_write_issues is bounded to the supplied unit-mode representation.",
+          "Route middleware, binding failures, assignee lookup and assignability, NewIssue transaction effects, close/refetch, and response conversion are not yet modeled.",
+          "resource-source-unread:models/perm/access/repo_permission.go:95",
+          "can_write_issues",
+          "form.Deadline",
+          "form.Milestone"
+        ],
+        "events": 6
+      }
+    },
+    {
+      "historyOrdinal": 9,
+      "toolUnit": 9,
+      "name": "authorization_program_patch",
+      "draftRevision": "b7ded14a102e4e88beed2d4b4b077768c84ba11813249b05b5477fa84db8ec8e",
+      "valid": false,
+      "adopted": false,
+      "activeRevision": "ab7b851c8eae7e636f575c446bb2bd74a659954ae9ba87638f28d42a5673e248",
+      "diagnostics": [
+        {
+          "code": "contract-source-owner",
+          "path": "sourceDeclarations.1.source",
+          "severity": "error"
+        },
+        {
+          "code": "contract-source-owner",
+          "path": "sourceDeclarations.2.source",
+          "severity": "error"
+        },
+        {
+          "code": "contract-coverage-reference",
+          "path": "authoringTarget.coverage.2",
+          "severity": "warning"
+        }
+      ],
+      "execution": {
+        "termination": "return",
+        "conditions": [],
+        "gaps": [
+          "The visible handler does not make CanWrite(TypeIssues) a precondition for issue creation; write permission only gates deadline, milestone, labels, and assignee handling in the modeled span.",
+          "The finite permission inputs omit anonymous/everyone access maps and do not distinguish every internal unitsMode-map branch, so can_write_issues is bounded to the supplied unit-mode representation.",
+          "Route middleware, binding failures, assignee lookup and assignability, NewIssue transaction effects, close/refetch, and response conversion are not yet modeled.",
+          "record-scalar-required:labels"
+        ],
+        "events": 6
+      }
+    },
+    {
+      "historyOrdinal": 10,
+      "toolUnit": 10,
+      "name": "authorization_program",
+      "draftRevision": "bbeb22493b979c75907b6b1d7bf18df1bcb5f0fc75c2917efa98abe1d5035f53",
+      "valid": true,
+      "adopted": true,
+      "activeRevision": "98114725069cc8bad2028eb1b8b1ea54dc038ccd475c052ec538bd3198220ee1",
+      "diagnostics": [],
+      "execution": {
+        "returned": {
+          "can_write_issues": false,
+          "labels_allowed": false,
+          "repo_id": 83,
+          "poster_id": 31,
+          "deadline": 0,
+          "milestone_id": 0
+        },
+        "termination": "return",
+        "conditions": [],
+        "gaps": [
+          "The handler does not make CanWrite(TypeIssues) a precondition for issue creation; it gates only deadline, milestone, labels, and assignee handling in the modeled span.",
+          "The finite permission inputs do not expose every UnitAccessMode construction branch, including anonymous/everyone maps.",
+          "Route middleware, binding failures, assignee lookup and assignability, NewIssue transaction effects, optional close, refetch, and response conversion are not yet modeled."
+        ],
+        "events": 6
+      }
+    },
+    {
+      "historyOrdinal": 12,
+      "toolUnit": 15,
+      "name": "source_search",
+      "source": {
+        "text": "CreateIssue",
+        "path": "routers/api/v1"
+      }
+    },
+    {
+      "historyOrdinal": 13,
+      "toolUnit": 16,
+      "name": "source_read",
+      "source": {
+        "path": "routers/api/v1/api.go",
+        "startLine": 1600,
+        "endLine": 1660
+      }
+    },
+    {
+      "historyOrdinal": 14,
+      "toolUnit": 17,
+      "name": "source_read",
+      "source": {
+        "path": "routers/api/v1/api.go",
+        "startLine": 1635,
+        "endLine": 1655
+      }
+    },
+    {
+      "historyOrdinal": 15,
+      "toolUnit": 18,
+      "name": "source_search",
+      "source": {
+        "text": "reqRepoReader",
+        "path": "routers/api/v1/api.go",
+        "limit": 50
+      }
+    },
+    {
+      "historyOrdinal": 16,
+      "toolUnit": 19,
+      "name": "source_symbol",
+      "source": {
+        "name": "reqRepoReader",
+        "path": "routers/api/v1/api.go"
+      }
+    },
+    {
+      "historyOrdinal": 17,
+      "toolUnit": 20,
+      "name": "source_search",
+      "source": {
+        "text": "func reqRepoReader",
+        "path": "routers/api/v1/api.go",
+        "limit": 10
+      }
+    },
+    {
+      "historyOrdinal": 18,
+      "toolUnit": 21,
+      "name": "source_read",
+      "source": {
+        "path": "models/perm/access_mode.go",
+        "startLine": 15,
+        "endLine": 25
+      }
+    },
+    {
+      "historyOrdinal": 19,
+      "toolUnit": 22,
+      "name": "source_symbol",
+      "source": {
+        "name": "NewIssue",
+        "path": "services/issue"
+      }
+    },
+    {
+      "historyOrdinal": 20,
+      "toolUnit": 23,
+      "name": "authorization_program_details"
+    },
+    {
+      "historyOrdinal": 21,
+      "toolUnit": 24,
+      "name": "source_symbol",
+      "source": {
+        "name": "NewIssue",
+        "path": "services/issue"
+      }
+    },
+    {
+      "historyOrdinal": 22,
+      "toolUnit": 25,
+      "name": "source_list",
+      "source": {
+        "limit": 1,
+        "offset": 0
+      }
+    },
+    {
+      "historyOrdinal": 24,
+      "toolUnit": 27,
+      "name": "authorization_program_patch",
+      "valid": false,
+      "adopted": false,
+      "diagnostics": []
+    },
+    {
+      "historyOrdinal": 25,
+      "toolUnit": 28,
+      "name": "source_read",
+      "source": {
+        "path": "routers/api/v1/api.go",
+        "startLine": 1645,
+        "endLine": 1651
+      }
+    }
+  ],
+  "activeRevision": "98114725069cc8bad2028eb1b8b1ea54dc038ccd475c052ec538bd3198220ee1",
+  "currentDraftRevision": "1863d44fad61f1b83b0523220ae8069e9a4ee8af2d359cc69d5371c2fdc57305",
+  "machine": {
+    "status": "conditional",
+    "returned": {
+      "can_write_issues": false,
+      "labels_allowed": false,
+      "repo_id": 83,
+      "poster_id": 31,
+      "deadline": 0,
+      "milestone_id": 0
+    },
+    "termination": "return",
+    "conditions": [],
+    "gaps": [
+      "The handler does not make CanWrite(TypeIssues) a precondition for issue creation; it gates only deadline, milestone, labels, and assignee handling in the modeled span.",
+      "The finite permission inputs do not expose every UnitAccessMode construction branch, including anonymous/everyone maps.",
+      "Route middleware, binding failures, assignee lookup and assignability, NewIssue transaction effects, optional close, refetch, and response conversion are not yet modeled."
+    ],
+    "events": 6
+  },
+  "natural": {
+    "delivery": "delivered",
+    "semanticReview": "pending"
+  },
+  "status": "completed",
+  "perToolWallTimes": "not exposed by native history; use the original lifecycle for wall timing"
+}

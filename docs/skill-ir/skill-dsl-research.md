@@ -1,10 +1,10 @@
 # Skill 分类与领域 DSL 研究总文档
 
-更新于2026-10-20。本文件是这条研究路线唯一持续维护的**研究与开发复盘正文**，合并S0–S11、D0–D11及后续研究，并记录实现问题与修复。实时状态由[current-status](current-status.md)维护，未达责任见[当前计划](skill-ir-aot-optimization-plan.md)。
+更新于2026-10-21。本文件是这条研究路线唯一持续维护的**研究与开发复盘正文**，合并S0–S11、D0–D11及后续研究，并记录实现问题与修复。实时状态由[current-status](current-status.md)维护，未达责任见[当前计划](skill-ir-aot-optimization-plan.md)。
 
 ## 1. 当前结论
 
-**BS计划已获授权，尚未实施。** BR说明跨结构有限程序已能产生并被使用，但源码顺序/转换与自然原题覆盖还未闭合。下一轮复用现有义务、试跑、消费和交付机制，修Memos已知缺口，并以已暴露Gitea CreateIssue检验创建写入结构；Download仅离线兼容。14正常用途及至多4具名确认，完整原题和同稿N/R/E比较保持；不预设收益、不增加答案填空协议。源码、用户实验政策和合成事实分开，决定与实施过程统一见[§7.80](#780-br-复核与-bs-原题覆盖和跨结构语义使用)。
+**BS有限队列已完成，工程通过，完整程序语义、自然质量和稳定净收益未达。** 14用途、15attempt、18观察turn，1/4具名确认，全部本地关闭。M最后30步的29案有限值/条件一致，但3案调用顺序仍错；G最后7步route guard无效，字段结果conditional、创建链缺失。十二自然消费者整题0/12、六域43/72 full。E实际采用结果但补充与退步并存；变化场景的关键失败N/R也能由源码推导。普通复用、搬移/源码变化撤回及Download零模型兼容通过。源码、用户政策、合成事实和目标运行保持区分；A-G宿主故障及两turn未知费用保留，见[§7.80](#780-br-复核与-bs-原题覆盖和跨结构语义使用)。最终归档发布后停止，不自动BT。
 
 **BR有限队列完成，跨结构自动编写和同稿变化使用成立，完整语义、自然质量与稳定净收益未达。** 九用途及一次具名确认、17观察turn全部关闭；最后25步Memos自动原稿在20已知结果/选定标量案例匹配、2缺输入保留条件，普通入口、搬移和源码失效通过。Download两答原四问完整；Memos六消费者27/36维full、整题0/6。执行对规则原输入持平、变化输入少说明一项转换错误，观察token比1.196/0.748；不能称稳定优势。共享修复只区分未执行依赖、公开已有谓词，不补业务程序。完整来源、全部首/修订原件、未知成本及后续责任见[§7.79](#779-bq-复核与-br-回答依据和跨任务检验)。以completed-with-unmet-criteria收束，不自动BS。
 
@@ -2951,6 +2951,18 @@ BM首件实测补修：A0-first用60探索单位而无patch/trial；暂态重连
 **真实性与未达责任。** 完整Cloudflare/GitHub外部skill、Memos cb42e326ba9cc266a6a9570c53e0fe04c62793f4真实源码、研究者问题、合成数据库/时钟、源码先行22案例分别登记；328注册文件hash核验。Memos已暴露development来源，服务/数据库未启动，非held-out/liveAPI。模型不见oracle、旧答或开发者业务稿，首/修订/负向及历史保护证据保持。可保留的成果是共享公共说明修复、另一任务从空稿进入普通工具链、同稿变化及可恢复证据。未达责任仍为源码调用/错误顺序、完整转换与自然遗漏、可重复质量和包含准备的成本收益；不靠追加Download变体或新状态协议替代这些问题。
 
 ### 7.80 BR 复核与 BS 原题覆盖和跨结构语义使用
+
+**2026-10-20最终实验与评价。** G1 E→R→N全部交付，三者都正确解释writer场景的后续refetch失败，故不是执行独有结论。E实际采用带条件的字段结果，并在自然答补充原稿未实现的后续失败；它反转标题truncate/trim顺序，且遗漏完整创建/close错误映射。R完整映射这些错误，但遗漏父组路由及repo/poster绑定；N正确父组路由，但遗漏assignee错误和converter空对象201。全部12答整题0/12，M19/36、G24/36域full，总43/72；原答逐项评阅及独立抽核保留，不用关键词计分。
+
+四块同epoch、R/E同最后raw；M实验生产12db412c，G为c3be4cc2。实际client包全部解码，无rules执行泄漏，四个E均有宿主结果及自然采用；未trial不等于未执行。M0 E/R域分持平，M1 E补nil expiry；G0 E补响应映射同时误排父路由，G1 E补父路由同时丢失完整响应映射。域分不代表因果，所有块整题均partial。E/R观察总token比依次1.659、0.752、0.967、1.081；准备成本另列，计时含并发本地工作，不能称隔离性能或稳定净收益。
+
+14用途、15attempt、18观察turn，1/4具名确认，全部本轮请求本地closed。Known input14,115,853（cache12,484,224已包含一次）/output104,905；A-G原始中断及恢复交付两turn usage未知，USD、隐藏请求、开发/探子成本及真人时间未知。A-G原观测132746ms加恢复532694ms计665440ms；中间不可观测停顿不算免费，原生命周期文件不改。553登记文件已有Git留存，最终原件无损包与普通M/G示例独立交付。详见[汇总](../../results/skill-ir/skill-dsl-research/development/authorization-task-coverage-v1/summary.json)、[账目](../../results/skill-ir/skill-dsl-research/development/authorization-task-coverage-v1/accounting.json)、[执行记录](../../results/skill-ir/skill-dsl-research/development/authorization-task-coverage-v1/execution.md)。有限队列完成与工程完成分别成立，研究目标未达，不自动BT。
+
+**2026-10-20实际实验进展。** M作者4turn/4原稿，固定最后30步SHA71af8c69；29案有限值/条件一致，但creator/audience提前拒绝导致3个预登记顺序错误，匿名入口证明和完整转换未达。六M答整题0/6full；M1三组都识别后转换作者消失，不能归因执行。E实际采用计算并指出部分原稿缺口，但没有整题改善。源与自然评阅见本轮[evaluation](../../results/skill-ir/skill-dsl-research/development/authorization-task-coverage-v1/evaluation/natural-review.json)。
+
+A-G原turn宿主中断且无工具，独立只读确认interrupted后同线程具名恢复一次。恢复回合已completed/delivered，四份提交最后7步；随后宿主生成继续上下文时TypeError，正常续作未执行。原因是候选重新选择最小包含函数，嵌套函数不拥有原anchor；改为保留生成owner并经匿名红绿、独立审查、普通入口验证。A-G原件补建报告明确只恢复已持久状态，两个turn用量未知；不把宿主故障造成的未完成全部归因模型能力，不为partial重抽作者。
+
+G首/终稿各16案复算，完整创建均未达。末稿permission对象违反字符串schema，route guard未决，后续字段值全部conditional；无创建/effect/close/refetch/converter。G0三答均partial，E采用条件结果及诊断、补close500，却错误排除父组mustEnableIssuesOrPulls；N/R该点正确。G0-R另有标题截断/trim顺序错误。改进和退步同表，不能只挑执行组纠错案例。当前普通M/G原/变输入、M搬移/源码变化撤回及Download兼容通过；127受影响测试/984断言、主/研究类型、15文档测试通过。该段为G0阶段记录；G1及最终评价见本节上方收束记录。
 
 **2026-10-20实施进展。** 新线程从b21b077d完成BS0–BS8，首次账号请求尚未派发。原始client包核对：N收到authz与ACL正文，四个R/E未读该正文；M1-E与M1-R均收到转换creator及root错误映射，前者遗漏不能单归因缺材料或截断。共享投影只关联显式scope/operation及有界来源引用，保留未知和全部原题；有限执行器原本已保留首错及先调用后失败，新增的是可见反馈和普通摘要。独立核验发现的stale候选回退已修复，旧v2原档案inspect仍通过。
 

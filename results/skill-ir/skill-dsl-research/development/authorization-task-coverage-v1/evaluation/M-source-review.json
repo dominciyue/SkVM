@@ -1,0 +1,52 @@
+{
+  "reviewedAt": "2026-10-20",
+  "task": "M",
+  "selection": "chronologically last submitted raw; no developer semantic edits",
+  "sha256": "71af8c69179fb5363eb8408dd6335a6d7b0997e8d2c9395093ad0747e6cd2142",
+  "overall": "partial",
+  "sourceValidation": "valid is citation/schema validation, not semantic certification",
+  "correct": [
+    "ShareToken UID selects share, MemoID selects exact memo; strict expiry permits equality and nil expiry.",
+    "Memo absence, non-NORMAL and SPACE reject even administrators; valid creator includes NORMAL and ARCHIVED.",
+    "Reactions error precedes attachments; conversion creator is a separate later population. Missing creator maps to NotFound and database error remains wrapped conversion error.",
+    "Missing clock/users/conversionUsers retain explicit unresolved conditions; termination return is conditional, not proof of unconditional success.",
+    "Finite return clears parent and relations and binds content to selected memo."
+  ],
+  "incorrectOrder": [
+    {
+      "case": "unrecognized-audience-after-context-error",
+      "actual": "memo_visible_state rejects unrecognized visibility before viewer lookup",
+      "expected": "GetSharedMemo initially excludes SPACE only; read-context viewer failure occurs before CanReadMemo audience validation",
+      "program": "authoring/M-automatic-program.json:226",
+      "source": "server/api/v1/memo_share_service.go:182; core/access/memo.go:87"
+    },
+    {
+      "case": "invalid-creator-still-resolves-space",
+      "actual": "creator_valid rejects before space_store_ok",
+      "expected": "ResolveMemoReadFacts records creator validity then still calls GetSpace, whose error prevents later authorization guard",
+      "program": "authoring/M-automatic-program.json:491",
+      "source": "core/access/memo_resolve.go:37-51"
+    },
+    {
+      "case": "invalid-creator-still-resolves-member",
+      "actual": "creator_valid rejects before space and membership lookup",
+      "expected": "ResolveMemoReadContext completes WithViewer membership lookup before CanReadMemo evaluates creator validity",
+      "program": "authoring/M-automatic-program.json:491",
+      "source": "core/access/memo_resolve.go:58-90"
+    }
+  ],
+  "remaining": [
+    "No acl_config/authz public endpoint and private-instance bootstrap proof in raw source declarations. allow_anonymous models memo policy only.",
+    "Reaction and attachment inclusion flags do not materialize their converted rows or all converter errors.",
+    "Full response conversion, subsequent conversion context reads, snippet and transport mapping remain partial.",
+    "Finite synthetic evaluation is not live service, database, or authorization deployment validation."
+  ],
+  "independentReview": {
+    "agent": "bs_m_final_review",
+    "role": "read-only",
+    "accepted": "binding, expiry, conversion errors, parent/relation boundary and anonymous proof gap",
+    "mainCorrection": "Scout's broad context-order correctness statement omitted early creator_valid and early recognized-audience guard. Main inspected exact raw and source plus event traces; three order failures retained."
+  },
+  "decision": "Keep fixed last raw and proceed with registered consumers. No confirmation used merely to improve partial quality.",
+  "providerCallsForReview": 0
+}

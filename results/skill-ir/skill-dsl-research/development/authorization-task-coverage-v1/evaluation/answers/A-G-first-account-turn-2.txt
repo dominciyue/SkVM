@@ -1,0 +1,77 @@
+| Severity | Count |
+|---|---:|
+| Critical | 0 |
+| High | 0 |
+| Medium | 1 |
+| Low | 0 |
+| Info | 1 |
+
+## Access control finding
+
+### MEDIUM — CreateIssue is not demonstrably conformant with the supplied write-only policy  
+**Confidence:** Medium
+
+The route is registered as:
+
+```go
+Post(reqToken(), mustNotBeArchived, bind(api.CreateIssueOption{}),
+    reqRepoReader(unit.TypeIssues), repo.CreateIssue)
+```
+
+[`routers/api/v1/api.go:1649`]
+
+Thus the visible route requires authentication/token handling, a non-archived repository, valid binding, and **reader** access to the issues unit—not writer access.
+
+Inside `CreateIssue`, `CanWrite(unit.TypeIssues)` does not guard creation. It only controls privileged fields:
+
+- Deadline is accepted only from writers: [`issue.go:570-574`]
+- Milestone and assignees are processed only for writers: [`issue.go:587-618`]
+- A non-writer’s labels are replaced with an empty list: [`issue.go:619-622`]
+- `issue_service.NewIssue` is then called unconditionally: [`issue.go:624`]
+
+Therefore the reviewed route and handler conflict with the supplied policy:
+
+> “Read permission to the repository alone does not authorize this write.”
+
+The bounded conclusion is **probable policy non-conformance**, not a fully established deployment exploit. The body of `issue_service.NewIssue`, `reqToken`, `reqRepoReader`, and permission-construction middleware could contain additional rejection logic that was not successfully incorporated into the executable model. The handler acknowledges that `NewIssue` can return permission-denied or not-found errors, mapping them to HTTP 400 [`issue.go:624-632`], but this does not establish that issues-unit write permission is always checked there.
+
+## Field and lifecycle behavior
+
+- `Title`, `Body`, and `Ref` are copied directly into the issue; this handler does not trim the title: [`issue.go:570-585`].
+- Repository and poster identities come from middleware context, not request-controlled IDs: [`issue.go:576-583`].
+- Deadline, milestone, labels, and assignees receive the writer-specific treatment above.
+- Each writer-supplied assignee is loaded and checked for assignability; missing or unauthorized assignees stop processing: [`issue.go:591-618`].
+- Projects are passed to `NewIssue` without a handler-local writer gate; deeper service validation remains relevant: [`issue.go:624`].
+- A blocked-user result becomes 403; permission-denied/not-found becomes 400; other creation errors become internal errors: [`issue.go:624-632`].
+- If `Closed` is true, closing occurs **after creation** and may fail with 412 for open dependencies or an internal error: [`issue.go:635-644`].
+- The issue is refetched after creation, then converted and returned with HTTP 201: [`issue.go:646-652`].
+
+A 201 response establishes that creation, optional closing, refetch, and response conversion reached normal completion. Conversely, a later close/refetch/conversion failure does not prove that the preceding creation was rolled back; no such rollback is visible in this handler.
+
+## Executable program status
+
+A valid persistent reusable program was authored and adopted:
+
+- Program: `gitea-create-issue-policy`
+- Active revision: `98114725069cc8bad2028eb1b8b1ea54dc038ccd475c052ec538bd3198220ee1`
+- Draft revision: `bbeb22493b979c75907b6b1d7bf18df1bcb5f0fc75c2917efa98abe1d5035f53`
+- Diagnostics: none
+
+For the supplied reader scenario, it computes:
+
+```text
+can_write_issues = false
+labels_allowed   = false
+deadline         = 0
+milestone_id     = 0
+```
+
+Trials also covered writer, reader, absent-unit, and null-deadline variants. The writer trial retained deadline `2000` and milestone `12`; reader and absent-unit trials suppressed them.
+
+The program remains explicitly partial around route-helper implementations, full permission construction, assignee/service effects, transaction semantics, close/refetch errors, and response conversion.
+
+## Suggested remediation
+
+If the supplied policy is authoritative, add an explicit `CanWrite(unit.TypeIssues)` guard before any issue construction or service call, returning 403 when false. Route middleware should also use an issues-unit writer requirement where available.
+
+**Review each patch before applying. Nothing has been changed yet.**

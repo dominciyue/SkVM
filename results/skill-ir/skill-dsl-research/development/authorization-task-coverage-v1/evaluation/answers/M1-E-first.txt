@@ -1,0 +1,172 @@
+## Findings summary
+
+| Severity | Findings |
+|---|---:|
+| 🔴 Critical | 0 |
+| 🟠 High | 0 |
+| 🟡 Medium | 0 |
+| 🔵 Low | 0 |
+| ⚪ Info | 0 |
+| **Total** | **0** |
+
+**Dependency audit:** Not assessable—dependency manifests were outside the allowed source set.  
+**Secrets scan:** No exposed credential was observed in the reviewed flow; this was not a repository-wide secrets scan.
+
+# 🔐 Security Review Report
+
+**Project:** `usememos/memos` at `cb42e326ba9cc266a6a9570c53e0fe04c62793f4`  
+**Scan date:** 2026-10-20  
+**Scope:** `GetSharedMemo` and relevant authorization, conversion, attachment, ACL, and protobuf dependencies  
+**Languages/frameworks:** Go, Protocol Buffers, Connect/gRPC  
+**Conclusion:** No confirmed vulnerability in the examined flow. The endpoint deliberately implements an opaque bearer-share capability.
+
+## Shared-memo access behavior
+
+### Token-to-memo binding
+
+`GetSharedMemo` does not accept a memo identifier alongside the token:
+
+```go
+ms, err := s.getActiveMemoShare(ctx, request.ShareToken)
+memo, err := s.Store.GetMemo(ctx, &store.FindMemo{ID: &ms.MemoID})
+```
+
+The supplied token is looked up as `MemoShare.UID`; the selected share row’s `MemoID` is then the sole identifier used to load the memo. Consequently, a caller cannot combine one valid token with an independently supplied memo ID.  
+Location: `server/api/v1/memo_share_service.go:172-184`.
+
+The share row’s `CreatorID` is not consulted while reading. Creation is restricted to a memo manager and records the creator, but later validity is based on the share UID, expiry, and bound `MemoID`, not continued equality between share creator and memo creator (`server/api/v1/memo_share_service.go:23-80,221-229`).
+
+The token is generated with `shortuuid.New()` and is documented as a 22-character, approximately 122-bit opaque Bearer [redacted] (`server/api/v1/memo_share_service.go:66-74`).
+
+### Invalid, revoked, and expired tokens
+
+`getActiveMemoShare` returns the same `NOT_FOUND: not found` for:
+
+- an unknown token;
+- a revoked token whose row no longer exists;
+- an expired token.
+
+```go
+if ms == nil || isMemoShareExpired(ms) {
+    return nil, status.Errorf(codes.NotFound, "not found")
+}
+```
+
+Expiry is strict:
+
+```go
+return ms.ExpiresTs != nil && time.Now().Unix() > *ms.ExpiresTs
+```
+
+Therefore, a token remains active when `now == ExpiresTs`; it expires only once the Unix timestamp is greater.  
+Location: `server/api/v1/memo_share_service.go:216-229`.
+
+A share-store failure is distinguishable internally: it returns `INTERNAL "failed to get memo share"` rather than `NOT_FOUND` (`:221-224`).
+
+### Controls applied to a valid token
+
+Even a valid, unexpired token does not unconditionally produce a memo:
+
+1. **Memo existence and lifecycle:** The bound memo must exist and have `RowStatus == NORMAL`.
+2. **Audience:** `SPACE` audience memos are rejected. Share creation also prohibits them.
+3. **Creator integrity:** The memo creator must still exist and be `NORMAL` or `ARCHIVED`.
+4. **Read-context resolution:** Viewer, instance setting, creator, placement, and applicable membership lookups must complete successfully.
+5. **Conversion:** Reactions, attachments, creator conversion, snippet generation, and any placement projection must succeed.
+
+The first three failures are returned as `NOT_FOUND`, deliberately hiding whether the token, memo, lifecycle, audience, or creator caused the rejection (`server/api/v1/memo_share_service.go:182-188`; `core/access/memo.go:92-121`).
+
+For the exact memo bound by the share:
+
+```go
+shareApplies := ctx.SharedMemoID != nil &&
+    memo.ID == *ctx.SharedMemoID &&
+    memo.Visibility != store.SpaceAudience
+if shareApplies {
+    return MemoReadDecision{Class: MemoReadClassPrivate}
+}
+```
+
+This branch precedes ordinary `PUBLIC`, `PROTECTED`, and `PRIVATE` audience decisions (`core/access/memo.go:119-145`). Thus, after the structural checks, an active token reads its exact non-`SPACE` memo regardless of whether that memo is public, protected, or private.
+
+### Unauthenticated access and instance-private mode
+
+`GetSharedMemo` is explicitly:
+
+- a public method requiring no authentication;
+- an authentication-bootstrap exception that remains reachable on a private instance.
+
+Locations:
+
+- `proto/api/v1/memo_service.proto:134-138`
+- `server/api/v1/acl_config.go:45-46,56-80`
+
+An anonymous request still causes `buildMemoReadContext` to load the instance access setting (`server/api/v1/memo_access.go:17-29`). On a private instance, `AllowAnonymous` is false, but this does **not** defeat a valid exact-memo share: the share branch runs before the ordinary visibility rules.
+
+An instance-setting lookup failure does defeat the request. `GetSharedMemo` normalizes that and other read-context errors to `NOT_FOUND` (`server/api/v1/memo_share_service.go:186-188`). This is a visible implementation dependency even though the access-mode value itself does not constrain a valid token.
+
+If credentials are present:
+
+- only an active `NORMAL` current user is retained;
+- a missing user row is an error;
+- an inactive user is treated as anonymous.
+
+Location: `server/api/v1/auth_service_session.go:269-290`.
+
+## What the token exposes
+
+On success, the returned `Memo` contains normal converted memo fields, including content, creator, timestamps, visibility, properties, location, snippet, reactions, and attachment metadata (`server/api/v1/memo_service_converter.go:34-102`).
+
+Specifically:
+
+- **Reactions:** Included because they have no separate audience once the memo read is authorized (`:76-82`).
+- **Attachment metadata:** Included, such as attachment UID/name, filename, type, size, creator, and linked memo. For externally stored attachments, the response also includes the external link (`attachment_service_storage.go:25-49`).
+- **Managed attachment contents:** Not directly returned. A later `GetAttachment` call independently invokes `checkAttachmentAccess`; it does not consume the share token (`attachment_service.go:345-363`).
+- **Relations:** Empty because `GetSharedMemo` passes `nil` relations and conversion turns that into an empty list (`memo_share_service.go:203`; `memo_service_converter.go:84-88`).
+- **Parent:** Conversion may initially populate the parent name, but `GetSharedMemo` explicitly clears it before returning (`memo_service_converter.go:69-74`; `memo_share_service.go:210-213`).
+- **Comments/conversation:** Not loaded by this endpoint.
+- **Space identity:** The token alone does not expose it. Projection requires an authenticated viewer who is the author, an active space member, or an instance administrator (`memo_service_converter.go:105-137`).
+
+Within the allowed source index, `ShareToken` is consumed only by `GetSharedMemo`. Other public memo, relation, comment, and attachment endpoints perform their normal independent access checks. Possession of the token is therefore not a reusable credential for those endpoints. An external attachment URL included in metadata may independently be usable according to that external service’s controls, which this source cannot establish.
+
+## Supplied finite scenario
+
+The finite program’s ultimate result is **`NOT_FOUND: not found`**, but not because the token is invalid or expired:
+
+1. `share-alpha` selects share 71 and binds it to memo ID 43.
+2. `now == ExpiresTs == 2000`, so the strict `now > ExpiresTs` test says it is still active.
+3. Memo 43 is `NORMAL`, `PRIVATE`, and not `SPACE`.
+4. The caller is anonymous and the instance is private, so ordinary anonymous access is false.
+5. The exact-memo share branch nevertheless authorizes memo 43.
+6. Reaction and attachment queries succeed and return empty collections.
+7. Conversion independently asks for creator 17. The supplied `conversionUsers` population is empty, so conversion cannot find that creator.
+8. `errMemoCreatorNotFound` is normalized by `GetSharedMemo` to `NOT_FOUND`.
+
+Therefore, **authorization succeeds but response construction fails**. No memo is returned. The earlier store reads still occurred. This is externally similar to an invalid or expired token, although the internal path is different.
+
+## Authored-program limitations and corrections
+
+The supplied program correctly computes the finite scenario’s final denial, but its reusable description is incomplete in several places:
+
+1. **Visibility attribution:** `memo_visible_state` models membership in `PUBLIC/PROTECTED/PRIVATE` as a direct `GetSharedMemo` guard. The root function directly rejects only `SPACE`; unknown audiences are rejected later by `CheckMemoReadContext`. The overall denial is similar, but the modeled source stage is inaccurate.
+2. **Assigned-memo conversion:** For a memo with `SpaceID`, conversion calls `buildMemoReadContext(ctx, memo, nil)` again before projecting the space (`memo_service_converter.go:50-61`). This repeats viewer, anonymous-policy, creator, space, and possibly membership resolution **without** the share ID. The program does not represent these second lookups or their independent error paths.
+3. **Conversion errors:** Missing conversion creator is explicitly normalized to `NOT_FOUND`. Other conversion errors are wrapped as `failed to convert memo`; the program’s generic “CONVERSION ERROR” is not a verified transport status.
+4. **Attachment scope:** The program records attachment inclusion but not the exact metadata exposure, including external links.
+5. **Cross-endpoint limit:** “No parent/relation access” is accurate for this response and the examined authorization helpers. It is not proof about routes or deployment behavior outside the allowed source set.
+6. **Unavailable facts:** Runtime middleware configuration, database consistency, external attachment authorization, generated transport validation, and dependency/CVE state were not available.
+
+## Dependency and secrets audit
+
+- No `go.mod`, `go.sum`, or other dependency manifest was available in the bounded source paths, so package versions and CVEs could not be audited.
+- No hardcoded credential was observed in the directly reviewed files, but the complete repository and history were unavailable. This is not a certification that the project contains no secrets.
+
+## Patch proposals
+
+No Critical or High vulnerability was confirmed, so no patch is proposed.
+
+**Review each patch before applying. Nothing has been changed yet.**
+
+## Scan coverage and limits
+
+Directly examined: share service, memo authorization and resolution, current-user resolution, instance access setting, memo conversion, ACL configuration, protobuf API declarations, attachment conversion/access, and relevant indexed cross-references.
+
+This was static, source-only analysis. It did not execute the application, database, transport, or external storage.

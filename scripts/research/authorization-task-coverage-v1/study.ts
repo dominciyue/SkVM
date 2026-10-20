@@ -25,6 +25,7 @@ export function admitAttempt(ledger: any[], position: string, attempt: string, r
 }
 export const chooseLastRaw = (domain: any) => domain?.programDraft?.currentDraft?.raw ?? domain?.executableContract?.currentDraft?.raw
 export const programDisposition = (check: any) => ({ dispatchSourceConsumer: true, executionComparable: check?.status === "valid" && !!check.executableContract?.resourceExecution, status: check?.status ?? "no-raw-submitted", diagnostics: check?.diagnostics ?? [] })
+export const consumerSupport = (requested: "rules" | "execute", check: any) => requested === "execute" && check?.status === "invalid" ? "rules" as const : requested
 export function optionsFor(position: string) {
   if (!positions.includes(position)) throw new Error("unregistered-position")
   const author = position.startsWith("A-"), task = position === "A-G" || position.startsWith("G") ? "G" : "M", native = position.endsWith("-N")
@@ -69,15 +70,18 @@ export async function run(position: string, attempt: string) {
   await mkdir(outDir, { recursive: true }); const lease = await open(leasePath, "wx"); await lease.writeFile(JSON.stringify({ pid: process.pid, position, attempt })); await lease.close()
   ledger.push(entry); await save(ledgerFile, ledger)
   try {
+    let effectiveSupport = o.programSupport
     if (!o.author && !o.native) {
       const check = rawExists ? await checkAuthorizationInquiry(o.inputFile, "D1", o.strategy, o.domainProgramFile, { ...o, executionPolicy: "progressive" }) : undefined
       entry.programDisposition = programDisposition(check)
+      effectiveSupport = consumerSupport(o.programSupport, check)
+      entry.effectiveProgramSupport = effectiveSupport
       await save(path.join(outDir, "program-check.json"), check ?? { status: "missing", providerCalls: 0 })
-      // Even an unusable raw remains available in rules mode. The ordinary
-      // progressive execute host retains its diagnostics; absent raw means
-      // source-only unresolved program context, never a hand-authored fallback.
+      // A rejected executable raw cannot enter the ordinary execute session.
+      // Read that exact raw with schema/source diagnostics in rules mode,
+      // preserving requested arm and noncomparability in the ledger.
     }
-    const report: any = await executeLocalInquiryRun({ ...o, domainProgramFile: rawExists ? o.domainProgramFile : undefined, sourceStructure: true, purpose: position, attempt, outDir, model: "gpt-5.6-sol", method: o.native ? "M" : "D1", harness: "codex-account", domainTools: !o.native, authoringTargetMode: o.author ? "reusable" : undefined, executionPolicy: "progressive", programContext: "directed", accountBoundaryFile, execution: { ...limits, maxAuthorContinuations: o.author ? 2 : 0 } })
+    const report: any = await executeLocalInquiryRun({ ...o, programSupport: effectiveSupport, domainProgramFile: rawExists ? o.domainProgramFile : undefined, sourceStructure: true, purpose: position, attempt, outDir, model: "gpt-5.6-sol", method: o.native ? "M" : "D1", harness: "codex-account", domainTools: !o.native, authoringTargetMode: o.author ? "reusable" : undefined, executionPolicy: "progressive", programContext: "directed", accountBoundaryFile, execution: { ...limits, maxAuthorContinuations: o.author ? 2 : 0 } })
     const account = report.telemetry?.account
     Object.assign(entry, classifyTerminalReport(report), observedAccountCost(report), { endedAt: new Date().toISOString(), session: report.sessionPath && relative(report.sessionPath), terminalStatus: report.terminalStatus, answerDelivery: report.answerDelivery, durationMs: report.durationMs, lifecycle: account?.lifecycle ?? { localExecution: report.status === "invalid" ? "closed" : "unknown" }, turns: account?.turns?.map((t: any) => ({ status: t.status, lifecycle: t.lifecycle, usage: t.usage, reason: t.reason, inferenceDispatched: t.inferenceDispatched })), reason: account?.reason ?? report.diagnostics })
     if (report.sessionPath) {

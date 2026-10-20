@@ -1,0 +1,121 @@
+## Findings summary
+
+| Severity | Count |
+|---|---:|
+| 🔴 Critical | 0 |
+| 🟠 High | 0 |
+| 🟡 Medium | 0 |
+| 🔵 Low | 0 |
+| ⚪ Info | 0 |
+| **Total vulnerabilities** | **0** |
+
+**Assessment:** No vulnerability is asserted because no normative policy was supplied. The behavior below is source-derived with **High confidence**.
+
+## Supplied scenario result
+
+`share-alpha` is an **active, correctly bound token at `now = 2000`**, but the request ultimately returns **`NOT_FOUND`** because memo conversion cannot resolve creator 17 from the separately supplied `conversionUsers` result.
+
+Flow:
+
+1. The token lookup finds share 71, whose `MemoID` is 43.
+2. Expiration is tested using `now > ExpiresTs`, not `now >= ExpiresTs`. Therefore `ExpiresTs == 2000` remains valid at `now == 2000` ([memo_share_service.go:216-229](server/api/v1/memo_share_service.go#L216-L229)).
+3. Memo 43 is fetched by the share row’s numeric `MemoID`, producing `memo-alpha`; memo 89 cannot be selected through this token ([memo_share_service.go:173-184](server/api/v1/memo_share_service.go#L173-L184)).
+4. The private, normal, non-SPACE memo passes share authorization because `SharedMemoID` exactly equals its ID ([memo.go:119-122](core/access/memo.go#L119-L122)).
+5. Empty reactions and attachments are loaded.
+6. Conversion performs a separate `ListUsers(IDList:[17])`. The supplied `conversionUsers` population is empty, so the creator map lacks 17 ([user_service_stats.go:16-40](server/api/v1/user_service_stats.go#L16-L40)). Conversion returns `errMemoCreatorNotFound` ([memo_service_converter.go:26-39](server/api/v1/memo_service_converter.go#L26-L39)), which `GetSharedMemo` deliberately maps to `NOT_FOUND` ([memo_share_service.go:203-208](server/api/v1/memo_share_service.go#L203-L208)).
+
+Thus, in this exact finite scenario, **the caller receives no memo**, despite the Bearer [redacted] itself passing the token and access checks.
+
+If creator 17 were also returned during conversion, the response would contain `memo-alpha`, including `"shared body"`, with empty reactions, attachments, and relations. Its `Parent` would be cleared even though the stored `ParentUID` is `parent-private`.
+
+## How the token binds to a memo
+
+The request contains only the opaque Bearer [redacted] is no caller-supplied memo identifier ([memo_service.proto:644-647](proto/api/v1/memo_service.proto#L644-L647)).
+
+The binding is:
+
+```text
+request.share_token
+  -> MemoShare.UID lookup
+  -> MemoShare.MemoID
+  -> GetMemo(ID = MemoShare.MemoID)
+```
+
+This is implemented at [memo_share_service.go:173-184](server/api/v1/memo_share_service.go#L173-L184). The share record stores the binding as `UID` plus `MemoID` ([memo_share.go:8-17](store/memo_share.go#L8-L17)). Database lookup compares the token to the `uid` column ([store/db/sqlite/memo_share.go:115-157](store/db/sqlite/memo_share.go#L115-L157)).
+
+When created through the API:
+
+- authentication is required;
+- the actor must be the active memo creator or an active instance administrator;
+- the memo must be normal and cannot have `SPACE` visibility;
+- any expiry must be in the future;
+- the token is generated as a 22-character, UUID-v4-derived short UUID;
+- the stored share is bound directly to the current `memo.ID`.
+
+See [memo_share_service.go:23-80](server/api/v1/memo_share_service.go#L23-L80).
+
+At read time, the code does **not** re-check `MemoShare.CreatorID`; possession of the active token is the Bearer [redacted] Revocation removes the share row, after which lookup behaves like an invalid token.
+
+## Invalid, expired, and valid tokens
+
+| Condition | Result |
+|---|---|
+| Token has no share row | `NOT_FOUND: "not found"` |
+| `ExpiresTs < current Unix second` | Same `NOT_FOUND` |
+| `ExpiresTs == current Unix second` | Still active |
+| `ExpiresTs == nil` | Never expires |
+| Active token, but memo is missing, archived/non-normal, or `SPACE` | `NOT_FOUND` |
+| Active token, but creator is missing or invalid | `NOT_FOUND` |
+| Active token with an unknown visibility | `NOT_FOUND` |
+| Failure while resolving read context | Collapsed to `NOT_FOUND` |
+| Share or memo storage lookup failure | `INTERNAL` rather than hidden |
+| Reaction or attachment loading failure | `INTERNAL` |
+
+Invalid and expired tokens are deliberately indistinguishable ([memo_share_service.go:221-229](server/api/v1/memo_share_service.go#L221-L229)). Several valid-token denial cases are also hidden behind the same `NOT_FOUND` response ([memo_share_service.go:182-189](server/api/v1/memo_share_service.go#L182-L189)).
+
+## Access controls and exceptions
+
+A matching active share grants read access only when:
+
+- the fetched memo is `NORMAL`;
+- its visibility is not `SPACE`;
+- its creator resolves to a normal or archived user;
+- its visibility is one of `PUBLIC`, `PROTECTED`, `PRIVATE`, or `SPACE`—with `SPACE` already rejected by this endpoint.
+
+Creator validity is resolved independently of the caller ([memo_resolve.go:31-52](core/access/memo_resolve.go#L31-L52)).
+
+Important exceptions:
+
+- **Instance-private mode does not defeat a matching share.** For an unauthenticated caller, anonymous instance policy is resolved, but an exact `SharedMemoID` match succeeds before ordinary visibility rules are considered ([memo_access.go:17-29](server/api/v1/memo_access.go#L17-L29), [memo.go:119-145](core/access/memo.go#L119-L145)).
+- **Private and protected memos may therefore be read through a share.**
+- **SPACE-visible memos cannot be read through shares**, even by an administrator through this endpoint, because `GetSharedMemo` rejects them before the general access decision.
+- A non-SPACE memo may remain readable even if its optional space placement is dangling; placement validity gates only SPACE reads. An unauthenticated caller also does not receive valid space-placement identity because projection exposes it only to the author, active members, or an administrator ([memo_service_converter.go:105-137](server/api/v1/memo_service_converter.go#L105-L137)).
+- Although general read policy allows an author to read an archived memo, `GetSharedMemo` imposes the stricter `RowStatus == NORMAL` precondition.
+
+## What the unauthenticated caller can obtain
+
+For a successfully converted shared memo, the response includes:
+
+- memo identity, state, creator identity and timestamps;
+- full Markdown content and derived snippet;
+- visibility, tags, properties, location, and pin status;
+- reactions;
+- attachment metadata, including an external link for externally stored attachments.
+
+These fields are assembled at [memo_service_converter.go:34-102](server/api/v1/memo_service_converter.go#L34-L102). Reactions and attachments are loaded after the memo-level share authorization ([memo_share_service.go:191-203](server/api/v1/memo_share_service.go#L191-L203)).
+
+However, the token does **not** authorize the surrounding graph:
+
+- Relations are not loaded; conversion receives `nil`, yielding an empty relation list.
+- `Parent` is forcibly set to `nil`, preventing disclosure of the stored `parent-private` identity ([memo_share_service.go:203-213](server/api/v1/memo_share_service.go#L203-L213)).
+- Comments and related memos are not granted transitively.
+- Separate relation, comment, reaction, and attachment-list endpoints do not accept this token. They call ordinary memo access checks with no `SharedMemoID` ([memo_relation_service.go:103-125](server/api/v1/memo_relation_service.go#L103-L125), [memo_service_comments.go:117-156](server/api/v1/memo_service_comments.go#L117-L156), [memo_attachment_service.go:489-518](server/api/v1/memo_attachment_service.go#L489-L518), [reaction_service.go:18-50](server/api/v1/reaction_service.go#L18-L50)).
+- Direct attachment access likewise follows ordinary linked-memo visibility and does not consume the share token ([attachment_service.go:627-656](server/api/v1/attachment_service.go#L627-L656)). The embedded attachment object contains metadata, not managed attachment bytes ([attachment_service.proto:138-187](proto/api/v1/attachment_service.proto#L138-L187)).
+
+Consequently, on this private instance an unauthenticated caller cannot reuse `share-alpha` as general authorization for memo 43’s parent, comments, relations, direct attachment retrieval, or unrelated memo 89.
+
+## Limits
+
+- This was a bounded static review of `GetSharedMemo` and its visible dependencies. No runtime execution was available.
+- Dependency manifests, migrations/schema constraints, deployment configuration, and unrelated files were outside the allowed evidence scope; dependency and repository-wide secret audits were therefore not performed.
+- No patches are proposed, and nothing has been changed.

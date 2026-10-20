@@ -1,0 +1,1326 @@
+{
+  "providerCalls": 0,
+  "rows": [
+    {
+      "checkpoint": "results/skill-ir/skill-dsl-research/development/authorization-task-coverage-v1/runs/A-G-first/sessions/2026-10-20T121733749Z-4ce71375/raw/program-checkpoint-1.json",
+      "checkpointSha256": "6184571472adec27dd5d6dee7c48f4dbdda8dad42bd3825115d3270769fdbdde",
+      "file": "results/skill-ir/skill-dsl-research/development/authorization-task-coverage-v1/authoring/versions/G-first/program-checkpoint-1.json",
+      "sha256": "66477b690c8f8394a5cc9c255f518f557e58f408486c586f371aa3d13fa24067",
+      "revision": "bc8716e6a75cbee74887049a711cad44a59569541ec1be5006de6edbd3bcb265",
+      "activeRevision": "ab7b851c8eae7e636f575c446bb2bd74a659954ae9ba87638f28d42a5673e248",
+      "candidateRevision": "bc8716e6a75cbee74887049a711cad44a59569541ec1be5006de6edbd3bcb265",
+      "adopted": true,
+      "diagnostics": [
+        {
+          "code": "contract-source-owner",
+          "path": "sourceDeclarations.1.source",
+          "message": "A complete current source owner must resolve uniquely; candidates=0.",
+          "severity": "error",
+          "questionId": "create-issue"
+        },
+        {
+          "code": "contract-source-owner",
+          "path": "sourceDeclarations.2.source",
+          "message": "A complete current source owner must resolve uniquely; candidates=0.",
+          "severity": "error",
+          "questionId": "create-issue"
+        },
+        {
+          "code": "contract-resource-source",
+          "path": "resourceWorkflow.steps.0.source",
+          "message": "resource-source-unread:models/perm/access/repo_permission.go:95",
+          "severity": "error",
+          "questionId": "create-issue"
+        },
+        {
+          "code": "contract-coverage-reference",
+          "path": "authoringTarget.coverage.2",
+          "questionId": "create-issue",
+          "severity": "warning",
+          "message": "Author coverage is unreviewed: current source reference=false; missing steps=[]; implemented claims require explicit steps. Coverage metadata does not change current execution."
+        }
+      ],
+      "structurallyValid": false,
+      "toolUnit": 8,
+      "tool": "authorization_program",
+      "execution": {
+        "status": "conditional",
+        "inputs": {
+          "request": {
+            "Method": "POST"
+          },
+          "principal": {
+            "ID": 31,
+            "IsSigned": true,
+            "IsSiteAdmin": false,
+            "IsRepoAdmin": false
+          },
+          "repository": {
+            "ID": 83,
+            "OwnerID": 7,
+            "IsArchived": false,
+            "IsPrivate": false,
+            "CanEnablePulls": true
+          },
+          "permission": {
+            "AccessMode": 1,
+            "IssuesUnitPresent": true,
+            "IssuesUnitMode": 1,
+            "PullRequestsUnitPresent": true,
+            "PullRequestsUnitMode": 1
+          },
+          "token": {
+            "ApiTokenScopePresent": false,
+            "PublicOnly": false
+          },
+          "tokenScopes": [],
+          "form": {
+            "Title": " finite issue ",
+            "Body": "Synthetic issue body",
+            "Ref": "main",
+            "Deadline": 2000,
+            "Milestone": 12,
+            "Assignee": "",
+            "Closed": false
+          },
+          "formLabels": [
+            5
+          ],
+          "formAssignees": [],
+          "formProjects": [],
+          "assignees": [],
+          "blockedUserIDs": [],
+          "createdIssue": {
+            "ID": 141,
+            "Index": 9
+          },
+          "errors": {
+            "repositoryAssignment": null,
+            "binding": null,
+            "assigneeNames": null,
+            "assigneeLookup": null,
+            "assignability": null,
+            "loadPoster": null,
+            "createTransaction": null,
+            "mentions": null,
+            "close": null,
+            "refetch": null,
+            "responseLoad": null
+          }
+        },
+        "values": {},
+        "events": [
+          {
+            "sequence": 1,
+            "id": "can_write_issues",
+            "op": "value",
+            "executor": "host",
+            "meaningOrigin": "authored-program",
+            "source": {
+              "path": "models/perm/access/repo_permission.go",
+              "startLine": 95,
+              "endLine": 155
+            },
+            "inputs": {},
+            "outputs": {
+              "known": false
+            },
+            "outcome": "unresolved",
+            "gaps": [
+              "resource-source-unread:models/perm/access/repo_permission.go:95"
+            ],
+            "because": "CanWrite(TypeIssues) compares the issue unit's effective access mode with AccessModeWrite; admin-or-owner repository mode can override a unit mode."
+          },
+          {
+            "sequence": 2,
+            "id": "deadline_value",
+            "op": "value",
+            "executor": "host",
+            "meaningOrigin": "authored-program",
+            "source": {
+              "path": "routers/api/v1/repo/issue.go",
+              "startLine": 570,
+              "endLine": 585,
+              "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+            },
+            "inputs": {
+              "expression": {
+                "choose": {
+                  "test": {
+                    "op": "all",
+                    "args": [
+                      {
+                        "op": "not",
+                        "arg": {
+                          "op": "is-null",
+                          "value": {
+                            "binding": "form.Deadline"
+                          }
+                        }
+                      },
+                      {
+                        "op": "truthy",
+                        "language": "go",
+                        "value": {
+                          "binding": "can_write_issues"
+                        }
+                      }
+                    ]
+                  },
+                  "then": {
+                    "ref": "form.Deadline"
+                  },
+                  "else": {
+                    "literal": 0
+                  }
+                }
+              }
+            },
+            "outputs": {
+              "known": false
+            },
+            "outcome": "unresolved",
+            "gaps": [
+              "can_write_issues",
+              "form.Deadline"
+            ],
+            "because": "Author explanation not supplied."
+          },
+          {
+            "sequence": 3,
+            "id": "labels_for_create",
+            "op": "value",
+            "executor": "host",
+            "meaningOrigin": "authored-program",
+            "source": {
+              "path": "routers/api/v1/repo/issue.go",
+              "startLine": 587,
+              "endLine": 624,
+              "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+            },
+            "inputs": {
+              "expression": {
+                "choose": {
+                  "test": {
+                    "op": "truthy",
+                    "language": "go",
+                    "value": {
+                      "binding": "can_write_issues"
+                    }
+                  },
+                  "then": {
+                    "ref": "formLabels"
+                  },
+                  "else": {
+                    "literal": []
+                  }
+                }
+              }
+            },
+            "outputs": {
+              "known": false
+            },
+            "outcome": "unresolved",
+            "gaps": [
+              "can_write_issues"
+            ],
+            "because": "Author explanation not supplied."
+          },
+          {
+            "sequence": 4,
+            "id": "milestone_value",
+            "op": "value",
+            "executor": "host",
+            "meaningOrigin": "authored-program",
+            "source": {
+              "path": "routers/api/v1/repo/issue.go",
+              "startLine": 587,
+              "endLine": 622,
+              "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+            },
+            "inputs": {
+              "expression": {
+                "choose": {
+                  "test": {
+                    "op": "truthy",
+                    "language": "go",
+                    "value": {
+                      "binding": "can_write_issues"
+                    }
+                  },
+                  "then": {
+                    "ref": "form.Milestone"
+                  },
+                  "else": {
+                    "literal": 0
+                  }
+                }
+              }
+            },
+            "outputs": {
+              "known": false
+            },
+            "outcome": "unresolved",
+            "gaps": [
+              "can_write_issues",
+              "form.Milestone"
+            ],
+            "because": "Author explanation not supplied."
+          },
+          {
+            "sequence": 5,
+            "id": "prepared_issue",
+            "op": "value",
+            "executor": "host",
+            "meaningOrigin": "authored-program",
+            "source": {
+              "path": "routers/api/v1/repo/issue.go",
+              "startLine": 570,
+              "endLine": 624,
+              "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+            },
+            "inputs": {
+              "expression": {
+                "record": {
+                  "repo_id": {
+                    "field": {
+                      "of": {
+                        "ref": "repository"
+                      },
+                      "key": "ID"
+                    }
+                  },
+                  "title": {
+                    "field": {
+                      "of": {
+                        "ref": "form"
+                      },
+                      "key": "Title"
+                    }
+                  },
+                  "poster_id": {
+                    "field": {
+                      "of": {
+                        "ref": "principal"
+                      },
+                      "key": "ID"
+                    }
+                  },
+                  "content": {
+                    "field": {
+                      "of": {
+                        "ref": "form"
+                      },
+                      "key": "Body"
+                    }
+                  },
+                  "ref": {
+                    "field": {
+                      "of": {
+                        "ref": "form"
+                      },
+                      "key": "Ref"
+                    }
+                  },
+                  "deadline": {
+                    "ref": "deadline_value"
+                  },
+                  "milestone_id": {
+                    "ref": "milestone_value"
+                  },
+                  "labels": {
+                    "ref": "labels_for_create"
+                  }
+                }
+              }
+            },
+            "outputs": {
+              "known": false
+            },
+            "outcome": "unresolved",
+            "gaps": [
+              "can_write_issues",
+              "form.Deadline",
+              "form.Milestone"
+            ],
+            "because": "Author explanation not supplied."
+          },
+          {
+            "sequence": 6,
+            "id": "result",
+            "op": "return",
+            "executor": "host",
+            "meaningOrigin": "authored-program",
+            "source": {
+              "path": "routers/api/v1/repo/issue.go",
+              "startLine": 570,
+              "endLine": 624,
+              "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+            },
+            "inputs": {
+              "expression": {
+                "record": {
+                  "can_write_issues": {
+                    "ref": "can_write_issues"
+                  },
+                  "prepared_issue": {
+                    "ref": "prepared_issue"
+                  }
+                }
+              }
+            },
+            "outputs": {
+              "known": false
+            },
+            "outcome": "unresolved",
+            "gaps": [
+              "resource-source-unread:models/perm/access/repo_permission.go:95",
+              "can_write_issues",
+              "form.Deadline",
+              "form.Milestone"
+            ],
+            "because": "Author explanation not supplied."
+          }
+        ],
+        "termination": "return",
+        "conditions": [],
+        "gaps": [
+          "The visible handler does not make CanWrite(TypeIssues) a precondition for issue creation; write permission only gates deadline, milestone, labels, and assignee handling in the modeled span.",
+          "The finite permission inputs omit anonymous/everyone access maps and do not distinguish every internal unitsMode-map branch, so can_write_issues is bounded to the supplied unit-mode representation.",
+          "Route middleware, binding failures, assignee lookup and assignability, NewIssue transaction effects, close/refetch, and response conversion are not yet modeled.",
+          "resource-source-unread:models/perm/access/repo_permission.go:95",
+          "can_write_issues",
+          "form.Deadline",
+          "form.Milestone"
+        ],
+        "semanticSupport": "unreviewed",
+        "requestOperationCertified": false
+      }
+    },
+    {
+      "checkpoint": "results/skill-ir/skill-dsl-research/development/authorization-task-coverage-v1/runs/A-G-first/sessions/2026-10-20T121733749Z-4ce71375/raw/program-checkpoint-2.json",
+      "checkpointSha256": "15b59673943069c50a0f8ae2f126abb93232abd0e561166ba2f0c15efe8ad1a0",
+      "file": "results/skill-ir/skill-dsl-research/development/authorization-task-coverage-v1/authoring/versions/G-first/program-checkpoint-2.json",
+      "sha256": "2155df78b30235af89acc26dc75bd81f14b671f8d3a0bf8a88a60cae393ae8de",
+      "revision": "b7ded14a102e4e88beed2d4b4b077768c84ba11813249b05b5477fa84db8ec8e",
+      "activeRevision": "ab7b851c8eae7e636f575c446bb2bd74a659954ae9ba87638f28d42a5673e248",
+      "candidateRevision": "b7ded14a102e4e88beed2d4b4b077768c84ba11813249b05b5477fa84db8ec8e",
+      "adopted": false,
+      "diagnostics": [
+        {
+          "code": "contract-source-owner",
+          "path": "sourceDeclarations.1.source",
+          "message": "A complete current source owner must resolve uniquely; candidates=0.",
+          "severity": "error",
+          "questionId": "create-issue"
+        },
+        {
+          "code": "contract-source-owner",
+          "path": "sourceDeclarations.2.source",
+          "message": "A complete current source owner must resolve uniquely; candidates=0.",
+          "severity": "error",
+          "questionId": "create-issue"
+        },
+        {
+          "code": "contract-coverage-reference",
+          "path": "authoringTarget.coverage.2",
+          "questionId": "create-issue",
+          "severity": "warning",
+          "message": "Author coverage is unreviewed: current source reference=false; missing steps=[]; implemented claims require explicit steps. Coverage metadata does not change current execution."
+        }
+      ],
+      "structurallyValid": false,
+      "toolUnit": 9,
+      "tool": "authorization_program_patch",
+      "execution": {
+        "status": "conditional",
+        "inputs": {
+          "request": {
+            "Method": "POST"
+          },
+          "principal": {
+            "ID": 31,
+            "IsSigned": true,
+            "IsSiteAdmin": false,
+            "IsRepoAdmin": false
+          },
+          "repository": {
+            "ID": 83,
+            "OwnerID": 7,
+            "IsArchived": false,
+            "IsPrivate": false,
+            "CanEnablePulls": true
+          },
+          "permission": {
+            "AccessMode": 1,
+            "IssuesUnitPresent": true,
+            "IssuesUnitMode": 1,
+            "PullRequestsUnitPresent": true,
+            "PullRequestsUnitMode": 1
+          },
+          "token": {
+            "ApiTokenScopePresent": false,
+            "PublicOnly": false
+          },
+          "tokenScopes": [],
+          "form": {
+            "Title": " finite issue ",
+            "Body": "Synthetic issue body",
+            "Ref": "main",
+            "Deadline": 2000,
+            "Milestone": 12,
+            "Assignee": "",
+            "Closed": false
+          },
+          "formLabels": [
+            5
+          ],
+          "formAssignees": [],
+          "formProjects": [],
+          "assignees": [],
+          "blockedUserIDs": [],
+          "createdIssue": {
+            "ID": 141,
+            "Index": 9
+          },
+          "errors": {
+            "repositoryAssignment": null,
+            "binding": null,
+            "assigneeNames": null,
+            "assigneeLookup": null,
+            "assignability": null,
+            "loadPoster": null,
+            "createTransaction": null,
+            "mentions": null,
+            "close": null,
+            "refetch": null,
+            "responseLoad": null
+          }
+        },
+        "values": {
+          "can_write_issues": false,
+          "deadline_value": 0,
+          "labels_for_create": [],
+          "milestone_value": 0
+        },
+        "events": [
+          {
+            "sequence": 1,
+            "id": "can_write_issues",
+            "op": "value",
+            "executor": "host",
+            "meaningOrigin": "authored-program",
+            "source": {
+              "path": "models/perm/access/repo_permission.go",
+              "startLine": 152,
+              "endLine": 155,
+              "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58"
+            },
+            "inputs": {
+              "expression": {
+                "choose": {
+                  "test": {
+                    "op": "all",
+                    "args": [
+                      {
+                        "op": "truthy",
+                        "language": "go",
+                        "value": {
+                          "binding": "permission.IssuesUnitPresent"
+                        }
+                      },
+                      {
+                        "op": "gte",
+                        "left": {
+                          "binding": "permission.IssuesUnitMode"
+                        },
+                        "right": {
+                          "literal": 2
+                        }
+                      }
+                    ]
+                  },
+                  "then": {
+                    "literal": true
+                  },
+                  "else": {
+                    "literal": false
+                  }
+                }
+              }
+            },
+            "outputs": {
+              "value": false,
+              "known": true
+            },
+            "outcome": "computed",
+            "gaps": [],
+            "because": "The supplied IssuesUnitMode is compared to AccessModeWrite (2); omitted permission-construction overrides remain a named gap."
+          },
+          {
+            "sequence": 2,
+            "id": "deadline_value",
+            "op": "value",
+            "executor": "host",
+            "meaningOrigin": "authored-program",
+            "source": {
+              "path": "routers/api/v1/repo/issue.go",
+              "startLine": 570,
+              "endLine": 585,
+              "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+            },
+            "inputs": {
+              "expression": {
+                "choose": {
+                  "test": {
+                    "op": "all",
+                    "args": [
+                      {
+                        "op": "not",
+                        "arg": {
+                          "op": "is-null",
+                          "value": {
+                            "binding": "form.Deadline"
+                          }
+                        }
+                      },
+                      {
+                        "op": "truthy",
+                        "language": "go",
+                        "value": {
+                          "binding": "can_write_issues"
+                        }
+                      }
+                    ]
+                  },
+                  "then": {
+                    "field": {
+                      "of": {
+                        "ref": "form"
+                      },
+                      "key": "Deadline"
+                    }
+                  },
+                  "else": {
+                    "literal": 0
+                  }
+                }
+              }
+            },
+            "outputs": {
+              "value": 0,
+              "known": true
+            },
+            "outcome": "computed",
+            "gaps": [],
+            "because": "Author explanation not supplied."
+          },
+          {
+            "sequence": 3,
+            "id": "labels_for_create",
+            "op": "value",
+            "executor": "host",
+            "meaningOrigin": "authored-program",
+            "source": {
+              "path": "routers/api/v1/repo/issue.go",
+              "startLine": 587,
+              "endLine": 624,
+              "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+            },
+            "inputs": {
+              "expression": {
+                "choose": {
+                  "test": {
+                    "op": "truthy",
+                    "language": "go",
+                    "value": {
+                      "binding": "can_write_issues"
+                    }
+                  },
+                  "then": {
+                    "ref": "formLabels"
+                  },
+                  "else": {
+                    "literal": []
+                  }
+                }
+              }
+            },
+            "outputs": {
+              "value": [],
+              "known": true
+            },
+            "outcome": "computed",
+            "gaps": [],
+            "because": "Author explanation not supplied."
+          },
+          {
+            "sequence": 4,
+            "id": "milestone_value",
+            "op": "value",
+            "executor": "host",
+            "meaningOrigin": "authored-program",
+            "source": {
+              "path": "routers/api/v1/repo/issue.go",
+              "startLine": 587,
+              "endLine": 622,
+              "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+            },
+            "inputs": {
+              "expression": {
+                "choose": {
+                  "test": {
+                    "op": "truthy",
+                    "language": "go",
+                    "value": {
+                      "binding": "can_write_issues"
+                    }
+                  },
+                  "then": {
+                    "field": {
+                      "of": {
+                        "ref": "form"
+                      },
+                      "key": "Milestone"
+                    }
+                  },
+                  "else": {
+                    "literal": 0
+                  }
+                }
+              }
+            },
+            "outputs": {
+              "value": 0,
+              "known": true
+            },
+            "outcome": "computed",
+            "gaps": [],
+            "because": "Author explanation not supplied."
+          },
+          {
+            "sequence": 5,
+            "id": "prepared_issue",
+            "op": "value",
+            "executor": "host",
+            "meaningOrigin": "authored-program",
+            "source": {
+              "path": "routers/api/v1/repo/issue.go",
+              "startLine": 570,
+              "endLine": 624,
+              "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+            },
+            "inputs": {
+              "expression": {
+                "record": {
+                  "repo_id": {
+                    "field": {
+                      "of": {
+                        "ref": "repository"
+                      },
+                      "key": "ID"
+                    }
+                  },
+                  "title": {
+                    "field": {
+                      "of": {
+                        "ref": "form"
+                      },
+                      "key": "Title"
+                    }
+                  },
+                  "poster_id": {
+                    "field": {
+                      "of": {
+                        "ref": "principal"
+                      },
+                      "key": "ID"
+                    }
+                  },
+                  "content": {
+                    "field": {
+                      "of": {
+                        "ref": "form"
+                      },
+                      "key": "Body"
+                    }
+                  },
+                  "ref": {
+                    "field": {
+                      "of": {
+                        "ref": "form"
+                      },
+                      "key": "Ref"
+                    }
+                  },
+                  "deadline": {
+                    "ref": "deadline_value"
+                  },
+                  "milestone_id": {
+                    "ref": "milestone_value"
+                  },
+                  "labels": {
+                    "ref": "labels_for_create"
+                  }
+                }
+              }
+            },
+            "outputs": {
+              "known": false
+            },
+            "outcome": "unresolved",
+            "gaps": [
+              "record-scalar-required:labels"
+            ],
+            "because": "Author explanation not supplied."
+          },
+          {
+            "sequence": 6,
+            "id": "result",
+            "op": "return",
+            "executor": "host",
+            "meaningOrigin": "authored-program",
+            "source": {
+              "path": "routers/api/v1/repo/issue.go",
+              "startLine": 570,
+              "endLine": 624,
+              "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+            },
+            "inputs": {
+              "expression": {
+                "record": {
+                  "can_write_issues": {
+                    "ref": "can_write_issues"
+                  },
+                  "prepared_issue": {
+                    "ref": "prepared_issue"
+                  }
+                }
+              }
+            },
+            "outputs": {
+              "known": false
+            },
+            "outcome": "unresolved",
+            "gaps": [
+              "record-scalar-required:labels"
+            ],
+            "because": "Author explanation not supplied."
+          }
+        ],
+        "termination": "return",
+        "conditions": [],
+        "gaps": [
+          "The visible handler does not make CanWrite(TypeIssues) a precondition for issue creation; write permission only gates deadline, milestone, labels, and assignee handling in the modeled span.",
+          "The finite permission inputs omit anonymous/everyone access maps and do not distinguish every internal unitsMode-map branch, so can_write_issues is bounded to the supplied unit-mode representation.",
+          "Route middleware, binding failures, assignee lookup and assignability, NewIssue transaction effects, close/refetch, and response conversion are not yet modeled.",
+          "record-scalar-required:labels"
+        ],
+        "semanticSupport": "unreviewed",
+        "requestOperationCertified": false
+      }
+    },
+    {
+      "checkpoint": "results/skill-ir/skill-dsl-research/development/authorization-task-coverage-v1/runs/A-G-first/sessions/2026-10-20T121733749Z-4ce71375/raw/program-checkpoint-3.json",
+      "checkpointSha256": "cd1c0208cfe895936f65c9533bf6df2e388540cfc0390f9e0a90bd1847c7190f",
+      "file": "results/skill-ir/skill-dsl-research/development/authorization-task-coverage-v1/authoring/versions/G-first/program-checkpoint-3.json",
+      "sha256": "ccd9a457d3a50c1a1171f067ed070abd5ef2dc3cd1a0f6d09bd16bb33f696b1a",
+      "revision": "bbeb22493b979c75907b6b1d7bf18df1bcb5f0fc75c2917efa98abe1d5035f53",
+      "activeRevision": "98114725069cc8bad2028eb1b8b1ea54dc038ccd475c052ec538bd3198220ee1",
+      "candidateRevision": "bbeb22493b979c75907b6b1d7bf18df1bcb5f0fc75c2917efa98abe1d5035f53",
+      "adopted": true,
+      "diagnostics": [],
+      "structurallyValid": true,
+      "toolUnit": 10,
+      "tool": "authorization_program",
+      "execution": {
+        "status": "conditional",
+        "inputs": {
+          "request": {
+            "Method": "POST"
+          },
+          "principal": {
+            "ID": 31,
+            "IsSigned": true,
+            "IsSiteAdmin": false,
+            "IsRepoAdmin": false
+          },
+          "repository": {
+            "ID": 83,
+            "OwnerID": 7,
+            "IsArchived": false,
+            "IsPrivate": false,
+            "CanEnablePulls": true
+          },
+          "permission": {
+            "AccessMode": 1,
+            "IssuesUnitPresent": true,
+            "IssuesUnitMode": 1,
+            "PullRequestsUnitPresent": true,
+            "PullRequestsUnitMode": 1
+          },
+          "token": {
+            "ApiTokenScopePresent": false,
+            "PublicOnly": false
+          },
+          "tokenScopes": [],
+          "form": {
+            "Title": " finite issue ",
+            "Body": "Synthetic issue body",
+            "Ref": "main",
+            "Deadline": 2000,
+            "Milestone": 12,
+            "Assignee": "",
+            "Closed": false
+          },
+          "formLabels": [
+            5
+          ],
+          "formAssignees": [],
+          "formProjects": [],
+          "assignees": [],
+          "blockedUserIDs": [],
+          "createdIssue": {
+            "ID": 141,
+            "Index": 9
+          },
+          "errors": {
+            "repositoryAssignment": null,
+            "binding": null,
+            "assigneeNames": null,
+            "assigneeLookup": null,
+            "assignability": null,
+            "loadPoster": null,
+            "createTransaction": null,
+            "mentions": null,
+            "close": null,
+            "refetch": null,
+            "responseLoad": null
+          }
+        },
+        "values": {
+          "can_write_issues": false,
+          "deadline_value": 0,
+          "labels_for_create": [],
+          "milestone_value": 0,
+          "prepared_issue": {
+            "repo_id": 83,
+            "title": " finite issue ",
+            "poster_id": 31,
+            "content": "Synthetic issue body",
+            "ref": "main",
+            "deadline": 0,
+            "milestone_id": 0
+          },
+          "result": {
+            "can_write_issues": false,
+            "labels_allowed": false,
+            "repo_id": 83,
+            "poster_id": 31,
+            "deadline": 0,
+            "milestone_id": 0
+          }
+        },
+        "events": [
+          {
+            "sequence": 1,
+            "id": "can_write_issues",
+            "op": "value",
+            "executor": "host",
+            "meaningOrigin": "authored-program",
+            "source": {
+              "path": "models/perm/access/repo_permission.go",
+              "startLine": 152,
+              "endLine": 155,
+              "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58"
+            },
+            "inputs": {
+              "expression": {
+                "choose": {
+                  "test": {
+                    "op": "all",
+                    "args": [
+                      {
+                        "op": "truthy",
+                        "language": "go",
+                        "value": {
+                          "binding": "permission.IssuesUnitPresent"
+                        }
+                      },
+                      {
+                        "op": "gte",
+                        "left": {
+                          "binding": "permission.IssuesUnitMode"
+                        },
+                        "right": {
+                          "literal": 2
+                        }
+                      }
+                    ]
+                  },
+                  "then": {
+                    "literal": true
+                  },
+                  "else": {
+                    "literal": false
+                  }
+                }
+              }
+            },
+            "outputs": {
+              "value": false,
+              "known": true
+            },
+            "outcome": "computed",
+            "gaps": [],
+            "because": "CanWrite(TypeIssues) requires at least AccessModeWrite; the supplied unit-mode field is the bounded finite representation."
+          },
+          {
+            "sequence": 2,
+            "id": "deadline_value",
+            "op": "value",
+            "executor": "host",
+            "meaningOrigin": "authored-program",
+            "source": {
+              "path": "routers/api/v1/repo/issue.go",
+              "startLine": 570,
+              "endLine": 585,
+              "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+            },
+            "inputs": {
+              "expression": {
+                "choose": {
+                  "test": {
+                    "op": "all",
+                    "args": [
+                      {
+                        "op": "not",
+                        "arg": {
+                          "op": "is-null",
+                          "value": {
+                            "binding": "form.Deadline"
+                          }
+                        }
+                      },
+                      {
+                        "op": "truthy",
+                        "language": "go",
+                        "value": {
+                          "binding": "can_write_issues"
+                        }
+                      }
+                    ]
+                  },
+                  "then": {
+                    "field": {
+                      "of": {
+                        "ref": "form"
+                      },
+                      "key": "Deadline"
+                    }
+                  },
+                  "else": {
+                    "literal": 0
+                  }
+                }
+              }
+            },
+            "outputs": {
+              "value": 0,
+              "known": true
+            },
+            "outcome": "computed",
+            "gaps": [],
+            "because": "Author explanation not supplied."
+          },
+          {
+            "sequence": 3,
+            "id": "labels_for_create",
+            "op": "value",
+            "executor": "host",
+            "meaningOrigin": "authored-program",
+            "source": {
+              "path": "routers/api/v1/repo/issue.go",
+              "startLine": 587,
+              "endLine": 624,
+              "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+            },
+            "inputs": {
+              "expression": {
+                "choose": {
+                  "test": {
+                    "op": "truthy",
+                    "language": "go",
+                    "value": {
+                      "binding": "can_write_issues"
+                    }
+                  },
+                  "then": {
+                    "ref": "formLabels"
+                  },
+                  "else": {
+                    "literal": []
+                  }
+                }
+              }
+            },
+            "outputs": {
+              "value": [],
+              "known": true
+            },
+            "outcome": "computed",
+            "gaps": [],
+            "because": "Author explanation not supplied."
+          },
+          {
+            "sequence": 4,
+            "id": "milestone_value",
+            "op": "value",
+            "executor": "host",
+            "meaningOrigin": "authored-program",
+            "source": {
+              "path": "routers/api/v1/repo/issue.go",
+              "startLine": 587,
+              "endLine": 622,
+              "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+            },
+            "inputs": {
+              "expression": {
+                "choose": {
+                  "test": {
+                    "op": "truthy",
+                    "language": "go",
+                    "value": {
+                      "binding": "can_write_issues"
+                    }
+                  },
+                  "then": {
+                    "field": {
+                      "of": {
+                        "ref": "form"
+                      },
+                      "key": "Milestone"
+                    }
+                  },
+                  "else": {
+                    "literal": 0
+                  }
+                }
+              }
+            },
+            "outputs": {
+              "value": 0,
+              "known": true
+            },
+            "outcome": "computed",
+            "gaps": [],
+            "because": "Author explanation not supplied."
+          },
+          {
+            "sequence": 5,
+            "id": "prepared_issue",
+            "op": "value",
+            "executor": "host",
+            "meaningOrigin": "authored-program",
+            "source": {
+              "path": "routers/api/v1/repo/issue.go",
+              "startLine": 570,
+              "endLine": 624,
+              "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+            },
+            "inputs": {
+              "expression": {
+                "record": {
+                  "repo_id": {
+                    "field": {
+                      "of": {
+                        "ref": "repository"
+                      },
+                      "key": "ID"
+                    }
+                  },
+                  "title": {
+                    "field": {
+                      "of": {
+                        "ref": "form"
+                      },
+                      "key": "Title"
+                    }
+                  },
+                  "poster_id": {
+                    "field": {
+                      "of": {
+                        "ref": "principal"
+                      },
+                      "key": "ID"
+                    }
+                  },
+                  "content": {
+                    "field": {
+                      "of": {
+                        "ref": "form"
+                      },
+                      "key": "Body"
+                    }
+                  },
+                  "ref": {
+                    "field": {
+                      "of": {
+                        "ref": "form"
+                      },
+                      "key": "Ref"
+                    }
+                  },
+                  "deadline": {
+                    "ref": "deadline_value"
+                  },
+                  "milestone_id": {
+                    "ref": "milestone_value"
+                  }
+                }
+              }
+            },
+            "outputs": {
+              "value": {
+                "repo_id": 83,
+                "title": " finite issue ",
+                "poster_id": 31,
+                "content": "Synthetic issue body",
+                "ref": "main",
+                "deadline": 0,
+                "milestone_id": 0
+              },
+              "known": true
+            },
+            "outcome": "computed",
+            "gaps": [],
+            "because": "Author explanation not supplied."
+          },
+          {
+            "sequence": 6,
+            "id": "result",
+            "op": "return",
+            "executor": "host",
+            "meaningOrigin": "authored-program",
+            "source": {
+              "path": "routers/api/v1/repo/issue.go",
+              "startLine": 570,
+              "endLine": 624,
+              "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+            },
+            "inputs": {
+              "expression": {
+                "record": {
+                  "can_write_issues": {
+                    "ref": "can_write_issues"
+                  },
+                  "labels_allowed": {
+                    "ref": "can_write_issues"
+                  },
+                  "repo_id": {
+                    "field": {
+                      "of": {
+                        "ref": "repository"
+                      },
+                      "key": "ID"
+                    }
+                  },
+                  "poster_id": {
+                    "field": {
+                      "of": {
+                        "ref": "principal"
+                      },
+                      "key": "ID"
+                    }
+                  },
+                  "deadline": {
+                    "ref": "deadline_value"
+                  },
+                  "milestone_id": {
+                    "ref": "milestone_value"
+                  }
+                }
+              }
+            },
+            "outputs": {
+              "value": {
+                "can_write_issues": false,
+                "labels_allowed": false,
+                "repo_id": 83,
+                "poster_id": 31,
+                "deadline": 0,
+                "milestone_id": 0
+              },
+              "known": true
+            },
+            "outcome": "computed",
+            "gaps": [],
+            "because": "Author explanation not supplied."
+          }
+        ],
+        "returned": {
+          "can_write_issues": false,
+          "labels_allowed": false,
+          "repo_id": 83,
+          "poster_id": 31,
+          "deadline": 0,
+          "milestone_id": 0
+        },
+        "termination": "return",
+        "conditions": [],
+        "gaps": [
+          "The handler does not make CanWrite(TypeIssues) a precondition for issue creation; it gates only deadline, milestone, labels, and assignee handling in the modeled span.",
+          "The finite permission inputs do not expose every UnitAccessMode construction branch, including anonymous/everyone maps.",
+          "Route middleware, binding failures, assignee lookup and assignability, NewIssue transaction effects, optional close, refetch, and response conversion are not yet modeled."
+        ],
+        "semanticSupport": "unreviewed",
+        "requestOperationCertified": false
+      }
+    },
+    {
+      "checkpoint": "results/skill-ir/skill-dsl-research/development/authorization-task-coverage-v1/runs/A-G-first/sessions/2026-10-20T121733749Z-4ce71375/raw/program-checkpoint-4.json",
+      "checkpointSha256": "09f4210df699205ae2b9a04f4fbafefe31bb8a54832c9f663feebe638398ae45",
+      "file": "results/skill-ir/skill-dsl-research/development/authorization-task-coverage-v1/authoring/versions/G-first/program-checkpoint-4.json",
+      "sha256": "0a788fe597115c5674a9db63943eff159abba39e4be605fbb6d7f61e95de28aa",
+      "revision": "1863d44fad61f1b83b0523220ae8069e9a4ee8af2d359cc69d5371c2fdc57305",
+      "activeRevision": "98114725069cc8bad2028eb1b8b1ea54dc038ccd475c052ec538bd3198220ee1",
+      "adopted": false,
+      "diagnostics": [
+        {
+          "code": "contract-source-owner",
+          "path": "sourceDeclarations.1.source",
+          "message": "A complete current source owner must resolve uniquely; candidates=0.",
+          "severity": "error",
+          "questionId": "create-issue"
+        },
+        {
+          "code": "contract-source-owner",
+          "path": "sourceDeclarations.2.source",
+          "message": "A complete current source owner must resolve uniquely; candidates=0.",
+          "severity": "error",
+          "questionId": "create-issue"
+        },
+        {
+          "code": "contract-coverage-reference",
+          "path": "authoringTarget.coverage.2",
+          "questionId": "create-issue",
+          "severity": "warning",
+          "message": "Author coverage is unreviewed: current source reference=false; missing steps=[]; implemented claims require explicit steps. Coverage metadata does not change current execution."
+        },
+        {
+          "code": "program-candidate-not-adopted",
+          "path": "$",
+          "message": "Candidate preview is separate; the active program remains unchanged. Repair the current draft revision with a patch.",
+          "severity": "warning"
+        }
+      ],
+      "structurallyValid": false,
+      "toolUnit": 27,
+      "tool": "authorization_program_patch"
+    }
+  ],
+  "first": "results/skill-ir/skill-dsl-research/development/authorization-task-coverage-v1/authoring/versions/G-first/program-checkpoint-1.json",
+  "firstValid": "results/skill-ir/skill-dsl-research/development/authorization-task-coverage-v1/authoring/versions/G-first/program-checkpoint-3.json",
+  "last": "results/skill-ir/skill-dsl-research/development/authorization-task-coverage-v1/authoring/versions/G-first/program-checkpoint-4.json",
+  "selectionRule": "last submitted raw, never best score or active fallback"
+}

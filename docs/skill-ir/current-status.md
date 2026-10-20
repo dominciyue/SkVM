@@ -1,12 +1,12 @@
 # Skill IR 当前状态
 
-更新于2026-10-20（Asia/Shanghai）。工作分支为 `skill-ir-aot`，仅发布到用户 `origin`。本页是唯一实时状态入口；历史任务书与结果保留当时记录。
+更新于2026-10-21（Asia/Shanghai）。工作分支为 `skill-ir-aot`，仅发布到用户 `origin`。本页是唯一实时状态入口；历史任务书与结果保留当时记录。
 
 ## 当前工作
 
-**BS0–BS22 已接管，正在实施共享工程及首次实验前登记。** [任务书](../superpowers/plans/2026-10-20-authorization-task-coverage-and-semantic-transfer.md) identity为`authorization-task-coverage-v1`，从BR最终2100085b继续；开发`gpt-6-astra/high`，实验官方账号`gpt-5.6-sol/high`，第三方暂停。本轮聚焦原题调查覆盖、调用/错误顺序与自然回答采用，复用已有obligations/details/trial/delivery，不增加必填答案协议。Memos模型修订既有原稿，Gitea CreateIssue从空稿检验创建写入结构，Download仅零模型兼容。
+**BS有限队列已完成，研究目标未达；归档核验完成，发布进行中。** [任务书](../superpowers/plans/2026-10-20-authorization-task-coverage-and-semantic-transfer.md) identity为`authorization-task-coverage-v1`，从BR最终2100085b继续。14用途、15attempt、18观察turn全部关闭，使用1/4具名确认，无本轮active/unknown。开发`gpt-6-astra/high`，实验官方`gpt-5.6-sol/high`，第三方暂停。共享原题调查、事件反馈及普通报告已实施，嵌套函数owner故障红绿修复，生产至c3be4cc2。
 
-正常用途14个（2作者、12个N/R/E消费者），最多4个具名确认；共享故障当场修复，首件/修订及跨epoch比较分开。Gitea使用已暴露固定源码和明确标注的实验用户政策，有限输入为合成事实，不执行目标服务。完整原题保留，值、顺序、局部effect、自然质量与成本分别验收；共享投影和普通报告已实现并正在定向验证；首次账号实验尚未派发，程序质量与采用效果未评。方法见[spec§14.58](skill-ir-aot-optimization-spec.md#1458-bs-task-coverage-and-semantic-transfer)、[研究§7.80](skill-dsl-research.md#780-br-复核与-bs-原题覆盖和跨结构语义使用)。保留历史原件、未知请求及`.tmp/`；仅本轮计划/状态文档由父线程提交，代码交新线程独占实施，结束不自动BT。
+M最后30步原稿29案有限值/条件一致但3案顺序错误；G最后7步原稿因route guard schema错误仅有条件字段结果，16案完整创建均未达。十二消费者整题0/12 full、六域43/72 full；E实际采用有限结果，但有补充也有退步，稳定净收益未建立。E/R观察token比M0/M1/G0/G1为1.659/0.752/0.967/1.081，同块同epoch同raw；M/G分epoch。普通M/G原/变输入、搬移、源码变化撤回和Download零模型兼容通过；127定向测试/984断言、主/研究类型及15文档测试通过。A-G恢复交付后宿主崩溃的原件与partial报告保持，两个turn usage未知；known input14,115,853（含cache12,484,224一次）/output104,905，实际USD等未知。见[验收](../../results/skill-ir/skill-dsl-research/development/authorization-task-coverage-v1/verification/acceptance-matrix.json)、[执行记录](../../results/skill-ir/skill-dsl-research/development/authorization-task-coverage-v1/execution.md)、[spec§14.58](skill-ir-aot-optimization-spec.md#1458-bs-task-coverage-and-semantic-transfer)、[研究§7.80](skill-dsl-research.md#780-br-复核与-bs-原题覆盖和跨结构语义使用)。900原件已无损打包并逐件读回核验，553登记来源已有Git留存。本地原件及`.tmp/`保持，不自动BT。
 
 ## BR 已结束的实际结果
 
@@ -170,7 +170,8 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 
 | 阶段 | 保留记录 |
 |---|---|
-| 当前BR | [任务书](../superpowers/plans/2026-10-19-authorization-evidence-backed-answers-and-task-transfer.md)、spec§14.57、研究§7.79；completed-with-unmet-criteria，九用途与一次确认完成；有限复用成立，完整语义/质量/稳定收益未达 |
+| 当前BS | [任务书](../superpowers/plans/2026-10-20-authorization-task-coverage-and-semantic-transfer.md)、spec§14.58、研究§7.80；有限队列完成，工程通过，完整语义/自然质量/稳定净收益未达 |
+| 已结束BR | [任务书](../superpowers/plans/2026-10-19-authorization-evidence-backed-answers-and-task-transfer.md)、spec§14.57、研究§7.79；completed-with-unmet-criteria，九用途与一次确认完成；有限复用成立，完整语义/质量/稳定收益未达 |
 | BQ | [任务书](../superpowers/plans/2026-10-18-authorization-source-program-consistency-and-task-execution.md)、spec§14.56、研究§7.78；最终3c3059a8已发布，两个缺陷修复，完整自然质量与稳定增量未达 |
 | BP | [任务书](../superpowers/plans/2026-10-16-authorization-quality-evidence-and-branch-reliability.md)、spec§14.55、研究§7.77；最终27d59677，有限队列完成，完整语义和重复执行质量优势未达 |
 | BO | [任务书](../superpowers/plans/2026-10-16-authorization-call-semantics-and-program-repair.md)、spec§14.54、研究§7.76；有限自动调用语义与维护结果保留 |

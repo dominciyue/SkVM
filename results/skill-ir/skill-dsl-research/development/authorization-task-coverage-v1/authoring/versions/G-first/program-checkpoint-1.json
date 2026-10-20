@@ -1,0 +1,345 @@
+{
+  "schemaVersion": "authorization-executable-contract/v1",
+  "id": "gitea-create-issue-policy",
+  "description": "Reusable finite model of source-visible issue-write gating and CreateIssue field handling.",
+  "scope": {
+    "kind": "function-contract",
+    "questionId": "create-issue",
+    "root": {
+      "path": "routers/api/v1/repo/issue.go",
+      "symbol": "CreateIssue"
+    },
+    "upstream": [
+      "Route middleware authentication, repository assignment, token scope enforcement, archived-repository handling, and request binding remain to be traced",
+      "Permission construction may depend on public/everyone access modes not represented by the supplied finite inputs",
+      "Transaction, notification, and response-conversion internals remain to be traced"
+    ]
+  },
+  "inputBinding": {
+    "questionId": "create-issue"
+  },
+  "sourceDeclarations": [
+    {
+      "source": {
+        "path": "routers/api/v1/repo/issue.go",
+        "startLine": 533,
+        "endLine": 653
+      },
+      "statements": []
+    },
+    {
+      "source": {
+        "path": "models/perm/access/repo_permission.go",
+        "startLine": 95,
+        "endLine": 155
+      },
+      "statements": []
+    },
+    {
+      "source": {
+        "path": "models/perm/access_mode.go",
+        "startLine": 15,
+        "endLine": 22
+      },
+      "statements": []
+    }
+  ],
+  "queries": [],
+  "assumptions": [],
+  "resourceWorkflow": {
+    "inputs": [
+      "request",
+      "principal",
+      "repository",
+      "permission",
+      "token",
+      "tokenScopes",
+      "form",
+      "formLabels",
+      "formAssignees",
+      "formProjects",
+      "assignees",
+      "blockedUserIDs",
+      "createdIssue",
+      "errors"
+    ],
+    "steps": [
+      {
+        "id": "can_write_issues",
+        "op": "value",
+        "value": {
+          "choose": {
+            "test": {
+              "op": "all",
+              "args": [
+                {
+                  "op": "truthy",
+                  "language": "go",
+                  "value": {
+                    "binding": "permission.IssuesUnitPresent"
+                  }
+                },
+                {
+                  "op": "any",
+                  "args": [
+                    {
+                      "op": "gte",
+                      "left": {
+                        "binding": "permission.IssuesUnitMode"
+                      },
+                      "right": {
+                        "literal": 2
+                      }
+                    },
+                    {
+                      "op": "gte",
+                      "left": {
+                        "binding": "permission.AccessMode"
+                      },
+                      "right": {
+                        "literal": 3
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "then": {
+              "literal": true
+            },
+            "else": {
+              "literal": false
+            }
+          }
+        },
+        "source": {
+          "path": "models/perm/access/repo_permission.go",
+          "startLine": 95,
+          "endLine": 155
+        },
+        "because": "CanWrite(TypeIssues) compares the issue unit's effective access mode with AccessModeWrite; admin-or-owner repository mode can override a unit mode."
+      },
+      {
+        "id": "deadline_value",
+        "op": "value",
+        "value": {
+          "choose": {
+            "test": {
+              "op": "all",
+              "args": [
+                {
+                  "op": "not",
+                  "arg": {
+                    "op": "is-null",
+                    "value": {
+                      "binding": "form.Deadline"
+                    }
+                  }
+                },
+                {
+                  "op": "truthy",
+                  "language": "go",
+                  "value": {
+                    "binding": "can_write_issues"
+                  }
+                }
+              ]
+            },
+            "then": {
+              "ref": "form.Deadline"
+            },
+            "else": {
+              "literal": 0
+            }
+          }
+        },
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 570,
+          "endLine": 585
+        }
+      },
+      {
+        "id": "labels_for_create",
+        "op": "value",
+        "value": {
+          "choose": {
+            "test": {
+              "op": "truthy",
+              "language": "go",
+              "value": {
+                "binding": "can_write_issues"
+              }
+            },
+            "then": {
+              "ref": "formLabels"
+            },
+            "else": {
+              "literal": []
+            }
+          }
+        },
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 587,
+          "endLine": 624
+        }
+      },
+      {
+        "id": "milestone_value",
+        "op": "value",
+        "value": {
+          "choose": {
+            "test": {
+              "op": "truthy",
+              "language": "go",
+              "value": {
+                "binding": "can_write_issues"
+              }
+            },
+            "then": {
+              "ref": "form.Milestone"
+            },
+            "else": {
+              "literal": 0
+            }
+          }
+        },
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 587,
+          "endLine": 622
+        }
+      },
+      {
+        "id": "prepared_issue",
+        "op": "value",
+        "value": {
+          "record": {
+            "repo_id": {
+              "field": {
+                "of": {
+                  "ref": "repository"
+                },
+                "key": "ID"
+              }
+            },
+            "title": {
+              "field": {
+                "of": {
+                  "ref": "form"
+                },
+                "key": "Title"
+              }
+            },
+            "poster_id": {
+              "field": {
+                "of": {
+                  "ref": "principal"
+                },
+                "key": "ID"
+              }
+            },
+            "content": {
+              "field": {
+                "of": {
+                  "ref": "form"
+                },
+                "key": "Body"
+              }
+            },
+            "ref": {
+              "field": {
+                "of": {
+                  "ref": "form"
+                },
+                "key": "Ref"
+              }
+            },
+            "deadline": {
+              "ref": "deadline_value"
+            },
+            "milestone_id": {
+              "ref": "milestone_value"
+            },
+            "labels": {
+              "ref": "labels_for_create"
+            }
+          }
+        },
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 570,
+          "endLine": 624
+        }
+      },
+      {
+        "id": "result",
+        "op": "return",
+        "value": {
+          "record": {
+            "can_write_issues": {
+              "ref": "can_write_issues"
+            },
+            "prepared_issue": {
+              "ref": "prepared_issue"
+            }
+          }
+        },
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 570,
+          "endLine": 624
+        }
+      }
+    ],
+    "gaps": [
+      "The visible handler does not make CanWrite(TypeIssues) a precondition for issue creation; write permission only gates deadline, milestone, labels, and assignee handling in the modeled span.",
+      "The finite permission inputs omit anonymous/everyone access maps and do not distinguish every internal unitsMode-map branch, so can_write_issues is bounded to the supplied unit-mode representation.",
+      "Route middleware, binding failures, assignee lookup and assignability, NewIssue transaction effects, close/refetch, and response conversion are not yet modeled."
+    ]
+  },
+  "authoringTarget": {
+    "mode": "reusable",
+    "coverage": [
+      {
+        "id": "handler-field-preparation",
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 570,
+          "endLine": 624
+        },
+        "stepIds": [
+          "deadline_value",
+          "labels_for_create",
+          "milestone_value",
+          "prepared_issue"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "handler-post-create",
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 624,
+          "endLine": 652
+        },
+        "stepIds": [],
+        "disposition": "unwritten",
+        "reason": "NewIssue error mapping, optional close, refetch, and response conversion remain to be modeled."
+      },
+      {
+        "id": "permission-can-write",
+        "source": {
+          "path": "models/perm/access/repo_permission.go",
+          "startLine": 95,
+          "endLine": 155
+        },
+        "stepIds": [
+          "can_write_issues"
+        ],
+        "disposition": "implemented"
+      }
+    ]
+  }
+}

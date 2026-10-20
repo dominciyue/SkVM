@@ -1,0 +1,95 @@
+{
+  "productionCommit": "c3be4cc2e88ed961f7eb85c4f1368585d561f2c6",
+  "checks": [
+    {
+      "name": "Nested-owner red regression",
+      "expectedFailure": true,
+      "exitCode": 0,
+      "observation": "Original TypeError reproduced before fix"
+    },
+    {
+      "name": "Obligations, consumption and ordinary entrypoints after last production edit",
+      "command": "bun test ./src/task-dsl/authorization/program-obligations.test.ts ./src/task-dsl/authorization/program-consumption-context.test.ts ./src/benchmarks/authorization-dsl/executable-contract-entrypoints.test.ts --timeout 20000",
+      "exitCode": 0,
+      "passed": 84,
+      "assertions": 648
+    },
+    {
+      "name": "Remaining affected production and research tests",
+      "log": "verification/final-targeted-tests.txt",
+      "exitCode": 0,
+      "passed": 43,
+      "assertions": 336
+    },
+    {
+      "name": "Main typecheck after final production edit",
+      "command": "bun run typecheck",
+      "exitCode": 0
+    },
+    {
+      "name": "Research typecheck",
+      "command": "bunx tsc --noEmit -p scripts/research/authorization-task-coverage-v1/tsconfig.json",
+      "exitCode": 0
+    },
+    {
+      "name": "Documentation unit tests",
+      "command": "python -m unittest discover -s scripts -p check_skill_ir_doc_links_test.py",
+      "exitCode": 0,
+      "passed": 15
+    },
+    {
+      "name": "M ordinary post-owner-fix replay",
+      "exitCode": 0,
+      "evidence": "verification/M-post-fix.json"
+    },
+    {
+      "name": "Final research typecheck including aggregation",
+      "command": "bunx tsc --noEmit -p scripts/research/authorization-task-coverage-v1/tsconfig.json",
+      "exitCode": 0
+    },
+    {
+      "name": "Changed document links",
+      "command": "python scripts/research/authorization-task-coverage-v1/verify-docs.py",
+      "exitCode": 0,
+      "newBroken": 0,
+      "inheritedBroken": 4
+    },
+    {
+      "name": "Whitespace diff validation",
+      "command": "git diff --check",
+      "exitCode": 0
+    },
+    {
+      "name": "All actual client packets",
+      "exitCode": 0,
+      "rows": 14,
+      "rulesViolations": 0,
+      "decodeErrors": 0
+    },
+    {
+      "name": "Lossless evidence archive and member readback",
+      "command": "python scripts/research/authorization-task-coverage-v1/pack.py pack",
+      "exitCode": 0,
+      "files": 900,
+      "parts": 2,
+      "evidence": "verification/evidence-bundle.json"
+    },
+    {
+      "name": "Staged archive bytes preserve manifest identity",
+      "exitCode": 0,
+      "parts": 2,
+      "evidence": "verification/git-byte-retention.json",
+      "note": "Local binary attributes and explicit index renormalization prevent inherited text eol corruption."
+    }
+  ],
+  "totalDistinctTests": 127,
+  "totalAssertions": 984,
+  "initialResearchTypeErrors": "Fixed missing type in archive closure and indexed rank narrowing; final research typecheck passed.",
+  "scope": "Affected tests only; historic full-src104 failures not claimed repaired",
+  "documentLinks": {
+    "evidence": "verification/document-links.json",
+    "newBrokenLinks": 0,
+    "inheritedBrokenLinksInModifiedFiles": 4,
+    "scope": "Nine changed documents; historical-wide count is not re-audited."
+  }
+}

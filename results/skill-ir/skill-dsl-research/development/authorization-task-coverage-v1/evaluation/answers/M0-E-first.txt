@@ -1,0 +1,149 @@
+## Findings summary
+
+| Severity | Count |
+|---|---:|
+| 🔴 Critical | 0 |
+| 🟠 High | 0 |
+| 🟡 Medium | 0 |
+| 🔵 Low | 0 |
+| ⚪ Info | 0 |
+| **Total** | **0** |
+
+**Dependency audit:** Not assessed; dependency manifests are outside the authorized source scope.  
+**Secrets scan:** No exposed credentials observed in the reviewed files; this was not a repository-wide secrets scan.
+
+# 🔐 Security Review Report
+
+**Project:** usememos/memos @ `cb42e326ba9cc266a6a9570c53e0fe04c62793f4`  
+**Date:** 2026-10-20  
+**Scope:** `GetSharedMemo` and relevant allowed dependencies  
+**Language/framework:** Go, gRPC/Connect, Protocol Buffers  
+**Overall conclusion:** No exploitable access-control vulnerability was established in the reviewed path. Confidence: **High** for the described source behavior.
+
+## GetSharedMemo behavior
+
+### Token-to-memo binding
+
+1. The public HTTP route is `GET /api/v1/shares/{share_token}/memo`; authentication is not required (`proto/api/v1/memo_service.proto:134-138`).
+2. The supplied string is used only as `MemoShare.UID` in `GetMemoShare` (`server/api/v1/memo_share_service.go:221-229`).
+3. The matching share row supplies `MemoID`.
+4. The memo is then loaded by that numeric ID, not by any caller-supplied memo identifier (`server/api/v1/memo_share_service.go:173-184`).
+5. The authorization context receives the same `MemoID` as `SharedMemoID`. The share branch succeeds only when `memo.ID == *SharedMemoID` and the memo is not `SPACE` audience (`core/access/memo.go:119-122`).
+
+Thus a token does not let the caller choose a different memo: the persisted share row binds it to one memo.
+
+Share creation uses a 22-character, base57 UUIDv4 token described as having 122 bits of entropy (`server/api/v1/memo_share_service.go:66-75`). The reviewed database query parameterizes the UID comparison and returns the first matching row (`store/db/sqlite/memo_share.go:115-150`). The allowed evidence did not establish the database uniqueness constraint for `memo_share.uid`; the supplied finite population has no duplicate UID.
+
+### Invalid and expired tokens
+
+An absent token row and an expired token both return the same generic `NOT_FOUND: not found` (`server/api/v1/memo_share_service.go:221-227`).
+
+Expiration is strict:
+
+```go
+ms.ExpiresTs != nil && time.Now().Unix() > *ms.ExpiresTs
+```
+
+Therefore:
+
+- `now < ExpiresTs`: active
+- `now == ExpiresTs`: still active
+- `now > ExpiresTs`: expired
+- `ExpiresTs == nil`: no expiration
+
+A storage failure during token lookup is distinguishable as `INTERNAL: failed to get memo share`; it is not normalized to `NOT_FOUND` (`server/api/v1/memo_share_service.go:222-227`).
+
+### Controls after a valid token
+
+A valid, active token is necessary but not by itself sufficient. The endpoint also requires:
+
+- The bound memo must exist.
+- Its row status must be exactly `NORMAL`.
+- Its visibility cannot be `SPACE`.
+- Its creator must still exist and be `NORMAL` or `ARCHIVED`.
+- Unknown visibility and invalid structural state fail closed.
+- Read-context resolution must complete without error.
+
+These failures are generally normalized to `NOT_FOUND` by `GetSharedMemo` (`server/api/v1/memo_share_service.go:182-188`; `core/access/memo.go:92-121`).
+
+For assigned non-`SPACE` memos, resolving the read context also reads the referenced Space and, for an active non-admin viewer, may read membership (`core/access/memo_resolve.go:44-50,67-80`). A dangling Space does not itself block a non-`SPACE` share, but a storage error while resolving it does.
+
+Instance administrators and ordinary audience rules cannot rescue an invalid or expired token: token resolution occurs first. Once an exact valid token reaches the share branch, ordinary `PUBLIC`, `PROTECTED`, and `PRIVATE` audience checks are bypassed for that one memo.
+
+## Unauthenticated caller and surrounding resources
+
+An unauthenticated caller is represented by a nil viewer. The instance’s anonymous-access setting is then resolved (`server/api/v1/memo_access.go:17-29`).
+
+Crucially, `AllowAnonymous` is not the share-token grant. It controls ordinary anonymous `PUBLIC` access. The exact-share branch is evaluated before the normal audience switch (`core/access/memo.go:119-145`). Consequently, an active share can return a `PRIVATE` memo even when instance anonymous access is disabled.
+
+The shared response includes:
+
+- Memo content and ordinary memo metadata.
+- Creator identity.
+- Memo-scoped reactions.
+- Attachment metadata.
+- Generated content snippet.
+
+It deliberately excludes surrounding graph context:
+
+- Relations are passed as `nil` and converted to an empty list (`server/api/v1/memo_share_service.go:203`; `memo_service_converter.go:84-88`).
+- `Parent` is explicitly cleared before return, even if the stored memo has a parent (`memo_share_service.go:210-213`).
+- Comments and related memos are not fetched.
+
+Possession of the token is not accepted by the ordinary memo, comment, relation, reaction, or attachment endpoints. Those call `checkMemoReadAccess` without a `SharedMemoID`, so they re-evaluate normal authentication and audience rules (`server/api/v1/memo_access.go:43-48`; `memo_relation_service.go:103-120`; `attachment_service.go:627-655`).
+
+Attachment distinctions:
+
+- `GetSharedMemo` returns attachment metadata.
+- Managed attachment content remains behind the separate attachment route.
+- That route does not receive the share token, so an anonymous caller cannot use the token alone to fetch a private memo’s managed attachment.
+- An external attachment’s external link is included directly in its metadata (`attachment_service_storage.go:25-49`).
+
+For an assigned non-`SPACE` memo, the token also does not reveal its Space by itself. Space projection requires the current viewer independently to be the author, an active Space member, or an instance administrator (`memo_service_converter.go:105-137`).
+
+## Supplied finite scenario
+
+The supplied scenario computes successfully:
+
+- Token `share-alpha` selects share row 71.
+- Its `MemoID` is 43, binding it to `memo-alpha`.
+- `ExpiresTs == now == 2000`, so the strict expiration check treats it as active.
+- Memo 43 is `NORMAL`, `PRIVATE`, non-`SPACE`, and has a valid creator.
+- The caller is unauthenticated and the instance is `PRIVATE`, but the exact-share branch permits this memo.
+- The unrelated memo 89 is not reachable through this token.
+- Returned content is `"shared body"` with creator 17.
+- Reactions and attachment collections are included but empty.
+- Relations are empty, `Parent` is nil, and no Space is projected.
+
+This uses the scenario’s synthetic `now=2000`; production source calls the process clock directly.
+
+## Program review: incomplete or inaccurate modeling
+
+The supplied consume-mode program was not changed. Its finite result is consistent with the source for this particular unassigned memo, but several general rules are incomplete:
+
+1. **Assigned memo conversion repeats context resolution.**  
+   After the initial share-aware check, conversion of a memo with `SpaceID != nil` calls `buildMemoReadContext(ctx, memo, nil)` again and later independently loads the Space for projection (`memo_service_converter.go:50-60,105-137`). The program models effectively one resolution and reuses its Space result. This omits additional reads, races, and error exits.
+
+2. **Reaction conversion may perform more user lookups.**  
+   Reaction creators not already present in the creator map are fetched separately. Missing creators cause individual reactions to be skipped; lookup errors fail conversion (`memo_service_converter.go:177-207`). The program models only the memo-creator conversion lookup. It does not affect the supplied scenario because reactions are empty.
+
+3. **Attachment authorization is more nuanced than “attachments included.”**  
+   The response contains attachment metadata, not a general token grant to the attachment endpoint. External links may be included, while managed blobs require separate authorization.
+
+4. **Token uniqueness was not proven by reviewed evidence.**  
+   The implementation uses a high-entropy generated UID and performs a UID-filtered `LIMIT 1` query, but the applicable schema uniqueness constraint was not found within the reviewed evidence.
+
+5. **Transport and full conversion remain outside the finite model.**  
+   Connect error translation, every protobuf field, snippet behavior, and all conversion-time failures were not fully represented.
+
+## Dependency and secrets review
+
+- No dependency manifests were available in the authorized scope, so no CVE conclusion is made.
+- No hardcoded credentials were observed in the directly reviewed source.
+- This was a bounded static source review, not a complete repository scan or runtime test.
+
+## Patch proposals
+
+No Critical or High findings were identified, so no patches are proposed.
+
+**Review each patch before applying. Nothing has been changed yet.**

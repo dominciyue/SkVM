@@ -1,0 +1,99 @@
+## Findings summary
+
+| Severity | Count |
+|---|---:|
+| 🔴 Critical | 0 |
+| 🟠 High | 0 |
+| 🟡 Medium | 0 |
+| 🔵 Low | 0 |
+| ⚪ Informational behavior findings | 4 |
+
+No vulnerability judgment is made because no normative access policy was supplied. Dependency and secrets auditing were outside the requested scope.
+
+## Executable program
+
+The reusable `shared-memo-access` program was repaired and adopted.
+
+- Active revision: `71f072d9276ae0428a6a8ffa36faa543a6c130c0e3945897e0c251dee3304f82`
+- Draft revision: `f24502d43813782e366cdf4ba906f999bf1dfa303d2b915d5f7aa8c844ef0c7f`
+- Diagnostics: none
+- Added the independent conversion-time creator lookup using `conversionUsers`.
+- Added explicit response-boundary fields showing that the share grants neither parent nor relation access.
+- Trials confirmed:
+  - valid boundary-time token → memo returned;
+  - unknown token → `NOT_FOUND`;
+  - expired token → `NOT_FOUND`;
+  - missing conversion creator → `NOT_FOUND`.
+
+No repository source code was changed.
+
+## Source behavior
+
+### Token-to-memo binding
+
+`GetSharedMemo` looks up a `MemoShare` by `UID == request.ShareToken`. It then fetches the memo by that selected row’s `MemoID`; the request cannot independently choose another memo (`memo_share_service.go:172-184, 221-229`).
+
+The access context receives `&ms.MemoID`. `CheckMemoReadContext` applies the share branch only when:
+
+```go
+ctx.SharedMemoID != nil &&
+memo.ID == *ctx.SharedMemoID &&
+memo.Visibility != store.SpaceAudience
+```
+
+Thus the token is confined to exactly the memo referenced by its share row (`core/access/memo.go:119-121`).
+
+### Invalid and expired tokens
+
+A missing token row and an expired row both produce the same `NOT_FOUND: not found`, avoiding distinction between the two (`memo_share_service.go:221-229`).
+
+Expiration is strict:
+
+```go
+ms.ExpiresTs != nil && time.Now().Unix() > *ms.ExpiresTs
+```
+
+Therefore a token is still valid when `now == ExpiresTs`; it expires only once `now` is greater (`memo_share_service.go:216-219`).
+
+In the supplied scenario, `share-alpha` expires at `2000` and `now` is `2000`, so it remains valid and binds to memo `43`.
+
+### Additional controls and exceptions
+
+Even a valid token does not bypass structural checks:
+
+- The memo must exist, be `NORMAL`, and not have `SPACE` visibility; failures become `NOT_FOUND` (`memo_share_service.go:178-188`).
+- Its creator must exist and be either `NORMAL` or `ARCHIVED` (`memo_resolve.go:31-42`; `memo.go:94-105`).
+- If it has a `SpaceID`, read-context construction resolves that placement. For an active non-admin viewer it may also query membership (`memo_resolve.go:44-80`).
+- Any read-context construction error or denied decision is normalized by `GetSharedMemo` to `NOT_FOUND` (`memo_share_service.go:186-188`).
+- Share lookup, memo lookup, reaction listing, and attachment listing failures use internal/conversion errors rather than the invalid-token response (`memo_share_service.go:173-180, 191-209`).
+- Conversion independently resolves the creator. A missing conversion creator becomes `NOT_FOUND`; other conversion failures are wrapped (`memo_service_converter.go:26-39`; `memo_share_service.go:203-209`).
+
+### Unauthenticated caller
+
+Authentication is explicitly unnecessary for this endpoint (`memo_share_service.go:170-172`). With no current user, the service still reads the instance anonymous-access setting (`memo_access.go:17-29`). An error there prevents completion and is ultimately hidden as `NOT_FOUND`.
+
+The setting’s Boolean result does **not** defeat a valid exact share: the share branch runs before the ordinary PUBLIC/PROTECTED/PRIVATE audience branches (`core/access/memo.go:119-145`). Consequently, in the supplied `PRIVATE` instance, the unauthenticated caller still receives private memo `43` through `share-alpha`, despite `AllowAnonymous == false`.
+
+### What the token includes—and does not include
+
+After memo authorization, the response includes that memo’s reactions and attachments (`memo_share_service.go:191-203`; `memo_service_converter.go:76-93`). They are treated as memo-scoped response data rather than separately authorized surrounding resources.
+
+The same token does **not** authorize the conversation or relation graph:
+
+- conversion is called with `relations == nil`, producing an empty relation list;
+- `GetSharedMemo` explicitly clears `memoMessage.Parent`;
+- the access package states that relations never contribute authorization and their endpoints are evaluated independently.
+
+See `memo_share_service.go:203-213`, `memo_service_converter.go:69-93`, and `core/access/memo.go:37-39, 87-91`.
+
+A token alone also does not reveal an assigned Space: placement projection requires the viewer to be the author, an active member, or an instance administrator; an unauthenticated viewer receives no Space projection (`memo_service_converter.go:105-137`).
+
+## Supplied scenario result
+
+The authored computation returns memo `43` (`memo-alpha`) with content `shared body` and creator `17`. It records reactions and attachments as included, while returning no parent and zero relations.
+
+Limits retained by the program:
+
+- reaction and attachment rows are not individually materialized;
+- full protobuf conversion, snippet generation, placement projection, and Connect transport mapping are not fully modeled;
+- the scenario is synthetic and does not establish facts about a deployed instance.

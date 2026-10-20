@@ -1,0 +1,189 @@
+# Security Review Summary
+
+| Severity | Count |
+|---|---:|
+| 🔴 Critical | 0 |
+| 🟠 High | 1 |
+| 🟡 Medium | 0 |
+| 🔵 Low | 0 |
+| ⚪ Info | 0 |
+| **Total** | **1** |
+
+**Result:** `CreateIssue` does **not conform** to the supplied policy. The route permits authenticated users with **read** access to the issues unit to create issues.  
+**Concrete supplied scenario:** the principal has issues-unit mode `2`, which is `AccessModeWrite`, so that particular request is authorized by the supplied policy.
+
+Dependency and secrets audits were not applicable to this narrowly bounded authorization review.
+
+---
+
+## 🟠 HIGH — Issue creation requires only issue-read permission
+
+**Confidence: High**
+
+### Location
+
+- `routers/api/v1/api.go:1642-1649`
+- `routers/api/v1/api.go:471-478`
+- `routers/api/v1/repo/issue.go:570-633`
+
+### Evidence
+
+The POST route requires authentication but only issue-read permission:
+
+```go
+Post(
+    reqToken(),
+    mustNotBeArchived,
+    bind(api.CreateIssueOption{}),
+    reqRepoReader(unit.TypeIssues),
+    repo.CreateIssue,
+)
+```
+
+`reqRepoReader` accepts `CanRead(TypeIssues)`, repository administrators, or site administrators:
+
+```go
+if !ctx.Repo.Permission.CanRead(unitType) &&
+    !ctx.IsUserRepoAdmin() &&
+    !ctx.IsUserSiteAdmin() {
+    // forbidden
+}
+```
+
+The handler subsequently calls `issue_service.NewIssue` for both readers and writers:
+
+```go
+if ctx.Repo.Permission.CanWrite(unit.TypeIssues) {
+    // privileged field handling
+} else {
+    form.Labels = make([]int64, 0)
+}
+
+if err := issue_service.NewIssue(...); err != nil {
+    ...
+}
+```
+
+Thus write permission controls only some supplied metadata; it does not control the issue-creation effect itself.
+
+### Policy comparison
+
+| Principal | Current behavior | Supplied policy |
+|---|---|---|
+| Authenticated issues-unit reader | May create an issue, with some fields suppressed | Must be denied |
+| Issues-unit writer | May create, including privileged metadata | Authorized |
+| Repo/site admin lacking explicit issues-unit write | Route permits via administrator exception | Not expressly allowed by the supplied policy |
+
+This is a direct authorization-policy mismatch. It may reflect Gitea’s intended product behavior—many trackers let repository readers file issues—but it violates the independently supplied policy.
+
+### Relevant route controls and exceptions
+
+Before reaching the handler:
+
+1. `tokenRequiresScopes(issue)` requires write-level issue scope for OAuth tokens on POST, but it does nothing when `ApiTokenScope` is absent (`api.go:325-369`).
+2. `repoAssignment` loads the repository and effective permission, applies enforced-2FA restrictions, requires some unit/public access, and checks token repository access (`api.go:179-225`).
+3. `checkTokenPublicOnly` restricts public-only tokens (`api.go:252-274`).
+4. `reqToken` requires a signed-in principal (`api.go:373-381`).
+5. Archived repositories are rejected with HTTP 423 (`api.go:877-881`).
+6. Binding requires a nonempty `title` (`modules/structs/issue.go:89-106`).
+7. The POST-specific check is only `reqRepoReader(TypeIssues)`.
+8. The surrounding `mustEnableIssuesOrPulls` permits access if issues are readable or, when enabled, pull requests are readable; the POST’s own issue-reader check is therefore the decisive unit check (`api.go:782-805`).
+
+Neither `issue_service.NewIssue` nor `models/issues.NewIssueWithIndex` performs a later issues-unit write check. The service checks blocked-user relationships and then performs creation and related updates (`services/issue/issue.go:25-83`; `models/issues/issue_update.go:361-449`).
+
+---
+
+## Supplied-field handling
+
+`CreateIssueOption` contains title, body, ref, assignees, deadline, milestone, labels, projects, and closed state (`modules/structs/issue.go:89-107`).
+
+### Available to every admitted reader
+
+- `Title`, `Body`, and `Ref` are copied into the new issue.
+- The authenticated principal becomes the poster.
+- The title is trimmed and truncated to 255 characters during model creation.
+- `Projects` are passed to `NewIssue` even without issue-write permission.
+- `Closed` is evaluated after creation without a handler-level write check. If true, the newly created issue is passed to `CloseIssue`.
+
+Project assignment checks that the project can access the owner/repository, but it does not check the caller’s issues-unit write permission (`models/issues/issue_project.go:103-148`).
+
+### Restricted to issues-unit writers
+
+When `CanWrite(TypeIssues)` is true:
+
+- Deadline is retained.
+- Milestone is assigned; a missing or invalid milestone is silently dropped.
+- Assignee names are resolved.
+- Every assignee is checked with `CanBeAssigned`.
+- Labels remain available for creation; labels outside the repository/owner organization are silently ignored.
+
+For a read-only principal:
+
+- Deadline remains zero.
+- Milestone and assignees remain unset.
+- Labels are forcibly replaced with an empty list.
+- The basic issue, requested projects, and optional immediate close are still attempted.
+
+These restrictions reduce the read-only principal’s metadata capabilities but do not satisfy the policy because the issue itself is still created.
+
+---
+
+## Concrete supplied scenario
+
+The scenario has:
+
+- Signed-in, non-admin principal `ID=31`
+- Non-archived public repository
+- Issues unit present with mode `2`
+- `AccessModeWrite == 2` (`models/perm/access_mode.go:16-22`)
+- No `ApiTokenScope`
+- `PublicOnly=false`
+
+Therefore:
+
+1. The issue-scope middleware returns without applying OAuth scope checks because `ApiTokenScope` is absent.
+2. Authentication, archive, binding, and issue-reader checks pass.
+3. `CanWrite(TypeIssues)` is true, so deadline `2000`, milestone `12`, labels `[5]`, and assignee processing use the writer branch.
+4. There are no requested assignees or projects.
+5. The title becomes `finite issue`; body and `Ref="main"` are retained.
+6. Block checks and the visible creation transaction succeed.
+7. The issue obtains supplied observed identity `ID=141`, `Index=9`.
+8. Mention processing succeeds and creation notifications are invoked.
+9. `Closed=false`, so no close operation occurs.
+10. The subsequent `GetIssueByID` refetch fails with `database-read-error`.
+
+Because refetch happens **after** `NewIssue` has returned successfully, the handler reports an internal error instead of HTTP 201. There is no source-visible rollback connecting this later read failure to the completed creation call. Consequently, the client can receive an error even though the issue was already created. The response converter is not reached; the supplied `responseLoad:null` therefore does not establish that a successful response was emitted.
+
+On the ordinary success path, refetch assigns automatic database values and the handler returns HTTP `201` with `convert.ToAPIIssue(...)` (`issue.go:646-652`).
+
+---
+
+## Recommended patch
+
+Replace the read check with an issues-unit writer check:
+
+```diff
+ m.Combo("").Get(repo.ListIssues).
+-    Post(reqToken(), mustNotBeArchived, bind(api.CreateIssueOption{}), reqRepoReader(unit.TypeIssues), repo.CreateIssue)
++    Post(reqToken(), mustNotBeArchived, bind(api.CreateIssueOption{}), reqRepoWriter(unit.TypeIssues), repo.CreateIssue)
+```
+
+For strict adherence where even administrator status must not substitute for explicit unit write permission, add a handler-level defense:
+
+```go
+if !ctx.Repo.Permission.CanWrite(unit.TypeIssues) {
+    ctx.APIError(http.StatusForbidden, "user should have write permission to the issues unit")
+    return
+}
+```
+
+`reqRepoWriter` itself preserves repository/site-administrator exceptions (`api.go:461-468`), so the second check is necessary only if the supplied policy intentionally excludes those exceptions.
+
+**Review each patch before applying. Nothing has been changed yet.**
+
+## Limits
+
+- Review covers revision `fc28937a8d772fe9e4025c9b5f24d5db4d86610b` and the allowed source paths only.
+- This was a source review, not a live-service execution.
+- The scenario values are synthetic and do not establish an actual deployment’s permissions, rows, middleware configuration, or transaction outcome.
+- Database commit/rollback implementation and notifier behavior outside the allowed source were unavailable; conclusions about the late refetch error are based on visible control-flow ordering and the supplied successful creation observation.
