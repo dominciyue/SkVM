@@ -30,6 +30,7 @@ const AuthorRecoverySchema = z.object({
   used: z.object({ toolCalls: budgetCount, checks: budgetCount, readBytes: budgetCount, displayBytes: budgetCount, modelSourceBytes: budgetCount, resentSourceBytes: budgetCount, formatRejections: budgetCount, formatCheckCalls: budgetCount, sourceFormatRejections: budgetCount, finalFormatRejections: budgetCount, formatExhausted: z.boolean(), deliveryClosed: z.boolean(), elapsedMs: budgetCount, authorTurns: budgetCount }),
 })
 export interface AccountInquiryOptions {
+  sourceVerificationFile?: string
   sourceStructure?: boolean
   programSupport?: "rules" | "execute"
   purpose?: string; attempt?: string

@@ -1,0 +1,4068 @@
+{
+  "id": "control-normal",
+  "group": "control",
+  "program": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-source-differential-v1\\evaluation\\programs\\control-normal.json",
+  "input": {
+    "schemaVersion": "authorization-inquiry-input/v1",
+    "taskId": "memos-share",
+    "repository": "usememos/memos",
+    "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+    "sourceRoot": "../../authorization-domain-execution-v1/model/public-source/memos",
+    "allowedPaths": [
+      "server/api/v1",
+      "core/access",
+      "store",
+      "proto/api/v1",
+      "internal/ratelimit"
+    ],
+    "inquiry": {
+      "schemaVersion": "authorization-inquiry/v2",
+      "mode": "behavior",
+      "operations": [
+        {
+          "id": "shared-memo",
+          "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+          "entryHint": "server/api/v1/memo_share_service.go::GetSharedMemo"
+        }
+      ],
+      "questions": [
+        {
+          "id": "shared-memo-access",
+          "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+          "principal": "caller supplying a share token",
+          "resource": "memo and surrounding resources",
+          "operation": "read shared memo",
+          "entryHint": "GetSharedMemo and relevant allowed dependencies",
+          "premises": [],
+          "operationId": "shared-memo",
+          "intent": "behavior"
+        }
+      ]
+    },
+    "resourceInputs": {
+      "shared-memo-access": {
+        "request": {
+          "ShareToken": "share-alpha"
+        },
+        "now": 2000,
+        "contextUserID": 22,
+        "instanceAccessMode": "PRIVATE",
+        "shares": [
+          {
+            "ID": 71,
+            "UID": "share-alpha",
+            "MemoID": 43,
+            "CreatorID": 17,
+            "ExpiresTs": 2000
+          },
+          {
+            "ID": 72,
+            "UID": "share-other",
+            "MemoID": 89,
+            "CreatorID": 22,
+            "ExpiresTs": null
+          }
+        ],
+        "memos": [
+          {
+            "ID": 43,
+            "UID": "memo-alpha",
+            "CreatorID": 17,
+            "RowStatus": "NORMAL",
+            "Visibility": "PRIVATE",
+            "SpaceID": 8,
+            "ParentUID": "parent-private",
+            "Content": "shared body"
+          },
+          {
+            "ID": 89,
+            "UID": "memo-other",
+            "CreatorID": 22,
+            "RowStatus": "NORMAL",
+            "Visibility": "PRIVATE",
+            "SpaceID": null,
+            "ParentUID": null,
+            "Content": "unrelated body"
+          }
+        ],
+        "users": [
+          {
+            "ID": 17,
+            "Username": "author-a",
+            "RowStatus": "NORMAL",
+            "Role": "USER"
+          },
+          {
+            "ID": 22,
+            "Username": "author-b",
+            "RowStatus": "NORMAL",
+            "Role": "USER"
+          }
+        ],
+        "spaces": [
+          {
+            "ID": 8
+          },
+          {
+            "ID": 9
+          }
+        ],
+        "memberships": [
+          {
+            "SpaceID": 8,
+            "UserID": 22,
+            "Role": "USER"
+          },
+          {
+            "SpaceID": 9,
+            "UserID": 17,
+            "Role": "ADMIN"
+          }
+        ],
+        "reactions": [],
+        "attachments": [],
+        "storeErrors": {
+          "share": null,
+          "memo": null,
+          "viewer": null,
+          "instanceSetting": null,
+          "creator": null,
+          "space": null,
+          "membership": null,
+          "reactions": null,
+          "attachments": null,
+          "conversion": null,
+          "conversionCreator": null
+        },
+        "conversionUsers": [
+          {
+            "ID": 17,
+            "Username": "author-a",
+            "RowStatus": "NORMAL",
+            "Role": "USER"
+          },
+          {
+            "ID": 22,
+            "Username": "author-b",
+            "RowStatus": "NORMAL",
+            "Role": "USER"
+          }
+        ]
+      }
+    },
+    "sourceNotes": {
+      "format": "markdown",
+      "text": "This is a researcher-authored source-analysis and shared-link troubleshooting task, not a customer incident or live service run. Answer the complete original question for the supplied finite scenario and explain relevant alternate branches. In edit mode also deliver a reusable source program, repairing the supplied existing draft. In consume mode keep the supplied program unchanged. Facts are synthetic request, clock, database rows and operation error observations. Collections are complete finite populations; field names follow Go store structs, membership rows have SpaceID/UserID/Role. storeErrors null means the named storage operation returns normally, not an access grant; absent facts are unknown. No external allowed/access decision is supplied. Read source-visible helper logic or retain it as a named unresolved responsibility. Broader security-skill duties and unavailable deployment facts remain explicit. conversionUsers is the finite population returned by the later ListUsers call during conversion, separately from users used for access context; conversionCreator in storeErrors describes that operation's error. These are synthetic database observations, not an expected answer."
+    }
+  },
+  "change": "All three context calls, successful decision",
+  "sourceVerification": {
+    "revision": "249fe529b4929b2c8803ec7b703c79961a33c098020a7b5f518fb8d63905b253",
+    "input": {
+      "request": {
+        "ShareToken": "share-alpha"
+      },
+      "now": 2000,
+      "contextUserID": 22,
+      "instanceAccessMode": "PRIVATE",
+      "shares": [
+        {
+          "ID": 71,
+          "UID": "share-alpha",
+          "MemoID": 43,
+          "CreatorID": 17,
+          "ExpiresTs": 2000
+        },
+        {
+          "ID": 72,
+          "UID": "share-other",
+          "MemoID": 89,
+          "CreatorID": 22,
+          "ExpiresTs": null
+        }
+      ],
+      "memos": [
+        {
+          "ID": 43,
+          "UID": "memo-alpha",
+          "CreatorID": 17,
+          "RowStatus": "NORMAL",
+          "Visibility": "PRIVATE",
+          "SpaceID": 8,
+          "ParentUID": "parent-private",
+          "Content": "shared body"
+        },
+        {
+          "ID": 89,
+          "UID": "memo-other",
+          "CreatorID": 22,
+          "RowStatus": "NORMAL",
+          "Visibility": "PRIVATE",
+          "SpaceID": null,
+          "ParentUID": null,
+          "Content": "unrelated body"
+        }
+      ],
+      "users": [
+        {
+          "ID": 17,
+          "Username": "author-a",
+          "RowStatus": "NORMAL",
+          "Role": "USER"
+        },
+        {
+          "ID": 22,
+          "Username": "author-b",
+          "RowStatus": "NORMAL",
+          "Role": "USER"
+        }
+      ],
+      "spaces": [
+        {
+          "ID": 8
+        },
+        {
+          "ID": 9
+        }
+      ],
+      "memberships": [
+        {
+          "SpaceID": 8,
+          "UserID": 22,
+          "Role": "USER"
+        },
+        {
+          "SpaceID": 9,
+          "UserID": 17,
+          "Role": "ADMIN"
+        }
+      ],
+      "reactions": [],
+      "attachments": [],
+      "storeErrors": {
+        "share": null,
+        "memo": null,
+        "viewer": null,
+        "instanceSetting": null,
+        "creator": null,
+        "space": null,
+        "membership": null,
+        "reactions": null,
+        "attachments": null,
+        "conversion": null,
+        "conversionCreator": null
+      },
+      "conversionUsers": [
+        {
+          "ID": 17,
+          "Username": "author-a",
+          "RowStatus": "NORMAL",
+          "Role": "USER"
+        },
+        {
+          "ID": 22,
+          "Username": "author-b",
+          "RowStatus": "NORMAL",
+          "Role": "USER"
+        }
+      ]
+    },
+    "sourceObservation": {
+      "status": "observed",
+      "events": [
+        {
+          "name": "GetUser",
+          "arguments": {
+            "ID": 17
+          },
+          "value": {
+            "ID": 17,
+            "RowStatus": "NORMAL",
+            "Role": "USER"
+          },
+          "error": null
+        },
+        {
+          "name": "GetSpace",
+          "arguments": {
+            "ID": 8
+          },
+          "value": {
+            "ID": 8
+          },
+          "error": null
+        },
+        {
+          "name": "GetSpaceMember",
+          "arguments": {
+            "SpaceID": 8,
+            "UserID": 22
+          },
+          "value": {
+            "Role": "USER"
+          },
+          "error": null
+        }
+      ],
+      "result": {
+        "allowed": true,
+        "class": 0,
+        "denial": 0
+      },
+      "error": null,
+      "evidenceKind": "original-functions-with-store-type-shim",
+      "scope": "ResolveMemoReadContext+CheckMemoReadContext",
+      "sourceHashes": {
+        "core/access/memo.go": "86d782c17efe235db8ad4366b4f708a066d7a4a835639b6c0e70895f2e21e639",
+        "core/access/memo_resolve.go": "8b1a25c79431f51a5f7b5d8c1d12d7e587b7d45edfcefa853f2d9d02c9cb5d1e"
+      },
+      "isolatedSourceExecutions": 1,
+      "targetServiceExecutions": 0,
+      "durableCommit": "unknown",
+      "inputProjection": {
+        "memoID": 43,
+        "creatorID": 17,
+        "viewerID": 22,
+        "sharedMemoID": 43
+      }
+    },
+    "requirements": [
+      {
+        "id": "creator-query",
+        "questionId": "shared-memo-access",
+        "kind": "query-binding",
+        "objectRelation": "same-object",
+        "sourceEvents": [
+          {
+            "name": "GetUser",
+            "arguments": {
+              "ID": 17
+            },
+            "value": {
+              "ID": 17,
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            },
+            "error": null
+          }
+        ],
+        "scope": "Creator lookup arguments and row from original ResolveMemoReadFacts",
+        "valueFields": [
+          "ID",
+          "RowStatus",
+          "Role"
+        ],
+        "requiredSourceEvents": [
+          "GetUser"
+        ],
+        "mapping": {
+          "events": [
+            {
+              "name": "GetUser",
+              "stepId": "creator"
+            }
+          ]
+        },
+        "status": "matched-on-cases",
+        "diagnostics": [],
+        "programEvents": [
+          {
+            "name": "GetUser",
+            "arguments": {
+              "ID": 17
+            },
+            "value": {
+              "ID": 17,
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            },
+            "error": null
+          }
+        ],
+        "durableCommit": "unknown",
+        "policyAssessment": "not-evaluated",
+        "taskCompleteness": "not-evaluated"
+      },
+      {
+        "id": "space-query",
+        "questionId": "shared-memo-access",
+        "kind": "query-binding",
+        "objectRelation": "same-object",
+        "sourceEvents": [
+          {
+            "name": "GetSpace",
+            "arguments": {
+              "ID": 8
+            },
+            "value": {
+              "ID": 8
+            },
+            "error": null
+          }
+        ],
+        "scope": "Optional placement lookup arguments and row",
+        "valueFields": [
+          "ID"
+        ],
+        "requiredSourceEvents": [
+          "GetSpace"
+        ],
+        "mapping": {
+          "events": [
+            {
+              "name": "GetSpace",
+              "stepId": "space"
+            }
+          ]
+        },
+        "status": "matched-on-cases",
+        "diagnostics": [],
+        "programEvents": [
+          {
+            "name": "GetSpace",
+            "arguments": {
+              "ID": 8
+            },
+            "value": {
+              "ID": 8
+            },
+            "error": null
+          }
+        ],
+        "durableCommit": "unknown",
+        "policyAssessment": "not-evaluated",
+        "taskCompleteness": "not-evaluated"
+      },
+      {
+        "id": "member-query",
+        "questionId": "shared-memo-access",
+        "kind": "query-binding",
+        "objectRelation": "same-object",
+        "sourceEvents": [
+          {
+            "name": "GetSpaceMember",
+            "arguments": {
+              "SpaceID": 8,
+              "UserID": 22
+            },
+            "value": {
+              "Role": "USER"
+            },
+            "error": null
+          }
+        ],
+        "scope": "Optional viewer membership lookup arguments and row",
+        "valueFields": [
+          "Role"
+        ],
+        "requiredSourceEvents": [
+          "GetSpaceMember"
+        ],
+        "mapping": {
+          "events": [
+            {
+              "name": "GetSpaceMember",
+              "stepId": "membership"
+            }
+          ]
+        },
+        "status": "matched-on-cases",
+        "diagnostics": [],
+        "programEvents": [
+          {
+            "name": "GetSpaceMember",
+            "arguments": {
+              "SpaceID": 8,
+              "UserID": 22
+            },
+            "value": {
+              "Role": "USER"
+            },
+            "error": null
+          }
+        ],
+        "durableCommit": "unknown",
+        "policyAssessment": "not-evaluated",
+        "taskCompleteness": "not-evaluated"
+      },
+      {
+        "id": "context-call-order",
+        "questionId": "shared-memo-access",
+        "kind": "call-order",
+        "objectRelation": "none",
+        "sourceEvents": [
+          {
+            "name": "GetUser",
+            "arguments": {
+              "ID": 17
+            },
+            "value": {
+              "ID": 17,
+              "RowStatus": "NORMAL",
+              "Role": "USER"
+            },
+            "error": null
+          },
+          {
+            "name": "GetSpace",
+            "arguments": {
+              "ID": 8
+            },
+            "value": {
+              "ID": 8
+            },
+            "error": null
+          },
+          {
+            "name": "GetSpaceMember",
+            "arguments": {
+              "SpaceID": 8,
+              "UserID": 22
+            },
+            "value": {
+              "Role": "USER"
+            },
+            "error": null
+          }
+        ],
+        "scope": "Ordered invocation markers in original context resolution; final handler error text and durable effects outside scope",
+        "requiredSourceEvents": [
+          "GetUser",
+          "GetSpace",
+          "GetSpaceMember"
+        ],
+        "mapping": {
+          "events": [
+            {
+              "name": "GetUser",
+              "stepId": "creator_store_ok"
+            },
+            {
+              "name": "GetSpace",
+              "stepId": "space_store_ok"
+            },
+            {
+              "name": "GetSpaceMember",
+              "stepId": "membership_store_ok"
+            }
+          ]
+        },
+        "status": "matched-on-cases",
+        "diagnostics": [],
+        "programEvents": [
+          {
+            "name": "GetUser"
+          },
+          {
+            "name": "GetSpace"
+          },
+          {
+            "name": "GetSpaceMember"
+          }
+        ],
+        "durableCommit": "unknown",
+        "policyAssessment": "not-evaluated",
+        "taskCompleteness": "not-evaluated"
+      },
+      {
+        "id": "read-decision",
+        "questionId": "shared-memo-access",
+        "kind": "decision",
+        "objectRelation": "same-object",
+        "sourceEvents": [],
+        "scope": "CheckMemoReadContext boolean decision after successful context resolution; exact gate locations require author mapping",
+        "resultField": "allowed",
+        "requiredSourceEvents": [],
+        "status": "unknown",
+        "diagnostics": [
+          "requirement-mapping-missing"
+        ],
+        "programEvents": [],
+        "durableCommit": "unknown",
+        "policyAssessment": "not-evaluated",
+        "taskCompleteness": "not-evaluated"
+      }
+    ],
+    "scope": "Only these inputs and observed local functions; source fidelity is separate from user policy and original task completeness.",
+    "requestOperationCertified": false,
+    "observerAccounting": {
+      "executions": 1,
+      "cacheHit": false,
+      "elapsedMs": 764
+    },
+    "configuration": {
+      "schemaVersion": "authorization-source-verification/v1",
+      "sources": [
+        {
+          "path": "core/access/memo.go",
+          "sha256": "86d782c17efe235db8ad4366b4f708a066d7a4a835639b6c0e70895f2e21e639"
+        },
+        {
+          "path": "core/access/memo_resolve.go",
+          "sha256": "8b1a25c79431f51a5f7b5d8c1d12d7e587b7d45edfcefa853f2d9d02c9cb5d1e"
+        }
+      ]
+    },
+    "mappingInstruction": "verificationMappings maps requirement IDs to existing event step IDs only. Requirements and source observations are host-owned. Use details for full events; missing or unsupported mappings stay unknown."
+  },
+  "programExecution": {
+    "status": "conditional",
+    "inputs": {
+      "request": {
+        "ShareToken": "share-alpha"
+      },
+      "now": 2000,
+      "contextUserID": 22,
+      "instanceAccessMode": "PRIVATE",
+      "shares": [
+        {
+          "ID": 71,
+          "UID": "share-alpha",
+          "MemoID": 43,
+          "CreatorID": 17,
+          "ExpiresTs": 2000
+        },
+        {
+          "ID": 72,
+          "UID": "share-other",
+          "MemoID": 89,
+          "CreatorID": 22,
+          "ExpiresTs": null
+        }
+      ],
+      "memos": [
+        {
+          "ID": 43,
+          "UID": "memo-alpha",
+          "CreatorID": 17,
+          "RowStatus": "NORMAL",
+          "Visibility": "PRIVATE",
+          "SpaceID": 8,
+          "ParentUID": "parent-private",
+          "Content": "shared body"
+        },
+        {
+          "ID": 89,
+          "UID": "memo-other",
+          "CreatorID": 22,
+          "RowStatus": "NORMAL",
+          "Visibility": "PRIVATE",
+          "SpaceID": null,
+          "ParentUID": null,
+          "Content": "unrelated body"
+        }
+      ],
+      "users": [
+        {
+          "ID": 17,
+          "Username": "author-a",
+          "RowStatus": "NORMAL",
+          "Role": "USER"
+        },
+        {
+          "ID": 22,
+          "Username": "author-b",
+          "RowStatus": "NORMAL",
+          "Role": "USER"
+        }
+      ],
+      "spaces": [
+        {
+          "ID": 8
+        },
+        {
+          "ID": 9
+        }
+      ],
+      "memberships": [
+        {
+          "SpaceID": 8,
+          "UserID": 22,
+          "Role": "USER"
+        },
+        {
+          "SpaceID": 9,
+          "UserID": 17,
+          "Role": "ADMIN"
+        }
+      ],
+      "reactions": [],
+      "attachments": [],
+      "storeErrors": {
+        "share": null,
+        "memo": null,
+        "viewer": null,
+        "instanceSetting": null,
+        "creator": null,
+        "space": null,
+        "membership": null,
+        "reactions": null,
+        "attachments": null,
+        "conversion": null,
+        "conversionCreator": null
+      },
+      "conversionUsers": [
+        {
+          "ID": 17,
+          "Username": "author-a",
+          "RowStatus": "NORMAL",
+          "Role": "USER"
+        },
+        {
+          "ID": 22,
+          "Username": "author-b",
+          "RowStatus": "NORMAL",
+          "Role": "USER"
+        }
+      ]
+    },
+    "values": {
+      "share_store_ok": true,
+      "share": {
+        "ID": 71,
+        "UID": "share-alpha",
+        "MemoID": 43,
+        "CreatorID": 17,
+        "ExpiresTs": 2000
+      },
+      "share_found": true,
+      "share_active": true,
+      "memo_store_ok": true,
+      "memo": {
+        "ID": 43,
+        "UID": "memo-alpha",
+        "CreatorID": 17,
+        "RowStatus": "NORMAL",
+        "Visibility": "PRIVATE",
+        "SpaceID": 8,
+        "ParentUID": "parent-private",
+        "Content": "shared body"
+      },
+      "memo_visible_state": true,
+      "viewer_store_ok": true,
+      "viewer_row": {
+        "ID": 22,
+        "Username": "author-b",
+        "RowStatus": "NORMAL",
+        "Role": "USER"
+      },
+      "viewer_exists": true,
+      "viewer": {
+        "ID": 22,
+        "Username": "author-b",
+        "RowStatus": "NORMAL",
+        "Role": "USER"
+      },
+      "allow_anonymous": false,
+      "creator_store_ok": true,
+      "creator": {
+        "ID": 17,
+        "Username": "author-a",
+        "RowStatus": "NORMAL",
+        "Role": "USER"
+      },
+      "creator_valid": true,
+      "space_store_ok": true,
+      "space": {
+        "ID": 8
+      },
+      "membership_store_ok": true,
+      "membership": {
+        "SpaceID": 8,
+        "UserID": 22,
+        "Role": "USER"
+      },
+      "viewer_space_member": true,
+      "read_policy_valid": true,
+      "viewer_is_instance_admin": false,
+      "share_exact_memo_access": true,
+      "reactions_store_ok": true,
+      "attachments_store_ok": true,
+      "conversion_creator_store_ok": true,
+      "conversion_creator": {
+        "ID": 17,
+        "Username": "author-a",
+        "RowStatus": "NORMAL",
+        "Role": "USER"
+      },
+      "conversion_creator_found": true,
+      "space_projected": true,
+      "conversion_ok": true,
+      "result": {
+        "memo_id": 43,
+        "memo_uid": "memo-alpha",
+        "content": "shared body",
+        "creator_id": 17,
+        "share_bound_memo_id": 43,
+        "instance_allows_anonymous": false,
+        "includes_memo_reactions": true,
+        "includes_memo_attachments": true,
+        "space_projected": true,
+        "share_token_alone_projects_space": false,
+        "share_grants_parent_access": false,
+        "share_grants_relation_access": false,
+        "relation_count": 0,
+        "parent": null
+      }
+    },
+    "events": [
+      {
+        "sequence": 1,
+        "id": "share_store_ok",
+        "op": "guard",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 221,
+          "endLine": 225,
+          "sha256": "2618c42f4062980213cf101710858b603b02bf9ab8ed4910fc09a0e5463894a8"
+        },
+        "inputs": {
+          "test": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "is-null",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": null,
+                "residual": {
+                  "literal": null
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              }
+            ]
+          }
+        },
+        "outputs": {
+          "value": true,
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "Author explanation not supplied."
+      },
+      {
+        "sequence": 2,
+        "id": "share",
+        "op": "select",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 221,
+          "endLine": 229,
+          "sha256": "2618c42f4062980213cf101710858b603b02bf9ab8ed4910fc09a0e5463894a8"
+        },
+        "inputs": {
+          "from": "shares",
+          "rows": {
+            "known": true,
+            "value": [
+              {
+                "ID": 71,
+                "UID": "share-alpha",
+                "MemoID": 43,
+                "CreatorID": 17,
+                "ExpiresTs": 2000
+              },
+              {
+                "ID": 72,
+                "UID": "share-other",
+                "MemoID": 89,
+                "CreatorID": 22,
+                "ExpiresTs": null
+              }
+            ],
+            "gaps": []
+          },
+          "where": {
+            "op": "eq",
+            "left": {
+              "binding": "row.UID"
+            },
+            "right": {
+              "binding": "request.ShareToken"
+            }
+          },
+          "query": {
+            "UID": "share-alpha"
+          },
+          "candidates": [
+            {
+              "row": {
+                "ID": 71,
+                "UID": "share-alpha",
+                "MemoID": 43,
+                "CreatorID": 17,
+                "ExpiresTs": 2000
+              },
+              "predicate": {
+                "truth": "true",
+                "residual": null,
+                "missingBindings": [],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "true"
+                  }
+                ],
+                "diagnostics": [],
+                "valueTrace": [
+                  {
+                    "known": true,
+                    "value": "share-alpha",
+                    "residual": {
+                      "literal": "share-alpha"
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  },
+                  {
+                    "known": true,
+                    "value": "share-alpha",
+                    "residual": {
+                      "literal": "share-alpha"
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "ID": 72,
+                "UID": "share-other",
+                "MemoID": 89,
+                "CreatorID": 22,
+                "ExpiresTs": null
+              },
+              "predicate": {
+                "truth": "false",
+                "residual": null,
+                "missingBindings": [],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "false"
+                  }
+                ],
+                "diagnostics": [],
+                "valueTrace": [
+                  {
+                    "known": true,
+                    "value": "share-other",
+                    "residual": {
+                      "literal": "share-other"
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  },
+                  {
+                    "known": true,
+                    "value": "share-alpha",
+                    "residual": {
+                      "literal": "share-alpha"
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  }
+                ]
+              }
+            }
+          ],
+          "selection": {
+            "mode": "unique",
+            "matchedCount": 1,
+            "order": [],
+            "guidance": "unique defaults to true and rejects multiple matches. Use unique:false with explicit order for ordered first; numeric null keys need nulls:first|last or nullAs. Equal keys use the next order key; otherwise input order is retained."
+          }
+        },
+        "outputs": {
+          "value": {
+            "ID": 71,
+            "UID": "share-alpha",
+            "MemoID": 43,
+            "CreatorID": 17,
+            "ExpiresTs": 2000
+          },
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "The supplied token is looked up as MemoShare.UID."
+      },
+      {
+        "sequence": 3,
+        "id": "share_found",
+        "op": "guard",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 221,
+          "endLine": 229,
+          "sha256": "2618c42f4062980213cf101710858b603b02bf9ab8ed4910fc09a0e5463894a8"
+        },
+        "inputs": {
+          "test": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "is-null",
+                "truth": "false"
+              },
+              {
+                "op": "not",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": {
+                  "ID": 71,
+                  "UID": "share-alpha",
+                  "MemoID": 43,
+                  "CreatorID": 17,
+                  "ExpiresTs": 2000
+                },
+                "residual": {
+                  "literal": {
+                    "ID": 71,
+                    "UID": "share-alpha",
+                    "MemoID": 43,
+                    "CreatorID": 17,
+                    "ExpiresTs": 2000
+                  }
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              }
+            ]
+          }
+        },
+        "outputs": {
+          "value": true,
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "Author explanation not supplied."
+      },
+      {
+        "sequence": 4,
+        "id": "share_active",
+        "op": "guard",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 216,
+          "endLine": 229,
+          "sha256": "2618c42f4062980213cf101710858b603b02bf9ab8ed4910fc09a0e5463894a8"
+        },
+        "inputs": {
+          "test": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "is-null",
+                "truth": "false"
+              },
+              {
+                "op": "lte",
+                "truth": "true"
+              },
+              {
+                "op": "any",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": 2000,
+                "residual": {
+                  "literal": 2000
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": 2000,
+                "residual": {
+                  "literal": 2000
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": 2000,
+                "residual": {
+                  "literal": 2000
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              }
+            ]
+          }
+        },
+        "outputs": {
+          "value": true,
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "Expiry is strict: a share is expired only when now is greater than ExpiresTs."
+      },
+      {
+        "sequence": 5,
+        "id": "memo_store_ok",
+        "op": "guard",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 178,
+          "endLine": 181,
+          "sha256": "2618c42f4062980213cf101710858b603b02bf9ab8ed4910fc09a0e5463894a8"
+        },
+        "inputs": {
+          "test": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "is-null",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": null,
+                "residual": {
+                  "literal": null
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              }
+            ]
+          }
+        },
+        "outputs": {
+          "value": true,
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "Author explanation not supplied."
+      },
+      {
+        "sequence": 6,
+        "id": "memo",
+        "op": "select",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 172,
+          "endLine": 185,
+          "sha256": "2618c42f4062980213cf101710858b603b02bf9ab8ed4910fc09a0e5463894a8"
+        },
+        "inputs": {
+          "from": "memos",
+          "rows": {
+            "known": true,
+            "value": [
+              {
+                "ID": 43,
+                "UID": "memo-alpha",
+                "CreatorID": 17,
+                "RowStatus": "NORMAL",
+                "Visibility": "PRIVATE",
+                "SpaceID": 8,
+                "ParentUID": "parent-private",
+                "Content": "shared body"
+              },
+              {
+                "ID": 89,
+                "UID": "memo-other",
+                "CreatorID": 22,
+                "RowStatus": "NORMAL",
+                "Visibility": "PRIVATE",
+                "SpaceID": null,
+                "ParentUID": null,
+                "Content": "unrelated body"
+              }
+            ],
+            "gaps": []
+          },
+          "where": {
+            "op": "eq",
+            "left": {
+              "binding": "row.ID"
+            },
+            "right": {
+              "binding": "share.MemoID"
+            }
+          },
+          "query": {
+            "ID": 43
+          },
+          "candidates": [
+            {
+              "row": {
+                "ID": 43,
+                "UID": "memo-alpha",
+                "CreatorID": 17,
+                "RowStatus": "NORMAL",
+                "Visibility": "PRIVATE",
+                "SpaceID": 8,
+                "ParentUID": "parent-private",
+                "Content": "shared body"
+              },
+              "predicate": {
+                "truth": "true",
+                "residual": null,
+                "missingBindings": [],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "true"
+                  }
+                ],
+                "diagnostics": [],
+                "valueTrace": [
+                  {
+                    "known": true,
+                    "value": 43,
+                    "residual": {
+                      "literal": 43
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  },
+                  {
+                    "known": true,
+                    "value": 43,
+                    "residual": {
+                      "literal": 43
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "ID": 89,
+                "UID": "memo-other",
+                "CreatorID": 22,
+                "RowStatus": "NORMAL",
+                "Visibility": "PRIVATE",
+                "SpaceID": null,
+                "ParentUID": null,
+                "Content": "unrelated body"
+              },
+              "predicate": {
+                "truth": "false",
+                "residual": null,
+                "missingBindings": [],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "false"
+                  }
+                ],
+                "diagnostics": [],
+                "valueTrace": [
+                  {
+                    "known": true,
+                    "value": 89,
+                    "residual": {
+                      "literal": 89
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  },
+                  {
+                    "known": true,
+                    "value": 43,
+                    "residual": {
+                      "literal": 43
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  }
+                ]
+              }
+            }
+          ],
+          "selection": {
+            "mode": "unique",
+            "matchedCount": 1,
+            "order": [],
+            "guidance": "unique defaults to true and rejects multiple matches. Use unique:false with explicit order for ordered first; numeric null keys need nulls:first|last or nullAs. Equal keys use the next order key; otherwise input order is retained."
+          }
+        },
+        "outputs": {
+          "value": {
+            "ID": 43,
+            "UID": "memo-alpha",
+            "CreatorID": 17,
+            "RowStatus": "NORMAL",
+            "Visibility": "PRIVATE",
+            "SpaceID": 8,
+            "ParentUID": "parent-private",
+            "Content": "shared body"
+          },
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "The selected share row's MemoID binds the returned memo."
+      },
+      {
+        "sequence": 7,
+        "id": "memo_visible_state",
+        "op": "guard",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 182,
+          "endLine": 184,
+          "sha256": "2618c42f4062980213cf101710858b603b02bf9ab8ed4910fc09a0e5463894a8"
+        },
+        "inputs": {
+          "test": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "is-null",
+                "truth": "false"
+              },
+              {
+                "op": "not",
+                "truth": "true"
+              },
+              {
+                "op": "eq",
+                "truth": "true"
+              },
+              {
+                "op": "neq",
+                "truth": "true"
+              },
+              {
+                "op": "all",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": {
+                  "ID": 43,
+                  "UID": "memo-alpha",
+                  "CreatorID": 17,
+                  "RowStatus": "NORMAL",
+                  "Visibility": "PRIVATE",
+                  "SpaceID": 8,
+                  "ParentUID": "parent-private",
+                  "Content": "shared body"
+                },
+                "residual": {
+                  "literal": {
+                    "ID": 43,
+                    "UID": "memo-alpha",
+                    "CreatorID": 17,
+                    "RowStatus": "NORMAL",
+                    "Visibility": "PRIVATE",
+                    "SpaceID": 8,
+                    "ParentUID": "parent-private",
+                    "Content": "shared body"
+                  }
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": "NORMAL",
+                "residual": {
+                  "literal": "NORMAL"
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": "NORMAL",
+                "residual": {
+                  "literal": "NORMAL"
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "literal"
+              },
+              {
+                "known": true,
+                "value": "PRIVATE",
+                "residual": {
+                  "literal": "PRIVATE"
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": "SPACE",
+                "residual": {
+                  "literal": "SPACE"
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "literal"
+              }
+            ]
+          }
+        },
+        "outputs": {
+          "value": true,
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "The root rejects a missing or non-NORMAL memo and SPACE visibility before building read context; unknown non-SPACE visibility is rejected later by CheckMemoReadContext."
+      },
+      {
+        "sequence": 8,
+        "id": "viewer_store_ok",
+        "op": "guard",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "server/api/v1/auth_service_session.go",
+          "startLine": 269,
+          "endLine": 286,
+          "sha256": "9aa742356ff272fe2d32bb614ee45cc82fd1848fb71e55e97cfc16843d33b7d4"
+        },
+        "inputs": {
+          "when": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "neq",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": 22,
+                "residual": {
+                  "literal": 22
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": 0,
+                "residual": {
+                  "literal": 0
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "literal"
+              }
+            ]
+          },
+          "test": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "is-null",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": null,
+                "residual": {
+                  "literal": null
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              }
+            ]
+          }
+        },
+        "outputs": {
+          "value": true,
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "Author explanation not supplied.",
+        "condition": {
+          "op": "neq",
+          "left": {
+            "binding": "contextUserID"
+          },
+          "right": {
+            "literal": 0
+          }
+        }
+      },
+      {
+        "sequence": 9,
+        "id": "viewer_row",
+        "op": "select",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "server/api/v1/auth_service_session.go",
+          "startLine": 269,
+          "endLine": 286,
+          "sha256": "9aa742356ff272fe2d32bb614ee45cc82fd1848fb71e55e97cfc16843d33b7d4"
+        },
+        "inputs": {
+          "when": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "neq",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": 22,
+                "residual": {
+                  "literal": 22
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": 0,
+                "residual": {
+                  "literal": 0
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "literal"
+              }
+            ]
+          },
+          "from": "users",
+          "rows": {
+            "known": true,
+            "value": [
+              {
+                "ID": 17,
+                "Username": "author-a",
+                "RowStatus": "NORMAL",
+                "Role": "USER"
+              },
+              {
+                "ID": 22,
+                "Username": "author-b",
+                "RowStatus": "NORMAL",
+                "Role": "USER"
+              }
+            ],
+            "gaps": []
+          },
+          "where": {
+            "op": "eq",
+            "left": {
+              "binding": "row.ID"
+            },
+            "right": {
+              "binding": "contextUserID"
+            }
+          },
+          "query": {
+            "ID": 22
+          },
+          "candidates": [
+            {
+              "row": {
+                "ID": 17,
+                "Username": "author-a",
+                "RowStatus": "NORMAL",
+                "Role": "USER"
+              },
+              "predicate": {
+                "truth": "false",
+                "residual": null,
+                "missingBindings": [],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "false"
+                  }
+                ],
+                "diagnostics": [],
+                "valueTrace": [
+                  {
+                    "known": true,
+                    "value": 17,
+                    "residual": {
+                      "literal": 17
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  },
+                  {
+                    "known": true,
+                    "value": 22,
+                    "residual": {
+                      "literal": 22
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "ID": 22,
+                "Username": "author-b",
+                "RowStatus": "NORMAL",
+                "Role": "USER"
+              },
+              "predicate": {
+                "truth": "true",
+                "residual": null,
+                "missingBindings": [],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "true"
+                  }
+                ],
+                "diagnostics": [],
+                "valueTrace": [
+                  {
+                    "known": true,
+                    "value": 22,
+                    "residual": {
+                      "literal": 22
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  },
+                  {
+                    "known": true,
+                    "value": 22,
+                    "residual": {
+                      "literal": 22
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  }
+                ]
+              }
+            }
+          ],
+          "selection": {
+            "mode": "unique",
+            "matchedCount": 1,
+            "order": [],
+            "guidance": "unique defaults to true and rejects multiple matches. Use unique:false with explicit order for ordered first; numeric null keys need nulls:first|last or nullAs. Equal keys use the next order key; otherwise input order is retained."
+          }
+        },
+        "outputs": {
+          "value": {
+            "ID": 22,
+            "Username": "author-b",
+            "RowStatus": "NORMAL",
+            "Role": "USER"
+          },
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "Author explanation not supplied.",
+        "condition": {
+          "op": "neq",
+          "left": {
+            "binding": "contextUserID"
+          },
+          "right": {
+            "literal": 0
+          }
+        }
+      },
+      {
+        "sequence": 10,
+        "id": "viewer_exists",
+        "op": "guard",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "server/api/v1/auth_service_session.go",
+          "startLine": 269,
+          "endLine": 286,
+          "sha256": "9aa742356ff272fe2d32bb614ee45cc82fd1848fb71e55e97cfc16843d33b7d4"
+        },
+        "inputs": {
+          "when": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "neq",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": 22,
+                "residual": {
+                  "literal": 22
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": 0,
+                "residual": {
+                  "literal": 0
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "literal"
+              }
+            ]
+          },
+          "test": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "is-null",
+                "truth": "false"
+              },
+              {
+                "op": "not",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": {
+                  "ID": 22,
+                  "Username": "author-b",
+                  "RowStatus": "NORMAL",
+                  "Role": "USER"
+                },
+                "residual": {
+                  "literal": {
+                    "ID": 22,
+                    "Username": "author-b",
+                    "RowStatus": "NORMAL",
+                    "Role": "USER"
+                  }
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              }
+            ]
+          }
+        },
+        "outputs": {
+          "value": true,
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "Author explanation not supplied.",
+        "condition": {
+          "op": "neq",
+          "left": {
+            "binding": "contextUserID"
+          },
+          "right": {
+            "literal": 0
+          }
+        }
+      },
+      {
+        "sequence": 11,
+        "id": "viewer",
+        "op": "value",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "server/api/v1/auth_service_session.go",
+          "startLine": 269,
+          "endLine": 290,
+          "sha256": "9aa742356ff272fe2d32bb614ee45cc82fd1848fb71e55e97cfc16843d33b7d4"
+        },
+        "inputs": {
+          "expression": {
+            "choose": {
+              "test": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "is-null",
+                      "value": {
+                        "binding": "viewer_row"
+                      }
+                    }
+                  },
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "viewer_row.RowStatus"
+                    },
+                    "right": {
+                      "literal": "NORMAL"
+                    }
+                  }
+                ]
+              },
+              "then": {
+                "ref": "viewer_row"
+              },
+              "else": {
+                "literal": null
+              }
+            }
+          }
+        },
+        "outputs": {
+          "value": {
+            "ID": 22,
+            "Username": "author-b",
+            "RowStatus": "NORMAL",
+            "Role": "USER"
+          },
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "Author explanation not supplied."
+      },
+      {
+        "sequence": 12,
+        "id": "instance_setting_ok",
+        "op": "guard",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "server/api/v1/memo_access.go",
+          "startLine": 17,
+          "endLine": 29,
+          "sha256": "496c6a97240836d403cecf3a342769ea968ad80097331f855254b8a314f1fa47"
+        },
+        "inputs": {
+          "when": {
+            "truth": "false",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "is-null",
+                "truth": "false"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": {
+                  "ID": 22,
+                  "Username": "author-b",
+                  "RowStatus": "NORMAL",
+                  "Role": "USER"
+                },
+                "residual": {
+                  "literal": {
+                    "ID": 22,
+                    "Username": "author-b",
+                    "RowStatus": "NORMAL",
+                    "Role": "USER"
+                  }
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              }
+            ]
+          }
+        },
+        "outputs": {
+          "known": true,
+          "value": null
+        },
+        "outcome": "skipped",
+        "gaps": [],
+        "because": "Author explanation not supplied.",
+        "condition": {
+          "op": "is-null",
+          "value": {
+            "binding": "viewer"
+          }
+        }
+      },
+      {
+        "sequence": 13,
+        "id": "allow_anonymous",
+        "op": "value",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "store/instance_setting.go",
+          "startLine": 255,
+          "endLine": 262,
+          "sha256": "21b722f9b2768cafd9eaeec68f3eaf1721fc98082c7306b852d26ed5d2862084"
+        },
+        "inputs": {
+          "expression": {
+            "choose": {
+              "test": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "is-null",
+                    "value": {
+                      "binding": "viewer"
+                    }
+                  },
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "instanceAccessMode"
+                    },
+                    "right": {
+                      "literal": "PUBLIC"
+                    }
+                  }
+                ]
+              },
+              "then": {
+                "literal": true
+              },
+              "else": {
+                "literal": false
+              }
+            }
+          }
+        },
+        "outputs": {
+          "value": false,
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "Author explanation not supplied."
+      },
+      {
+        "sequence": 14,
+        "id": "creator_store_ok",
+        "op": "guard",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 31,
+          "endLine": 42,
+          "sha256": "8b1a25c79431f51a5f7b5d8c1d12d7e587b7d45edfcefa853f2d9d02c9cb5d1e"
+        },
+        "inputs": {
+          "test": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "is-null",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": null,
+                "residual": {
+                  "literal": null
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              }
+            ]
+          }
+        },
+        "outputs": {
+          "value": true,
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "Author explanation not supplied."
+      },
+      {
+        "sequence": 15,
+        "id": "creator",
+        "op": "select",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 31,
+          "endLine": 42,
+          "sha256": "8b1a25c79431f51a5f7b5d8c1d12d7e587b7d45edfcefa853f2d9d02c9cb5d1e"
+        },
+        "inputs": {
+          "from": "users",
+          "rows": {
+            "known": true,
+            "value": [
+              {
+                "ID": 17,
+                "Username": "author-a",
+                "RowStatus": "NORMAL",
+                "Role": "USER"
+              },
+              {
+                "ID": 22,
+                "Username": "author-b",
+                "RowStatus": "NORMAL",
+                "Role": "USER"
+              }
+            ],
+            "gaps": []
+          },
+          "where": {
+            "op": "eq",
+            "left": {
+              "binding": "row.ID"
+            },
+            "right": {
+              "binding": "memo.CreatorID"
+            }
+          },
+          "query": {
+            "ID": 17
+          },
+          "candidates": [
+            {
+              "row": {
+                "ID": 17,
+                "Username": "author-a",
+                "RowStatus": "NORMAL",
+                "Role": "USER"
+              },
+              "predicate": {
+                "truth": "true",
+                "residual": null,
+                "missingBindings": [],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "true"
+                  }
+                ],
+                "diagnostics": [],
+                "valueTrace": [
+                  {
+                    "known": true,
+                    "value": 17,
+                    "residual": {
+                      "literal": 17
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  },
+                  {
+                    "known": true,
+                    "value": 17,
+                    "residual": {
+                      "literal": 17
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "ID": 22,
+                "Username": "author-b",
+                "RowStatus": "NORMAL",
+                "Role": "USER"
+              },
+              "predicate": {
+                "truth": "false",
+                "residual": null,
+                "missingBindings": [],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "false"
+                  }
+                ],
+                "diagnostics": [],
+                "valueTrace": [
+                  {
+                    "known": true,
+                    "value": 22,
+                    "residual": {
+                      "literal": 22
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  },
+                  {
+                    "known": true,
+                    "value": 17,
+                    "residual": {
+                      "literal": 17
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  }
+                ]
+              }
+            }
+          ],
+          "selection": {
+            "mode": "unique",
+            "matchedCount": 1,
+            "order": [],
+            "guidance": "unique defaults to true and rejects multiple matches. Use unique:false with explicit order for ordered first; numeric null keys need nulls:first|last or nullAs. Equal keys use the next order key; otherwise input order is retained."
+          }
+        },
+        "outputs": {
+          "value": {
+            "ID": 17,
+            "Username": "author-a",
+            "RowStatus": "NORMAL",
+            "Role": "USER"
+          },
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "Author explanation not supplied."
+      },
+      {
+        "sequence": 16,
+        "id": "creator_valid",
+        "op": "value",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 31,
+          "endLine": 42,
+          "sha256": "8b1a25c79431f51a5f7b5d8c1d12d7e587b7d45edfcefa853f2d9d02c9cb5d1e"
+        },
+        "inputs": {
+          "expression": {
+            "choose": {
+              "test": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "is-null",
+                      "value": {
+                        "binding": "creator"
+                      }
+                    }
+                  },
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "creator.ID"
+                    },
+                    "right": {
+                      "binding": "memo.CreatorID"
+                    }
+                  },
+                  {
+                    "op": "member",
+                    "value": {
+                      "binding": "creator.RowStatus"
+                    },
+                    "set": {
+                      "literal": [
+                        "NORMAL",
+                        "ARCHIVED"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "then": {
+                "literal": true
+              },
+              "else": {
+                "literal": false
+              }
+            }
+          }
+        },
+        "outputs": {
+          "value": true,
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "ResolveMemoReadFacts records creator validity but does not deny yet; it continues to resolve optional placement before CheckMemoReadContext."
+      },
+      {
+        "sequence": 17,
+        "id": "space_store_ok",
+        "op": "guard",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 44,
+          "endLine": 51,
+          "sha256": "8b1a25c79431f51a5f7b5d8c1d12d7e587b7d45edfcefa853f2d9d02c9cb5d1e"
+        },
+        "inputs": {
+          "when": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "is-null",
+                "truth": "false"
+              },
+              {
+                "op": "not",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": 8,
+                "residual": {
+                  "literal": 8
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              }
+            ]
+          },
+          "test": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "is-null",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": null,
+                "residual": {
+                  "literal": null
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              }
+            ]
+          }
+        },
+        "outputs": {
+          "value": true,
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "Author explanation not supplied.",
+        "condition": {
+          "op": "not",
+          "arg": {
+            "op": "is-null",
+            "value": {
+              "binding": "memo.SpaceID"
+            }
+          }
+        }
+      },
+      {
+        "sequence": 18,
+        "id": "space",
+        "op": "select",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 44,
+          "endLine": 51,
+          "sha256": "8b1a25c79431f51a5f7b5d8c1d12d7e587b7d45edfcefa853f2d9d02c9cb5d1e"
+        },
+        "inputs": {
+          "when": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "is-null",
+                "truth": "false"
+              },
+              {
+                "op": "not",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": 8,
+                "residual": {
+                  "literal": 8
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              }
+            ]
+          },
+          "from": "spaces",
+          "rows": {
+            "known": true,
+            "value": [
+              {
+                "ID": 8
+              },
+              {
+                "ID": 9
+              }
+            ],
+            "gaps": []
+          },
+          "where": {
+            "op": "eq",
+            "left": {
+              "binding": "row.ID"
+            },
+            "right": {
+              "binding": "memo.SpaceID"
+            }
+          },
+          "query": {
+            "ID": 8
+          },
+          "candidates": [
+            {
+              "row": {
+                "ID": 8
+              },
+              "predicate": {
+                "truth": "true",
+                "residual": null,
+                "missingBindings": [],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "true"
+                  }
+                ],
+                "diagnostics": [],
+                "valueTrace": [
+                  {
+                    "known": true,
+                    "value": 8,
+                    "residual": {
+                      "literal": 8
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  },
+                  {
+                    "known": true,
+                    "value": 8,
+                    "residual": {
+                      "literal": 8
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "ID": 9
+              },
+              "predicate": {
+                "truth": "false",
+                "residual": null,
+                "missingBindings": [],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "false"
+                  }
+                ],
+                "diagnostics": [],
+                "valueTrace": [
+                  {
+                    "known": true,
+                    "value": 9,
+                    "residual": {
+                      "literal": 9
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  },
+                  {
+                    "known": true,
+                    "value": 8,
+                    "residual": {
+                      "literal": 8
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  }
+                ]
+              }
+            }
+          ],
+          "selection": {
+            "mode": "unique",
+            "matchedCount": 1,
+            "order": [],
+            "guidance": "unique defaults to true and rejects multiple matches. Use unique:false with explicit order for ordered first; numeric null keys need nulls:first|last or nullAs. Equal keys use the next order key; otherwise input order is retained."
+          }
+        },
+        "outputs": {
+          "value": {
+            "ID": 8
+          },
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "Author explanation not supplied.",
+        "condition": {
+          "op": "not",
+          "arg": {
+            "op": "is-null",
+            "value": {
+              "binding": "memo.SpaceID"
+            }
+          }
+        }
+      },
+      {
+        "sequence": 19,
+        "id": "membership_store_ok",
+        "op": "guard",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 58,
+          "endLine": 80,
+          "sha256": "8b1a25c79431f51a5f7b5d8c1d12d7e587b7d45edfcefa853f2d9d02c9cb5d1e"
+        },
+        "inputs": {
+          "when": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "is-null",
+                "truth": "false"
+              },
+              {
+                "op": "not",
+                "truth": "true"
+              },
+              {
+                "op": "is-null",
+                "truth": "false"
+              },
+              {
+                "op": "not",
+                "truth": "true"
+              },
+              {
+                "op": "neq",
+                "truth": "true"
+              },
+              {
+                "op": "all",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": {
+                  "ID": 22,
+                  "Username": "author-b",
+                  "RowStatus": "NORMAL",
+                  "Role": "USER"
+                },
+                "residual": {
+                  "literal": {
+                    "ID": 22,
+                    "Username": "author-b",
+                    "RowStatus": "NORMAL",
+                    "Role": "USER"
+                  }
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": {
+                  "ID": 8
+                },
+                "residual": {
+                  "literal": {
+                    "ID": 8
+                  }
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": "USER",
+                "residual": {
+                  "literal": "USER"
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": "ADMIN",
+                "residual": {
+                  "literal": "ADMIN"
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "literal"
+              }
+            ]
+          },
+          "test": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "is-null",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": null,
+                "residual": {
+                  "literal": null
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              }
+            ]
+          }
+        },
+        "outputs": {
+          "value": true,
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "Author explanation not supplied.",
+        "condition": {
+          "op": "all",
+          "args": [
+            {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "viewer"
+                }
+              }
+            },
+            {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "space"
+                }
+              }
+            },
+            {
+              "op": "neq",
+              "left": {
+                "binding": "viewer.Role"
+              },
+              "right": {
+                "literal": "ADMIN"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "sequence": 20,
+        "id": "membership",
+        "op": "select",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 58,
+          "endLine": 80,
+          "sha256": "8b1a25c79431f51a5f7b5d8c1d12d7e587b7d45edfcefa853f2d9d02c9cb5d1e"
+        },
+        "inputs": {
+          "when": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "is-null",
+                "truth": "false"
+              },
+              {
+                "op": "not",
+                "truth": "true"
+              },
+              {
+                "op": "is-null",
+                "truth": "false"
+              },
+              {
+                "op": "not",
+                "truth": "true"
+              },
+              {
+                "op": "neq",
+                "truth": "true"
+              },
+              {
+                "op": "all",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": {
+                  "ID": 22,
+                  "Username": "author-b",
+                  "RowStatus": "NORMAL",
+                  "Role": "USER"
+                },
+                "residual": {
+                  "literal": {
+                    "ID": 22,
+                    "Username": "author-b",
+                    "RowStatus": "NORMAL",
+                    "Role": "USER"
+                  }
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": {
+                  "ID": 8
+                },
+                "residual": {
+                  "literal": {
+                    "ID": 8
+                  }
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": "USER",
+                "residual": {
+                  "literal": "USER"
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": "ADMIN",
+                "residual": {
+                  "literal": "ADMIN"
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "literal"
+              }
+            ]
+          },
+          "from": "memberships",
+          "rows": {
+            "known": true,
+            "value": [
+              {
+                "SpaceID": 8,
+                "UserID": 22,
+                "Role": "USER"
+              },
+              {
+                "SpaceID": 9,
+                "UserID": 17,
+                "Role": "ADMIN"
+              }
+            ],
+            "gaps": []
+          },
+          "where": {
+            "op": "all",
+            "args": [
+              {
+                "op": "eq",
+                "left": {
+                  "binding": "row.SpaceID"
+                },
+                "right": {
+                  "binding": "memo.SpaceID"
+                }
+              },
+              {
+                "op": "eq",
+                "left": {
+                  "binding": "row.UserID"
+                },
+                "right": {
+                  "binding": "viewer.ID"
+                }
+              }
+            ]
+          },
+          "query": {
+            "SpaceID": 8,
+            "UserID": 22
+          },
+          "candidates": [
+            {
+              "row": {
+                "SpaceID": 8,
+                "UserID": 22,
+                "Role": "USER"
+              },
+              "predicate": {
+                "truth": "true",
+                "residual": null,
+                "missingBindings": [],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "true"
+                  },
+                  {
+                    "op": "eq",
+                    "truth": "true"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "true"
+                  }
+                ],
+                "diagnostics": [],
+                "valueTrace": [
+                  {
+                    "known": true,
+                    "value": 8,
+                    "residual": {
+                      "literal": 8
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  },
+                  {
+                    "known": true,
+                    "value": 8,
+                    "residual": {
+                      "literal": 8
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  },
+                  {
+                    "known": true,
+                    "value": 22,
+                    "residual": {
+                      "literal": 22
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  },
+                  {
+                    "known": true,
+                    "value": 22,
+                    "residual": {
+                      "literal": 22
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "SpaceID": 9,
+                "UserID": 17,
+                "Role": "ADMIN"
+              },
+              "predicate": {
+                "truth": "false",
+                "residual": null,
+                "missingBindings": [],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "false"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "false"
+                  }
+                ],
+                "diagnostics": [],
+                "valueTrace": [
+                  {
+                    "known": true,
+                    "value": 9,
+                    "residual": {
+                      "literal": 9
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  },
+                  {
+                    "known": true,
+                    "value": 8,
+                    "residual": {
+                      "literal": 8
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  }
+                ]
+              }
+            }
+          ],
+          "selection": {
+            "mode": "unique",
+            "matchedCount": 1,
+            "order": [],
+            "guidance": "unique defaults to true and rejects multiple matches. Use unique:false with explicit order for ordered first; numeric null keys need nulls:first|last or nullAs. Equal keys use the next order key; otherwise input order is retained."
+          }
+        },
+        "outputs": {
+          "value": {
+            "SpaceID": 8,
+            "UserID": 22,
+            "Role": "USER"
+          },
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "Author explanation not supplied.",
+        "condition": {
+          "op": "all",
+          "args": [
+            {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "viewer"
+                }
+              }
+            },
+            {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "space"
+                }
+              }
+            },
+            {
+              "op": "neq",
+              "left": {
+                "binding": "viewer.Role"
+              },
+              "right": {
+                "literal": "ADMIN"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "sequence": 21,
+        "id": "viewer_space_member",
+        "op": "value",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 70,
+          "endLine": 80,
+          "sha256": "8b1a25c79431f51a5f7b5d8c1d12d7e587b7d45edfcefa853f2d9d02c9cb5d1e"
+        },
+        "inputs": {
+          "expression": {
+            "choose": {
+              "test": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "is-null",
+                      "value": {
+                        "binding": "membership"
+                      }
+                    }
+                  },
+                  {
+                    "op": "member",
+                    "value": {
+                      "binding": "membership.Role"
+                    },
+                    "set": {
+                      "literal": [
+                        "ADMIN",
+                        "USER"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "then": {
+                "literal": true
+              },
+              "else": {
+                "literal": false
+              }
+            }
+          }
+        },
+        "outputs": {
+          "value": true,
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "Only a resolved membership with an active ADMIN or USER role sets ViewerSpaceMember."
+      },
+      {
+        "sequence": 22,
+        "id": "read_policy_valid",
+        "op": "guard",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "core/access/memo.go",
+          "startLine": 92,
+          "endLine": 117,
+          "sha256": "86d782c17efe235db8ad4366b4f708a066d7a4a835639b6c0e70895f2e21e639"
+        },
+        "inputs": {
+          "test": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "truthy",
+                "truth": "true"
+              },
+              {
+                "op": "member",
+                "truth": "true"
+              },
+              {
+                "op": "member",
+                "truth": "true"
+              },
+              {
+                "op": "all",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": true,
+                "residual": {
+                  "literal": true
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": "PRIVATE",
+                "residual": {
+                  "literal": "PRIVATE"
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": [
+                  "PUBLIC",
+                  "PROTECTED",
+                  "PRIVATE",
+                  "SPACE"
+                ],
+                "residual": {
+                  "literal": [
+                    "PUBLIC",
+                    "PROTECTED",
+                    "PRIVATE",
+                    "SPACE"
+                  ]
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "literal"
+              },
+              {
+                "known": true,
+                "value": "NORMAL",
+                "residual": {
+                  "literal": "NORMAL"
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": [
+                  "NORMAL",
+                  "ARCHIVED"
+                ],
+                "residual": {
+                  "literal": [
+                    "NORMAL",
+                    "ARCHIVED"
+                  ]
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "literal"
+              }
+            ]
+          }
+        },
+        "outputs": {
+          "value": true,
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "Policy validation happens only after creator, placement, and viewer membership context resolution. For GetSharedMemo, its earlier root gate already makes the reachable memo NORMAL and non-SPACE."
+      },
+      {
+        "sequence": 23,
+        "id": "viewer_is_instance_admin",
+        "op": "value",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "core/access/memo.go",
+          "startLine": 67,
+          "endLine": 69,
+          "sha256": "86d782c17efe235db8ad4366b4f708a066d7a4a835639b6c0e70895f2e21e639"
+        },
+        "inputs": {
+          "expression": {
+            "choose": {
+              "test": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "is-null",
+                      "value": {
+                        "binding": "viewer"
+                      }
+                    }
+                  },
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "viewer.RowStatus"
+                    },
+                    "right": {
+                      "literal": "NORMAL"
+                    }
+                  },
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "viewer.Role"
+                    },
+                    "right": {
+                      "literal": "ADMIN"
+                    }
+                  }
+                ]
+              },
+              "then": {
+                "literal": true
+              },
+              "else": {
+                "literal": false
+              }
+            }
+          }
+        },
+        "outputs": {
+          "value": false,
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "IsInstanceAdmin requires an active viewer whose instance role is ADMIN; this exact helper span discharges the remaining helper branch and return candidates."
+      },
+      {
+        "sequence": 24,
+        "id": "share_exact_memo_access",
+        "op": "guard",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "core/access/memo.go",
+          "startLine": 107,
+          "endLine": 122,
+          "sha256": "86d782c17efe235db8ad4366b4f708a066d7a4a835639b6c0e70895f2e21e639"
+        },
+        "inputs": {
+          "when": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "truthy",
+                "truth": "false"
+              },
+              {
+                "op": "not",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": false,
+                "residual": {
+                  "literal": false
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              }
+            ]
+          },
+          "test": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "eq",
+                "truth": "true"
+              },
+              {
+                "op": "neq",
+                "truth": "true"
+              },
+              {
+                "op": "all",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": 43,
+                "residual": {
+                  "literal": 43
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": 43,
+                "residual": {
+                  "literal": 43
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": "PRIVATE",
+                "residual": {
+                  "literal": "PRIVATE"
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": "SPACE",
+                "residual": {
+                  "literal": "SPACE"
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "literal"
+              }
+            ]
+          }
+        },
+        "outputs": {
+          "value": true,
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "A structurally valid instance-admin read returns before the share branch; non-admin shared reads require exact MemoID and non-SPACE visibility.",
+        "condition": {
+          "op": "not",
+          "arg": {
+            "op": "truthy",
+            "language": "go",
+            "value": {
+              "binding": "viewer_is_instance_admin"
+            }
+          }
+        }
+      },
+      {
+        "sequence": 25,
+        "id": "reactions_store_ok",
+        "op": "guard",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 191,
+          "endLine": 196,
+          "sha256": "2618c42f4062980213cf101710858b603b02bf9ab8ed4910fc09a0e5463894a8"
+        },
+        "inputs": {
+          "test": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "is-null",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": null,
+                "residual": {
+                  "literal": null
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              }
+            ]
+          }
+        },
+        "outputs": {
+          "value": true,
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "Author explanation not supplied."
+      },
+      {
+        "sequence": 26,
+        "id": "attachments_store_ok",
+        "op": "guard",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 198,
+          "endLine": 201,
+          "sha256": "2618c42f4062980213cf101710858b603b02bf9ab8ed4910fc09a0e5463894a8"
+        },
+        "inputs": {
+          "test": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "is-null",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": null,
+                "residual": {
+                  "literal": null
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              }
+            ]
+          }
+        },
+        "outputs": {
+          "value": true,
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "Author explanation not supplied."
+      },
+      {
+        "sequence": 27,
+        "id": "conversion_creator_store_ok",
+        "op": "guard",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "server/api/v1/memo_service_converter.go",
+          "startLine": 26,
+          "endLine": 31,
+          "sha256": "676be07564e6718decf52f0afd04063a4130971727bd5d47b8c298dfc0e59bb2"
+        },
+        "inputs": {
+          "test": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "is-null",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": null,
+                "residual": {
+                  "literal": null
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              }
+            ]
+          }
+        },
+        "outputs": {
+          "value": true,
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "Conversion first lists the memo creator; a listing error is wrapped and then wrapped again by GetSharedMemo."
+      },
+      {
+        "sequence": 28,
+        "id": "conversion_creator",
+        "op": "select",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "server/api/v1/memo_service_converter.go",
+          "startLine": 26,
+          "endLine": 38,
+          "sha256": "676be07564e6718decf52f0afd04063a4130971727bd5d47b8c298dfc0e59bb2"
+        },
+        "inputs": {
+          "from": "conversionUsers",
+          "rows": {
+            "known": true,
+            "value": [
+              {
+                "ID": 17,
+                "Username": "author-a",
+                "RowStatus": "NORMAL",
+                "Role": "USER"
+              },
+              {
+                "ID": 22,
+                "Username": "author-b",
+                "RowStatus": "NORMAL",
+                "Role": "USER"
+              }
+            ],
+            "gaps": []
+          },
+          "where": {
+            "op": "eq",
+            "left": {
+              "binding": "row.ID"
+            },
+            "right": {
+              "binding": "memo.CreatorID"
+            }
+          },
+          "query": {
+            "ID": 17
+          },
+          "candidates": [
+            {
+              "row": {
+                "ID": 17,
+                "Username": "author-a",
+                "RowStatus": "NORMAL",
+                "Role": "USER"
+              },
+              "predicate": {
+                "truth": "true",
+                "residual": null,
+                "missingBindings": [],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "true"
+                  }
+                ],
+                "diagnostics": [],
+                "valueTrace": [
+                  {
+                    "known": true,
+                    "value": 17,
+                    "residual": {
+                      "literal": 17
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  },
+                  {
+                    "known": true,
+                    "value": 17,
+                    "residual": {
+                      "literal": 17
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "ID": 22,
+                "Username": "author-b",
+                "RowStatus": "NORMAL",
+                "Role": "USER"
+              },
+              "predicate": {
+                "truth": "false",
+                "residual": null,
+                "missingBindings": [],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "false"
+                  }
+                ],
+                "diagnostics": [],
+                "valueTrace": [
+                  {
+                    "known": true,
+                    "value": 22,
+                    "residual": {
+                      "literal": 22
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  },
+                  {
+                    "known": true,
+                    "value": 17,
+                    "residual": {
+                      "literal": 17
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  }
+                ]
+              }
+            }
+          ],
+          "selection": {
+            "mode": "unique",
+            "matchedCount": 1,
+            "order": [],
+            "guidance": "unique defaults to true and rejects multiple matches. Use unique:false with explicit order for ordered first; numeric null keys need nulls:first|last or nullAs. Equal keys use the next order key; otherwise input order is retained."
+          }
+        },
+        "outputs": {
+          "value": {
+            "ID": 17,
+            "Username": "author-a",
+            "RowStatus": "NORMAL",
+            "Role": "USER"
+          },
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "The response creator is independently resolved during conversion, not reused from access-context resolution."
+      },
+      {
+        "sequence": 29,
+        "id": "conversion_creator_found",
+        "op": "guard",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "server/api/v1/memo_service_converter.go",
+          "startLine": 34,
+          "endLine": 39,
+          "sha256": "676be07564e6718decf52f0afd04063a4130971727bd5d47b8c298dfc0e59bb2"
+        },
+        "inputs": {
+          "test": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "is-null",
+                "truth": "false"
+              },
+              {
+                "op": "not",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": {
+                  "ID": 17,
+                  "Username": "author-a",
+                  "RowStatus": "NORMAL",
+                  "Role": "USER"
+                },
+                "residual": {
+                  "literal": {
+                    "ID": 17,
+                    "Username": "author-a",
+                    "RowStatus": "NORMAL",
+                    "Role": "USER"
+                  }
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              }
+            ]
+          }
+        },
+        "outputs": {
+          "value": true,
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "A missing conversion creator returns errMemoCreatorNotFound, which GetSharedMemo normalizes to NOT_FOUND."
+      },
+      {
+        "sequence": 30,
+        "id": "space_projected",
+        "op": "value",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "server/api/v1/memo_service_converter.go",
+          "startLine": 105,
+          "endLine": 137,
+          "sha256": "676be07564e6718decf52f0afd04063a4130971727bd5d47b8c298dfc0e59bb2"
+        },
+        "inputs": {
+          "expression": {
+            "choose": {
+              "test": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "is-null",
+                      "value": {
+                        "binding": "memo.SpaceID"
+                      }
+                    }
+                  },
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "is-null",
+                      "value": {
+                        "binding": "space"
+                      }
+                    }
+                  },
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "is-null",
+                      "value": {
+                        "binding": "viewer"
+                      }
+                    }
+                  },
+                  {
+                    "op": "any",
+                    "args": [
+                      {
+                        "op": "eq",
+                        "left": {
+                          "binding": "viewer.ID"
+                        },
+                        "right": {
+                          "binding": "memo.CreatorID"
+                        }
+                      },
+                      {
+                        "op": "truthy",
+                        "language": "go",
+                        "value": {
+                          "binding": "viewer_space_member"
+                        }
+                      },
+                      {
+                        "op": "eq",
+                        "left": {
+                          "binding": "viewer.Role"
+                        },
+                        "right": {
+                          "literal": "ADMIN"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              "then": {
+                "literal": true
+              },
+              "else": {
+                "literal": false
+              }
+            }
+          }
+        },
+        "outputs": {
+          "value": true,
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "Placement is projected only for an assigned, valid Space when the viewer is the author, an active member, or an instance administrator; the share token itself is not one of those conditions."
+      },
+      {
+        "sequence": 31,
+        "id": "conversion_ok",
+        "op": "guard",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 203,
+          "endLine": 209,
+          "sha256": "2618c42f4062980213cf101710858b603b02bf9ab8ed4910fc09a0e5463894a8"
+        },
+        "inputs": {
+          "test": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "is-null",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": null,
+                "residual": {
+                  "literal": null
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              }
+            ]
+          }
+        },
+        "outputs": {
+          "value": true,
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "Author explanation not supplied."
+      },
+      {
+        "sequence": 32,
+        "id": "result",
+        "op": "return",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 186,
+          "endLine": 213,
+          "sha256": "2618c42f4062980213cf101710858b603b02bf9ab8ed4910fc09a0e5463894a8"
+        },
+        "inputs": {
+          "expression": {
+            "record": {
+              "memo_id": {
+                "field": {
+                  "of": {
+                    "ref": "memo"
+                  },
+                  "key": "ID"
+                }
+              },
+              "memo_uid": {
+                "field": {
+                  "of": {
+                    "ref": "memo"
+                  },
+                  "key": "UID"
+                }
+              },
+              "content": {
+                "field": {
+                  "of": {
+                    "ref": "memo"
+                  },
+                  "key": "Content"
+                }
+              },
+              "creator_id": {
+                "field": {
+                  "of": {
+                    "ref": "conversion_creator"
+                  },
+                  "key": "ID"
+                }
+              },
+              "share_bound_memo_id": {
+                "field": {
+                  "of": {
+                    "ref": "share"
+                  },
+                  "key": "MemoID"
+                }
+              },
+              "instance_allows_anonymous": {
+                "ref": "allow_anonymous"
+              },
+              "includes_memo_reactions": {
+                "literal": true
+              },
+              "includes_memo_attachments": {
+                "literal": true
+              },
+              "space_projected": {
+                "ref": "space_projected"
+              },
+              "share_token_alone_projects_space": {
+                "literal": false
+              },
+              "share_grants_parent_access": {
+                "literal": false
+              },
+              "share_grants_relation_access": {
+                "literal": false
+              },
+              "relation_count": {
+                "literal": 0
+              },
+              "parent": {
+                "literal": null
+              }
+            }
+          }
+        },
+        "outputs": {
+          "value": {
+            "memo_id": 43,
+            "memo_uid": "memo-alpha",
+            "content": "shared body",
+            "creator_id": 17,
+            "share_bound_memo_id": 43,
+            "instance_allows_anonymous": false,
+            "includes_memo_reactions": true,
+            "includes_memo_attachments": true,
+            "space_projected": true,
+            "share_token_alone_projects_space": false,
+            "share_grants_parent_access": false,
+            "share_grants_relation_access": false,
+            "relation_count": 0,
+            "parent": null
+          },
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "The response creator comes from convertMemoFromStore's independent creator lookup; the response includes memo-scoped reactions and attachments, passes nil relations, clears Parent, and any Space projection derives from viewer relations rather than the token."
+      }
+    ],
+    "returned": {
+      "memo_id": 43,
+      "memo_uid": "memo-alpha",
+      "content": "shared body",
+      "creator_id": 17,
+      "share_bound_memo_id": 43,
+      "instance_allows_anonymous": false,
+      "includes_memo_reactions": true,
+      "includes_memo_attachments": true,
+      "space_projected": true,
+      "share_token_alone_projects_space": false,
+      "share_grants_parent_access": false,
+      "share_grants_relation_access": false,
+      "relation_count": 0,
+      "parent": null
+    },
+    "termination": "return",
+    "conditions": [],
+    "gaps": [
+      "The finite workflow records response inclusion of memo-scoped reactions and attachments but does not materialize every converted collection row.",
+      "Full protobuf field conversion, snippet generation, placement projection, and Connect transport error mapping are outside the requested token-access relation model."
+    ],
+    "semanticSupport": "unreviewed",
+    "requestOperationCertified": false
+  },
+  "diagnostics": [
+    {
+      "code": "contract-coverage-reference",
+      "path": "authoringTarget.coverage.1",
+      "questionId": "shared-memo-access",
+      "severity": "warning",
+      "message": "Author coverage is unreviewed: current source reference=false; missing steps=[]; implemented claims require explicit steps. Coverage metadata does not change current execution."
+    },
+    {
+      "code": "contract-coverage-reference",
+      "path": "authoringTarget.coverage.3",
+      "questionId": "shared-memo-access",
+      "severity": "warning",
+      "message": "Author coverage is unreviewed: current source reference=false; missing steps=[]; implemented claims require explicit steps. Coverage metadata does not change current execution."
+    },
+    {
+      "code": "contract-coverage-reference",
+      "path": "authoringTarget.coverage.4",
+      "questionId": "shared-memo-access",
+      "severity": "warning",
+      "message": "Author coverage is unreviewed: current source reference=false; missing steps=[]; implemented claims require explicit steps. Coverage metadata does not change current execution."
+    },
+    {
+      "code": "contract-coverage-reference",
+      "path": "authoringTarget.coverage.5",
+      "questionId": "shared-memo-access",
+      "severity": "warning",
+      "message": "Author coverage is unreviewed: current source reference=false; missing steps=[]; implemented claims require explicit steps. Coverage metadata does not change current execution."
+    },
+    {
+      "code": "contract-coverage-reference",
+      "path": "authoringTarget.coverage.8",
+      "questionId": "shared-memo-access",
+      "severity": "warning",
+      "message": "Author coverage is unreviewed: current source reference=false; missing steps=[]; implemented claims require explicit steps. Coverage metadata does not change current execution."
+    },
+    {
+      "code": "contract-coverage-reference",
+      "path": "authoringTarget.coverage.9",
+      "questionId": "shared-memo-access",
+      "severity": "warning",
+      "message": "Author coverage is unreviewed: current source reference=false; missing steps=[]; implemented claims require explicit steps. Coverage metadata does not change current execution."
+    },
+    {
+      "code": "contract-coverage-reference",
+      "path": "authoringTarget.coverage.10",
+      "questionId": "shared-memo-access",
+      "severity": "warning",
+      "message": "Author coverage is unreviewed: current source reference=false; missing steps=[]; implemented claims require explicit steps. Coverage metadata does not change current execution."
+    }
+  ]
+}

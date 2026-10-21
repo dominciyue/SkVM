@@ -28,6 +28,7 @@ class SourceDisplayLimitError extends AuthorizationDispatchLimitError {
 }
 export interface RunAuthorizationInquiryOptions extends InquiryToolsOptions {
   authoringTargetMode?: "current-input" | "reusable"; programContext?: import("../../task-dsl/authorization/program-consumption-context.ts").ProgramContext; executionPolicy?: import("../../task-dsl/authorization/executable-contract.ts").ExecutionPolicy; programMode?: import("../../task-dsl/authorization/executable-contract.ts").ProgramMode;
+  sourceVerifier?: import("../../task-dsl/authorization/program-verification.ts").ProgramVerifier;
   resourceInputs?: import("../../task-dsl/authorization/resource-relations.ts").ResourceProgramInputs["resourceInputs"]; externalAssumptions?: import("../../task-dsl/authorization/resource-relations.ts").ResourceProgramInputs["externalAssumptions"];
   provider: LLMProvider; method: InquiryMethod; inquiry?: unknown; brief?: string;
   mode?: "behavior" | "conformance"; policy?: AuthorizationInquiry["policy"];
@@ -162,7 +163,7 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
       if (imported.diagnostics.length) throw new Error(JSON.stringify(imported.diagnostics))
       for (const id of imported.importedEvidenceIds) importedReferences.add(id)
     }
-    if (strategy !== "legacy") domain = createInquiryDomainRuntime({ program, tools, strategy, sourceAssisted, contractInputs: options.contractInputs, resourceInputs: options.resourceInputs, externalAssumptions: options.externalAssumptions, executionPolicy: options.executionPolicy, programMode: options.programMode, authoringTargetMode: options.authoringTargetMode, toolUnit: () => submissionBudget().totalUsed, explorationUnits: () => tools.toolCalls, ablation: options.domainAblation, shownEvidenceIds: availableEvidence, ...(separateFormats ? { remainingActions: remainingExploration } : {}), ...(options.reuse ? { initialDelta: options.reuse.seed.delta, initialSemanticUnits: options.reuse.seed.semanticUnits, initialSourceMaterials: options.reuse.seed.sourceMaterials } : {}), ...(options.brief ? { suppliedUserText: [options.brief], entryContext: options.brief } : {}) })
+    if (strategy !== "legacy") domain = createInquiryDomainRuntime({ sourceVerifier: options.sourceVerifier, program, tools, strategy, sourceAssisted, contractInputs: options.contractInputs, resourceInputs: options.resourceInputs, externalAssumptions: options.externalAssumptions, executionPolicy: options.executionPolicy, programMode: options.programMode, authoringTargetMode: options.authoringTargetMode, toolUnit: () => submissionBudget().totalUsed, explorationUnits: () => tools.toolCalls, ablation: options.domainAblation, shownEvidenceIds: availableEvidence, ...(separateFormats ? { remainingActions: remainingExploration } : {}), ...(options.reuse ? { initialDelta: options.reuse.seed.delta, initialSemanticUnits: options.reuse.seed.semanticUnits, initialSourceMaterials: options.reuse.seed.sourceMaterials } : {}), ...(options.brief ? { suppliedUserText: [options.brief], entryContext: options.brief } : {}) })
     if (options.domainProgram) {
       const imported = await domain!.importProgram(options.domainProgram, "authored-file", true)
       if (!domain!.executableContractReport()) throw new Error(`contract-import-invalid: ${JSON.stringify(imported.diagnostics)}`)

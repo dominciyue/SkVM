@@ -44,6 +44,7 @@ export function projectProgramOutcome(report: any) {
   const stop = events.find(x => x.op === "guard" && x.outcome === "rejected")
   const prefix = stop ? events.slice(0, events.indexOf(stop)) : events
   return { execution: !e ? "unresolved" : premises.length ? "conditional" : denied ? "denied" : executionGaps.length ? "conditional" : e.termination === "return" && e.returned !== undefined ? "computed" : "unresolved",
+    sourceVerification: report?.sourceVerification && {revision:report.sourceVerification.revision,requirements:report.sourceVerification.requirements.map(({sourceEvents,programEvents,...r}:any)=>r)},
     value: denied ? undefined : e?.returned, termination: e?.termination, requiredPremises: premises, executionGaps, coverageGaps,
     eventOrder: events.map(x => x.id), relations: projectProgramRelations(report?.program, e, report?.diagnostics),
     stoppedAt: stop && { id: stop.id, source: stop.source, termination: e?.termination },

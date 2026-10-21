@@ -35,6 +35,17 @@ async function fixture(options: Record<string, number> = {}) {
   await writeFile(path.join(root, "entry_test.go"), "CANARY_TEST_ANSWER")
   return { root, tools: await createInquiryTools({ sourceRoot: root, allowedPaths: ["."], repository: "synthetic", sourceRef: "fixed", ...options }) }
 }
+test("BU symbol discovery distinguishes indexed candidates from a read function body", async()=>{
+ const root=await mkdtemp(path.join(os.tmpdir(),"bu-body-"))
+ await writeFile(path.join(root,"app.py"),"def convert(value):\n    if value is None:\n        return {}\n    return value\n")
+ const tools=await createInquiryTools({sourceRoot:root,allowedPaths:["app.py"],repository:"neutral",sourceRef:"fixed",structure:true})
+ const indexed:any=await tools.execute("source_symbol",{name:"convert"})
+ expect(indexed.candidates[0].bodyRead).toBe(false)
+ expect(indexed.candidates[0].bodyReadInstruction).toContain("failure")
+ await tools.execute("source_read",{path:"app.py",startLine:1,endLine:4})
+ const shown:any=await tools.execute("source_symbol",{name:"convert"})
+ expect(shown.candidates[0].bodyRead).toBe(true)
+})
 test("list/search/symbol/read exposes numbered original bytes and independent same-name candidates", async () => {
   const { tools } = await fixture()
   const list = await tools.execute("source_list", {})

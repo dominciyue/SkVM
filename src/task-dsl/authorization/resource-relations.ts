@@ -58,7 +58,7 @@ export function inspectResourceDraft(raw: unknown) {
   return { workflow, steps, duplicateIds: [...counts].filter(([, count]) => count > 1).map(([id]) => id), unreachableSteps }
 }
 export const ExternalAssumptionsSchema = z.array(z.object({ name, arguments: z.record(name, z.custom<FiniteValue>(finiteValue)), value: z.custom<FiniteValue>(finiteValue), reason: z.string().min(1) }).strict()).max(64)
-export interface ResourceProgramInputs { resourceInputs?: Record<string, Record<string, ResourceValue>>; externalAssumptions?: Record<string, z.infer<typeof ExternalAssumptionsSchema>>; authoringTargetMode?: AuthoringTargetMode }
+export interface ResourceProgramInputs { sourceVerifier?: import("./program-verification.ts").ProgramVerifier; resourceInputs?: Record<string, Record<string, ResourceValue>>; externalAssumptions?: Record<string, z.infer<typeof ExternalAssumptionsSchema>>; authoringTargetMode?: AuthoringTargetMode }
 export type ResourceWorkflow = z.infer<typeof ResourceWorkflowSchema>
 export interface ResourceEvent {
   sequence: number; id: string; op: string; executor: "host"; meaningOrigin: "authored-program" | "external-assumption";
@@ -68,6 +68,23 @@ export interface ResourceEvent {
 interface Evaluated { known: boolean; value?: ResourceValue; gaps: string[] }
 const missing = (...gaps: string[]): Evaluated => ({ known: false, gaps })
 const known = (value: ResourceValue): Evaluated => ({ known: true, value, gaps: [] })
+
+/** Only explicit equality-conjunction queries have a finite argument map.
+ * Unsupported predicates remain unobserved, never inferred from selected rows. */
+function selectionQuery(predicate: Predicate, bindings: Record<string, FiniteValue>) {
+  const query: Record<string, unknown> = Object.create(null)
+  const visit = (p: any): boolean => {
+    if (p.op === "all") return p.args.every(visit)
+    if (p.op !== "eq") return false
+    const [row, other] = p.left?.binding?.startsWith("row.") ? [p.left, p.right] : [p.right, p.left]
+    if (!row?.binding?.startsWith("row.") || other?.binding?.startsWith("row.")) return false
+    const key = row.binding.slice(4), value = Object.hasOwn(other ?? {}, "literal") ? other.literal : bindings[other?.binding]
+    if (value === undefined || Object.hasOwn(query, key) && !isDeepStrictEqual(query[key], value)) return false
+    query[key] = value
+    return true
+  }
+  return visit(predicate) ? query : undefined
+}
 
 /** Diagnostics never relax exact argument matching or print whole object values. */
 function argumentDifferences(actual: unknown, fact: unknown) {
@@ -161,7 +178,7 @@ export function executeResourceWorkflow(raw: unknown, supplied: unknown, options
     if (active) {
       if (step.op === "value" || step.op === "return") { event.inputs.expression = step.value; result = evalExpr(step.value) }
       else if (step.op === "select") {
-        const rows = env[step.from] ?? missing(step.from); event.inputs.from = step.from; event.inputs.rows = rows; event.inputs.where = step.where
+        const rows = env[step.from] ?? missing(step.from); event.inputs.from = step.from; event.inputs.rows = rows; event.inputs.where = step.where; event.inputs.query = selectionQuery(step.where, bindings())
         if (!rows.known) result = rows
         else if (!Array.isArray(rows.value) || !rows.value.every(object)) result = missing(`record-collection-required:${step.from}`)
         else {

@@ -16,7 +16,7 @@ export interface InquiryEvidence {
 export interface InquiryToolOutput {
   status: "ok" | "partial" | "error" | "ambiguous"; code?: string; message?: string;
   evidence: InquiryEvidence[]; matches: Array<{ path: string; line: number; evidenceId?: string }>;
-  candidates: DiscoverySymbol[]; files?: Array<{ path: string; bytes: number; lineCount: number }>;
+  candidates: Array<DiscoverySymbol & { bodyRead?: boolean; bodyReadInstruction?: string }>; files?: Array<{ path: string; bytes: number; lineCount: number }>;
   truncated?: boolean; requested?: unknown; nextOffset?: number; totalMatches?: number
   structure?: { symbolId: string; receiverClass?: string; calls: StructureCall[]; revision: string; truncated: boolean; skeleton?: SourceSkeleton }
 }
@@ -230,7 +230,7 @@ async function prepareInquiryTools(options: InquiryToolsOptions, preparation: Re
           const a = schemas.source_symbol.parse(args), selected = selectedFiles(a.path)
           if (a.path !== undefined && !selected.length) result = blank("error", "source-out-of-scope", "Selector must be an allowed indexed file or directory containing indexed files.")
           else {
-            const candidates = symbols.filter(s => s.name === a.name && selected.includes(s.path))
+            const candidates = symbols.filter(s => s.name === a.name && selected.includes(s.path)).map(s => ({...s, bodyRead: s.boundary === "complete" && evidence.some(e=>e.path===s.path&&e.sha256===s.sha256&&e.startLine<=s.startLine&&e.endLine>=s.endLine), bodyReadInstruction: "Indexed location only. Before asserting a callee's return or failure behavior, read its complete body and the caller's handling of that return; candidate discovery is not body evidence. Uncertain boundaries remain unknown."}))
             result = { ...blank(candidates.length > 1 ? "ambiguous" : "ok"), candidates }
             for (const p of new Set(candidates.map(s => s.path))) { const file = await current(p); if ("status" in file) { result = file; break } }
           }

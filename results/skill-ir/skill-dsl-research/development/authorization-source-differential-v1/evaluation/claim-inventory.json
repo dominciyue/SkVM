@@ -1,0 +1,1169 @@
+[
+  {
+    "name": "M-initial",
+    "questionId": "shared-memo-access",
+    "steps": [
+      {
+        "id": "share_store_ok",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 221,
+          "endLine": 225
+        },
+        "claim": "INTERNAL: failed to get memo share"
+      },
+      {
+        "id": "share",
+        "op": "select",
+        "category": "finite-data-query",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 221,
+          "endLine": 229
+        },
+        "claim": "The supplied token is looked up as MemoShare.UID."
+      },
+      {
+        "id": "share_found",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 221,
+          "endLine": 229
+        },
+        "claim": "NOT_FOUND: not found"
+      },
+      {
+        "id": "share_active",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 216,
+          "endLine": 229
+        },
+        "claim": "Expiry is strict: a share is expired only when now is greater than ExpiresTs."
+      },
+      {
+        "id": "memo_store_ok",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 178,
+          "endLine": 181
+        },
+        "claim": "INTERNAL: failed to get memo"
+      },
+      {
+        "id": "memo",
+        "op": "select",
+        "category": "finite-data-query",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 172,
+          "endLine": 185
+        },
+        "claim": "The selected share row's MemoID binds the returned memo."
+      },
+      {
+        "id": "memo_visible_state",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 182,
+          "endLine": 189
+        },
+        "claim": "NOT_FOUND: not found"
+      },
+      {
+        "id": "viewer_store_ok",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "server/api/v1/auth_service_session.go",
+          "startLine": 269,
+          "endLine": 286
+        },
+        "claim": "NOT_FOUND: not found (current-user resolution error is hidden by GetSharedMemo)"
+      },
+      {
+        "id": "viewer_row",
+        "op": "select",
+        "category": "finite-data-query",
+        "source": {
+          "path": "server/api/v1/auth_service_session.go",
+          "startLine": 269,
+          "endLine": 286
+        },
+        "claim": null
+      },
+      {
+        "id": "viewer_exists",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "server/api/v1/auth_service_session.go",
+          "startLine": 269,
+          "endLine": 286
+        },
+        "claim": "NOT_FOUND: not found (current-user resolution error is hidden by GetSharedMemo)"
+      },
+      {
+        "id": "viewer",
+        "op": "value",
+        "category": "finite-expression",
+        "source": {
+          "path": "server/api/v1/auth_service_session.go",
+          "startLine": 269,
+          "endLine": 290
+        },
+        "claim": null
+      },
+      {
+        "id": "instance_setting_ok",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "server/api/v1/memo_access.go",
+          "startLine": 17,
+          "endLine": 29
+        },
+        "claim": "NOT_FOUND: not found (instance-access lookup error is hidden by GetSharedMemo)"
+      },
+      {
+        "id": "allow_anonymous",
+        "op": "value",
+        "category": "finite-expression",
+        "source": {
+          "path": "store/instance_setting.go",
+          "startLine": 255,
+          "endLine": 262
+        },
+        "claim": null
+      },
+      {
+        "id": "creator_store_ok",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 31,
+          "endLine": 42
+        },
+        "claim": "NOT_FOUND: not found (read-context error is hidden by GetSharedMemo)"
+      },
+      {
+        "id": "creator",
+        "op": "select",
+        "category": "finite-data-query",
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 31,
+          "endLine": 42
+        },
+        "claim": null
+      },
+      {
+        "id": "creator_valid",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "core/access/memo.go",
+          "startLine": 87,
+          "endLine": 121
+        },
+        "claim": "NOT_FOUND: not found"
+      },
+      {
+        "id": "space_store_ok",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 44,
+          "endLine": 51
+        },
+        "claim": "NOT_FOUND: not found (read-context error is hidden by GetSharedMemo)"
+      },
+      {
+        "id": "space",
+        "op": "select",
+        "category": "finite-data-query",
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 44,
+          "endLine": 51
+        },
+        "claim": null
+      },
+      {
+        "id": "membership_store_ok",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 58,
+          "endLine": 80
+        },
+        "claim": "NOT_FOUND: not found (read-context error is hidden by GetSharedMemo)"
+      },
+      {
+        "id": "membership",
+        "op": "select",
+        "category": "finite-data-query",
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 58,
+          "endLine": 80
+        },
+        "claim": null
+      },
+      {
+        "id": "viewer_space_member",
+        "op": "value",
+        "category": "finite-expression",
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 70,
+          "endLine": 80
+        },
+        "claim": "Only a resolved membership with an active ADMIN or USER role sets ViewerSpaceMember."
+      },
+      {
+        "id": "share_exact_memo_access",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "core/access/memo.go",
+          "startLine": 87,
+          "endLine": 122
+        },
+        "claim": "SharedMemoID is the share row's MemoID, so the share branch applies only to that exact non-SPACE memo."
+      },
+      {
+        "id": "reactions_store_ok",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 191,
+          "endLine": 196
+        },
+        "claim": "INTERNAL: failed to list reactions"
+      },
+      {
+        "id": "attachments_store_ok",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 198,
+          "endLine": 201
+        },
+        "claim": "INTERNAL: failed to list attachments"
+      },
+      {
+        "id": "conversion_creator_store_ok",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "server/api/v1/memo_service_converter.go",
+          "startLine": 26,
+          "endLine": 31
+        },
+        "claim": "Conversion first lists the memo creator; a listing error is wrapped and then wrapped again by GetSharedMemo."
+      },
+      {
+        "id": "conversion_creator",
+        "op": "select",
+        "category": "finite-data-query",
+        "source": {
+          "path": "server/api/v1/memo_service_converter.go",
+          "startLine": 26,
+          "endLine": 38
+        },
+        "claim": "The response creator is independently resolved during conversion, not reused from access-context resolution."
+      },
+      {
+        "id": "conversion_creator_found",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "server/api/v1/memo_service_converter.go",
+          "startLine": 34,
+          "endLine": 39
+        },
+        "claim": "A missing conversion creator returns errMemoCreatorNotFound, which GetSharedMemo normalizes to NOT_FOUND."
+      },
+      {
+        "id": "space_projected",
+        "op": "value",
+        "category": "finite-expression",
+        "source": {
+          "path": "server/api/v1/memo_service_converter.go",
+          "startLine": 105,
+          "endLine": 137
+        },
+        "claim": "Placement is projected only for an assigned, valid Space when the viewer is the author, an active member, or an instance administrator; the share token itself is not one of those conditions."
+      },
+      {
+        "id": "conversion_ok",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 203,
+          "endLine": 209
+        },
+        "claim": "CONVERSION ERROR: failed to convert memo"
+      },
+      {
+        "id": "result",
+        "op": "return",
+        "category": "finite-return-with-unreviewed-meaning",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 186,
+          "endLine": 213
+        },
+        "claim": "The response creator comes from convertMemoFromStore's independent creator lookup; the response includes memo-scoped reactions and attachments, passes nil relations, clears Parent, and any Space projection derives from viewer relations rather than the token."
+      }
+    ],
+    "sourceDeclarations": [
+      {
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "symbol": "GetSharedMemo"
+        },
+        "statementCount": 0,
+        "semanticSupport": "author-declared"
+      },
+      {
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "symbol": "getActiveMemoShare"
+        },
+        "statementCount": 0,
+        "semanticSupport": "author-declared"
+      },
+      {
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "symbol": "isMemoShareExpired"
+        },
+        "statementCount": 0,
+        "semanticSupport": "author-declared"
+      },
+      {
+        "source": {
+          "path": "server/api/v1/auth_service_session.go",
+          "symbol": "fetchCurrentUser"
+        },
+        "statementCount": 0,
+        "semanticSupport": "author-declared"
+      },
+      {
+        "source": {
+          "path": "server/api/v1/memo_access.go",
+          "symbol": "buildMemoReadContext"
+        },
+        "statementCount": 0,
+        "semanticSupport": "author-declared"
+      },
+      {
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "symbol": "ResolveMemoReadContext"
+        },
+        "statementCount": 0,
+        "semanticSupport": "author-declared"
+      },
+      {
+        "source": {
+          "path": "core/access/memo.go",
+          "symbol": "CheckMemoReadContext"
+        },
+        "statementCount": 0,
+        "semanticSupport": "author-declared"
+      },
+      {
+        "source": {
+          "path": "store/instance_setting.go",
+          "symbol": "AllowsAnonymousAccess"
+        },
+        "statementCount": 0,
+        "semanticSupport": "author-declared"
+      },
+      {
+        "source": {
+          "path": "server/api/v1/memo_service_converter.go",
+          "symbol": "convertMemoFromStore"
+        },
+        "statementCount": 0,
+        "semanticSupport": "author-declared"
+      }
+    ],
+    "unknowns": [
+      "Connect transport decoding/error conversion is outside the local function contract.",
+      "The finite workflow records response inclusion of memo-scoped reactions and attachments but does not materialize every converted collection row.",
+      "Full protobuf field conversion, snippet generation, placement projection, and Connect transport error mapping are outside the requested token-access relation model."
+    ],
+    "coverageUnit": "original question and independent relation, never step percentage",
+    "relations": [
+      "creator query",
+      "space query",
+      "member query",
+      "context order",
+      "read decision"
+    ],
+    "policy": "none independently supplied",
+    "taskCompleteness": "requires original skill review separately"
+  },
+  {
+    "name": "M-final",
+    "questionId": "shared-memo-access",
+    "steps": [
+      {
+        "id": "share_store_ok",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 221,
+          "endLine": 225
+        },
+        "claim": "INTERNAL: failed to get memo share"
+      },
+      {
+        "id": "share",
+        "op": "select",
+        "category": "finite-data-query",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 221,
+          "endLine": 229
+        },
+        "claim": "The supplied token is looked up as MemoShare.UID."
+      },
+      {
+        "id": "share_found",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 221,
+          "endLine": 229
+        },
+        "claim": "NOT_FOUND: not found"
+      },
+      {
+        "id": "share_active",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 216,
+          "endLine": 229
+        },
+        "claim": "Expiry is strict: a share is expired only when now is greater than ExpiresTs."
+      },
+      {
+        "id": "memo_store_ok",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 178,
+          "endLine": 181
+        },
+        "claim": "INTERNAL: failed to get memo"
+      },
+      {
+        "id": "memo",
+        "op": "select",
+        "category": "finite-data-query",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 172,
+          "endLine": 185
+        },
+        "claim": "The selected share row's MemoID binds the returned memo."
+      },
+      {
+        "id": "memo_visible_state",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 182,
+          "endLine": 184
+        },
+        "claim": "The root rejects a missing or non-NORMAL memo and SPACE visibility before building read context; unknown non-SPACE visibility is rejected later by CheckMemoReadContext."
+      },
+      {
+        "id": "viewer_store_ok",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "server/api/v1/auth_service_session.go",
+          "startLine": 269,
+          "endLine": 286
+        },
+        "claim": "NOT_FOUND: not found (current-user resolution error is hidden by GetSharedMemo)"
+      },
+      {
+        "id": "viewer_row",
+        "op": "select",
+        "category": "finite-data-query",
+        "source": {
+          "path": "server/api/v1/auth_service_session.go",
+          "startLine": 269,
+          "endLine": 286
+        },
+        "claim": null
+      },
+      {
+        "id": "viewer_exists",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "server/api/v1/auth_service_session.go",
+          "startLine": 269,
+          "endLine": 286
+        },
+        "claim": "NOT_FOUND: not found (current-user resolution error is hidden by GetSharedMemo)"
+      },
+      {
+        "id": "viewer",
+        "op": "value",
+        "category": "finite-expression",
+        "source": {
+          "path": "server/api/v1/auth_service_session.go",
+          "startLine": 269,
+          "endLine": 290
+        },
+        "claim": null
+      },
+      {
+        "id": "instance_setting_ok",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "server/api/v1/memo_access.go",
+          "startLine": 17,
+          "endLine": 29
+        },
+        "claim": "NOT_FOUND: not found (instance-access lookup error is hidden by GetSharedMemo)"
+      },
+      {
+        "id": "allow_anonymous",
+        "op": "value",
+        "category": "finite-expression",
+        "source": {
+          "path": "store/instance_setting.go",
+          "startLine": 255,
+          "endLine": 262
+        },
+        "claim": null
+      },
+      {
+        "id": "creator_store_ok",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 31,
+          "endLine": 42
+        },
+        "claim": "NOT_FOUND: not found (read-context error is hidden by GetSharedMemo)"
+      },
+      {
+        "id": "creator",
+        "op": "select",
+        "category": "finite-data-query",
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 31,
+          "endLine": 42
+        },
+        "claim": null
+      },
+      {
+        "id": "creator_valid",
+        "op": "value",
+        "category": "finite-expression",
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 31,
+          "endLine": 42
+        },
+        "claim": "ResolveMemoReadFacts records creator validity but does not deny yet; it continues to resolve optional placement before CheckMemoReadContext."
+      },
+      {
+        "id": "space_store_ok",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 44,
+          "endLine": 51
+        },
+        "claim": "NOT_FOUND: not found (read-context error is hidden by GetSharedMemo)"
+      },
+      {
+        "id": "space",
+        "op": "select",
+        "category": "finite-data-query",
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 44,
+          "endLine": 51
+        },
+        "claim": null
+      },
+      {
+        "id": "membership_store_ok",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 58,
+          "endLine": 80
+        },
+        "claim": "NOT_FOUND: not found (read-context error is hidden by GetSharedMemo)"
+      },
+      {
+        "id": "membership",
+        "op": "select",
+        "category": "finite-data-query",
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 58,
+          "endLine": 80
+        },
+        "claim": null
+      },
+      {
+        "id": "viewer_space_member",
+        "op": "value",
+        "category": "finite-expression",
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "startLine": 70,
+          "endLine": 80
+        },
+        "claim": "Only a resolved membership with an active ADMIN or USER role sets ViewerSpaceMember."
+      },
+      {
+        "id": "read_policy_valid",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "core/access/memo.go",
+          "startLine": 92,
+          "endLine": 117
+        },
+        "claim": "Policy validation happens only after creator, placement, and viewer membership context resolution. For GetSharedMemo, its earlier root gate already makes the reachable memo NORMAL and non-SPACE."
+      },
+      {
+        "id": "viewer_is_instance_admin",
+        "op": "value",
+        "category": "finite-expression",
+        "source": {
+          "path": "core/access/memo.go",
+          "startLine": 67,
+          "endLine": 69
+        },
+        "claim": "IsInstanceAdmin requires an active viewer whose instance role is ADMIN; this exact helper span discharges the remaining helper branch and return candidates."
+      },
+      {
+        "id": "share_exact_memo_access",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "core/access/memo.go",
+          "startLine": 107,
+          "endLine": 122
+        },
+        "claim": "A structurally valid instance-admin read returns before the share branch; non-admin shared reads require exact MemoID and non-SPACE visibility."
+      },
+      {
+        "id": "reactions_store_ok",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 191,
+          "endLine": 196
+        },
+        "claim": "INTERNAL: failed to list reactions"
+      },
+      {
+        "id": "attachments_store_ok",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 198,
+          "endLine": 201
+        },
+        "claim": "INTERNAL: failed to list attachments"
+      },
+      {
+        "id": "conversion_creator_store_ok",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "server/api/v1/memo_service_converter.go",
+          "startLine": 26,
+          "endLine": 31
+        },
+        "claim": "Conversion first lists the memo creator; a listing error is wrapped and then wrapped again by GetSharedMemo."
+      },
+      {
+        "id": "conversion_creator",
+        "op": "select",
+        "category": "finite-data-query",
+        "source": {
+          "path": "server/api/v1/memo_service_converter.go",
+          "startLine": 26,
+          "endLine": 38
+        },
+        "claim": "The response creator is independently resolved during conversion, not reused from access-context resolution."
+      },
+      {
+        "id": "conversion_creator_found",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "server/api/v1/memo_service_converter.go",
+          "startLine": 34,
+          "endLine": 39
+        },
+        "claim": "A missing conversion creator returns errMemoCreatorNotFound, which GetSharedMemo normalizes to NOT_FOUND."
+      },
+      {
+        "id": "space_projected",
+        "op": "value",
+        "category": "finite-expression",
+        "source": {
+          "path": "server/api/v1/memo_service_converter.go",
+          "startLine": 105,
+          "endLine": 137
+        },
+        "claim": "Placement is projected only for an assigned, valid Space when the viewer is the author, an active member, or an instance administrator; the share token itself is not one of those conditions."
+      },
+      {
+        "id": "conversion_ok",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 203,
+          "endLine": 209
+        },
+        "claim": "CONVERSION ERROR: failed to convert memo"
+      },
+      {
+        "id": "result",
+        "op": "return",
+        "category": "finite-return-with-unreviewed-meaning",
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "startLine": 186,
+          "endLine": 213
+        },
+        "claim": "The response creator comes from convertMemoFromStore's independent creator lookup; the response includes memo-scoped reactions and attachments, passes nil relations, clears Parent, and any Space projection derives from viewer relations rather than the token."
+      }
+    ],
+    "sourceDeclarations": [
+      {
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "symbol": "GetSharedMemo"
+        },
+        "statementCount": 0,
+        "semanticSupport": "author-declared"
+      },
+      {
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "symbol": "getActiveMemoShare"
+        },
+        "statementCount": 0,
+        "semanticSupport": "author-declared"
+      },
+      {
+        "source": {
+          "path": "server/api/v1/memo_share_service.go",
+          "symbol": "isMemoShareExpired"
+        },
+        "statementCount": 0,
+        "semanticSupport": "author-declared"
+      },
+      {
+        "source": {
+          "path": "server/api/v1/auth_service_session.go",
+          "symbol": "fetchCurrentUser"
+        },
+        "statementCount": 0,
+        "semanticSupport": "author-declared"
+      },
+      {
+        "source": {
+          "path": "server/api/v1/memo_access.go",
+          "symbol": "buildMemoReadContext"
+        },
+        "statementCount": 0,
+        "semanticSupport": "author-declared"
+      },
+      {
+        "source": {
+          "path": "core/access/memo_resolve.go",
+          "symbol": "ResolveMemoReadContext"
+        },
+        "statementCount": 0,
+        "semanticSupport": "author-declared"
+      },
+      {
+        "source": {
+          "path": "core/access/memo.go",
+          "symbol": "CheckMemoReadContext"
+        },
+        "statementCount": 0,
+        "semanticSupport": "author-declared"
+      },
+      {
+        "source": {
+          "path": "store/instance_setting.go",
+          "symbol": "AllowsAnonymousAccess"
+        },
+        "statementCount": 0,
+        "semanticSupport": "author-declared"
+      },
+      {
+        "source": {
+          "path": "server/api/v1/memo_service_converter.go",
+          "symbol": "convertMemoFromStore"
+        },
+        "statementCount": 0,
+        "semanticSupport": "author-declared"
+      }
+    ],
+    "unknowns": [
+      "Connect transport decoding/error conversion is outside the local function contract.",
+      "The finite workflow records response inclusion of memo-scoped reactions and attachments but does not materialize every converted collection row.",
+      "Full protobuf field conversion, snippet generation, placement projection, and Connect transport error mapping are outside the requested token-access relation model."
+    ],
+    "coverageUnit": "original question and independent relation, never step percentage",
+    "relations": [
+      "creator query",
+      "space query",
+      "member query",
+      "context order",
+      "read decision"
+    ],
+    "policy": "none independently supplied",
+    "taskCompleteness": "requires original skill review separately"
+  },
+  {
+    "name": "G-final",
+    "questionId": "create-issue",
+    "steps": [
+      {
+        "id": "token_scope_gate",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "routers/api/v1/api.go",
+          "startLine": 327,
+          "endLine": 370
+        },
+        "claim": "When API token scope data is present, POST requires write:issue (or all); scope parsing/check errors and absence of the required scope produce 403."
+      },
+      {
+        "id": "repo_assignment_completed",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "routers/api/v1/api.go",
+          "startLine": 146,
+          "endLine": 170
+        },
+        "claim": "Repository assignment failed before endpoint middleware and the handler was not entered."
+      },
+      {
+        "id": "public_only_gate",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "routers/api/v1/api.go",
+          "startLine": 252,
+          "endLine": 306
+        },
+        "claim": "A public-only token cannot access a private repository through the issue-scoped route."
+      },
+      {
+        "id": "binding_completed",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "routers/api/v1/api.go",
+          "startLine": 1649,
+          "endLine": 1649
+        },
+        "claim": "CreateIssueOption binding failed before CreateIssue."
+      },
+      {
+        "id": "route_reader_gate",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "routers/api/v1/api.go",
+          "startLine": 1649,
+          "endLine": 1649
+        },
+        "claim": "The endpoint requires a signed-in principal, a non-archived repository, and issues read access unless repository/site admin bypass applies."
+      },
+      {
+        "id": "can_write_issues",
+        "op": "value",
+        "category": "finite-expression",
+        "source": {
+          "path": "models/perm/access/repo_permission.go",
+          "startLine": 153,
+          "endLine": 155
+        },
+        "claim": "CanWrite calls CanAccess with AccessModeWrite; CanAccess compares UnitAccessMode(unitType) against that mode. The supplied unit-presence and mode fields are the bounded finite representation."
+      },
+      {
+        "id": "deadline_value",
+        "op": "value",
+        "category": "finite-expression",
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 570,
+          "endLine": 585
+        },
+        "claim": null
+      },
+      {
+        "id": "labels_for_create",
+        "op": "value",
+        "category": "finite-expression",
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 587,
+          "endLine": 624
+        },
+        "claim": null
+      },
+      {
+        "id": "milestone_value",
+        "op": "value",
+        "category": "finite-expression",
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 587,
+          "endLine": 622
+        },
+        "claim": null
+      },
+      {
+        "id": "assignees_for_create",
+        "op": "value",
+        "category": "finite-expression",
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 587,
+          "endLine": 622
+        },
+        "claim": "Writer branch resolves requested assignee names; non-writers never reach that resolution branch."
+      },
+      {
+        "id": "projects_for_create",
+        "op": "value",
+        "category": "finite-expression",
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 624,
+          "endLine": 624
+        },
+        "claim": "Projects are passed to NewIssue outside the CanWrite(TypeIssues) branch."
+      },
+      {
+        "id": "prepared_issue",
+        "op": "value",
+        "category": "finite-expression",
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 570,
+          "endLine": 624
+        },
+        "claim": "Collection arguments are modeled in separate value steps because finite records are scalar-valued."
+      },
+      {
+        "id": "load_poster_completed",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "services/issue/issue.go",
+          "startLine": 25,
+          "endLine": 28
+        },
+        "claim": "NewIssue failed while loading the issue poster, before its transaction."
+      },
+      {
+        "id": "owner_block_gate",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "services/issue/issue.go",
+          "startLine": 30,
+          "endLine": 32
+        },
+        "claim": "The poster is blocked by the repository owner; NewIssue returns ErrBlockedUser before the transaction."
+      },
+      {
+        "id": "create_transaction_error",
+        "op": "value",
+        "category": "finite-expression",
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 624,
+          "endLine": 633
+        },
+        "claim": "The finite input records the observed error returned by the visible NewIssue call; null means normal return only."
+      },
+      {
+        "id": "transaction_completed",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "services/issue/issue.go",
+          "startLine": 34,
+          "endLine": 62
+        },
+        "claim": "The NewIssue transaction call returned an error; the handler returns without a success response."
+      },
+      {
+        "id": "created_issue_value",
+        "op": "value",
+        "category": "finite-expression",
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 624,
+          "endLine": 633
+        },
+        "claim": "Available only after the visible NewIssue call returned normally; transaction internals are not inferred."
+      },
+      {
+        "id": "create_completed",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "services/issue/issue.go",
+          "startLine": 64,
+          "endLine": 83
+        },
+        "claim": "Mention discovery/update failed after the transaction call returned; the handler returns an error and no 201 response is established, while transaction durability remains an unmodeled limit."
+      },
+      {
+        "id": "close_error",
+        "op": "value",
+        "category": "finite-expression",
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 635,
+          "endLine": 644
+        },
+        "claim": null
+      },
+      {
+        "id": "close_completed",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 635,
+          "endLine": 644
+        },
+        "claim": "Requested immediate close failed; dependency errors become 412 and other errors become internal errors."
+      },
+      {
+        "id": "refetch_completed",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 646,
+          "endLine": 651
+        },
+        "claim": "Post-create issue refetch failed and the handler returned an internal error."
+      },
+      {
+        "id": "response_load_completed",
+        "op": "guard",
+        "category": "authored-source-condition",
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 652,
+          "endLine": 652
+        },
+        "claim": "Response conversion/loading did not complete normally; no 201 response is established."
+      },
+      {
+        "id": "result",
+        "op": "return",
+        "category": "finite-return-with-unreviewed-meaning",
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 624,
+          "endLine": 652
+        },
+        "claim": null
+      }
+    ],
+    "sourceDeclarations": [
+      {
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "symbol": "CreateIssue"
+        },
+        "statementCount": 0,
+        "semanticSupport": "author-declared"
+      },
+      {
+        "source": {
+          "path": "models/perm/access/repo_permission.go",
+          "symbol": "CanWrite",
+          "receiverClass": "models/perm/access.Permission"
+        },
+        "statementCount": 0,
+        "semanticSupport": "author-declared"
+      }
+    ],
+    "unknowns": [
+      "Route middleware authentication, repository assignment, token scope enforcement, archived-repository handling, and request binding remain to be traced",
+      "Permission construction may include public/everyone access maps not represented by the supplied finite inputs",
+      "Transaction, notification, and response-conversion internals remain to be traced",
+      "The handler does not make CanWrite(TypeIssues) a precondition for issue creation; it gates only deadline, milestone, labels, and assignee handling in the modeled span.",
+      "The finite permission inputs do not expose every UnitAccessMode construction branch, including anonymous/everyone maps.",
+      "Route middleware, binding failures, assignee lookup and assignability, NewIssue transaction effects, optional close, refetch, and response conversion are not yet modeled."
+    ],
+    "coverageUnit": "original question and independent relation, never step percentage",
+    "relations": [
+      "route gates",
+      "field preparation",
+      "create/close/refetch order",
+      "converter return and HTTP status"
+    ],
+    "policy": "none independently supplied",
+    "taskCompleteness": "requires original skill review separately"
+  }
+]

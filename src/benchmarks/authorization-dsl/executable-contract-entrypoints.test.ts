@@ -10,6 +10,40 @@ import { runAuthorizationInquiry } from "./inquiry-run.ts"
 import { emptyTokenUsage } from "../../core/types.ts"
 import { createProgramDraft } from "../../task-dsl/authorization/resource-program-draft.ts"
 import { questionWorkflowDefinitions, RESOURCE_PROGRAM_TEMPLATE } from "./question-workflow-wire.ts"
+test("BU ordinary CLI/native trial expose independent counterexample then patch and source invalidation", async () => {
+  const f=await contractFiles(), {createHash}=await import("node:crypto"), configFile=path.join(f.root,"verify.json")
+  const input=JSON.parse(await readFile(f.inputFile,"utf8")); input.resourceInputs={q:{item:7}}; await writeFile(f.inputFile,JSON.stringify(input))
+  await writeFile(f.domainProgramFile,JSON.stringify({...f.contract,resourceWorkflow:{inputs:["item"],steps:[{id:"result",op:"return",value:{literal:1},source:at(8)}]}}))
+  await writeFile(path.join(f.root,"observe.cjs"),"let s='';process.stdin.on('data',c=>s+=c);process.stdin.on('end',()=>console.log(JSON.stringify({status:'observed',events:[],result:JSON.parse(s).resourceInputs.item,error:null})))")
+  await writeFile(configFile,JSON.stringify({schemaVersion:"authorization-source-verification/v1",sources:[{path:"app.py",sha256:createHash("sha256").update(source).digest("hex")}],adapter:{command:process.execPath,args:["observe.cjs"],timeoutMs:5000},requirements:[{id:"returned-item",questionId:"q",kind:"decision",objectRelation:"none",sourceEvents:[],scope:"anonymous return fixture"}],mappings:{"returned-item":{events:[],resultStepId:"result"}}}))
+  const output:string[]=[]
+  await runAuthorizationInquiryCli(["check",`--input=${f.inputFile}`,"--strategy=question-checked-v1",`--domain-program=${f.domainProgramFile}`,`--source-verification=${configFile}`],{stdout:t=>output.push(t),stderr:()=>{}})
+  expect(JSON.parse(output[0]!).executableContract.sourceVerification.requirements[0].status).toBe("counterexample")
+  const native=await createNativeInquiryRuntime({inputFile:f.inputFile,workDir:f.root,domainTools:true,strategy:"question-checked-v1",programMode:"edit",executionPolicy:"progressive",domainProgramFile:f.domainProgramFile,sourceVerificationFile:configFile} as any)
+  try {
+    const before:any=native.report().domain?.executableContract
+    expect(before.sourceVerification.requirements[0].firstDifference).toEqual({field:"result",source:7,program:1})
+    const details=await native.execute({id:"details",name:"authorization_program_details",arguments:{view:"draft",expectedRevision:before.currentDraft.revision}})
+    expect(details.output).toContain("counterexample")
+    await native.execute({id:"patch",name:"authorization_program_patch",arguments:{baseRevision:before.currentDraft.revision,upsertSteps:[{id:"result",op:"return",value:{ref:"item"},source:at(8)}]}})
+    const after:any=native.report().domain?.executableContract
+    expect(after.sourceVerification.requirements[0].status).toBe("matched-on-cases")
+    expect(after.sourceVerification.observerAccounting.totalExecutions).toBe(1)
+    expect(after.sourceVerification.observerAccounting.cacheHit).toBe(true)
+    const trial=await native.execute({id:"trial",name:"authorization_program_trial",arguments:{expectedRevision:after.currentDraft.revision,cases:[{id:"changed",resourceInputs:{item:9}}]}})
+    expect(trial.output).toContain("matched-on-cases")
+    expect(trial.output).not.toContain('"program":1')
+    await writeFile(path.join(f.root,"source/app.py"),source+"\n# changed\n")
+    await native.close() // Existing final snapshot verification detects changed bytes.
+    const invalidated:any=native.report().domain?.executableContract
+    expect(invalidated.sourceVerification.requirements[0].status).toBe("unknown")
+    expect(invalidated.sourceVerification.requirements[0].diagnostics).toContain("source-observation-stale")
+  } finally {await native.close()}
+  await writeFile(path.join(f.root,"source/app.py"),source+"\n# changed\n")
+  const stale:any=await checkAuthorizationInquiry(f.inputFile,"D1","question-checked-v1",f.domainProgramFile,{sourceVerificationFile:configFile} as any)
+  expect(stale.executableContract.sourceVerification.requirements[0].status).toBe("unknown")
+  expect(stale.executableContract.sourceVerification.requirements[0].diagnostics.join()).toContain("source")
+})
 test("BM directed deduplicates the actual sent packet and a fresh session starts with a full basis", async () => {
   const f = await contractFiles(), packets: any[] = []
   const sourceFile = path.join(f.root, "source/app.py")

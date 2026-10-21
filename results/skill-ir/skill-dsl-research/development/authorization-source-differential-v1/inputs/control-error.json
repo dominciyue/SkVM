@@ -1,0 +1,153 @@
+{
+  "schemaVersion": "authorization-inquiry-input/v1",
+  "taskId": "memos-share",
+  "repository": "usememos/memos",
+  "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+  "sourceRoot": "../../authorization-domain-execution-v1/model/public-source/memos",
+  "allowedPaths": [
+    "server/api/v1",
+    "core/access",
+    "store",
+    "proto/api/v1",
+    "internal/ratelimit"
+  ],
+  "inquiry": {
+    "schemaVersion": "authorization-inquiry/v2",
+    "mode": "behavior",
+    "operations": [
+      {
+        "id": "shared-memo",
+        "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+        "entryHint": "server/api/v1/memo_share_service.go::GetSharedMemo"
+      }
+    ],
+    "questions": [
+      {
+        "id": "shared-memo-access",
+        "request": "Investigate GetSharedMemo in this Memos revision. How does a supplied share token bind to the memo that is returned, and which visible controls and exceptions determine access? Compare invalid or expired tokens with a valid token, and distinguish what an unauthenticated caller can obtain from what the same token authorizes around the memo. Read relevant dependencies as needed. Describe source behavior and its limits; no normative policy is supplied.",
+        "principal": "caller supplying a share token",
+        "resource": "memo and surrounding resources",
+        "operation": "read shared memo",
+        "entryHint": "GetSharedMemo and relevant allowed dependencies",
+        "premises": [],
+        "operationId": "shared-memo",
+        "intent": "behavior"
+      }
+    ]
+  },
+  "resourceInputs": {
+    "shared-memo-access": {
+      "request": {
+        "ShareToken": "share-alpha"
+      },
+      "now": 2000,
+      "contextUserID": 22,
+      "instanceAccessMode": "PRIVATE",
+      "shares": [
+        {
+          "ID": 71,
+          "UID": "share-alpha",
+          "MemoID": 43,
+          "CreatorID": 17,
+          "ExpiresTs": 2000
+        },
+        {
+          "ID": 72,
+          "UID": "share-other",
+          "MemoID": 89,
+          "CreatorID": 22,
+          "ExpiresTs": null
+        }
+      ],
+      "memos": [
+        {
+          "ID": 43,
+          "UID": "memo-alpha",
+          "CreatorID": 17,
+          "RowStatus": "NORMAL",
+          "Visibility": "PRIVATE",
+          "SpaceID": 8,
+          "ParentUID": "parent-private",
+          "Content": "shared body"
+        },
+        {
+          "ID": 89,
+          "UID": "memo-other",
+          "CreatorID": 22,
+          "RowStatus": "NORMAL",
+          "Visibility": "PRIVATE",
+          "SpaceID": null,
+          "ParentUID": null,
+          "Content": "unrelated body"
+        }
+      ],
+      "users": [
+        {
+          "ID": 17,
+          "Username": "author-a",
+          "RowStatus": "NORMAL",
+          "Role": "USER"
+        },
+        {
+          "ID": 22,
+          "Username": "author-b",
+          "RowStatus": "NORMAL",
+          "Role": "USER"
+        }
+      ],
+      "spaces": [
+        {
+          "ID": 8
+        },
+        {
+          "ID": 9
+        }
+      ],
+      "memberships": [
+        {
+          "SpaceID": 8,
+          "UserID": 22,
+          "Role": "USER"
+        },
+        {
+          "SpaceID": 9,
+          "UserID": 17,
+          "Role": "ADMIN"
+        }
+      ],
+      "reactions": [],
+      "attachments": [],
+      "storeErrors": {
+        "share": null,
+        "memo": null,
+        "viewer": null,
+        "instanceSetting": null,
+        "creator": "creator-fault",
+        "space": null,
+        "membership": null,
+        "reactions": null,
+        "attachments": null,
+        "conversion": null,
+        "conversionCreator": null
+      },
+      "conversionUsers": [
+        {
+          "ID": 17,
+          "Username": "author-a",
+          "RowStatus": "NORMAL",
+          "Role": "USER"
+        },
+        {
+          "ID": 22,
+          "Username": "author-b",
+          "RowStatus": "NORMAL",
+          "Role": "USER"
+        }
+      ]
+    }
+  },
+  "sourceNotes": {
+    "format": "markdown",
+    "text": "This is a researcher-authored source-analysis and shared-link troubleshooting task, not a customer incident or live service run. Answer the complete original question for the supplied finite scenario and explain relevant alternate branches. In edit mode also deliver a reusable source program, repairing the supplied existing draft. In consume mode keep the supplied program unchanged. Facts are synthetic request, clock, database rows and operation error observations. Collections are complete finite populations; field names follow Go store structs, membership rows have SpaceID/UserID/Role. storeErrors null means the named storage operation returns normally, not an access grant; absent facts are unknown. No external allowed/access decision is supplied. Read source-visible helper logic or retain it as a named unresolved responsibility. Broader security-skill duties and unavailable deployment facts remain explicit. conversionUsers is the finite population returned by the later ListUsers call during conversion, separately from users used for access context; conversionCreator in storeErrors describes that operation's error. These are synthetic database observations, not an expected answer."
+  }
+}

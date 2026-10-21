@@ -21,6 +21,8 @@ import { ProgramInputBindingSchema, programInputBindingSummary, type ProgramInpu
 import { AuthoringTargetSchema } from "./program-coverage.ts"
 import { collectProgramObligations } from "./program-obligations.ts"
 import { projectProgramOutcome } from "./program-outcome.ts"
+import { VerificationMappingsSchema, type ProgramVerifier } from "./program-verification.ts"
+import { createProgramDraft } from "./resource-program-draft.ts"
 
 const scope = z.object({ kind: z.enum(["function-contract", "request-operation"]), questionId: InquiryText, operationId: InquiryText.optional(), root: SourceCitationSchema, upstream: z.array(InquiryText).max(32) }).strict()
 export const ExecutableContractSchema = z.object({ schemaVersion: z.literal("authorization-executable-contract/v1"), id: InquiryText, scope,
@@ -29,6 +31,7 @@ export const ExecutableContractSchema = z.object({ schemaVersion: z.literal("aut
   resourceWorkflow: ResourceWorkflowSchema.optional(),
   inputBinding: ProgramInputBindingSchema.optional(),
   authoringTarget: AuthoringTargetSchema.optional(),
+  verificationMappings: VerificationMappingsSchema.optional(),
 }).strict()
 const sourceInput = z.union([SourceCitationSchema, z.object({ symbol: InquiryText, path: InquiryText.optional(), receiverClass: InquiryText.optional(), sha256: InquiryText.optional() }).strict()])
 /** Author-facing mechanical omissions; normalization still resolves source identity in the live index. */
@@ -102,7 +105,7 @@ export async function readExecutableContractSources(raw: unknown, tools: Inquiry
 /** One source-declaration compiler, material projector and property evaluator.
  * Files and native tools call this same host function. It never reads source on
  * behalf of a model, accepts verdicts, or promotes a local root to request entry. */
-export async function compileExecutableContract(raw: unknown, options: { tools: InquiryTools; program: AuthorizationInquiryProgram; confirmedEntries?: BoundSemanticBlock[]; inputs?: Record<string, FiniteValue>; interpretationSource?: SourceMaterial["interpretationSource"]; executionPolicy?: ExecutionPolicy; resourceInputs?: Record<string, ResourceValue>; externalAssumptions?: z.infer<typeof ExternalAssumptionsSchema>; inputResolution?: ProgramInputResolution }) {
+export async function compileExecutableContract(raw: unknown, options: { sourceVerifier?: ProgramVerifier; tools: InquiryTools; program: AuthorizationInquiryProgram; confirmedEntries?: BoundSemanticBlock[]; inputs?: Record<string, FiniteValue>; interpretationSource?: SourceMaterial["interpretationSource"]; executionPolicy?: ExecutionPolicy; resourceInputs?: Record<string, ResourceValue>; externalAssumptions?: z.infer<typeof ExternalAssumptionsSchema>; inputResolution?: ProgramInputResolution }) {
   const progressive = options.executionPolicy === "progressive", normalized = normalizeExecutableContract(raw, options.tools.structure)
   const diagnostics: InquiryDiagnostic[] = [], candidate: any = normalized.value
   if (progressive && Array.isArray(candidate?.sourceDeclarations)) candidate.sourceDeclarations = candidate.sourceDeclarations.filter((d: unknown, i: number) => {
@@ -113,7 +116,7 @@ export async function compileExecutableContract(raw: unknown, options: { tools: 
   })
   const parsed = (progressive ? ExecutableContractSchema.extend({ resourceWorkflow: ResourceWorkflowDraftSchema.optional() }) : ExecutableContractSchema).safeParse(candidate)
   const fail = (code: string, path: string, message: string) => diagnostics.push({ code: `contract-${code}`, path, message, severity: "error", ...(parsed.success ? { questionId: parsed.data.scope.questionId } : {}) })
-  const empty = () => ({ diagnostics, normalizations: normalized.normalizations, units: [] as BoundSemanticBlock[], materialUses: [] as ReturnType<typeof projectSourceMaterials>["uses"], requestOperationCertified: false as const })
+  const empty = async () => ({ sourceVerification: await options.sourceVerifier?.({raw,execution:undefined,resourceInputs:options.resourceInputs,questionId:(raw as any)?.scope?.questionId??"",revision:createProgramDraft(raw).revision,tools:options.tools}), diagnostics, normalizations: normalized.normalizations, units: [] as BoundSemanticBlock[], materialUses: [] as ReturnType<typeof projectSourceMaterials>["uses"], requestOperationCertified: false as const })
   if (!parsed.success) { for (const issue of parsed.error.issues) fail("shape", issue.path.join("."), issue.message); return empty() }
   const contract = parsed.data, index = options.tools.structure, question = options.program.questions.find(q => q.id === contract.scope.questionId)
   if (contract.resourceWorkflow) {
@@ -233,6 +236,7 @@ export async function compileExecutableContract(raw: unknown, options: { tools: 
   // a later return/exception gap cannot invalidate an already covered prefix.
   const evaluation = checkPropertyQueries(options.program, lowered.state, demands, projected.units, [], progressive ? [] : diagnostics, true, "semantic-completion/v1")
   const obligations = await collectProgramObligations(options.tools, contract)
-  const outcome = projectProgramOutcome({ program: contract, resourceExecution, obligations, diagnostics })
-  return { obligations, outcome, diagnostics, normalizations: normalized.normalizations, resourceExecution, inputBinding: options.inputResolution && programInputBindingSummary(options.inputResolution), contract, revision: digest([contract, options.program, conditions, options.resourceInputs, options.externalAssumptions, options.inputResolution && programInputBindingSummary(options.inputResolution), owners.map(o => o.skeleton.revision)]), scope: contract.scope, assumptions: contract.assumptions, conditions: structuredClone(conditions), units, projectedUnits: projected.units, functionRoots, sourceMaterials: materials.snapshot(), materialUses: projected.uses, materialProjection: { diagnostics: projected.diagnostics, stages: projected.stages }, demands, slice: lowered.state, loweringDiagnostics: lowered.diagnostics, evaluation, requestOperationCertified: false as const, semanticReview: "unreviewed" as const }
+  const sourceVerification = await options.sourceVerifier?.({raw,execution:resourceExecution,resourceInputs:options.resourceInputs,questionId:question.id,revision:createProgramDraft(raw).revision,tools:options.tools})
+  const outcome = projectProgramOutcome({ program: contract, resourceExecution, obligations, diagnostics, sourceVerification })
+  return { sourceVerification, obligations, outcome, diagnostics, normalizations: normalized.normalizations, resourceExecution, inputBinding: options.inputResolution && programInputBindingSummary(options.inputResolution), contract, revision: digest([contract, options.program, conditions, options.resourceInputs, options.externalAssumptions, options.inputResolution && programInputBindingSummary(options.inputResolution), owners.map(o => o.skeleton.revision)]), scope: contract.scope, assumptions: contract.assumptions, conditions: structuredClone(conditions), units, projectedUnits: projected.units, functionRoots, sourceMaterials: materials.snapshot(), materialUses: projected.uses, materialProjection: { diagnostics: projected.diagnostics, stages: projected.stages }, demands, slice: lowered.state, loweringDiagnostics: lowered.diagnostics, evaluation, requestOperationCertified: false as const, semanticReview: "unreviewed" as const }
 }

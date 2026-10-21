@@ -3,9 +3,10 @@ import { z } from "zod"
 import type { InquiryDiagnostic } from "./inquiry.ts"
 import { ProgramInputBindingSchema } from "./program-input-binding.ts"
 import { AuthoringTargetSchema } from "./program-coverage.ts"
+import { VerificationMappingsSchema } from "./program-verification.ts"
 
 const id = z.string().min(1).max(256).refine(v => !["__proto__", "prototype", "constructor"].includes(v))
-export const ProgramStepPatchSchema = z.object({ baseRevision: z.string().min(1), upsertSteps: z.array(z.object({ id }).passthrough()).max(128), removeStepIds: z.array(id).max(128).optional(), inputNames: z.array(id).max(64).optional(), stepOrder: z.array(id).max(128).optional(), inputBinding: ProgramInputBindingSchema.nullable().optional(), authoringTarget: AuthoringTargetSchema.nullable().optional() }).strict()
+export const ProgramStepPatchSchema = z.object({ baseRevision: z.string().min(1), upsertSteps: z.array(z.object({ id }).passthrough()).max(128), removeStepIds: z.array(id).max(128).optional(), inputNames: z.array(id).max(64).optional(), stepOrder: z.array(id).max(128).optional(), inputBinding: ProgramInputBindingSchema.nullable().optional(), authoringTarget: AuthoringTargetSchema.nullable().optional(), verificationMappings: VerificationMappingsSchema.nullable().optional() }).strict()
 export interface ProgramDraft { revision: string; raw: any }
 const identity = (v: any) => JSON.stringify([v?.id, v?.scope?.questionId])
 export function createProgramDraft(raw: unknown, previous?: ProgramDraft): ProgramDraft {
@@ -49,6 +50,10 @@ export function patchProgramDraft(current: ProgramDraft | undefined, raw: unknow
     else value.inputBinding = patch.inputBinding
   }
   value.resourceWorkflow = workflow
+  if (Object.hasOwn(patch, "verificationMappings")) {
+    if (patch.verificationMappings === null) delete value.verificationMappings
+    else value.verificationMappings = patch.verificationMappings
+  }
   if (Object.hasOwn(patch, "authoringTarget")) {
     if (patch.authoringTarget === null) delete value.authoringTarget
     else value.authoringTarget = patch.authoringTarget

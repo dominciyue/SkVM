@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-**BU0–BU19已获用户授权，任务书已登记，等待新开发线程接管。** [任务书](../superpowers/plans/2026-10-21-authorization-source-differential-verification.md) identity为`authorization-source-differential-v1`，从BT最终`491812b4`继续。开发`gpt-6-astra/high`，实验官方`gpt-5.6-sol/high`，第三方暂停。本次规划没有新增生产实现或项目效果实验。
+**BU0–BU10已实施，有限模型队列准备中。** [任务书](../superpowers/plans/2026-10-21-authorization-source-differential-verification.md) identity为`authorization-source-differential-v1`，接管HEAD `9ac569b1`。独立要求、参数敏感M原函数观察及普通check/run/trial/details差分已接通；13案零模型回放检出真实提前拒绝和4个语义变异，4个中性控制无误报，缺映射/错误结果仍unknown。G仅源码评阅。见[执行记录](../../results/skill-ir/skill-dsl-research/development/authorization-source-differential-v1/execution.md)。开发`gpt-6-astra/high`，实验官方`gpt-5.6-sol/high`，第三方暂停，尚无本轮付费派发。
 
 本轮重点是独立于作者的核验要求、参数敏感的Memos原函数观察、共享源码/程序差分及普通作者反例修复。十个正常模型用途用于LLM复核、两组修稿与实际使用，至多两次有据确认；停止同形N/R/E消费者面板。源码忠实性、用户政策、原题完整性分开评价。方法见[spec§14.60](skill-ir-aot-optimization-spec.md#1460-bu-source-differential-verification)、[研究§7.82](skill-dsl-research.md#782-bt-复核与-bu-源码差分核验)。旧原件、`.tmp/`和默认入口保留。
 

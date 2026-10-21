@@ -1,0 +1,127 @@
+{
+  "schemaVersion": "authorization-source-verification/v1",
+  "sources": [
+    {
+      "path": "core/access/memo.go",
+      "sha256": "86d782c17efe235db8ad4366b4f708a066d7a4a835639b6c0e70895f2e21e639"
+    },
+    {
+      "path": "core/access/memo_resolve.go",
+      "sha256": "8b1a25c79431f51a5f7b5d8c1d12d7e587b7d45edfcefa853f2d9d02c9cb5d1e"
+    }
+  ],
+  "adapter": {
+    "command": "python",
+    "args": [
+      "..\\..\\..\\..\\..\\scripts\\research\\authorization-source-differential-v1\\source-tests\\observe.py",
+      "--stdin"
+    ],
+    "timeoutMs": 60000
+  },
+  "requirements": [
+    {
+      "id": "creator-query",
+      "kind": "query-binding",
+      "objectRelation": "same-object",
+      "sourceEvents": [
+        "GetUser"
+      ],
+      "valueFields": [
+        "ID",
+        "RowStatus",
+        "Role"
+      ],
+      "scope": "Creator lookup arguments and row from original ResolveMemoReadFacts",
+      "questionId": "shared-memo-access"
+    },
+    {
+      "id": "space-query",
+      "kind": "query-binding",
+      "objectRelation": "same-object",
+      "sourceEvents": [
+        "GetSpace"
+      ],
+      "valueFields": [
+        "ID"
+      ],
+      "scope": "Optional placement lookup arguments and row",
+      "questionId": "shared-memo-access"
+    },
+    {
+      "id": "member-query",
+      "kind": "query-binding",
+      "objectRelation": "same-object",
+      "sourceEvents": [
+        "GetSpaceMember"
+      ],
+      "valueFields": [
+        "Role"
+      ],
+      "scope": "Optional viewer membership lookup arguments and row",
+      "questionId": "shared-memo-access"
+    },
+    {
+      "id": "context-call-order",
+      "kind": "call-order",
+      "objectRelation": "none",
+      "sourceEvents": [
+        "GetUser",
+        "GetSpace",
+        "GetSpaceMember"
+      ],
+      "scope": "Ordered invocation markers in original context resolution; final handler error text and durable effects outside scope",
+      "questionId": "shared-memo-access"
+    },
+    {
+      "id": "read-decision",
+      "kind": "decision",
+      "objectRelation": "same-object",
+      "sourceEvents": [],
+      "resultField": "allowed",
+      "scope": "CheckMemoReadContext boolean decision after successful context resolution; exact gate locations require author mapping",
+      "questionId": "shared-memo-access"
+    }
+  ],
+  "mappings": {
+    "creator-query": {
+      "events": [
+        {
+          "name": "GetUser",
+          "stepId": "creator"
+        }
+      ]
+    },
+    "space-query": {
+      "events": [
+        {
+          "name": "GetSpace",
+          "stepId": "space"
+        }
+      ]
+    },
+    "member-query": {
+      "events": [
+        {
+          "name": "GetSpaceMember",
+          "stepId": "membership"
+        }
+      ]
+    },
+    "context-call-order": {
+      "events": [
+        {
+          "name": "GetUser",
+          "stepId": "creator_store_ok"
+        },
+        {
+          "name": "GetSpace",
+          "stepId": "space_store_ok"
+        },
+        {
+          "name": "GetSpaceMember",
+          "stepId": "membership_store_ok"
+        }
+      ]
+    }
+  }
+}
