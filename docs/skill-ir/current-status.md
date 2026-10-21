@@ -4,6 +4,14 @@
 
 ## 当前工作
 
+**BU0–BU19已获用户授权，任务书已登记，等待新开发线程接管。** [任务书](../superpowers/plans/2026-10-21-authorization-source-differential-verification.md) identity为`authorization-source-differential-v1`，从BT最终`491812b4`继续。开发`gpt-6-astra/high`，实验官方`gpt-5.6-sol/high`，第三方暂停。本次规划没有新增生产实现或项目效果实验。
+
+本轮重点是独立于作者的核验要求、参数敏感的Memos原函数观察、共享源码/程序差分及普通作者反例修复。十个正常模型用途用于LLM复核、两组修稿与实际使用，至多两次有据确认；停止同形N/R/E消费者面板。源码忠实性、用户政策、原题完整性分开评价。方法见[spec§14.60](skill-ir-aot-optimization-spec.md#1460-bu-source-differential-verification)、[研究§7.82](skill-dsl-research.md#782-bt-复核与-bu-源码差分核验)。旧原件、`.tmp/`和默认入口保留。
+
+本机Stop That Shit 0.2.5已通过Codex插件入口安装启用，四个Hook原生信任为Active；CLI只读试运行记录Guard为armed并检查一次命令。新开发线程首行使用明确change指令，遵循完成责任、定向验证和不扩无关范围的原则；该工具不承诺自动保证研究效果。
+
+## BT 已结束的实际结果
+
 **BT0–BT21已完成并发布，工程及研究诊断最低目标达到，完整自动语义、自然质量和稳定净收益未达。** [任务书](../superpowers/plans/2026-10-21-authorization-semantic-validation-and-method-diagnosis.md) identity为`authorization-semantic-validation-v1`，基线`b0ab0c18`。10计划用途、9实际派发、15观察turn全部关闭，0/4额外确认。M末稿`6cb4bcad`修复3处源码顺序反例并通过局部资格；G末稿`6ec6765c`错误地把转换器加载失败当成阻止201，AE-G零调用不合格、分母保留。M原控制流抽取测试8子案例通过，完整模块与目标服务执行均0；G仅源码评阅。563文件预先冻结，作者使用`58c3ba23`，全部消费者同`d8a0a754`，RR/RE同参考原字节。
 
 八消费位置交付7、整题0/8 full、评价域29/48 full、核心关系18/28正确；N/RR/RE/AE完整域分别7/9/10/3（各12域）。M参考规则/执行持平，G执行多覆盖writer错误处理一域；RE/RR观察token比为1.410/1.455，不能归为稳定执行收益。普通原/变输入、搬移与来源失效通过，G条件保留与语义不合格分开。132定向测试/905断言、主/研究类型与15文档测试通过；939原件无损归档并读回。known input14,779,426（含cache13,203,584一次）、output95,621，USD、准备/开发/评阅成本未知。开发`gpt-6-astra/high`，实验官方`gpt-5.6-sol/high`，第三方暂停；原件与`.tmp/`保留。
@@ -180,7 +188,9 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 
 | 阶段 | 保留记录 |
 |---|---|
-| 当前BS | [任务书](../superpowers/plans/2026-10-20-authorization-task-coverage-and-semantic-transfer.md)、spec§14.58、研究§7.80；有限队列完成，工程通过，完整语义/自然质量/稳定净收益未达 |
+| 当前BU | [任务书](../superpowers/plans/2026-10-21-authorization-source-differential-verification.md)、spec§14.60、研究§7.82；已授权待开发，源码差分及反例修稿 |
+| 已结束BT | [任务书](../superpowers/plans/2026-10-21-authorization-semantic-validation-and-method-diagnosis.md)、spec§14.59、研究§7.81；M局部修复、G语义缺口、29/48域与0/8整题 |
+| 已结束BS | [任务书](../superpowers/plans/2026-10-20-authorization-task-coverage-and-semantic-transfer.md)、spec§14.58、研究§7.80；有限队列完成，工程通过，完整语义/自然质量/稳定净收益未达 |
 | 已结束BR | [任务书](../superpowers/plans/2026-10-19-authorization-evidence-backed-answers-and-task-transfer.md)、spec§14.57、研究§7.79；completed-with-unmet-criteria，九用途与一次确认完成；有限复用成立，完整语义/质量/稳定收益未达 |
 | BQ | [任务书](../superpowers/plans/2026-10-18-authorization-source-program-consistency-and-task-execution.md)、spec§14.56、研究§7.78；最终3c3059a8已发布，两个缺陷修复，完整自然质量与稳定增量未达 |
 | BP | [任务书](../superpowers/plans/2026-10-16-authorization-quality-evidence-and-branch-reliability.md)、spec§14.55、研究§7.77；最终27d59677，有限队列完成，完整语义和重复执行质量优势未达 |
