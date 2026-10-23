@@ -1,0 +1,216 @@
+# Security review summary
+
+| Severity | Count |
+|---|---:|
+| 🔴 Critical | 0 |
+| 🟠 High | 0 |
+| 🟡 Medium | 0 |
+| 🔵 Low | 0 |
+| ⚪ Info | 1 |
+
+**Result:** No vulnerability was established in the reviewed `GetSharedMemo` path. The informational finding documents the share-token capability boundary.  
+**Overall confidence:** High for the core authorization flow; Medium for transport-level errors and complete protobuf conversion, which were not fully modeled.
+
+## Authorization and access control
+
+### ⚪ INFO — Share token grants narrowly scoped memo access
+
+**Confidence:** High
+
+**Relevant source**
+
+- `server/api/v1/memo_share_service.go:172-213`
+- `server/api/v1/memo_share_service.go:217-229`
+- `core/access/memo.go:92-157`
+- `core/access/memo_resolve.go:31-80`
+
+#### Token-to-memo binding
+
+The binding is direct and database-backed:
+
+```text
+request.ShareToken
+  → MemoShare.UID lookup
+  → selected MemoShare.MemoID
+  → GetMemo(ID = MemoShare.MemoID)
+  → SharedMemoID = the same MemoID
+  → require memo.ID == SharedMemoID
+```
+
+Specifically:
+
+1. `getActiveMemoShare` looks up `MemoShare` by `UID == request.ShareToken` (`memo_share_service.go:221-229`).
+2. `GetSharedMemo` fetches the memo using the selected share row’s `MemoID` (`:178`).
+3. It passes `&ms.MemoID` into the read context (`:186`).
+4. The share exception applies only when `memo.ID == *SharedMemoID` and the memo is not `SPACE` visibility (`core/access/memo.go:119-121`).
+
+`MemoShare.CreatorID` does not participate in this read-time binding.
+
+Because the endpoint both loads the memo from `ms.MemoID` and passes that same value as `SharedMemoID`, a successfully resolved share normally satisfies the exact-memo comparison by construction. The token is not subsequently accepted as authority for arbitrary memo IDs.
+
+#### Invalid and expired tokens
+
+A missing token row and an expired token are deliberately indistinguishable:
+
+```go
+if ms == nil || isMemoShareExpired(ms) {
+    return nil, status.Errorf(codes.NotFound, "not found")
+}
+```
+
+- Unknown token: `NOT_FOUND: not found`
+- Expired token: `NOT_FOUND: not found`
+- Share-store failure: `INTERNAL: failed to get memo share`
+
+Expiry is strict:
+
+```go
+time.Now().Unix() > *ms.ExpiresTs
+```
+
+Therefore:
+
+- `now > ExpiresTs`: expired
+- `now == ExpiresTs`: still active
+- `ExpiresTs == nil`: no expiration
+
+#### Controls that still apply to a valid token
+
+A valid, active token is necessary but not sufficient. The following checks remain:
+
+1. **Endpoint state restriction:** the memo must exist, be `NORMAL`, and not have `SPACE` visibility (`memo_share_service.go:182-184`).
+2. **Known visibility:** the shared policy rejects unknown visibility values (`core/access/memo.go:97-98`).
+3. **Valid creator:** the creator must exist, match `memo.CreatorID`, and be `NORMAL` or `ARCHIVED` (`memo_resolve.go:36-42`).
+4. **Context resolution:** creator, optional Space, and applicable membership lookups must complete without error.
+5. **Exact share match:** `memo.ID` must equal the supplied context’s `SharedMemoID`, and the memo cannot be `SPACE`.
+6. **Response dependencies:** reaction and attachment listing and memo conversion must succeed.
+
+An assigned but missing Space does not independently deny a `PUBLIC`, `PROTECTED`, or `PRIVATE` memo. It does deny `SPACE` reads, although `GetSharedMemo` already rejects all `SPACE` memos. Space lookup errors still cause context construction to fail.
+
+An active instance administrator has an early allowance in the general policy (`core/access/memo.go:109-110`), but cannot bypass `GetSharedMemo`’s earlier requirement that the memo be `NORMAL` and non-`SPACE`. A missing or invalid creator also fails before the administrator exception.
+
+Ordinary audience branches for PUBLIC, PROTECTED, PRIVATE, and SPACE are normally not reached after a valid exact share: the share allowance returns first.
+
+#### Error normalization
+
+`GetSharedMemo` exposes different error classes depending on where failure occurs:
+
+| Failure | Visible result |
+|---|---|
+| Missing or expired share | `NOT_FOUND` |
+| Missing, archived, or SPACE memo | `NOT_FOUND` |
+| Invalid creator or denied read policy | `NOT_FOUND` |
+| Current-user, instance-setting, creator, Space, or membership context error | Collapsed to `NOT_FOUND` |
+| Share lookup storage error | `INTERNAL` |
+| Memo lookup storage error | `INTERNAL` |
+| Reaction or attachment listing error | `INTERNAL` |
+| Missing creator during conversion | `NOT_FOUND` |
+| Other conversion errors | Wrapped `"failed to convert memo"` error; final transport mapping was not reviewed |
+
+## Unauthenticated versus authenticated callers
+
+`GetSharedMemo` requires no authenticated user.
+
+For an unauthenticated caller:
+
+1. `fetchCurrentUser` returns `nil`.
+2. The instance anonymous-access setting is read.
+3. Even if that setting resolves to private/false, the exact-share branch can still allow a `NORMAL`, non-`SPACE` PRIVATE memo.
+4. Failure to read the instance setting prevents context construction and is hidden as `NOT_FOUND`.
+
+Thus, source behavior permits an unauthenticated holder of a valid share token to receive a PRIVATE memo even on a private instance. This is capability-link behavior, not evidence by itself of a vulnerability; no normative policy was supplied.
+
+An inactive authenticated user is treated as a nil viewer and follows the anonymous path. A context user ID whose row is missing or whose lookup fails produces an error, which `GetSharedMemo` masks as `NOT_FOUND`.
+
+An authenticated caller may receive additional **Space projection** if independently qualified as:
+
+- the memo author,
+- an active member of the Space, or
+- an active instance administrator.
+
+That additional metadata comes from the caller’s identity and membership, not from the share token.
+
+## Scope of data returned
+
+A successful shared response includes:
+
+- the memo and its content;
+- memo-scoped reactions;
+- memo-scoped attachments;
+- ordinary converted memo fields and a generated snippet.
+
+The token does **not** grant surrounding-resource access:
+
+- **Parent memo:** conversion may initially set a parent name, but `GetSharedMemo` explicitly clears `memoMessage.Parent` before returning (`memo_share_service.go:210-213`).
+- **Relation graph:** conversion receives `nil` relations, producing an empty relation list (`memo_service_converter.go:84-88`).
+- **Space metadata:** the token alone does not project Space identity; projection requires independent author/member/admin status (`memo_service_converter.go:105-137`).
+- **Relation endpoints:** the read policy expressly treats each endpoint independently; the shared memo’s token does not authorize either endpoint.
+
+Reactions are treated as having no independent audience once the memo is readable (`memo_service_converter.go:76-82`). Attachments are likewise placed into the returned memo (`:90-94`).
+
+## Supplied finite scenario
+
+The supplied token `share-alpha` selects share row 71 and memo 43. It is active at the boundary:
+
+```text
+now       = 2000
+ExpiresTs = 2000
+```
+
+Nevertheless, the scenario terminates with:
+
+```text
+NOT_FOUND: not found
+```
+
+The reason is creator validity:
+
+- memo 43 has `CreatorID: 17`;
+- the access-context user population contains creator 17 with `RowStatus: DELETED`;
+- only `NORMAL` or `ARCHIVED` creators are valid.
+
+Viewer 22’s valid membership in Space 8 cannot override invalid creator state. The later conversion population contains creator 17 as `NORMAL`, but conversion is never reached, and that independent later lookup cannot retroactively change authorization.
+
+Source-order qualification: the executable program stops at its `creator_valid` guard, but the actual source resolves Space and applicable membership facts before calling `CheckMemoReadContext`. With the supplied error-free Space and membership observations, those extra reads do not change the final denial.
+
+## Persistent executable program status
+
+The current reusable program is present and adopted:
+
+- **Program:** `shared-memo-access`
+- **Current executable revision:** `cbf092c3c9d624e1c3055e763b898859b1db8c31c293ac45e950223e3e37d1e7`
+- **Adopted draft revision:** `910490aaf38c8a9e147c1403dbf7ce328757946dfcad4cd2259adadecc9c698c`
+- **Steps:** 31
+- **Current execution:** denied at `creator_valid`
+- **Termination:** `NOT_FOUND: not found`
+
+Trials represented these alternate outcomes:
+
+- unknown token → `NOT_FOUND`;
+- expired token → `NOT_FOUND`;
+- `now == ExpiresTs`, anonymous caller, valid creator → memo returned;
+- authenticated Space member with the same token → memo returned with Space projection;
+- anonymous private-instance case → memo returned without Space projection.
+
+The program and coverage declarations remain marked **author-declared/unreviewed**, not an authorization certificate. Its known limits include:
+
+- it does not materialize every reaction and attachment row;
+- full protobuf conversion and snippet behavior are not modeled;
+- Connect transport error conversion is unreviewed;
+- conversion rebuilds an assigned memo’s read context and may repeat creator/Space/instance lookups, while the finite program does not represent every repeated call as a distinct operation;
+- the conversion projection performs another Space lookup when projection is eligible;
+- the mechanical source-candidate catalog remains broadly unreviewed.
+
+## Dependency and secrets audit
+
+| Area | Status |
+|---|---|
+| Dependency CVE audit | Not performed; dependency manifests were outside this bounded source investigation |
+| Secrets scan | Not performed; repository-wide configuration and CI files were outside the allowed scope |
+| Broader endpoint audit | Not performed; conclusions apply only to the reviewed shared-memo path and dependencies |
+
+## Patch proposals
+
+No Critical or High findings were identified, so no source patch is proposed.
+
+**Review each patch before applying. Nothing has been changed yet.**

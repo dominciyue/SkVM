@@ -1,0 +1,124 @@
+## 程序编写结果
+
+已修复并持久化可执行源程序：
+
+- **程序**：`shared-memo-access`
+- **草稿版本**：`9f662852a3ab5aa9102b1e1a165d4f840cb9a6d697adb9ea7e9c8afdfd8543a0`
+- **状态**：已采用，编译诊断为空
+- 已修正原程序过早在 `creator_valid` 终止的问题：源码会先继续查询 Space、必要时查询成员关系，然后才执行最终读取判断。
+- `GetUser`、`GetSpace`、`GetSpaceMember` 的参数、调用顺序及最终读取决定均与源函数有限验证匹配。
+- 已试验有效、无效、过期、匿名以及创建者被删除等分支。最终版本的有效令牌返回 memo，无效令牌返回 `NOT_FOUND`。
+
+## GetSharedMemo 的实际行为
+
+### 1. 令牌如何绑定 memo
+
+`getActiveMemoShare` 用请求中的 `ShareToken` 精确查询 `MemoShare.UID`。取得分享行后，`GetSharedMemo` 使用该行的 `MemoID` 查询 memo：
+
+- token → `MemoShare.UID`
+- `MemoShare.MemoID` → `GetMemo(ID)`
+- 读取上下文又把同一个 `ms.MemoID` 作为 `SharedMemoID`
+
+因此令牌只可能触发对该分享行所指向 memo 的 share 分支，不是一个可用于任意 memo 的通用凭据。  
+见 `server/api/v1/memo_share_service.go:172-189`、`221-229` 和 `core/access/memo.go:119-122`。
+
+### 2. 无效令牌与过期令牌
+
+以下两种情况产生相同的 `NOT_FOUND: not found`：
+
+- 找不到对应分享行；
+- 分享行存在，但 `time.Now().Unix() > ExpiresTs`。
+
+过期比较是严格大于，所以 **当前时间等于 `ExpiresTs` 时仍有效**。这符合给定场景中 `now=2000`、`ExpiresTs=2000` 的边界情况。  
+见 `memo_share_service.go:216-229`。
+
+分享存储查询本身出错则不是伪装成不存在，而是 `Internal: failed to get memo share`。
+
+### 3. 有效令牌仍须经过的控制
+
+令牌有效不保证最终成功：
+
+1. 用分享行的 `MemoID` 查询 memo；存储错误为 `Internal`。
+2. memo 必须存在、状态为 `NORMAL`，且不能是 `SPACE` audience；否则 `NOT_FOUND`。所以该入口不接受 archived memo，即使通用读取策略在其他入口存在 archived 作者或管理员例外。  
+   `memo_share_service.go:178-185`
+3. 构建读取上下文：
+   - 解析当前用户；
+   - 匿名或无有效当前用户时读取实例匿名访问设置；
+   - 查询 memo 创建者；
+   - 有 `SpaceID` 时查询 Space；
+   - 对有效的普通登录用户和有效 Space 查询成员关系。  
+   `memo_access.go:17-40`、`memo_resolve.go:31-80`
+4. 创建者必须存在、ID 匹配，且状态为 `NORMAL` 或 `ARCHIVED`。被删除的创建者会使读取决定失败。  
+   `memo_resolve.go:36-42`
+5. 通用读取策略确认 `SharedMemoID == memo.ID` 且 audience 不是 `SPACE`，然后允许读取。  
+   `core/access/memo.go:92-122`
+
+上下文构建错误或最终读取决定失败都被 `GetSharedMemo` 统一隐藏为 `NOT_FOUND`，包括用户、实例设置、创建者、Space 或成员关系解析错误。  
+`memo_share_service.go:186-189`
+
+一个值得注意的例外是：对于非 `SPACE` memo，缺失的 Space 行本身不是第二个读取限制；它主要影响 Space 投影。但 **查询 Space 时发生的存储错误** 仍会使上下文构建失败。
+
+### 4. 匿名调用者可以得到什么
+
+该 RPC 明确不要求认证。对有效、精确绑定的分享：
+
+- `AllowAnonymous` 或实例 `PUBLIC/PRIVATE` 模式不决定 share 分支是否允许；
+- 因而即使实例是 `PRIVATE`，匿名调用者仍可读取有效分享所指向的 `PUBLIC`、`PROTECTED` 或 `PRIVATE` memo；
+- 但匿名调用者仍会触发实例访问设置查询；该查询失败会被外层隐藏为 `NOT_FOUND`；
+- 创建者有效性、memo 状态、audience、上下文存储错误等控制仍然适用。
+
+换言之，实例匿名模式对普通 audience 分支有意义，但精确分享分支先于那些普通分支返回。  
+见 `core/access/memo.go:119-145`。
+
+### 5. 令牌对 memo 周边资源的权限边界
+
+成功响应会包含：
+
+- 该 memo 的内容；
+- 该 memo 的 reactions；
+- 该 memo 的 attachments。
+
+这些集合在 memo 获准后按 `memo.ID` 查询；查询失败分别返回 `Internal`。  
+`memo_share_service.go:191-201`
+
+但分享令牌不会扩展为周边图访问权：
+
+- converter 收到的 relations 参数是 `nil`，最终关系列表为空；
+- converter 即使从 `ParentUID` 构造了 Parent，`GetSharedMemo` 也会在返回前把 `Parent` 清空；
+- 父 memo、会话上下文及关系端点必须通过各自入口独立授权。
+
+见 `memo_service_converter.go:69-94` 和 `memo_share_service.go:203-213`。
+
+Space 信息也不是由令牌本身授权。只有当前查看者是：
+
+- memo 作者；
+- 有效 Space 成员；或
+- 实例管理员，
+
+才可能投影 Space。匿名持有者不会仅凭分享令牌看到 Space。converter 还会为已分配 Space 的 memo 独立重建一次读取上下文。  
+`memo_service_converter.go:50-61`、`105-137`
+
+### 6. 给定有限场景的结果
+
+场景中的令牌 `share-alpha`：
+
+- 在时间边界上仍有效；
+- 精确绑定到 `MemoID=43`；
+- memo 43 为 `NORMAL`、`PRIVATE`、非 `SPACE`；
+- 查看者 22 是有效用户及 Space 8 成员。
+
+但是访问上下文中的创建者 17 状态为 `DELETED`，所以 `CreatorValid=false`。源码仍会先查询 Space 和成员关系，随后读取策略拒绝，外层返回：
+
+**`NOT_FOUND: not found`**
+
+之后用于响应转换的 `conversionUsers` 中创建者虽为 `NORMAL`，但转换阶段不会被到达，因此不能挽救此次请求。
+
+## 范围限制
+
+持久化程序保留了这些明确限制：
+
+- 未逐行物化 reactions、attachments 及全部 protobuf 字段转换；
+- snippet、完整 Connect 传输层错误映射未建模；
+- converter 第二次构建读取上下文的独立、逐次存储故障没有单独输入，只以转换失败边界概括。
+
+这些是源行为模型的边界，不是规范性授权结论。

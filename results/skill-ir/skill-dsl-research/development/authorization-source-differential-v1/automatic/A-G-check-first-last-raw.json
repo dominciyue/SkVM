@@ -1,0 +1,1323 @@
+{
+  "schemaVersion": "authorization-executable-contract/v1",
+  "id": "gitea-create-issue-policy",
+  "description": "Reusable finite model of source-visible issue-write gating and CreateIssue field handling.",
+  "scope": {
+    "kind": "function-contract",
+    "questionId": "create-issue",
+    "root": {
+      "path": "routers/api/v1/repo/issue.go",
+      "symbol": "CreateIssue"
+    },
+    "upstream": [
+      "Route middleware authentication, repository assignment, token scope enforcement, archived-repository handling, and request binding remain to be traced",
+      "Permission construction may include public/everyone access maps not represented by the supplied finite inputs",
+      "Transaction, notification, and response-conversion internals remain to be traced"
+    ]
+  },
+  "inputBinding": {
+    "questionId": "create-issue"
+  },
+  "sourceDeclarations": [
+    {
+      "source": {
+        "path": "routers/api/v1/repo/issue.go",
+        "symbol": "CreateIssue"
+      },
+      "statements": []
+    },
+    {
+      "source": {
+        "path": "models/perm/access/repo_permission.go",
+        "symbol": "CanWrite",
+        "receiverClass": "models/perm/access.Permission"
+      },
+      "statements": []
+    }
+  ],
+  "queries": [],
+  "assumptions": [
+    {
+      "origin": "source",
+      "source": {
+        "path": "models/perm/access_mode.go",
+        "startLine": 20,
+        "endLine": 20,
+        "text": "AccessModeWrite // 2: write access"
+      },
+      "text": "The source enum value AccessModeWrite is 2."
+    }
+  ],
+  "resourceWorkflow": {
+    "inputs": [
+      "request",
+      "principal",
+      "repository",
+      "permission",
+      "token",
+      "tokenScopes",
+      "form",
+      "formLabels",
+      "formAssignees",
+      "formProjects",
+      "assignees",
+      "blockedUserIDs",
+      "createdIssue",
+      "errors"
+    ],
+    "steps": [
+      {
+        "id": "token_scope_gate",
+        "op": "guard",
+        "test": {
+          "op": "any",
+          "args": [
+            {
+              "op": "not",
+              "arg": {
+                "op": "truthy",
+                "language": "go",
+                "value": {
+                  "binding": "token.ApiTokenScopePresent"
+                }
+              }
+            },
+            {
+              "op": "member",
+              "value": {
+                "literal": "write:issue"
+              },
+              "set": {
+                "binding": "tokenScopes"
+              }
+            },
+            {
+              "op": "member",
+              "value": {
+                "literal": "all"
+              },
+              "set": {
+                "binding": "tokenScopes"
+              }
+            }
+          ]
+        },
+        "failure": "When API token scope data is present, POST requires write:issue (or all); scope parsing/check errors and absence of the required scope produce 403.",
+        "principal": {
+          "ref": "principal"
+        },
+        "resource": {
+          "ref": "repository"
+        },
+        "permission": "write issue API-token scope when a scoped API token is present",
+        "source": {
+          "path": "routers/api/v1/api.go",
+          "startLine": 327,
+          "endLine": 370
+        }
+      },
+      {
+        "id": "repo_assignment_completed",
+        "op": "guard",
+        "test": {
+          "op": "is-null",
+          "value": {
+            "binding": "errors.repositoryAssignment"
+          }
+        },
+        "failure": "Repository assignment failed before endpoint middleware and the handler was not entered.",
+        "principal": {
+          "ref": "principal"
+        },
+        "resource": {
+          "ref": "repository"
+        },
+        "permission": "repository assignment completed normally",
+        "source": {
+          "path": "routers/api/v1/api.go",
+          "startLine": 146,
+          "endLine": 170
+        }
+      },
+      {
+        "id": "public_only_gate",
+        "op": "guard",
+        "test": {
+          "op": "any",
+          "args": [
+            {
+              "op": "not",
+              "arg": {
+                "op": "truthy",
+                "language": "go",
+                "value": {
+                  "binding": "token.PublicOnly"
+                }
+              }
+            },
+            {
+              "op": "not",
+              "arg": {
+                "op": "truthy",
+                "language": "go",
+                "value": {
+                  "binding": "repository.IsPrivate"
+                }
+              }
+            }
+          ]
+        },
+        "failure": "A public-only token cannot access a private repository through the issue-scoped route.",
+        "principal": {
+          "ref": "principal"
+        },
+        "resource": {
+          "ref": "repository"
+        },
+        "permission": "token is not public-only or the repository is public",
+        "source": {
+          "path": "routers/api/v1/api.go",
+          "startLine": 252,
+          "endLine": 306
+        }
+      },
+      {
+        "id": "binding_completed",
+        "op": "guard",
+        "test": {
+          "op": "is-null",
+          "value": {
+            "binding": "errors.binding"
+          }
+        },
+        "failure": "CreateIssueOption binding failed before CreateIssue.",
+        "principal": {
+          "ref": "principal"
+        },
+        "resource": {
+          "ref": "repository"
+        },
+        "permission": "request binding completed normally",
+        "source": {
+          "path": "routers/api/v1/api.go",
+          "startLine": 1649,
+          "endLine": 1649
+        }
+      },
+      {
+        "id": "route_reader_gate",
+        "op": "guard",
+        "test": {
+          "op": "all",
+          "args": [
+            {
+              "op": "truthy",
+              "language": "go",
+              "value": {
+                "binding": "principal.IsSigned"
+              }
+            },
+            {
+              "op": "not",
+              "arg": {
+                "op": "truthy",
+                "language": "go",
+                "value": {
+                  "binding": "repository.IsArchived"
+                }
+              }
+            },
+            {
+              "op": "any",
+              "args": [
+                {
+                  "op": "truthy",
+                  "language": "go",
+                  "value": {
+                    "binding": "principal.IsRepoAdmin"
+                  }
+                },
+                {
+                  "op": "truthy",
+                  "language": "go",
+                  "value": {
+                    "binding": "principal.IsSiteAdmin"
+                  }
+                },
+                {
+                  "op": "all",
+                  "args": [
+                    {
+                      "op": "truthy",
+                      "language": "go",
+                      "value": {
+                        "binding": "permission.IssuesUnitPresent"
+                      }
+                    },
+                    {
+                      "op": "gte",
+                      "left": {
+                        "binding": "permission.IssuesUnitMode"
+                      },
+                      "right": {
+                        "literal": 1
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "failure": "The endpoint requires a signed-in principal, a non-archived repository, and issues read access unless repository/site admin bypass applies.",
+        "principal": {
+          "ref": "principal"
+        },
+        "resource": {
+          "ref": "repository"
+        },
+        "permission": "signed-in issues reader or repository/site admin on a non-archived repository",
+        "source": {
+          "path": "routers/api/v1/api.go",
+          "startLine": 1649,
+          "endLine": 1649
+        }
+      },
+      {
+        "id": "can_write_issues",
+        "op": "value",
+        "value": {
+          "choose": {
+            "test": {
+              "op": "all",
+              "args": [
+                {
+                  "op": "truthy",
+                  "language": "go",
+                  "value": {
+                    "binding": "permission.IssuesUnitPresent"
+                  }
+                },
+                {
+                  "op": "gte",
+                  "left": {
+                    "binding": "permission.IssuesUnitMode"
+                  },
+                  "right": {
+                    "literal": 2
+                  }
+                }
+              ]
+            },
+            "then": {
+              "literal": true
+            },
+            "else": {
+              "literal": false
+            }
+          }
+        },
+        "source": {
+          "path": "models/perm/access/repo_permission.go",
+          "startLine": 153,
+          "endLine": 155
+        },
+        "because": "CanWrite calls CanAccess with AccessModeWrite; CanAccess compares UnitAccessMode(unitType) against that mode. The supplied unit-presence and mode fields are the bounded finite representation."
+      },
+      {
+        "id": "read_only_creation_path",
+        "op": "value",
+        "value": {
+          "choose": {
+            "test": {
+              "op": "all",
+              "args": [
+                {
+                  "op": "truthy",
+                  "language": "go",
+                  "value": {
+                    "binding": "route_reader_gate"
+                  }
+                },
+                {
+                  "op": "not",
+                  "arg": {
+                    "op": "truthy",
+                    "language": "go",
+                    "value": {
+                      "binding": "can_write_issues"
+                    }
+                  }
+                }
+              ]
+            },
+            "then": {
+              "literal": true
+            },
+            "else": {
+              "literal": false
+            }
+          }
+        },
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 570,
+          "endLine": 624
+        },
+        "because": "After the route's read gate has passed, CreateIssue does not reject a principal lacking issue write; CanWrite only controls selected fields before the unconditional NewIssue call."
+      },
+      {
+        "id": "deadline_value",
+        "op": "value",
+        "value": {
+          "choose": {
+            "test": {
+              "op": "all",
+              "args": [
+                {
+                  "op": "not",
+                  "arg": {
+                    "op": "is-null",
+                    "value": {
+                      "binding": "form.Deadline"
+                    }
+                  }
+                },
+                {
+                  "op": "truthy",
+                  "language": "go",
+                  "value": {
+                    "binding": "can_write_issues"
+                  }
+                }
+              ]
+            },
+            "then": {
+              "field": {
+                "of": {
+                  "ref": "form"
+                },
+                "key": "Deadline"
+              }
+            },
+            "else": {
+              "literal": 0
+            }
+          }
+        },
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 570,
+          "endLine": 585
+        }
+      },
+      {
+        "id": "labels_for_create",
+        "op": "value",
+        "value": {
+          "choose": {
+            "test": {
+              "op": "truthy",
+              "language": "go",
+              "value": {
+                "binding": "can_write_issues"
+              }
+            },
+            "then": {
+              "ref": "formLabels"
+            },
+            "else": {
+              "literal": []
+            }
+          }
+        },
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 587,
+          "endLine": 624
+        }
+      },
+      {
+        "id": "milestone_value",
+        "op": "value",
+        "value": {
+          "choose": {
+            "test": {
+              "op": "truthy",
+              "language": "go",
+              "value": {
+                "binding": "can_write_issues"
+              }
+            },
+            "then": {
+              "field": {
+                "of": {
+                  "ref": "form"
+                },
+                "key": "Milestone"
+              }
+            },
+            "else": {
+              "literal": 0
+            }
+          }
+        },
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 587,
+          "endLine": 622
+        }
+      },
+      {
+        "id": "assignees_for_create",
+        "op": "value",
+        "value": {
+          "choose": {
+            "test": {
+              "op": "truthy",
+              "language": "go",
+              "value": {
+                "binding": "can_write_issues"
+              }
+            },
+            "then": {
+              "ref": "formAssignees"
+            },
+            "else": {
+              "literal": []
+            }
+          }
+        },
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 587,
+          "endLine": 622
+        },
+        "because": "Writer branch resolves requested assignee names; non-writers never reach that resolution branch."
+      },
+      {
+        "id": "projects_for_create",
+        "op": "value",
+        "value": {
+          "ref": "formProjects"
+        },
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 624,
+          "endLine": 624
+        },
+        "because": "Projects are passed to NewIssue outside the CanWrite(TypeIssues) branch."
+      },
+      {
+        "id": "prepared_issue",
+        "op": "value",
+        "value": {
+          "record": {
+            "repo_id": {
+              "field": {
+                "of": {
+                  "ref": "repository"
+                },
+                "key": "ID"
+              }
+            },
+            "title": {
+              "field": {
+                "of": {
+                  "ref": "form"
+                },
+                "key": "Title"
+              }
+            },
+            "poster_id": {
+              "field": {
+                "of": {
+                  "ref": "principal"
+                },
+                "key": "ID"
+              }
+            },
+            "content": {
+              "field": {
+                "of": {
+                  "ref": "form"
+                },
+                "key": "Body"
+              }
+            },
+            "ref": {
+              "field": {
+                "of": {
+                  "ref": "form"
+                },
+                "key": "Ref"
+              }
+            },
+            "deadline": {
+              "ref": "deadline_value"
+            },
+            "milestone_id": {
+              "ref": "milestone_value"
+            }
+          }
+        },
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 570,
+          "endLine": 624
+        },
+        "because": "Collection arguments are modeled in separate value steps because finite records are scalar-valued."
+      },
+      {
+        "id": "new_issue_effect",
+        "op": "external",
+        "name": "NewIssue",
+        "arguments": {
+          "repo": {
+            "ref": "repository"
+          },
+          "issue": {
+            "ref": "prepared_issue"
+          },
+          "labelIDs": {
+            "ref": "labels_for_create"
+          },
+          "uuids": {
+            "literal": null
+          },
+          "assigneeIDs": {
+            "ref": "assignees_for_create"
+          },
+          "projectIDs": {
+            "ref": "projects_for_create"
+          }
+        },
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 624,
+          "endLine": 624
+        },
+        "because": "Records the source-visible creation request. The omitted Go context is not available as a finite input; no external result, target execution, or durable commit is inferred."
+      },
+      {
+        "id": "load_poster_completed",
+        "op": "guard",
+        "test": {
+          "op": "is-null",
+          "value": {
+            "binding": "errors.loadPoster"
+          }
+        },
+        "failure": "NewIssue failed while loading the issue poster, before its transaction.",
+        "principal": {
+          "ref": "principal"
+        },
+        "resource": {
+          "ref": "repository"
+        },
+        "permission": "issue poster loaded normally",
+        "source": {
+          "path": "services/issue/issue.go",
+          "startLine": 25,
+          "endLine": 28
+        }
+      },
+      {
+        "id": "blocked_requested_assignee",
+        "op": "select",
+        "from": "assignees",
+        "where": {
+          "op": "all",
+          "args": [
+            {
+              "op": "any",
+              "args": [
+                {
+                  "op": "member",
+                  "value": {
+                    "binding": "row.Name"
+                  },
+                  "set": {
+                    "binding": "formAssignees"
+                  }
+                },
+                {
+                  "op": "eq",
+                  "left": {
+                    "binding": "row.Name"
+                  },
+                  "right": {
+                    "binding": "form.Assignee"
+                  }
+                }
+              ]
+            },
+            {
+              "op": "member",
+              "value": {
+                "binding": "row.ID"
+              },
+              "set": {
+                "binding": "blockedUserIDs"
+              }
+            }
+          ]
+        },
+        "unique": false,
+        "order": [
+          {
+            "field": "ID",
+            "direction": "asc"
+          }
+        ],
+        "source": {
+          "path": "services/issue/issue.go",
+          "startLine": 30,
+          "endLine": 31
+        },
+        "because": "Finite witness for a requested assignee that has blocked the poster; source rejects when either owner or any resolved assignee blocks."
+      },
+      {
+        "id": "owner_block_gate",
+        "op": "guard",
+        "test": {
+          "op": "all",
+          "args": [
+            {
+              "op": "not",
+              "arg": {
+                "op": "member",
+                "value": {
+                  "binding": "repository.OwnerID"
+                },
+                "set": {
+                  "binding": "blockedUserIDs"
+                }
+              }
+            },
+            {
+              "op": "any",
+              "args": [
+                {
+                  "op": "not",
+                  "arg": {
+                    "op": "truthy",
+                    "language": "go",
+                    "value": {
+                      "binding": "can_write_issues"
+                    }
+                  }
+                },
+                {
+                  "op": "is-null",
+                  "value": {
+                    "binding": "blocked_requested_assignee"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "failure": "The poster is blocked by the repository owner or a requested resolved assignee; NewIssue returns ErrBlockedUser before the transaction.",
+        "principal": {
+          "ref": "principal"
+        },
+        "resource": {
+          "ref": "repository"
+        },
+        "permission": "poster is not blocked by repository owner or requested assignees",
+        "source": {
+          "path": "services/issue/issue.go",
+          "startLine": 30,
+          "endLine": 32
+        }
+      },
+      {
+        "id": "create_transaction_error",
+        "op": "value",
+        "value": {
+          "field": {
+            "of": {
+              "ref": "errors"
+            },
+            "key": "createTransaction"
+          }
+        },
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 624,
+          "endLine": 633
+        },
+        "because": "The finite input records the observed error returned by the visible NewIssue call; null means normal return only."
+      },
+      {
+        "id": "transaction_completed",
+        "op": "guard",
+        "test": {
+          "op": "is-null",
+          "value": {
+            "binding": "errors.createTransaction"
+          }
+        },
+        "failure": "The NewIssue transaction call returned an error; the handler returns without a success response.",
+        "principal": {
+          "ref": "principal"
+        },
+        "resource": {
+          "ref": "repository"
+        },
+        "permission": "NewIssue transaction call returned normally",
+        "source": {
+          "path": "services/issue/issue.go",
+          "startLine": 34,
+          "endLine": 62
+        }
+      },
+      {
+        "id": "created_issue_value",
+        "op": "value",
+        "value": {
+          "record": {
+            "id": {
+              "field": {
+                "of": {
+                  "ref": "createdIssue"
+                },
+                "key": "ID"
+              }
+            },
+            "index": {
+              "field": {
+                "of": {
+                  "ref": "createdIssue"
+                },
+                "key": "Index"
+              }
+            }
+          }
+        },
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 624,
+          "endLine": 633
+        },
+        "because": "Available only after the visible NewIssue call returned normally; transaction internals are not inferred."
+      },
+      {
+        "id": "create_completed",
+        "op": "guard",
+        "test": {
+          "op": "is-null",
+          "value": {
+            "binding": "errors.mentions"
+          }
+        },
+        "failure": "Mention discovery/update failed after the transaction call returned; the handler returns an error and no 201 response is established, while transaction durability remains an unmodeled limit.",
+        "principal": {
+          "ref": "principal"
+        },
+        "resource": {
+          "ref": "createdIssue"
+        },
+        "permission": "post-transaction mention update and NewIssue return completed normally",
+        "source": {
+          "path": "services/issue/issue.go",
+          "startLine": 64,
+          "endLine": 83
+        }
+      },
+      {
+        "id": "new_issue_completed",
+        "op": "guard",
+        "test": {
+          "op": "all",
+          "args": [
+            {
+              "op": "eq",
+              "left": {
+                "binding": "new_issue_effect"
+              },
+              "right": {
+                "binding": "new_issue_effect"
+              }
+            },
+            {
+              "op": "is-null",
+              "value": {
+                "binding": "errors.loadPoster"
+              }
+            },
+            {
+              "op": "truthy",
+              "language": "go",
+              "value": {
+                "binding": "owner_block_gate"
+              }
+            },
+            {
+              "op": "is-null",
+              "value": {
+                "binding": "errors.createTransaction"
+              }
+            },
+            {
+              "op": "is-null",
+              "value": {
+                "binding": "errors.mentions"
+              }
+            }
+          ]
+        },
+        "failure": "NewIssue did not establish a normal return: the external call result is unavailable or a visible load, block, transaction, or mention stage failed.",
+        "principal": {
+          "ref": "principal"
+        },
+        "resource": {
+          "ref": "createdIssue"
+        },
+        "permission": "NewIssue returned normally",
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 624,
+          "endLine": 633
+        }
+      },
+      {
+        "id": "close_error",
+        "op": "value",
+        "value": {
+          "choose": {
+            "test": {
+              "op": "truthy",
+              "language": "go",
+              "value": {
+                "binding": "form.Closed"
+              }
+            },
+            "then": {
+              "field": {
+                "of": {
+                  "ref": "errors"
+                },
+                "key": "close"
+              }
+            },
+            "else": {
+              "literal": null
+            }
+          }
+        },
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 635,
+          "endLine": 644
+        }
+      },
+      {
+        "id": "close_completed",
+        "op": "guard",
+        "test": {
+          "op": "any",
+          "args": [
+            {
+              "op": "not",
+              "arg": {
+                "op": "truthy",
+                "language": "go",
+                "value": {
+                  "binding": "form.Closed"
+                }
+              }
+            },
+            {
+              "op": "is-null",
+              "value": {
+                "binding": "errors.close"
+              }
+            }
+          ]
+        },
+        "failure": "Requested immediate close failed; dependency errors become 412 and other errors become internal errors.",
+        "principal": {
+          "ref": "principal"
+        },
+        "resource": {
+          "ref": "createdIssue"
+        },
+        "permission": "optional CloseIssue returned normally or was not requested",
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 635,
+          "endLine": 644
+        }
+      },
+      {
+        "id": "refetch_completed",
+        "op": "guard",
+        "test": {
+          "op": "is-null",
+          "value": {
+            "binding": "errors.refetch"
+          }
+        },
+        "failure": "Post-create issue refetch failed and the handler returned an internal error.",
+        "principal": {
+          "ref": "principal"
+        },
+        "resource": {
+          "ref": "createdIssue"
+        },
+        "permission": "post-create issue refetch returned normally",
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 646,
+          "endLine": 651
+        }
+      },
+      {
+        "id": "response_body_empty",
+        "op": "value",
+        "value": {
+          "choose": {
+            "test": {
+              "op": "is-null",
+              "value": {
+                "binding": "errors.responseLoad"
+              }
+            },
+            "then": {
+              "literal": false
+            },
+            "else": {
+              "literal": true
+            }
+          }
+        },
+        "source": {
+          "path": "services/convert/issue.go",
+          "startLine": 32,
+          "endLine": 134
+        },
+        "because": "ToAPIIssue returns *api.Issue without an error; its loader failures return an empty api.Issue. The caller still passes that value to ctx.JSON with status 201."
+      },
+      {
+        "id": "result",
+        "op": "return",
+        "value": {
+          "record": {
+            "can_write_issues": {
+              "ref": "can_write_issues"
+            },
+            "read_only_creation_path": {
+              "ref": "read_only_creation_path"
+            },
+            "labels_allowed": {
+              "ref": "can_write_issues"
+            },
+            "repo_id": {
+              "field": {
+                "of": {
+                  "ref": "repository"
+                },
+                "key": "ID"
+              }
+            },
+            "poster_id": {
+              "field": {
+                "of": {
+                  "ref": "principal"
+                },
+                "key": "ID"
+              }
+            },
+            "deadline": {
+              "ref": "deadline_value"
+            },
+            "milestone_id": {
+              "ref": "milestone_value"
+            },
+            "created_issue_id": {
+              "field": {
+                "of": {
+                  "ref": "createdIssue"
+                },
+                "key": "ID"
+              }
+            },
+            "created_issue_index": {
+              "field": {
+                "of": {
+                  "ref": "createdIssue"
+                },
+                "key": "Index"
+              }
+            },
+            "closed_requested": {
+              "field": {
+                "of": {
+                  "ref": "form"
+                },
+                "key": "Closed"
+              }
+            },
+            "response_body_empty": {
+              "ref": "response_body_empty"
+            },
+            "http_status": {
+              "literal": 201
+            }
+          }
+        },
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 624,
+          "endLine": 652
+        }
+      }
+    ],
+    "gaps": [
+      "The handler does not make CanWrite(TypeIssues) a precondition for issue creation; it gates only deadline, milestone, labels, and assignee handling in the modeled span.",
+      "The finite permission inputs do not expose every UnitAccessMode construction branch, including anonymous/everyone maps.",
+      "Route middleware, binding failures, assignee lookup and assignability, NewIssue transaction effects, optional close, refetch, and response conversion are not yet modeled."
+    ]
+  },
+  "authoringTarget": {
+    "mode": "reusable",
+    "coverage": [
+      {
+        "id": "route-token-scope",
+        "source": {
+          "path": "routers/api/v1/api.go",
+          "startLine": 320,
+          "endLine": 370
+        },
+        "stepIds": [
+          "token_scope_gate"
+        ],
+        "disposition": "implemented",
+        "reason": "Models the source-visible token-scope gate; token parsing and deployment token state remain outside the finite inputs."
+      },
+      {
+        "id": "route-repository-assignment",
+        "source": {
+          "path": "routers/api/v1/api.go",
+          "startLine": 146,
+          "endLine": 170
+        },
+        "stepIds": [
+          "repo_assignment_completed"
+        ],
+        "disposition": "implemented",
+        "reason": "Models the supplied observed assignment error; deeper repository lookup branches remain bounded limits."
+      },
+      {
+        "id": "route-definition",
+        "source": {
+          "path": "routers/api/v1/api.go",
+          "startLine": 1642,
+          "endLine": 1650
+        },
+        "stepIds": [
+          "binding_completed",
+          "route_reader_gate",
+          "read_only_creation_path"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "route-authentication",
+        "source": {
+          "path": "routers/api/v1/api.go",
+          "startLine": 373,
+          "endLine": 381
+        },
+        "stepIds": [
+          "route_reader_gate"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "route-reader-helper",
+        "source": {
+          "path": "routers/api/v1/api.go",
+          "startLine": 471,
+          "endLine": 478
+        },
+        "stepIds": [
+          "route_reader_gate",
+          "read_only_creation_path"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "route-archived-helper",
+        "source": {
+          "path": "routers/api/v1/api.go",
+          "startLine": 876,
+          "endLine": 882
+        },
+        "stepIds": [
+          "route_reader_gate"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "permission-can-access-write",
+        "source": {
+          "path": "models/perm/access/repo_permission.go",
+          "startLine": 118,
+          "endLine": 155
+        },
+        "stepIds": [
+          "can_write_issues"
+        ],
+        "disposition": "implemented",
+        "reason": "CanWrite delegates to CanAccess(AccessModeWrite); the finite step uses the supplied issues-unit presence/mode representation."
+      },
+      {
+        "id": "handler-field-preparation",
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 570,
+          "endLine": 624
+        },
+        "stepIds": [
+          "can_write_issues",
+          "read_only_creation_path",
+          "deadline_value",
+          "labels_for_create",
+          "milestone_value",
+          "assignees_for_create",
+          "projects_for_create",
+          "prepared_issue"
+        ],
+        "disposition": "implemented"
+      },
+      {
+        "id": "creation-call-boundary",
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 624,
+          "endLine": 633
+        },
+        "stepIds": [
+          "new_issue_effect",
+          "create_transaction_error",
+          "transaction_completed",
+          "created_issue_value",
+          "create_completed",
+          "new_issue_completed"
+        ],
+        "disposition": "external",
+        "reason": "The source-visible NewIssue invocation and its continuations are modeled, but the exact Go context argument and runtime database/service effect are not supplied finite facts; no commit is inferred.",
+        "call": {
+          "stepId": "new_issue_effect",
+          "activation": "always",
+          "completion": "required",
+          "completionGuardId": "new_issue_completed",
+          "completionMeaning": "normal-return",
+          "successorStepIds": [
+            "close_error",
+            "close_completed",
+            "refetch_completed",
+            "response_body_empty",
+            "result"
+          ],
+          "resultUse": "used",
+          "reason": "CreateIssue invokes NewIssue unconditionally. The completion guard explicitly depends on the external call binding and also requires the supplied visible error markers to indicate a normal return before later handler steps."
+        }
+      },
+      {
+        "id": "new-issue-service",
+        "source": {
+          "path": "services/issue/issue.go",
+          "startLine": 25,
+          "endLine": 84
+        },
+        "stepIds": [
+          "load_poster_completed",
+          "blocked_requested_assignee",
+          "owner_block_gate",
+          "create_transaction_error",
+          "transaction_completed",
+          "created_issue_value",
+          "create_completed",
+          "new_issue_completed"
+        ],
+        "disposition": "implemented",
+        "reason": "Models poster load, owner-or-assignee block rejection, transaction-call return, and post-transaction mention completion; database durability and notifications remain unmodeled.",
+        "relation": {
+          "kind": "ordered-prefix",
+          "effectStepIds": [
+            "transaction_completed",
+            "create_completed"
+          ]
+        }
+      },
+      {
+        "id": "handler-post-create",
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 635,
+          "endLine": 652
+        },
+        "stepIds": [
+          "close_error",
+          "close_completed",
+          "refetch_completed",
+          "response_body_empty",
+          "result"
+        ],
+        "disposition": "implemented",
+        "relation": {
+          "kind": "ordered-prefix",
+          "effectStepIds": [
+            "close_completed",
+            "refetch_completed"
+          ]
+        }
+      },
+      {
+        "id": "response-conversion",
+        "source": {
+          "path": "services/convert/issue.go",
+          "startLine": 32,
+          "endLine": 134
+        },
+        "stepIds": [
+          "response_body_empty",
+          "result"
+        ],
+        "disposition": "implemented",
+        "reason": "ToAPIIssue returns a pointer without an error; loader failures return an empty API issue, so conversion failure does not itself suppress the caller's 201."
+      },
+      {
+        "id": "assignee-resolution",
+        "source": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 591,
+          "endLine": 618
+        },
+        "stepIds": [
+          "assignees_for_create",
+          "blocked_requested_assignee"
+        ],
+        "disposition": "unwritten",
+        "reason": "Writer/non-writer activation and finite blocked-assignee rejection are represented, but source name lookup and assignability helper internals are not fully representable by the supplied rows and error fields."
+      },
+      {
+        "id": "permission-construction",
+        "source": {
+          "path": "models/perm/access/repo_permission.go",
+          "startLine": 90,
+          "endLine": 116
+        },
+        "stepIds": [
+          "can_write_issues"
+        ],
+        "disposition": "unwritten",
+        "reason": "The supplied finite permission object lacks all public/everyone and team/collaborator construction inputs, so only its already-constructed issues-unit mode is evaluated."
+      }
+    ]
+  }
+}

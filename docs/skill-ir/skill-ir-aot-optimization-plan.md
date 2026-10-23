@@ -1,12 +1,12 @@
 # Skill IR AOT 当前执行计划
 
-更新于2026-10-21。唯一实时入口为[current-status](current-status.md)。
+更新于2026-10-23。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BU0–BU19](../superpowers/plans/2026-10-21-authorization-source-differential-verification.md)，已获用户授权，待新开发线程接管。
+- 当前任务书：[BU0–BU19](../superpowers/plans/2026-10-21-authorization-source-differential-verification.md)，有限队列与工程验证已完成，正在执行BU18–BU19最终文档和发布。
 - 方法合同：[spec §14.60](skill-ir-aot-optimization-spec.md#1460-bu-source-differential-verification)；复盘统一在[研究 §7.82](skill-dsl-research.md#782-bt-复核与-bu-源码差分核验)，同时维护该文§1与§11。
 - identity：`authorization-source-differential-v1`，基线BT最终`491812b4ade0751ad6dc8989d12677e5d0d4a870`。实际接管含计划的新提交，继续skill-ir-aot，仅用户origin，不建分支/worktree。
 - 开发gpt-6-astra/high，实验已授权官方gpt-5.6-sol/high；第三方暂停，旧unknown不重发，历史原件和.tmp保留。
-- 本机STS插件0.2.5已安装启用，四Hook已信任，真实只读命令有armed检查记录。新开发线程用明确change指令及Skill约束工作范围，不以插件代替代码正确性验证。
+- 本机STS 0.2.5最初observing，后经真实hook确认本开发线程armed；冻结实验提示不注入新插件。
 
 ## 本轮责任
 
@@ -27,4 +27,4 @@
 
 BT最终491812b4已发布，十用途关闭；M修稿修复局部顺序，Gconverter错误仍在。八消费位置29/48域full、整题0/8；参考执行对规则没有稳定优势。具体数字、原件和132项定向验证见[BT执行记录](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-validation-v1/execution.md)与[验收](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-validation-v1/verification/acceptance-matrix.json)。
 
-BS及更早结果保持，统一查[研究正文](skill-dsl-research.md)、[历史](history.md)及current-status历史表；本页不再重复各轮摘要。BU尚未产生实现或效果结果。
+BS及更早结果保持，统一查[研究正文](skill-dsl-research.md)、[历史](history.md)及current-status历史表。BU普通入口与参数敏感M原函数观察已接通；13案离线结果见[执行记录](../../results/skill-ir/skill-dsl-research/development/authorization-source-differential-v1/execution.md)，M检查臂局部修复成立、G两臂均修复，U两次采用结果并保留原稿缺口；完整自动语义与稳定优势未建立。688原件/6分卷已无损读回；发布后停止，不自动BV。

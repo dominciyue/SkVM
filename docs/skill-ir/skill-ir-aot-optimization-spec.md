@@ -1,13 +1,13 @@
 # Skill IR AOT 优化研究契约
 
-**阅读路径：** 当前授权 DSL 合同读 [§14.57](#1457-br-evidence-backed-answers-and-task-transfer)，总体方向见 [§14.34](#1434-按-skilltask-范围设计领域-dsl)；通用 trace 包生成读 §14.29–§14.33。其余章节保留各时期 IR/AOT 方法及兼容约束，按涉及的组件查阅。逐次调用、当前结果和队列分别在结果、当前状态和任务书中。
+**阅读路径：** 当前授权 DSL 合同读 [§14.60](#1460-bu-source-differential-verification)，总体方向见 [§14.34](#1434-按-skilltask-范围设计领域-dsl)；通用 trace 包生成读 §14.29–§14.33。其余章节保留各时期 IR/AOT 方法及兼容约束，按涉及的组件查阅。逐次调用、当前结果和队列分别在结果、当前状态和任务书中。
 
 
-**最后更新：** 2026-10-19
+**最后更新：** 2026-10-22
 
-**当前已确认路线：** 按 skill/task 范围设计领域表达并验证实际价值，复用既有授权 DSL 执行与 SkVM 入口。BQ已修复两个真实自动稿缺陷并参与实际使用，完整自然质量和稳定执行增量未达。用户授权 [BR回答依据与跨任务检验](../superpowers/plans/2026-10-19-authorization-evidence-backed-answers-and-task-transfer.md)：复用现有outcome/消费/交付机制修共享接线，以Download固定稿回归，再从空稿处理Memos共享链接访问。来源、研究问题和合成事实分别登记；同一有限机制适应不同任务，不新增仓库成功分支。完整原skill与原任务保持，源码判断、程序、回答、真实采用和成本分轴评价。BR合同见§14.57，BQ/BP历史合同和结果保持。研究过程统一[研究总文档](skill-dsl-research.md)，当前顺序见[执行计划](skill-ir-aot-optimization-plan.md)，I1保留后备。
+**当前已确认路线：** 按skill/task范围设计领域表达并验证实际价值，复用既有授权DSL执行与SkVM入口。[BU源码差分与反例修稿](../superpowers/plans/2026-10-21-authorization-source-differential-verification.md)将任务确定的独立要求、固定原函数观察和作者位置映射分开，在普通check/run/trial/details中比较有限行为。Memos采用参数敏感原函数观察，Gitea转换器仅源码评阅。来源、合成输入、源码忠实性、政策符合、原题答案与成本分别评价，不新增仓库成功分支。历史合同和结果保持，研究过程统一[研究总文档](skill-dsl-research.md)，当前顺序见[执行计划](skill-ir-aot-optimization-plan.md)。
 
-本文保留旧研究阶段的标题与章节定位。下文有关统一 IR、AOT 优先、“不新建 DSL”和旧队列先后关系的限定，适用于各自阶段；总体方向以第14.34节为准，当前增量合同以第14.57节及任务书为准。已有 IR、接口、冻结结果和版本化材料不因路线变化而删除或改写。
+本文保留旧研究阶段的标题与章节定位。下文有关统一 IR、AOT 优先、“不新建 DSL”和旧队列先后关系的限定，适用于各自阶段；总体方向以第14.34节为准，当前增量合同以第14.60节及任务书为准。已有 IR、接口、冻结结果和版本化材料不因路线变化而删除或改写。
 
 ## 1. 北极星：以公开验证依据组织受限 Skill IR / AOT
 
@@ -3248,7 +3248,7 @@ BM8实施细节：当前协议只在thread/start注册dynamicTools。宿主预�
 
 ### 14.60 BU source differential verification
 
-2026-10-21用户授权[BU0–BU19](../superpowers/plans/2026-10-21-authorization-source-differential-verification.md)，从BT最终491812b4继续。identity为`authorization-source-differential-v1`，开发gpt-6-astra/high，实验官方gpt-5.6-sol/high；第三方暂停。此处是开发合同，尚无BU实现或效果结果。
+2026-10-21用户授权[BU0–BU19](../superpowers/plans/2026-10-21-authorization-source-differential-verification.md)，实际从含计划的9ac569b1接管。identity为`authorization-source-differential-v1`，开发gpt-6-astra/high，实验官方gpt-5.6-sol/high；第三方暂停。2026-10-23共享实现aaab477b及CLI兼容17a5d925已验证，十用途和一次具名恢复全部关闭；实施与结果见[执行记录](../../results/skill-ir/skill-dsl-research/development/authorization-source-differential-v1/execution.md)。
 
 **独立责任。** 原任务及用户政策先确定必要关系和允许的对象关系，作者只映射程序位置。漏写coverage不能消除核验责任。源码忠实性、政策满足和原题完整性分开：同源码行为也可能违反政策。same-object不得自动替代authorized-root关系，缺独立根依据保持unknown。旧关系consistent继续仅指有限程序自洽。
 
@@ -3256,9 +3256,17 @@ BM8实施细节：当前协议只在thread/start注册dynamicTools。宿主预�
 
 **共享接线。** 现有执行器、trial/details、作者恢复和CLI共用一个差分比较器，输出逐要求的matched-on-cases/counterexample/unknown及首差异。源码失效、旧revision和观察失败不能转成成功空结果；已有独立局部结果仍可交付。有限输入一致不推普遍正确。返回、外部请求、函数正常返回和持久提交分别表达，不通过改op标签制造效果证据。新增配置只在现有入口内完成。
 
+**已实现的窄合同。** `program-verification.ts`逐项保留独立要求，作者raw只含`verificationMappings`；缺映射、问题不符、源事件遗漏、旧版本和不支持的根关系保持unknown。`source-verification.ts`加载用户显式`--source-verification`配置，验证原文件哈希并在固定sourceRoot内缓存同输入观察；来源变化撤回当前结论，历史结果保留。该配置是可信宿主命令，不是通用沙箱。查询比较使用实际执行的选择条件和返回行，调用顺序使用实际事件序列；错误发生而没有选择返回值时不伪造返回观察。M决策需作者提供真实位置映射，G无原函数执行成绩。源码候选的`bodyRead`仅在当前完整正文实际展示后成立，候选名不代替callee失败语义。
+
 **实验。** 先用BT真实错误/修复对、四类有区分输入的语义变异和四中性控制验证；等价/不触达单列。十个正常用途为四个新上下文LLM复核、两任务各base/check修稿和两个当前稿普通使用，至多两个具名修复确认。check多出的反例是方法投入，全部计量；参考raw、隐藏评分和正确patch不给模型。G如仅有评阅反馈，与M机械反例效果分开。错误发现、误报、unknown、实际修正、变化泛化和原题质量同表；不再扩大同形N/R/E面板。
 
 **修复与结论。** 共享错误即时修复，同因两次无改善则停止该关系扩张而继续独立责任。按关系给支持、否定或具名证据不足，不按可拆分步骤的比例决定成败。LLM基线没有漏检不自动证明检查器无价值；只是不建立更强检测主张。无非平凡源码反例/修后确认时不扩适配器。常规检查复用现有证据，不创建无消费者的哈希/审计层。旧原件和未知请求保留，结束不自动BV。
+
+**已取得的M证据。** 检查臂经普通details获得初稿的查询/顺序反例，正常patch后当前五要求全部匹配；相同初稿的base仍提前拒绝。当前及五个预登记变化输入的要求对分别为base 14匹配/9反例/7未知、check 23/4/3；UNKNOWN audience仍有继承的提前退出，错误返回缺观察保持unknown。这支持有限原函数查询绑定、调用顺序和映射决策的实际修稿用途，不能推广为整个handler、完整答案或一般授权安全。M没有独立规范政策；G仍只具源码评阅依据。两臂实际续作次数及全局通用指令摘要变更在执行记录单列，不作严格成本或因果优势主张。
+
+**G与宿主边界。** G两臂均正常读取converter正文并修复loader错误后的201行为；结果仅有源码评阅与普通DSL输入执行依据，不计第二个机械源码观察结构，也不建立check目标修复优势。U-M首次在推理前遇到新CLI版本拒绝；以相同协议schema和红绿账号测试接纳精确alpha.11，旧失败保留、具名恢复另列。运行时隔离、冻结任务与程序合同保持，作者和消费者的宿主实现epoch分别记录。
+
+**最终范围决定。** query-binding、call-order和已映射decision在M已测局部范围支持；错误返回未观察具名unknown；effect-request仅匿名单测支持，真实G执行和authorized-root不支持。两次普通使用采用同一冻结稿的结果并补读源码，U-M对宿主观察范围说明仍不足；没有同输入消费者对照，不推稳定答案或效率优势。688原件/6分卷读回、45次研究隔离执行和全部18实际turn用量单列。原稿、历史、held-out、默认入口保持，BU结束不自动BV。
 
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 

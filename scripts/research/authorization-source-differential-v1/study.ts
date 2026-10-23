@@ -7,7 +7,7 @@ import {classifyTerminalReport,observedAccountCost,measureAuthorTimeline} from "
 import {countObservedUsage,recordRunError} from "../../../results/skill-ir/skill-dsl-research/development/authorization-answer-transfer-v1/study.ts"
 import {base,root,repo,load,save,hash,relative} from "./evidence.ts"
 import {positions,limits} from "./prepare.ts"
-const ledgerFile=path.join(base,"attempts.json"),boundary=path.join(root,"authorization-executable-contract-v1/account-boundary.json")
+const ledgerFile=path.join(base,"attempts.json"),boundary=path.join(base,"account-boundary.json")
 const git=(...args:string[])=>execFileSync("git",args,{cwd:repo,encoding:"utf8"}).trim()
 export function admit(ledger:any[],position:string,attempt:string,repairs:any[]){
  const index=positions.indexOf(position)

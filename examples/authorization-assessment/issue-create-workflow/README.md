@@ -1,8 +1,35 @@
 # Gitea issue field analysis through the ordinary inquiry CLI
 
-This example inspects the latest BT model-authored program for `go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b`. It is **not qualified for automatic answer consumption**: a converter-load error is incorrectly treated as preventing HTTP 201. The original task covers the route, permissions, fields, creation and later errors. Inputs are synthetic observations; these commands do not create an issue or contact the target service.
+This example inspects BU's model-authored repair and retains the historical BT program for `go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b`. The original task covers the route, permissions, fields, creation and later errors. Inputs are synthetic observations; these commands do not create an issue or contact the target service.
 
 Run from the repository root in PowerShell:
+
+BU retains this error as a source-review case. `ToAPIIssue` has no error return to its caller: loader failures produce an empty API issue, and the handler still emits 201. Its database-backed loader and converter dependencies do not provide a narrow isolated boundary comparable to Memos access resolution. No Gitea original function or handwritten Gitea simulator is counted as executed source evidence. BU's check arm receives explicitly labelled source-review feedback; it is evaluated separately from Memos mechanical counterexamples.
+
+## BU repaired current raw
+
+The check-arm author read the converter body and removed the unsupported rejection in its first patch. Its chronological last raw preserves 201 on converter load failure and sets `response_body_empty=true`. It also represents the `NewIssue` request as an unresolved external boundary, so the returned summary remains conditional and does not establish a database commit.
+
+```powershell
+$bu = './results/skill-ir/skill-dsl-research/development/authorization-source-differential-v1'
+bun src/index.ts authorization inquiry check --input="$bu/inputs/gitea-original.json" --domain-program="$bu/automatic/G-final.json" --strategy=question-checked-v1 --execution-policy=progressive --program-mode=consume --program-context=directed --program-support=execute --out=./results/local-gitea/bu-final
+```
+
+The [ordinary original/error checks](../../../results/skill-ir/skill-dsl-research/development/authorization-source-differential-v1/verification/ordinary-G.json) use identical raw bytes; full sessions are restored by `python -X utf8 scripts/research/authorization-source-differential-v1/pack.py unpack` after the study bundle is published. Permission construction, public-only owner checks, assignee helpers and full transaction/conversion internals remain incomplete. The [eligibility scope](../../../results/skill-ir/skill-dsl-research/development/authorization-source-differential-v1/automatic/G-eligibility.json) permits diagnostic consumption with these duties, not an authorization certificate.
+
+## Ordinary model use of the frozen BU program
+
+The same current raw can be consumed through the existing skill entrypoint. This command uses the configured official account and makes model requests; use a fresh output directory for a new intended task. The retained study uses fixed registered budgets and keeps its original failed attempts.
+
+```powershell
+bun src/index.ts authorization inquiry run --input="$bu/inputs/gitea-original.json" --domain-program="$bu/automatic/G-final.json" --skill=./results/skill-ir/skill-dsl-research/development/authorization-domain-execution-v1/model/source-skills/github-security-review/SKILL.md --model=gpt-5.6-sol --harness=codex-account --account-boundary="$bu/account-boundary.json" --method=D1 --strategy=question-checked-v1 --execution-policy=progressive --program-mode=consume --program-context=directed --program-support=execute --source-structure=true --out=./results/local-gitea/bu-use
+```
+
+Restore the archived study sessions with `python -X utf8 scripts/research/authorization-source-differential-v1/pack.py unpack`. The command checks part/member hashes and preserves different existing files. Reading or unpacking the retained evidence does not rerun the model. Source fidelity, independent policy and complete natural-task coverage remain separate judgments.
+
+## Historical BT program
+
+This earlier raw is **not qualified for automatic answer consumption**: it incorrectly treats converter load errors as preventing 201.
 
 ```powershell
 $study = './results/skill-ir/skill-dsl-research/development/authorization-semantic-validation-v1'

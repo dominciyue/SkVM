@@ -1,0 +1,238 @@
+## Findings Summary
+
+| Severity | Findings |
+|---|---:|
+| 🔴 CRITICAL | 0 |
+| 🟠 HIGH | 1 |
+| 🟡 MEDIUM | 0 |
+| 🔵 LOW | 0 |
+| ⚪ INFO | 0 |
+| **TOTAL** | **1** |
+
+**Policy verdict:** **Non-compliant.** An authenticated principal with read—but not write—access to the Issues unit can reach issue creation.
+
+**Dependency audit:** Not assessed; dependency manifests were outside the bounded source scope.  
+**Secrets scan:** No secrets observed in reviewed spans; this was not a repository-wide secrets scan.
+
+---
+
+# 🔐 Security Review Report
+
+**Project:** `go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b`  
+**Scan date:** 2026-10-23  
+**Scope:** `CreateIssue`, its API registration, permission helpers, creation service/model, post-create processing, and conversion  
+**Language:** Go
+
+## Authentication & Access Control
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  
+### 🟠 HIGH — Issue creation authorized by read permission
+**Confidence: HIGH**  
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📍 **Primary locations:**
+
+- `routers/api/v1/api.go:1646-1649`
+- `routers/api/v1/repo/issue.go:570-624`
+- `models/perm/access/repo_permission.go:118-155`
+
+🔍 **Vulnerable route:**
+
+```go
+m.Combo("").Get(repo.ListIssues).
+    Post(reqToken(), mustNotBeArchived, bind(api.CreateIssueOption{}),
+        reqRepoReader(unit.TypeIssues), repo.CreateIssue)
+```
+
+`reqRepoReader` accepts Issues-unit read access, repository admin, or site admin:
+
+```go
+if !ctx.Repo.Permission.CanRead(unitType) &&
+    !ctx.IsUserRepoAdmin() &&
+    !ctx.IsUserSiteAdmin() {
+    // 403
+}
+```
+
+Inside `CreateIssue`, write permission is not a creation prerequisite. It only controls selected fields:
+
+```go
+if ctx.Repo.Permission.CanWrite(unit.TypeIssues) {
+    issue.MilestoneID = form.Milestone
+    // Resolve and validate assignees.
+} else {
+    form.Labels = make([]int64, 0)
+}
+
+if err := issue_service.NewIssue(
+    ctx, ctx.Repo.Repository, issue,
+    form.Labels, nil, assigneeIDs, form.Projects,
+); err != nil {
+    // ...
+}
+```
+
+`CanWrite` means `UnitAccessMode(TypeIssues) >= AccessModeWrite`, where read is `1` and write is `2` (`models/perm/access_mode.go:16-22`). The unconditional `NewIssue` call means a read-only principal can still create the base issue.
+
+⚠️ **Risk under the supplied policy:**
+
+A signed-in Issues-unit reader can create an issue without Issues-unit write permission. They can supply the title, body, ref, project IDs, and initial closed state. The handler removes or ignores some writer-only fields, but that does not prevent the issue write itself.
+
+This is a direct violation of the independently supplied policy:
+
+> “Creating an issue requires write permission to the repository's issues unit. Read permission to the repository alone does not authorize this write.”
+
+This is a policy-conformance finding. The supplied policy is experimental and may intentionally differ from Gitea’s product semantics, where opening issues may be available to readers.
+
+### Route-level controls and exceptions
+
+Before the handler is reached:
+
+1. The enclosing route group requires the Issue token-scope category (`api.go:1765-1766`).
+2. For POST, scoped API tokens require `write:issue`; `all` also encompasses the scope (`api.go:327-370`, `models/auth/access_token_scope.go:50-78,205-212,337-350`).
+3. `reqToken` requires a signed-in principal (`api.go:373-381`).
+4. `repoAssignment` resolves the repository, computes permission, applies enforced-2FA restrictions, requires some unit/public access, and checks token access (`api.go:146-226`).
+5. Public-only tokens are checked through `TokenCanAccessRepo`, not merely `Repository.IsPrivate` (`api.go:252-306`).
+6. Archived repositories are rejected with HTTP 423 (`api.go:876-882`).
+7. The request is bound to `CreateIssueOption`; title is required (`modules/structs/issue.go:90-106`).
+8. The endpoint then requires only Issues read permission, with repository/site-admin bypass.
+
+The `write:issue` token scope is not a substitute for repository write permission: it restricts what a token may attempt, while `Permission.CanWrite(TypeIssues)` represents repository/unit authorization.
+
+Relevant exceptions:
+
+- Repository and site administrators explicitly bypass `reqRepoReader`.
+- A missing or unreadable Issues unit normally fails the reader gate, unless an admin bypass applies.
+- Actual `UnitAccessMode` also incorporates repository access, unit-specific modes, anonymous access, and everyone access (`repo_permission.go:95-107`).
+
+### Supplied-field handling
+
+| Field | Handling |
+|---|---|
+| `title` | Required; passed into the issue, truncated to 255 characters, then trimmed before insertion (`issue_update.go:452-469,360-364`). |
+| `body`, `ref` | Passed directly into the issue. |
+| `due_date` | Used only when non-null and the principal has Issues write permission. |
+| `milestone` | Used only for writers; an invalid milestone is silently reset to zero (`issue_update.go:365-377`). |
+| `labels` | Cleared for non-writers. For writers, IDs are passed onward; labels outside the repository/owner organization are silently dropped (`issue_update.go:413-434`). |
+| `assignee(s)` | Only writers have names resolved to IDs and checked for repository assignability (`repo/issue.go:589-618`; `assignees.go:176-192`). |
+| `projects` | Passed to `NewIssue` even for non-writers. The helper checks project/repository compatibility but does not check the actor’s Issues write permission (`issue_project.go:70-152`). |
+| `closed` | Evaluated after creation without an additional write check. `CloseIssue` itself performs the status transaction but no authorization check in the reviewed call chain (`repo/issue.go:635-644`; `services/issue/status.go:17-45`; `models/issues/issue_update.go:166-177`). |
+
+### Creation and later effects
+
+`issue_service.NewIssue`:
+
+1. Loads the poster.
+2. Rejects creation when the repository owner or a resolved assignee has blocked the poster.
+3. Starts a transaction containing issue insertion, assignee changes, and project assignment.
+4. After the transaction call returns, updates mentions.
+5. Sends notifications after mention processing (`services/issue/issue.go:25-83`).
+
+Consequences of error ordering:
+
+- Poster-load and blocked-user errors occur before the visible transaction.
+- A transaction-stage error prevents a normal `NewIssue` return; exact rollback/durability semantics were not available in the bounded source.
+- A mention error occurs after the transaction call. It suppresses the handler’s 201 response but does not establish that the earlier issue write was absent.
+- Optional close and refetch errors also happen after `NewIssue`; therefore, an error response at either stage does not prove the issue was not created.
+- On success, the handler returns HTTP 201 after refetch.
+- `ToAPIIssue` converts loader failures into an empty `api.Issue` rather than returning an error. Consequently, HTTP 201 can contain an empty issue object (`services/convert/issue.go:32-134`).
+
+### Finite scenario result
+
+For the supplied synthetic scenario:
+
+- Issues unit mode: read (`1`)
+- Issues write: `false`
+- Reader route: passes
+- Read-only creation path: `true`
+- Deadline: discarded
+- Milestone: discarded
+- Labels and assignees: empty
+- Projects: empty in this input
+- Immediate close: not requested
+
+The authored finite program conditionally reports issue ID `141`, index `9`, and HTTP `201`. That is **not an observed execution**: its `NewIssue` external effect remains unresolved. Null synthetic error fields indicate only modeled normal completion and do not certify a database commit or live response.
+
+### Program inaccuracies and incomplete rules
+
+The supplied program is directionally correct about the central authorization failure, but has these limits:
+
+- `public_only_gate` reduces `TokenCanAccessRepo` to repository privacy; the source uses a helper whose complete semantics are broader.
+- Permission construction is simplified to unit presence/mode and omits repository, unit-specific, anonymous/everyone, enforced-2FA, and admin behavior.
+- Writer deadline handling should convert `*time.Time` to Unix time; the finite rule returns the supplied value directly.
+- `prepared_issue.title` omits the service’s 255-character truncation and whitespace trimming.
+- Assignee names are resolved to user IDs and validated; directly treating `formAssignees` as creation IDs is only harmless in the supplied empty case.
+- Writer labels and milestones are subject to service-side filtering not represented in the returned summary.
+- Project assignment and immediate close are not writer-gated, which strengthens the read-only side-effect path.
+- The program’s `new_issue_effect == new_issue_effect` premise does not resolve the external call. Its final 201 remains conditional.
+- Some declared coverage-gap text says route and post-create handling are “not yet modeled,” although later rules attempt to model those paths. Those stale gap statements should not be treated as source conclusions.
+
+✅ **Recommended fix:**
+
+Replace the reader middleware with the established writer middleware:
+
+```go
+// Security: issue creation requires Issues-unit write permission.
+m.Combo("").Get(repo.ListIssues).
+    Post(reqToken(), mustNotBeArchived, bind(api.CreateIssueOption{}),
+        reqRepoWriter(unit.TypeIssues), repo.CreateIssue)
+```
+
+`reqRepoWriter` preserves Gitea’s repository/site-admin override. If the supplied policy permits no administrator override whatsoever, use a middleware that directly requires:
+
+```go
+ctx.Repo.Permission.CanWrite(unit.TypeIssues)
+```
+
+without the admin bypass.
+
+📚 **Reference:** OWASP A01:2021 — Broken Access Control
+
+---
+
+## 🛠️ Patch Proposal
+
+**Review each patch before applying. Nothing has been changed yet.**
+
+### Patch 1/1 — Require Issues-unit write permission
+
+**Before:**
+
+```go
+m.Combo("").Get(repo.ListIssues).
+    Post(reqToken(), mustNotBeArchived, bind(api.CreateIssueOption{}), reqRepoReader(unit.TypeIssues), repo.CreateIssue)
+```
+
+**After:**
+
+```go
+// Security: creating an issue is a write operation.
+m.Combo("").Get(repo.ListIssues).
+    Post(reqToken(), mustNotBeArchived, bind(api.CreateIssueOption{}), reqRepoWriter(unit.TypeIssues), repo.CreateIssue)
+```
+
+Recommended regression tests:
+
+1. Signed-in Issues reader receives 403 and no issue is inserted.
+2. Issues writer receives 201.
+3. Archived repository remains 423.
+4. Scoped API token still requires `write:issue`.
+5. Explicitly document and test the intended repository/site-admin exception.
+
+---
+
+## Dependency Audit
+
+Not performed: dependency manifests and lockfiles were outside the allowed source scope.
+
+## Secrets & Exposure Scan
+
+No credentials were observed in the reviewed source spans. This was not an exhaustive repository-wide secrets scan.
+
+## Scan Limits
+
+- Static source review only; no service, database, middleware stack, or deployment was executed.
+- Actual users, token types/scopes, repository configuration, feature configuration, and permission rows are unknown.
+- The development scenario is synthetic, not evidence of a deployed exploit.
+- Database transaction implementation and durable commit behavior were outside the available source scope.
+- Reviewed 12 relevant Go files; unrelated vulnerability categories and the remainder of the repository were not scanned.
