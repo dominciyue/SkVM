@@ -271,3 +271,5 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 ## 2026-10-23 BU源码差分与有限队列收束
 
 BU0–BU18完成，当前入口保留摘要和历史表。共享实现aaab477b、精确CLI兼容17a5d925；十用途交付，11尝试/18实际turn/2无推理拒绝，确认1/2。M检查臂修复base未修的局部提前退出；六输入14/9/7对23/4/3，UNKNOWN audience遗留错误明确保留。G两臂均修复converter后201，仅源码评阅。两次U普通使用采用有限结果并补读源码；完整自动语义、稳定质量/效率和一般安全未建立。688原件6分卷读回；45研究隔离执行，输入16974247（含cache14939392）、输出133553，美元/开发/人工未知。按任务书完成发布后停止BU，不自动BV。恢复入口为current-status及BU summary，归档恢复使用`python -X utf8 scripts/research/authorization-source-differential-v1/pack.py unpack`。
+
+2026-10-23：BU实质成果`0b46a97449743e9a9a9bd10a8a5f5635f8d5054d`已推用户origin/skill-ir-aot并以ls-remote核对相同SHA。全部BU0–BU19已收束，发布回执保留；不自动BV。

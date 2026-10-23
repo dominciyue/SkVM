@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-**BU有限队列与工程验证已完成，正在发布收束。** [任务书](../superpowers/plans/2026-10-21-authorization-source-differential-verification.md) identity为`authorization-source-differential-v1`。M检查臂通过普通反例反馈修复局部提前拒绝，base未修；G两臂均修复converter后的201，只有源码评阅依据。十用途全部交付，11尝试、18实际推理turn及2个派发前拒绝记录，1次具名CLI恢复；无活动/未知请求。见[汇总](../../results/skill-ir/skill-dsl-research/development/authorization-source-differential-v1/summary.json)、[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-source-differential-v1/verification/acceptance-matrix.json)与[执行记录](../../results/skill-ir/skill-dsl-research/development/authorization-source-differential-v1/execution.md)。
+**BU0–BU19已完成并发布，实质成果`0b46a974`已核对用户origin。** [任务书](../superpowers/plans/2026-10-21-authorization-source-differential-verification.md) identity为`authorization-source-differential-v1`。M检查臂通过普通反例反馈修复局部提前拒绝，base未修；G两臂均修复converter后的201，只有源码评阅依据。十用途全部交付，11尝试、18实际推理turn及2个派发前拒绝记录，1次具名CLI恢复；无活动/未知请求。见[汇总](../../results/skill-ir/skill-dsl-research/development/authorization-source-differential-v1/summary.json)、[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-source-differential-v1/verification/acceptance-matrix.json)与[执行记录](../../results/skill-ir/skill-dsl-research/development/authorization-source-differential-v1/execution.md)。
 
 保留独立任务要求、参数敏感M原函数观察及普通反例修稿。当前加五个预登记变化输入：M base为14匹配/9反例/7未知，check为23/4/3；遗留audience提前退出和错误结果缺观察明确保留。两次实际使用采用有限结果并披露原稿缺口，完整自动语义、一般安全与稳定质量/净收益未建立。源码忠实性、用户政策、原题完整性分开评价。方法见[spec§14.60](skill-ir-aot-optimization-spec.md#1460-bu-source-differential-verification)、[研究§7.82](skill-dsl-research.md#782-bt-复核与-bu-源码差分核验)。旧原件、`.tmp/`和默认入口保留。
 
@@ -30,7 +30,7 @@ BU开发gpt-6-astra/high，实验官方gpt-5.6-sol/high；第三方暂停。十�
 
 | 阶段 | 保留记录 |
 |---|---|
-| 当前BU | [任务书](../superpowers/plans/2026-10-21-authorization-source-differential-verification.md)、spec§14.60、研究§7.82；有限队列已完成，具名局部修复和实际使用成立，正在发布 |
+| 当前BU | [任务书](../superpowers/plans/2026-10-21-authorization-source-differential-verification.md)、spec§14.60、研究§7.82；有限队列已发布，具名局部修复和实际使用成立，停止BU |
 | 已结束BT | [任务书](../superpowers/plans/2026-10-21-authorization-semantic-validation-and-method-diagnosis.md)、spec§14.59、研究§7.81；M局部修复、G语义缺口、29/48域与0/8整题 |
 | 已结束BS | [任务书](../superpowers/plans/2026-10-20-authorization-task-coverage-and-semantic-transfer.md)、spec§14.58、研究§7.80；有限队列完成，工程通过，完整语义/自然质量/稳定净收益未达 |
 | 已结束BR | [任务书](../superpowers/plans/2026-10-19-authorization-evidence-backed-answers-and-task-transfer.md)、spec§14.57、研究§7.79；completed-with-unmet-criteria，九用途与一次确认完成；有限复用成立，完整语义/质量/稳定收益未达 |
@@ -58,3 +58,5 @@ BU开发gpt-6-astra/high，实验官方gpt-5.6-sol/high；第三方暂停。十�
 | AR–AU及更早 | [唯一研究正文](skill-dsl-research.md)、[历史](history.md)、[证据索引](evidence-index.md)、[实验目录](../../results/skill-ir/experiment-catalog.json) |
 
 普通命令见 [使用说明](../usage.md)，代码与测试定位见 [开发指南](developer-guide.md)。本轮不新增长期阅读文档，研究仍统一在一个正文中。仅更新当前状态及索引，不把逐次派发和测试日志持续堆到本页。
+
+[发布回执](../../results/skill-ir/skill-dsl-research/development/authorization-source-differential-v1/verification/publication.json)保留远端核对。本任务书已收束，不自动启动BV。
