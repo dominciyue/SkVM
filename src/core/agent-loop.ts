@@ -4,6 +4,7 @@ import type { LLMProvider, LLMTool, LLMToolCall, LLMToolResult, LLMResponse, LLM
 import { isProviderError } from "../providers/errors.ts"
 import { createLogger } from "./logger.ts"
 import { createDurableRuntimeTraceFromEnv } from "./durable-runtime-trace.ts"
+import type { BeforeLLMResult } from "../runtime/types.ts"
 
 const log = createLogger("agent-loop")
 
@@ -32,6 +33,9 @@ export interface AgentLoopConfig {
   temperature?: number
   /** Explicit trace owned by one run session; falls back to the legacy env opt-in. */
   runtimeTrace?: import("./durable-runtime-trace.ts").DurableRuntimeTrace
+
+  /** Host work at the actual dispatch boundary, including validated continuation. */
+  onBeforeLLM?: (iteration: number, previousToolCalls: ToolCall[], remainingMs: number) => Promise<BeforeLLMResult>
 
   /** Called after each LLM response (for monitoring, e.g. solidification skeleton matching) */
   onAfterLLM?: (response: LLMResponse, iteration: number) => Promise<void> | void
@@ -158,6 +162,47 @@ export async function runAgentLoop(
     config.signal?.addEventListener("abort", abortLifetime, { once: true })
   }
 
+  const requestCompletion = async (turn: number, results?: LLMToolResult[], previous?: LLMResponse): Promise<LLMResponse> => {
+    const hook = await withinLifetime(() => config.onBeforeLLM?.(turn, allToolCalls, Math.max(0, deadline - performance.now())))
+    if (hook && hook.action !== "passthrough") {
+      if (hook.toolResults.length) {
+        steps.push({ role: "tool", toolCalls: hook.toolResults, timestamp: Date.now() })
+        for (const call of hook.toolResults) {
+          allToolCalls.push(call)
+          await withinLifetime(() => config.onAfterTool?.(call, turn))
+        }
+      }
+      if (hook.action === "replace") {
+        return { text: hook.text ?? "", toolCalls: [], tokens: emptyTokenUsage(), durationMs: 0, stopReason: "end_turn" }
+      }
+      // Commit the latest exchange before adding host progress. Do not present
+      // local execution as an LLM-requested tool call or count it as a response.
+      if (previous && pendingHistory) {
+        params.messages.push(...pendingHistory)
+        pendingHistory = undefined
+      }
+      const historyLimit = config.toolHistoryCharacterLimit ?? 16000
+      const content = "[Validated subworkflow checkpoint]\n" + JSON.stringify(hook.checkpoint)
+        + "\n[Local execution records; failed outputs are not valid artifacts]\n" + JSON.stringify(hook.toolResults.map(call => ({ ...call,
+          output: call.output && call.output.length > historyLimit ? call.output.slice(0, historyLimit) + `\n[history truncated: ${historyLimit}/${call.output.length} characters]` : call.output,
+        })))
+        + "\nContinue the original task from this state. Keep the completed prefix; repair only the failed/remaining work."
+      params.messages.push({ role: "user", content })
+      steps.push({ role: "tool", text: content, toolCalls: [], timestamp: Date.now() })
+      runtimeTrace?.subworkflowCheckpoint(turn, hook.checkpoint)
+      previous = undefined
+      results = undefined
+    }
+    if (performance.now() >= deadline) { timedOut = true; throw new Error("Agent deadline expired before continuation") }
+    runtimeTrace?.providerRequestStart(turn)
+    const next = await withinLifetime(() => previous && results
+      ? provider.completeWithToolResults(params, results, previous)
+      : provider.complete(params))
+    runtimeTrace?.providerResponseReceived(turn, next)
+    llmDurationMs += next.durationMs
+    return next
+  }
+
   try {
     while (iteration < maxIterations) {
       if (performance.now() > deadline) {
@@ -170,10 +215,7 @@ export async function runAgentLoop(
 
       // --- LLM call ---
       if (!response) {
-        runtimeTrace?.providerRequestStart(iteration)
-        response = await withinLifetime(() => provider.complete(params))
-        runtimeTrace?.providerResponseReceived(iteration, response)
-        llmDurationMs += response.durationMs
+        response = await requestCompletion(iteration)
       }
       // (else: response was already set by completeWithToolResults at end of previous iteration)
 
@@ -309,10 +351,7 @@ export async function runAgentLoop(
 
       // Next LLM call with tool results
       if (iteration >= maxIterations) { loopError = new Error("Agent iteration budget exhausted before continuation"); break }
-      runtimeTrace?.providerRequestStart(iteration + 1)
-      response = await withinLifetime(() => provider.completeWithToolResults(params, toolResults, response!))
-      runtimeTrace?.providerResponseReceived(iteration + 1, response)
-      llmDurationMs += response.durationMs
+      response = await requestCompletion(iteration + 1, toolResults, response)
     }
   } catch (err) {
     // Infrastructure errors (provider down, auth, rate-limit exhausted)

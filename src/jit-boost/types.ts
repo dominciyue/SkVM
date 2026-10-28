@@ -30,6 +30,24 @@ export function normalizeParamDef(paramName: string, value: string | ParamDef): 
 // Boost Candidate (generated at AOT / compile time)
 // ---------------------------------------------------------------------------
 
+export const SubworkflowSchema = z.object({
+  remainingTask: z.string().min(1),
+  bindings: z.array(z.object({ path: z.string().min(1), sha256: z.string().regex(/^[a-f0-9]{64}$/) })).default([]),
+  steps: z.array(z.object({
+    id: z.string().min(1),
+    argv: z.array(z.string()).min(1),
+    timeoutMs: z.number().int().positive().optional(),
+    outputs: z.array(z.object({
+      path: z.string().min(1),
+      format: z.enum(["text", "json"]),
+      minimumBytes: z.number().int().nonnegative().optional(),
+      requiredKeys: z.array(z.string()).optional(),
+    })).min(1),
+  })).min(1),
+}).refine(flow => new Set(flow.steps.map(step => step.id)).size === flow.steps.length, "step IDs must be unique")
+
+export type Subworkflow = z.infer<typeof SubworkflowSchema>
+
 export const BoostCandidateSchema = z.object({
   purposeId: z.string(),
   keywords: z.array(z.string()).min(1),
@@ -42,6 +60,8 @@ export const BoostCandidateSchema = z.object({
   materializationType: z.enum(["shell", "python"]),
   /** Tool types to monitor for signature matches (per-candidate override) */
   monitoredTools: z.array(z.string()).optional(),
+  /** Opt-in checked local prefix; legacy templates still replace the whole task. */
+  subworkflow: SubworkflowSchema.optional(),
 })
 
 export type BoostCandidate = z.infer<typeof BoostCandidateSchema>

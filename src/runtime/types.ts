@@ -18,11 +18,24 @@ export interface BeforeLLMContext {
   workDir: string
   iteration: number
   previousToolCalls: ToolCall[]
+  remainingMs?: number
 }
 
 export type BeforeLLMResult =
   | { action: "passthrough" }
   | { action: "replace"; toolResults: ToolCall[]; text?: string }
+  | { action: "continue"; toolResults: ToolCall[]; checkpoint: SubworkflowCheckpoint }
+
+/** Validated local progress handed back to the agent, not a whole-task answer. */
+export interface SubworkflowCheckpoint {
+  workflowId: string
+  status: "completed" | "recover" | "stale"
+  inputs?: Record<string, string>
+  completed: { stepId: string; outputs: string[] }[]
+  failed?: { stepId: string; diagnostic: string; invalidatedOutputs: string[] }
+  remainingSteps: string[]
+  remainingTask: string
+}
 
 /**
  * Called after each LLM response. Can inspect tool calls

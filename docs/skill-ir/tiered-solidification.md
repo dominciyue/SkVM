@@ -2,7 +2,7 @@
 
 Category-Aware Tiered Code Solidification for Agent Skills。更新于 2026-10-28。
 
-本文承载新课题的方法、相关研究和开发判断。当前状态见 [current-status](current-status.md)，实施顺序见 [plan](skill-ir-aot-optimization-plan.md)，历史数据见 [evidence-index](evidence-index.md)。本次完成研究与治理，下面的分层选择及状态交还机制仍是待实现、待验证的设计。
+本文承载新课题的方法、相关研究和开发判断。当前状态见 [current-status](current-status.md)，实施顺序见 [plan](skill-ir-aot-optimization-plan.md)，历史数据见 [evidence-index](evidence-index.md)。本地子流程的检查与状态接续已有首个显式原型；分类选择和真实模型效果仍待实现、测量。
 
 ## 1. 目标和问题
 
@@ -29,14 +29,24 @@ Category-Aware Tiered Code Solidification for Agent Skills。更新于 2026-10-2
 | 授权可执行程序 | 有限执行、事件检查、源码失效、局部差分反例 | 复用检查/失效思路；不再把授权解释器扩张作为主线 |
 | 分类研究与公开 skill 来源 | 52 个登记包、24 个深读 skill、30 张任务卡 | 已暴露的开发材料；重新按新问题标注，不当作新测试集 |
 
-### 运行时审查发现
+### 运行时审查与已完成修补
 
 - [solidifier.ts](../../src/jit-boost/solidifier.ts) 的 `afterLLM` 按工具签名连续命中晋升；这个时点尚不是工具成功及产物验证后的观察。执行模板后主要按退出成功判断，缺少类别对应的输出检查。
 - 同文件失败路径做降级并返回 passthrough，没有完整的已执行前缀、产物有效性和失败状态交还合同。
-- [runtime/types.ts](../../src/runtime/types.ts) 的 before-hook 只有 passthrough/replace；缺少“完成一个子流程后继续”和“失败后带状态继续”的明确含义。
-- [bare-agent.ts](../../src/adapters/bare-agent.ts) 的 replace 会成为无工具调用的结束响应；返回的 hook 工具结果没有作为普通执行历史完整接回。hook 观察使用的 iteration 也需要与实际循环统一。
+- 原 before-hook 只有 passthrough/replace。现在 [runtime/types.ts](../../src/runtime/types.ts) 增加 `continue`，检查点记录有效前缀、诊断和剩余任务。
+- hook 移到 [agent-loop](../../src/core/agent-loop.ts) 的真实派发边界，轮次、工具记录和 history 接通；本地执行不冒充模型响应。旧 replace 继续用于整任务替换，子流程成功与失败都继续模型。
 
 因此第一项工程验收应是“成功子流程接着做剩余任务，失败子流程从有效状态接着做”。先不增加新语言语法、分类模型或大规模实验面板。
+
+### 2026-10-28 本地原型
+
+[subworkflow.ts](../../src/runtime/subworkflow.ts) 执行候选声明的有序命令，每步核对文件存在、最小字节数、JSON 可解析性和必要字段。非零退出或检查失败会恢复该步声明输出的执行前字节，保留已验证前缀，停止后继步骤。恢复失败的产物撤回有效标记，给出具体诊断。静态依赖绑定失配交回普通流程，不使用缓存结果。
+
+候选复用 JIT 的 schema 与保存接口，经显式 `run --subworkflow=<candidate.json>` 启用。首版只支持普通 bare-agent 的本地文件流程；参数来自显式/regex 提取，避免额外模型提取调用不计入主账。新子流程不会因为签名重复就自动晋升，每次任务最多在首轮启动一次。旧 JIT 模板行为继续保留为基线。
+
+这次把真实文件操作放进普通 `executeRun → BareAgentAdapter → agent-loop`：成功和故障示例均生成三行、合计 6 的报告，前缀各执行一次；故障例第二步退出 0 但缺必要字段，检查后撤回再接续。模型侧是脚本替身，实际模型请求为 0。测试同时覆盖中途交还的历史顺序、依赖变化、回滚、模型恢复失败、超时不再派发及旧 replace。复核发现并修复了工作目录异常被静默降级、恢复后的有效文件仍被列为失效的问题。
+
+检查点与完整本地工具结果留在 RunResult.steps；durable trace 新增 `subworkflow-checkpoint` 事件，记录进度与失败原因。普通使用和重跑见[示例](../../examples/tiered-solidification/README.md)。此版检查是结构层约束，业务语义检查器、自动候选/类别选择、跨会话恢复和真实模型收益仍是后续工作。命令必须声明全部可变文件输出；未声明写入、数据库和远端操作没有回滚保证。
 
 ## 3. 相关研究与借鉴范围
 
@@ -85,7 +95,7 @@ T3 不表示“高质量”，只表示覆盖范围更大。一个 T1 也可能�
 
 候选来源顺序：已有 skill 脚本 → 轨迹中可参数化的程序 → 模型生成局部程序。保留模型负责的余下职责，不把整包缩成一个结果文件。运行时不能把编译期已暴露答案当作业务输出模板。
 
-### 状态交还合同（拟议）
+### 状态交还合同（首版本地文件实现；其余为设计）
 
 检查点放在可解释的步骤边界，记录：本次任务与输入、已完成步骤及验证结果、当前有效变量/文件、失败步骤与诊断、尚未完成职责、效果回执和依赖版本。
 
@@ -129,6 +139,6 @@ T3 不表示“高质量”，只表示覆盖范围更大。一个 T1 也可能�
 
 第一段开发只实现一种可检查的本地子流程，打通 T1/T2、成功继续、检查失败恢复及完整计量。用 mock 模型和确定性测试证明接线，再用真实账号运行少量原包/优化包配对。候选是否来自自动作者和恢复是否实际减少重做分别留证。
 
-具体文件、失败测试和顺序统一维护在 [plan](skill-ir-aot-optimization-plan.md)。本轮不自动启动实验、不新增生产默认。官方账号实验授权延续，第三方付费调用继续暂停。
+具体文件、失败测试和顺序统一维护在 [plan](skill-ir-aot-optimization-plan.md)。本轮先交付确定性接线，未启动真实模型效果实验，默认行为不变。官方账号实验授权延续，第三方付费调用继续暂停；账号入口与本次 bare-agent 接续尚未连接。
 
 此后方法发现更新本文对应章节，短复盘留 Git/结果记录。旧 [spec](skill-ir-aot-optimization-spec.md)、[DSL 研究长文](skill-dsl-research.md)、[旧开发指南](developer-guide.md)保留为历史与授权组件参考；不要继续向三个文件复制新课题进展。

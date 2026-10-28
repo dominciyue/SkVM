@@ -6,6 +6,7 @@ import type { BoostCandidate, ParamDef, SolidificationEntry, SolidificationState
 import { normalizeParamDef } from "./types.ts"
 import { extractStructured } from "../providers/structured.ts"
 import { createLogger } from "../core/logger.ts"
+import { executeSubworkflow } from "../runtime/subworkflow.ts"
 
 const log = createLogger("solidifier")
 
@@ -134,6 +135,8 @@ export class Solidifier {
         const content = extractMonitorableContent(tc)
 
         for (const [purposeId, entry] of this.entries) {
+          // Signature similarity alone cannot certify a checked subworkflow.
+          if (entry.candidate.subworkflow) continue
           const candidateTools = entry.candidate.monitoredTools
             ? new Set(entry.candidate.monitoredTools)
             : this.defaultMonitoredTools
@@ -176,6 +179,7 @@ export class Solidifier {
     return async (ctx: BeforeLLMContext): Promise<BeforeLLMResult> => {
       for (const [purposeId, entry] of this.entries) {
         if (!entry.state.promoted) continue
+        if (entry.candidate.subworkflow && ctx.iteration !== 1) continue
 
         // Check keywords
         const promptLower = ctx.prompt.toLowerCase()
@@ -186,12 +190,26 @@ export class Solidifier {
 
         try {
           const extraction = await extractParamsFromPrompt(ctx.prompt, entry.candidate, {
-            llmProvider: this.llmProvider,
+            // The opt-in prefix only uses explicit/regex parameters. Model-based
+            // extraction remains legacy behavior until its usage joins the run ledger.
+            llmProvider: entry.candidate.subworkflow ? undefined : this.llmProvider,
           })
 
           if (!extraction.complete) {
             log.info(`Solidified ${purposeId}: param extraction failed (${extraction.method}), falling back to agent`)
             continue
+          }
+
+          if (entry.candidate.subworkflow) {
+            const continuation = await executeSubworkflow(purposeId, entry.candidate.subworkflow, ctx, extraction.params)
+            if (continuation.checkpoint.status !== "completed") {
+              entry.state.fallbackCount++
+              if (entry.state.fallbackCount >= this.demotionThreshold) {
+                entry.state.promoted = false
+                entry.state.consecutiveMatches = 0
+              }
+            }
+            return continuation
           }
 
           const code = instantiateTemplate(entry.candidate.functionTemplate, extraction.params)

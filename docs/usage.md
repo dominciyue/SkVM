@@ -55,6 +55,14 @@ Three LLM provider route kinds under `src/providers/`, selected per model id via
 - **`openai-compatible`** — OpenAI / Azure / vLLM / Ollama / DeepSeek and similar `/v1/chat/completions` gateways. Requires `baseUrl`; for these routes an auto-probe layer can fail over to an Anthropic-shaped endpoint on the same host when tool-call args are polluted (disable with `SKVM_AUTO_PROBE=0`).
 - **`openrouter`** — OpenRouter API. Set `OPENROUTER_API_KEY`.
 
+### Checked local subworkflows (opt-in prototype)
+
+`run --adapter=bare-agent --subworkflow=<candidate.json>` executes an explicitly selected local prefix, checks its declared artifacts, then lets the agent finish the original task. On failure, validated earlier outputs remain available and the failed step's declared files are restored; the checkpoint names remaining work. A zero process exit alone does not pass artifact checks. Default runs and legacy whole-task replacement are unchanged.
+
+The candidate uses the existing JIT format with an optional `subworkflow` containing ordered `argv` steps, output checks, dependency bindings and remaining duties. This initial implementation uses local files and explicit/regex parameters. It does not automatically choose a category or generate the candidate. Commands must declare their mutable outputs; external side effects and cross-session recovery are outside this prototype. The account adapter is not supported by this option yet.
+
+Run the [success/failure examples](../examples/tiered-solidification/README.md) with `bun examples/tiered-solidification/run.ts --mode=failure`. They execute real local files with a scripted provider and report zero actual model calls. Real model quality and performance remain to be measured.
+
 ### Bounded authorization assessment (opt-in development capability)
 
 The explicit `operation-evidence-v4` strategy adds source-invariant exclusions, incremental annotation requirements and ordered context-failure summaries to the shared inquiry/native runtime. It retains the original question set, source and unknown behavior. Proposed property coverage does not establish whole-answer sufficiency. V4 materials use a separate semantic version from v3; use current same-strategy sessions for `--previous`. Public inquiry `run --skill=<complete-original-SKILL.md>` supplies and archives the original skill bytes. For the controlled account harness, use `--harness=codex-account --model=gpt-5.6-sol --strategy=operation-evidence-v4 --account-boundary=<reviewed-boundary.json>` and host tool/read/display/session limits. Ordinary `run --adapter=codex-account --authorization-strategy=operation-evidence-v4` uses the same core and complete skill. These tested interfaces are development capabilities; current full-task quality is still being measured.

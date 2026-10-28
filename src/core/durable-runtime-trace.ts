@@ -2,6 +2,7 @@ import { closeSync, fsyncSync, mkdirSync, openSync, writeSync } from "node:fs"
 import { dirname, resolve } from "node:path"
 import { z } from "zod"
 import type { LLMResponse } from "../providers/types.ts"
+import type { SubworkflowCheckpoint } from "../runtime/types.ts"
 
 const ToolTypeCountsSchema = z.object({
   readFile: z.number().int().nonnegative(),
@@ -42,6 +43,12 @@ export const DurableRuntimeTraceEventSchema = z.discriminatedUnion("event", [
     ...toolSummary,
   }).strict(),
   z.object({ ...common, event: z.literal("turn-end") }).strict(),
+  z.object({
+    ...common, event: z.literal("subworkflow-checkpoint"),
+    workflowId: z.string(), status: z.enum(["completed", "recover", "stale"]),
+    completedSteps: z.array(z.string()), remainingSteps: z.array(z.string()),
+    failedStep: z.string().optional(), diagnostic: z.string().optional(),
+  }).strict(),
   z.object({
     ...common,
     event: z.literal("finalize"),
@@ -142,6 +149,14 @@ export class DurableRuntimeTrace {
 
   turnEnd(turn: number): void {
     this.append({ event: "turn-end", turn })
+  }
+
+  subworkflowCheckpoint(turn: number, checkpoint: SubworkflowCheckpoint): void {
+    this.append({ event: "subworkflow-checkpoint", turn, workflowId: checkpoint.workflowId,
+      status: checkpoint.status, completedSteps: checkpoint.completed.map(step => step.stepId),
+      remainingSteps: checkpoint.remainingSteps,
+      ...(checkpoint.failed ? { failedStep: checkpoint.failed.stepId, diagnostic: checkpoint.failed.diagnostic } : {}),
+    })
   }
 
   finalize(turn: number, outcome: "completed" | "timeout" | "handled-error" | "max-iterations"): void {

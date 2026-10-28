@@ -210,11 +210,6 @@ Available skills:
     const telemetry = restricted ? (await import("../benchmarks/authorization-dsl/telemetry.ts")).createTelemetryProvider(activeProvider, { executableToolNames: restricted.definitions.map(t => t.name), maxDispatches: authorizationProviderLimit, perCallTimeoutMs: typeof this.providerOptions.authorizationRequestTimeoutMs === "number" ? this.providerOptions.authorizationRequestTimeoutMs : 300000, unitTimeoutMs: authorizationIsolated || this.providerOptions.authorizationSessionTimeoutMs !== undefined ? authorizationSessionMs : Math.min(authorizationSessionMs, 1200000), beforeDispatch: restricted.beforeDispatch, onEvent: restricted.onEvent, ...(authorizationIsolated ? { readonlyRecovery: { policyVersion: "authorization-readonly-recovery/v1", toolNames: restricted.definitions.map(t => t.name), verifyLocalState: restricted.verifyReadonlyState } } : {}) }) : undefined
     if (restricted && telemetry) { activeProvider = telemetry.provider; system += `\n\n${restricted.system}` }
 
-    // --- Hook: beforeLLM (short-circuit support) ---
-    // The agent loop doesn't know about hooks. We wrap the provider to intercept
-    // the first call and check for solidification short-circuits.
-    // For afterLLM/afterTool, we use the loop's callbacks.
-    const beforeLLMHooks = this.hooks.beforeLLM
     const allToolCalls: ToolCall[] = []
     let providerDispatches = 0, providerResponses = 0, assistantMessages = 0, requestedTools = 0
     let lastResponse: LLMResponse | undefined
@@ -224,64 +219,12 @@ Available skills:
       providerResponses++
       return response
     }
-
-    // Discover-mode state that needs to be maintained across iterations
     let discoverSkillLoaded = skillLoaded
-
-    // Create a wrapper provider that handles beforeLLM hooks and discover mode
     const wrappedProvider: LLMProvider = {
       name: activeProvider.name,
       supportsAbortSignal: activeProvider.supportsAbortSignal,
-
-      complete: async (params) => {
-        // Check beforeLLM hooks for short-circuit
-        if (beforeLLMHooks) {
-          for (const hook of beforeLLMHooks) {
-            const result = await hook({
-              prompt: task.prompt,
-              workDir: task.workDir,
-              iteration: 0, // will be overridden — but hooks rarely use this
-              previousToolCalls: allToolCalls,
-            })
-            if (result.action === "replace") {
-              // Return a synthetic response with the solidified results
-              // The loop will see toolCalls=[] and end_turn, so it will stop
-              return {
-                text: result.text ?? "",
-                toolCalls: [],
-                tokens: emptyTokenUsage(),
-                durationMs: 0,
-                stopReason: "end_turn" as const,
-              }
-            }
-          }
-        }
-        return observeProvider(() => activeProvider.complete(params))
-      },
-
-      completeWithToolResults: async (params, toolResults, prevResponse) => {
-        // Check beforeLLM hooks
-        if (beforeLLMHooks) {
-          for (const hook of beforeLLMHooks) {
-            const result = await hook({
-              prompt: task.prompt,
-              workDir: task.workDir,
-              iteration: 0,
-              previousToolCalls: allToolCalls,
-            })
-            if (result.action === "replace") {
-              return {
-                text: result.text ?? "",
-                toolCalls: [],
-                tokens: emptyTokenUsage(),
-                durationMs: 0,
-                stopReason: "end_turn" as const,
-              }
-            }
-          }
-        }
-        return observeProvider(() => activeProvider.completeWithToolResults(params, toolResults, prevResponse))
-      },
+      complete: params => observeProvider(() => activeProvider.complete(params)),
+      completeWithToolResults: (params, results, previous) => observeProvider(() => activeProvider.completeWithToolResults(params, results, previous)),
     }
 
     let loopResult: Awaited<ReturnType<typeof runAgentLoop>>
@@ -297,6 +240,13 @@ Available skills:
         timeoutMs: restricted ? authorizationSessionMs : task.timeoutMs ?? this.timeoutMs,
         maxTokens: restricted ? 6000 : 16384,
         runtimeTrace: task.runtimeTrace,
+        onBeforeLLM: async (iteration, previousToolCalls, remainingMs) => {
+          for (const hook of this.hooks.beforeLLM ?? []) {
+            const result = await hook({ prompt: task.prompt, workDir: task.workDir, iteration, previousToolCalls, remainingMs })
+            if (result.action !== "passthrough") return result
+          }
+          return { action: "passthrough" }
+        },
         // bare-agent's tool executor spawns isolated shell subprocesses per
         // call — safe for ILP fan-out. Closes the runtime side of pass3's ILP
         // annotation: when a skill hints the model to batch independent

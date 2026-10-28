@@ -16,6 +16,12 @@ function parseError(argv: string[]): UsageError {
 }
 
 describe("RUN_FLAGS.parse — typed config", () => {
+  test("subworkflow is explicit and only accepted on the ordinary bare-agent path", () => {
+    const parse = (extra: string[]) => { const c = RUN_FLAGS.parse(["--prompt=finish report", "--model=x/y", "--subworkflow=prefix.json", ...extra]); if (c.help) throw new Error("unexpected help"); return c }
+    expect(validateRunConfig(parse(["--adapter=bare-agent"])).mode).toBe("source")
+    expect(() => validateRunConfig(parse(["--adapter=codex-account"]))).toThrow("subworkflow")
+    expect(() => validateRunConfig(parse(["--adapter=bare-agent", "--authorization-scope=scope.json"]))).toThrow("subworkflow")
+  })
   test("account boundary flag requires the bounded account entrance", () => {
     const parse = (extra: string[]) => { const c = RUN_FLAGS.parse(["--prompt=review", "--model=gpt-5.6-sol", "--authorization-account-boundary=/tmp/boundary.json", ...extra]); if (c.help) throw new Error("unexpected help"); return c }
     expect(validateRunConfig(parse(["--adapter=codex-account", "--authorization-scope=/tmp/input.json"])).mode).toBe("source")
@@ -34,6 +40,7 @@ describe("RUN_FLAGS.parse — typed config", () => {
       workdir: undefined,
       "initial-workdir-manifest": undefined,
       "execution-observation": undefined,
+      subworkflow: undefined,
       "authorization-scope": undefined,
       "authorization-account-boundary": undefined,
       "authorization-domain-tools": false,
@@ -83,6 +90,7 @@ describe("RUN_FLAGS.parse — typed config", () => {
       workdir: "/tmp/wd",
       "initial-workdir-manifest": undefined,
       "execution-observation": "/tmp/observation.json",
+      subworkflow: undefined,
       "authorization-scope": undefined,
       "authorization-account-boundary": undefined,
       "authorization-domain-tools": false,
@@ -206,6 +214,7 @@ Options:
   --workdir=<path>                            Use this directory instead of a temp work directory
   --initial-workdir-manifest=<path>           Write a pre-agent workdir manifest outside the work directory
   --execution-observation=<path>              Write a value-free execution observation JSON sidecar
+  --subworkflow=<candidate.json>              Explicitly enable a reviewed local subworkflow candidate; bare-agent only. Checked progress is handed back to the agent.
   --authorization-scope=<path>                Opt into bounded read-only authorization source tools using an inquiry input file (bare-agent or codex-account).
   --authorization-account-boundary=<path>     Pin reviewed generic account instruction sources by SHA256 (codex-account only).
   --authorization-domain-tools                Enable inquiry compilation, relation observations and result checking in the restricted source run.

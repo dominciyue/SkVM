@@ -75,6 +75,7 @@ export const RUN_FLAGS = defineFlags(
       placeholder: "<path>",
       help: "Write a value-free execution observation JSON sidecar",
     },
+    subworkflow: { kind: "string", placeholder: "<candidate.json>", help: "Explicitly enable a reviewed local subworkflow candidate; bare-agent only. Checked progress is handed back to the agent." },
     "authorization-scope": { kind: "string", placeholder: "<path>", help: "Opt into bounded read-only authorization source tools using an inquiry input file (bare-agent or codex-account)." },
     "authorization-account-boundary": { kind: "string", placeholder: "<path>", help: "Pin reviewed generic account instruction sources by SHA256 (codex-account only)." },
     "authorization-domain-tools": { kind: "bool", help: "Enable inquiry compilation, relation observations and result checking in the restricted source run." },
@@ -161,6 +162,7 @@ export type ValidatedRunConfig = {
 }
 
 export function validateRunConfig(config: RunConfig): ValidatedRunConfig {
+  if (config.subworkflow && (config.adapter !== "bare-agent" || config["authorization-scope"] || config.optimize || config["resume-optimization"])) throw new UsageError("run: --subworkflow requires ordinary bare-agent execution without authorization scope or optimization", RUN_FLAGS.help)
   if (config["authorization-account-boundary"] && (config.adapter !== "codex-account" || !config["authorization-scope"])) throw new UsageError("run: authorization-account-boundary requires codex-account and --authorization-scope", RUN_FLAGS.help)
   if ((config["authorization-domain-tools"] || config["authorization-trace"] || config["authorization-strategy"] || config["authorization-method"] || config["authorization-max-provider-calls"] || config["authorization-max-tool-calls"] || config["authorization-max-display-bytes"] || config["authorization-max-read-bytes"] || config["authorization-max-output-tokens"] || config["authorization-request-timeout-ms"] || config["authorization-session-timeout-ms"] || config["authorization-readonly-recovery"]) && !config["authorization-scope"]) throw new UsageError("run: authorization tools/trace/strategy/method/budgets require --authorization-scope", RUN_FLAGS.help)
   if (config["authorization-method"] && (!isOperationInquiryStrategy(config["authorization-strategy"]) || !config["authorization-domain-tools"])) throw new UsageError("run: authorization-method requires operation-evidence-v1 or operation-evidence-v2 and --authorization-domain-tools", RUN_FLAGS.help)
@@ -422,6 +424,18 @@ export async function runRun(config: RunConfig): Promise<void> {
   const runSp = createSpinner(`Running task ${task.id}...`)
 
   try {
+    if (config.subworkflow) {
+      const { BoostCandidateSchema } = await import("../jit-boost/types.ts")
+      const { Solidifier } = await import("../jit-boost/solidifier.ts")
+      const { BareAgentAdapter } = await import("../adapters/bare-agent.ts")
+      const candidate = BoostCandidateSchema.parse(await Bun.file(config.subworkflow).json())
+      if (!candidate.subworkflow) throw new Error("--subworkflow candidate must declare steps and artifact checks")
+      if (!(adapter instanceof BareAgentAdapter)) throw new Error("--subworkflow adapter does not support continuation hooks")
+      const solidifier = new Solidifier([candidate])
+      // Explicit user selection, not automatic promotion or an effect claim.
+      solidifier.getEntries()[0]!.state.promoted = true
+      adapter.setHooks({ beforeLLM: [solidifier.createBeforeLLMHook()] })
+    }
     let result
     let optimization:
       | Awaited<ReturnType<typeof import("../run/optimization-handoff.ts")["executeRunAndOptimize"]>>["optimization"]
