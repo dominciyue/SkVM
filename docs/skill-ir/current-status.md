@@ -6,9 +6,11 @@
 
 老师重新确定课题为 **基于 Skill 分类的分层代码固化 Agent 运行时优化机制**：结合真实运行的确定性和数据依赖，选择固化范围与检查方式；检查失败时把有效中间状态交给模型继续，以输出质量保持为前提，评价延迟、token 和调用量。
 
-本轮完成实验材料清理及首个**本地子流程执行—检查—状态交还—继续完成任务**原型。普通 bare-agent 已支持显式 `--subworkflow`；成功和故障示例实跑通过，模型侧为脚本替身，真实模型效果实验尚未启动。方法与实现统一在[主文档](tiered-solidification.md)，下一步见[计划](skill-ir-aot-optimization-plan.md)。
+已有首个**本地子流程执行—检查—状态交还—继续完成任务**原型：普通 bare-agent 支持显式 `--subworkflow`，成功和故障示例已实跑，模型侧为脚本替身。2026-10-28 追加完成相关工作、外部路由/恢复代码及公开 skill 正文调研，形成[主文档](tiered-solidification.md)和[下一开发队列 P0–P6](skill-ir-aot-optimization-plan.md)；未新增生产实现或真实模型实验。
 
-直接试接线：`bun examples/tiered-solidification/run.ts --mode=failure`。操作真实文件，故意生成不合格摘要，再从第一步结果接续，生成最终报告。详细产物见[运行说明](../../examples/tiered-solidification/README.md)。下一项是接通获准的真实模型通道、补任务独立检查，再做少量质量保持与恢复成本配对。
+直接试接线：`bun examples/tiered-solidification/run.ts --mode=failure`。操作真实文件，故意生成不合格摘要，再从第一步结果接续，生成最终报告。详见[运行说明](../../examples/tiered-solidification/README.md)。下一步先明确多类任务及独立评价，接执行后证据和通用账号通道，再做自动候选、透明路由和真实恢复配对。
+
+研究定位：SkillSmith 已有有效上游恢复，Adaptive Skill Granularity 已有宏/微路由。待检验增量是类别对验证/粒度选择的帮助，以及依赖与检查如何确定可继续使用的状态。先按 4 个 skill、2 类做小规模接线，再决定跨类对照；不把恢复或分类本身称为新颖成果。
 
 ## 已有成果与保留边界
 
