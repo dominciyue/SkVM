@@ -1,6 +1,6 @@
 # Skill 优化、Final IR 与 Artifact Runtime
 
-**按需阅读：** 本文对应 trace 优化与 IR/AOT 产物路线。普通生成先读 §3.0 的动作、程序验证、导出与自然消费；修改旧 artifact runtime 再读 §4–§14。当前授权 DSL 的宿主取证与控制图由[开发指南](developer-guide.md)、[研究 §7.36](skill-dsl-research.md#736-ar-宿主引导运行与现场修复)及 spec §14.34 说明，不要求经过本文全部层级。阶段名称表示当时实现/证据，实时状态只看 [current-status](current-status.md)。
+**按需阅读：** 本文对应 trace 优化与 IR/AOT 产物路线。普通生成先读 §3.0 的动作、程序验证、导出与自然消费；修改旧 artifact runtime 再读 §4–§14。新子流程接续见[主文档](tiered-solidification.md)，旧授权设计按[历史索引](history.md)恢复。阶段名称表示当时实现/证据，实时状态只看 [current-status](current-status.md)。
 
 
 本文说明优化动作、局部验证和产物封装的实现。当前进度见[状态页](current-status.md)，实验结果及其适用范围见[证据索引](evidence-index.md)。
@@ -179,8 +179,8 @@ F1.1 将五个已暴露的深读成员映射为可审计的 `pattern-to-code.jso
 ### 3.0.2.1 生产链接线边界（H0–H14 + R1–R7，completed-development）
 
 普通 execution-log loop 已调用 program validator 和 action resolver，在选轮前完成局部验证、最多一次定向修复与依赖/共享文件回退。
-本轮依据[生产链任务书](../superpowers/plans/2026-09-13-skill-optimization-production-closure.md)继续在真实日志路径核验程序生成、复用、条件变化及自然消费。
-四个 G 包身份实际只改 SKILL.md；生成非 API 新程序、自然消费与变化输入检查是新任务，不能当作既有能力。
+以下为 2026-09-13 生产链开发的历史问题与修复记录；当前操作顺序以[使用说明](../usage.md)为准，原任务书从[历史索引](history.md)恢复。
+当时四个 G 包身份实际只改 SKILL.md；该阶段另行核验了非 API 程序、自然消费与变化输入，不将其回写为 G 的既有成果。
 H0 已确认正常 CLI 的 execution-log 分支在 `runLoop` 中提前进入 `runLogOnly`：它调用一次 `runOptimizer`、保存
 round-0/1。H2–H6 已把约束来源、pending 传播、真实验证计划、执行及一次 repair/rollback 接到 round-1 选择之前；
 H7 exporter 从 final history 读取存活 action，归档选中轮报告，避免旧 submission 或旧 snapshot 的 passed 漂移进包。

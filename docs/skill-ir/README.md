@@ -16,7 +16,7 @@
 | [证据索引](evidence-index.md) | 哪些结果支持哪些结论 |
 | [历史索引](history.md) | 旧阶段、旧路径和恢复位置 |
 
-原项目的[架构](../architecture.md)、[使用说明](../usage.md)和[JIT Boost](../jit-boost.md)按开发需要查阅，本轮未改写这些文档。
+原项目的[架构](../architecture.md)、[使用说明](../usage.md)和[JIT Boost](../jit-boost.md)按开发需要查阅；治理不删减上游原有内容。
 
 ## 按需组件与历史参考
 
@@ -27,9 +27,11 @@
 | runner/checker/scorer | [evaluation-system](evaluation-system.md) |
 | API 确定性实现 | [api-task-engine](api-task-engine.md) |
 | 外部 skill、既有 pilot | [external-skill-import](external-skill-import.md)、[real-skill-pilots](real-skill-pilots.md) |
-| 旧授权实现和历史方法 | [旧开发指南](developer-guide.md)、[旧 spec](skill-ir-aot-optimization-spec.md)、[DSL 研究过程](skill-dsl-research.md) |
+| 旧授权使用与历史方法 | [普通命令](../usage.md)、各例子的 README；历史合同从 [Git 恢复](history.md) |
 
-最后三份长文退出日常必读，原章节和路径保留；其中“当前”“下一轮”按原阶段日期解释。新课题的决定只更新新主文档，避免多份长文同时增长。
+旧 spec、研究流水、开发指南、已结束任务书及设计稿已删除；不再保留同一内容的常驻历史副本。Git 保存原章节，实验结果保留原合同引用。
+
+目录中另有 14 份 Markdown 及两份旧任务书作为版本化输入保留：API 请求开发、分类手册、class-proof/current-v2 复现脚本会读取这些文件。它们不是活动计划，禁止当作当前状态编辑。准确路径见[文档清单](../../scripts/skill_ir_doc_governance.json)的 `versionedMaterials`。
 
 ## 实验结果
 
@@ -53,4 +55,4 @@ python -m unittest discover -s scripts -p check_skill_ir_doc_links_test.py
 bun ./scripts/experiment-catalog/cli.ts check
 ```
 
-本轮目录体量与保留决定见[治理盘点](../../results/skill-ir/governance-inventory-20261028.json)。日常阅读集的行数只是维护提醒；真实错误以缺路径、断链、冲突或过时结论为准。
+本轮删除、保留理由和恢复提交见[治理盘点](../../results/skill-ir/governance-inventory-20261028.json)。检查继续拒绝当前入口的断链；历史原件中的已删除文档路径按退休清单识别，不修改原始报告。

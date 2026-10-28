@@ -1,6 +1,6 @@
 # Skill IR 评估系统
 
-**适用范围：** §1–§13 主要保留既有 IR/AOT benchmark、确定性 scorer 和冻结实验的接口。其 `retries=0`、阶段准入及 scorer 权威适用于对应实验合同，不能直接作为 AR 现场修复流程的默认规则。当前授权研究按[研究 §7.35–§7.36](skill-dsl-research.md#735-aq-授权领域执行设计)与[AR 任务书](../superpowers/plans/2026-10-02-authorization-guided-runtime-and-online-repair.md)执行：语义按源码独立复核，程序校验与真实交付分列，首答/具名修订/未运行及全部费用保留。共用原则是材料与评价答案隔离、原始结果不覆盖、分母和成本明确。
+**适用范围：** §1–§13 保留既有 IR/AOT benchmark、确定性 scorer 和冻结实验的接口。其 `retries=0`、阶段准入及 scorer 权威只适用于对应实验合同。新课题评价按[主文档](tiered-solidification.md)执行；旧授权合同按[历史索引](history.md)恢复。共用原则是材料与评价答案隔离、原始结果不覆盖、分母和成本明确。
 
 
 下列章节说明既有 IR/AOT 评估组件；单个 skill 的 task、lock、命令和结果从对应 pilot 与 evidence ledger 查找。当前授权研究的执行与评价入口见上方适用范围。

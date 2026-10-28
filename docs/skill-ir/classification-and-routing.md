@@ -128,4 +128,4 @@ bun run typecheck
 
 原始 52 包、24 个深读 skill、30 张任务卡及 assignment 见 [`classification.json`](../../results/skill-ir/skill-task-dsl-preparation-20260919/classification.json)，不代表分类准确率或生态比例。
 
-S/D 两轮及后续授权路线的形成过程保留在[历史研究正文](skill-dsl-research.md)。V/W 等阶段均已结束，最新旧路线收束为 BU；它们不再决定新课题的任务范围。新分类与路由方法维护在本页开头及新主文档中。
+S/D 两轮及后续授权路线的形成过程从[历史索引](history.md)恢复；已暴露语料仍是开发材料。旧路线在 BU 收束，新分类与路由方法维护在本页开头及新主文档中。

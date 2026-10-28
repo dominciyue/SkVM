@@ -141,4 +141,4 @@ T3 不表示“高质量”，只表示覆盖范围更大。一个 T1 也可能�
 
 具体文件、失败测试和顺序统一维护在 [plan](skill-ir-aot-optimization-plan.md)。本轮先交付确定性接线，未启动真实模型效果实验，默认行为不变。官方账号实验授权延续，第三方付费调用继续暂停；账号入口与本次 bare-agent 接续尚未连接。
 
-此后方法发现更新本文对应章节，短复盘留 Git/结果记录。旧 [spec](skill-ir-aot-optimization-spec.md)、[DSL 研究长文](skill-dsl-research.md)、[旧开发指南](developer-guide.md)保留为历史与授权组件参考；不要继续向三个文件复制新课题进展。
+此后方法发现更新本文对应章节，短复盘留 Git/结果记录。旧 spec、DSL 研究流水与旧开发指南已退出工作目录；需要核对旧合同或设计时按[历史索引](history.md)读取对应提交，不再维护重复长文。

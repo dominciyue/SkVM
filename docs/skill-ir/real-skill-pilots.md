@@ -1,6 +1,6 @@
 # 真实 Skill Corpus 与 Method Portfolio
 
-**本文范围：** 以下 portfolio、intake 顺序和阶段结果是既有 IR/AOT pilot 的组件记录。当前 DSL 的外部 skill 来源、成员职责和类别依据统一见[研究 §4](skill-dsl-research.md#4-语料结构与分类已有发现)；活动开发从[当前状态](current-status.md)进入，不因这里保留旧 intake 而重新启动实验。
+**本文范围：** 以下 portfolio、intake 顺序和阶段结果是既有 IR/AOT pilot 的组件记录。外部 skill 来源和分类资料见[分类与路由](classification-and-routing.md)；活动开发从[当前状态](current-status.md)进入，不因这里保留旧 intake 而重新启动实验。
 
 
 本文记录 IR/AOT 阶段的现实来源、证据角色、intake 和 pilot 生命周期。实验入口统一见 [evidence-index](evidence-index.md) 与 [experiment catalog](../../results/skill-ir/experiment-catalog.json)。下列历史选择顺序不构成当前开发队列。

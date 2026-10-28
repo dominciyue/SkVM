@@ -22,7 +22,7 @@
 
 ## 开发与资料入口
 
-- 新课题只维护[主文档](tiered-solidification.md)和[计划](skill-ir-aot-optimization-plan.md)；旧 spec、DSL 研究长文及旧开发指南转为历史/按需参考，路径保留。
+- 新课题只维护[主文档](tiered-solidification.md)和[计划](skill-ir-aot-optimization-plan.md)。已结束任务书、旧研究长文、旧开发指南与汇报稿退出工作目录；按[历史索引](history.md)从 Git 恢复。脚本实际读取的版本化文档保留原字节。
 - 分类入口：[classification-and-routing](classification-and-routing.md)；结果入口：[results README](../../results/skill-ir/README.md)。清理 3,496 份与归档一致的实验展开副本及可重建缓存，共 12,361 文件、20.91 GB 逻辑长度；归档、自动包、跟踪原件和唯一记录保留。
 - 普通命令见[使用说明](../usage.md)。沿用 `run`，新增可选 `--subworkflow`，默认行为保持。
 - 官方账号 `gpt-5.6-sol/high` 实验授权保留；第三方付费通道继续暂停。未知/活动请求不重发，held-out/Q1/prospective 不进入本轮治理。

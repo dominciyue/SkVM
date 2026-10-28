@@ -7,12 +7,12 @@ result 流水。状态为 `not-established` 时表示现有比较不能识别该
 
 ## 新课题与可继承证据
 
-新课题的“分类选择粒度＋检验失败状态接续＋质量保持下加速”目前为 **not-established**：已完成研究与实现审查，尚未实现并运行相应配对。下表中的旧结果是可复用资产和设计依据，不是新方法成绩。见[新主文档](tiered-solidification.md)和[结果保留说明](../../results/skill-ir/README.md)。
+新课题的“分类选择粒度＋检验失败状态接续＋质量保持下加速”目前为 **not-established**：本地子流程、检查及状态接续已有确定性测试和普通入口演示，真实模型配对尚未启动。下表中的旧结果是可复用资产和设计依据。见[主文档](tiered-solidification.md)和[结果保留说明](../../results/skill-ir/README.md)。
 
 | 主张 | 状态与最窄范围 | 权威结果 | 禁止外推 |
 |---|---|---|---|
 | 授权有限程序与源码差分已实际使用 | supported-bounded；BU M 六输入、五要求共 30 项，base 为 14 匹配/9 反例/7 未知，check 为 23/4/3；G 仅源码评阅 | [BU 汇总](../../results/skill-ir/skill-dsl-research/development/authorization-source-differential-v1/summary.json)、[验收](../../results/skill-ir/skill-dsl-research/development/authorization-source-differential-v1/verification/acceptance-matrix.json) | 局部反例修稿不证明一般授权安全、完整语义或运行时节省 |
-| 领域执行已稳定改善真实任务质量 | not-established；旧授权路线已在 BU 收束，局部改进与整体缺口同时存在 | [BU 结论](../../results/skill-ir/skill-dsl-research/development/authorization-source-differential-v1/summary.json)、[历史研究](skill-dsl-research.md) | 不再把 AR 状态快照当作活动开发；不以字段/轨迹测试替代整题质量 |
+| 领域执行已稳定改善真实任务质量 | not-established；旧授权路线已在 BU 收束，局部改进与整体缺口同时存在 | [BU 结论](../../results/skill-ir/skill-dsl-research/development/authorization-source-differential-v1/summary.json)、[历史索引](history.md) | 不再把 AR 状态快照当作活动开发；不以字段/轨迹测试替代整题质量 |
 | 真实 trace 已产生可复核闭环 | supported-as-selected-development-route；3 skill / 3 repo，2 package + 1 evidence-backed no-change | `results/skill-ir/trace-guided-skill-optimization-20260913/status.json` | 随机代表性、held-out、live API、任意 skill |
 | 新包在匹配任务保持 checker 质量 | supported-on-four-selected-pairs；original 4/4、optimized 4/4 | `results/skill-ir/trace-guided-skill-optimization-20260913/u6/effect-report-all.json` | 跨模型、跨职责、真实 API 行为 |
 | 新包减少总体成本 | not-established；四对合计 duration −56.79%、output −75.66%，observed total token +60.59%，USD unknown | 同上 | 局部耗时改善保留；不得只看 output 声称总成本或人工节省 |
