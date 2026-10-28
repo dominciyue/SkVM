@@ -1,11 +1,13 @@
 # Skill IR AOT 优化研究契约
 
+> 2026-10-28：本文退出当前方法入口，保留为 IR/AOT 与授权 DSL 的历史契约及兼容参考。新课题以[分层代码固化](tiered-solidification.md)为准；下文“当前/后续”按各章节原日期理解，不再向本文追加新课题进展。
+
 **阅读路径：** 当前授权 DSL 合同读 [§14.60](#1460-bu-source-differential-verification)，总体方向见 [§14.34](#1434-按-skilltask-范围设计领域-dsl)；通用 trace 包生成读 §14.29–§14.33。其余章节保留各时期 IR/AOT 方法及兼容约束，按涉及的组件查阅。逐次调用、当前结果和队列分别在结果、当前状态和任务书中。
 
 
 **最后更新：** 2026-10-22
 
-**当前已确认路线：** 按skill/task范围设计领域表达并验证实际价值，复用既有授权DSL执行与SkVM入口。[BU源码差分与反例修稿](../superpowers/plans/2026-10-21-authorization-source-differential-verification.md)将任务确定的独立要求、固定原函数观察和作者位置映射分开，在普通check/run/trial/details中比较有限行为。Memos采用参数敏感原函数观察，Gitea转换器仅源码评阅。来源、合成输入、源码忠实性、政策符合、原题答案与成本分别评价，不新增仓库成功分支。历史合同和结果保持，研究过程统一[研究总文档](skill-dsl-research.md)，当前顺序见[执行计划](skill-ir-aot-optimization-plan.md)。
+**截至 2026-10-22 的路线：** 按skill/task范围设计领域表达并验证实际价值，复用既有授权DSL执行与SkVM入口。[BU源码差分与反例修稿](../superpowers/plans/2026-10-21-authorization-source-differential-verification.md)将任务确定的独立要求、固定原函数观察和作者位置映射分开，在普通check/run/trial/details中比较有限行为。Memos采用参数敏感原函数观察，Gitea转换器仅源码评阅。来源、合成输入、源码忠实性、政策符合、原题答案与成本分别评价，不新增仓库成功分支。历史合同和结果保持，研究过程统一[研究总文档](skill-dsl-research.md)，当前顺序见[执行计划](skill-ir-aot-optimization-plan.md)。
 
 本文保留旧研究阶段的标题与章节定位。下文有关统一 IR、AOT 优先、“不新建 DSL”和旧队列先后关系的限定，适用于各自阶段；总体方向以第14.34节为准，当前增量合同以第14.60节及任务书为准。已有 IR、接口、冻结结果和版本化材料不因路线变化而删除或改写。
 

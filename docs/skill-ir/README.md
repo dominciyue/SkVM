@@ -1,72 +1,56 @@
-# Skill IR 文档入口
+# Skill 优化研究入口
 
-这里说明 Skill IR 的优化、验证和产物交付。初次使用 SkVM 可先读使用说明；修改这个子系统时，从当前状态和对应组件入手。
-
-## 三分钟入口
-
-| 你要回答的问题 | 先看 | 结果边界 |
-|---|---|---|
-| 现在进行到哪一步？ | [当前状态](current-status.md) | 唯一实时状态；活动任务书和恢复入口从这里查找 |
-| 某轮实验拿到了什么？ | [实验目录](../../results/skill-ir/experiment-catalog.json) | 已登记阶段的导航快照；以条目日期和原始results为准 |
-| 某个主张能否对外说？ | [证据索引](evidence-index.md) | 主张、最窄分母、禁止外推 |
-| 如何复现实验或改代码？ | [当前计划](skill-ir-aot-optimization-plan.md) → [开发指南](developer-guide.md) | 计划和组件职责，不复制运行流水 |
-
-当前项目的结果以 development 证据为主。`actualUSD`、真人耗时和跨任务泛化没有记录时保持 `unknown`；实验原始输入、响应、引用和差异报告集中在 `results/skill-ir/`，不在正文中重复。
-
-维护者可用[实验目录工具](../../scripts/experiment-catalog/README.md)离线检查登记路径、按ID/阶段查询或导出新摘要。工具只读取导航信息，摘要带读取版本与时间，不评分或改写原始证据。
-
-## 从这里开始
-
-1. [当前状态](current-status.md)：唯一的实时状态入口，回答现在能做什么、当前路线和直接运行命令。
-2. [SkVM 架构](../architecture.md)：项目模块、运行时与数据流。
-3. [使用说明](../usage.md)：SkVM CLI 和常用工作流。
-4. [JIT Boost](../jit-boost.md)：运行时优化与日志采集。
-5. [开发指南](developer-guide.md)：当前开发、测试和文档规则。
+当前课题是 **基于 Skill 分类的分层代码固化 Agent 运行时优化机制**。先读[当前状态](current-status.md)，再读[方法与相关研究](tiered-solidification.md)。本目录沿用 `skill-ir` 路径，方便历史链接和代码继续使用。
 
 ## 当前阅读集
 
+日常入口收敛为以下七份，包括本页；不用通读旧队列才能开始工作。
+
 | 文档 | 职责 |
 |---|---|
-| [current-status.md](current-status.md) | 唯一当前状态 |
-| [developer-guide.md](developer-guide.md) | 上手与开发 |
-| [skill-ir-aot-optimization-spec.md](skill-ir-aot-optimization-spec.md) | 方法边界与成功条件 |
-| [skill-ir-aot-optimization-plan.md](skill-ir-aot-optimization-plan.md) | 当前未完成任务 |
-| [skill-dsl-research.md](skill-dsl-research.md) | Skill 分类与 DSL 的持续研究结论、来源和未决问题 |
-| [ir-core.md](ir-core.md) | IR、解析、验证与 lowering |
-| [optimization-and-artifacts.md](optimization-and-artifacts.md) | 优化、提案、封装与产品链 |
-| [evaluation-system.md](evaluation-system.md) | runner、checker、scorer 与证据资格 |
-| [real-skill-pilots.md](real-skill-pilots.md) | 代表性 skill 和可交付边界 |
-| [api-task-engine.md](api-task-engine.md) | API TaskContract、请求执行与 checker |
-| [classification-and-routing.md](classification-and-routing.md) | 能力分类、路由与发放边界 |
-| [external-skill-import.md](external-skill-import.md) | 外部 skill 导入 |
-| [evidence-index.md](evidence-index.md) | 主张、适用范围和结果位置 |
-| [history.md](history.md) | 历史阶段和已退出路径恢复表 |
+| 本页 | 导航与写入规则 |
+| [current-status](current-status.md) | 唯一实时状态，正在做什么 |
+| [tiered-solidification](tiered-solidification.md) | 新课题目标、方法、文献、资产与缺口 |
+| [当前计划](skill-ir-aot-optimization-plan.md) | 实施顺序、测试责任和下一步 |
+| [分类与路由](classification-and-routing.md) | 分类单元、运行特征及旧分类资料 |
+| [证据索引](evidence-index.md) | 哪些结果支持哪些结论 |
+| [历史索引](history.md) | 旧阶段、旧路径和恢复位置 |
 
-## 版本化验证材料
+原项目的[架构](../architecture.md)、[使用说明](../usage.md)和[JIT Boost](../jit-boost.md)按开发需要查阅，本轮未改写这些文档。
 
-少量 Markdown 由校验器、冻结 JSON 或脚本按原路径读取并校验摘要。它们不是当前阅读入口，但在依赖退出前必须保留原路径和原字节。清单由
-[`scripts/skill_ir_doc_governance.json`](../../scripts/skill_ir_doc_governance.json)维护。不要为了缩减文件数合并、重命名或改写这些文件。
+## 按需组件与历史参考
 
-## 文档写入规则
+| 要处理的部分 | 参考 |
+|---|---|
+| IR 解析与校验 | [ir-core](ir-core.md) |
+| 提案、程序与包导出 | [optimization-and-artifacts](optimization-and-artifacts.md) |
+| runner/checker/scorer | [evaluation-system](evaluation-system.md) |
+| API 确定性实现 | [api-task-engine](api-task-engine.md) |
+| 外部 skill、既有 pilot | [external-skill-import](external-skill-import.md)、[real-skill-pilots](real-skill-pilots.md) |
+| 旧授权实现和历史方法 | [旧开发指南](developer-guide.md)、[旧 spec](skill-ir-aot-optimization-spec.md)、[DSL 研究过程](skill-dsl-research.md) |
 
-- 治理范围仅含本项目开发新增的文档和扩写的章节。clone 前原项目已有且本项目未改的内容保持原样；已有文档的原始章节不因周边扩写而整体重排。归属按 Git 演进核对，不按文件名或目录名猜测。
-- `spec` 只维护方法、边界和长期验收条件。
-- `plan` 只维护当前未完成任务；实时状态只写入 `current-status.md`。
-- DSL 调研结论统一更新 `skill-dsl-research.md` 的主题章节并追加简短研究记录，不按轮次另建研究报告；原始来源、数据与探针仍放在 results。更新正文时同时核对首屏“当前结论”，避免最新发现只出现在文末。
-- 运行证据写入 `results/skill-ir/`，文档只链接最窄结果，不复制执行流水。
-- 历史过程依靠 Git 与 `history.md` 恢复，不建立第二棵 archive 目录。
-- 默认更新当前阅读集中的现有文档；新增长期文档必须承担现有文档无法容纳的新职责。
-- 组件正文说明接口、处理原因和限制。阶段编号用于定位历史，不代替组件名称；测试数量和执行流水留在结果记录中。
-- 当前状态采用替换更新；当前计划移出已完成队列。链接检查覆盖路径、当前文档间的章节锚点与清单条件；摘要是否反映最新结果仍需点验。
-- 注释解释代码中不明显的约束、兼容原因和失败处理，不重复函数名或逐行翻译代码。保留作者、来源和 AI 辅助记录，不把措辞调整写成人工贡献证据。
+最后三份长文退出日常必读，原章节和路径保留；其中“当前”“下一轮”按原阶段日期解释。新课题的决定只更新新主文档，避免多份长文同时增长。
 
-工作区和旧运行目录的处置顺序见 [2026-10-04 治理任务书](../superpowers/plans/2026-10-04-workspace-and-document-governance.md)。它是维护任务；活动研究仍从当前状态进入。
+## 实验结果
 
-## 文档检查
+[results 入口](../../results/skill-ir/README.md)按用途区分旧证据、开发材料和未来实验。[机器目录](../../results/skill-ir/experiment-catalog.json)提供代表性入口，不是全部目录的删除白名单。[目录工具](../../scripts/experiment-catalog/README.md)只读导航，不改原始结果。
+
+## 写入与保留规则
+
+- 治理范围是我们开发新增/扩写的文档；clone 前已有且未改的内容保持原样。
+- 当前状态替换更新，当前计划只保留下一阶段；方法与研究发现统一写入新主文档的对应章节。
+- 原始调用、失败、逐步过程和费用留在结果目录，不把日志复制进每份说明。
+- 历史由 Git 和 history 索引承接，不另建一套重复 archive。旧报告不因课题变化重评或改写。
+- 按需组件说明继续就地维护，已结束队列不自动转成新队列；新增长期文档必须有独立职责。
+- [文档清单](../../scripts/skill_ir_doc_governance.json)区分当前、按需和版本化材料；按原字节绑定的 Markdown 在依赖退出前保留原路径和内容。
+- 保留源码与 AI 辅助贡献记录，文字精简不改变作者归属。文件数减少也不代表研究效果改善。
+
+## 必要检查
 
 ```powershell
 python scripts/check_skill_ir_doc_links.py
 python -m unittest discover -s scripts -p check_skill_ir_doc_links_test.py
+bun ./scripts/experiment-catalog/cli.ts check
 ```
 
-文件数与行数只作维护提醒。缺失入口、当前/版本化清单冲突、错误迁移引用、多个当前状态入口，以及当前阅读集之间的失效章节链接会失败。章节检查识别现有 ATX 标题和显式 HTML id，跳过围栏代码示例；历史及版本化材料保留原引用，不以日期判定失效。
+本轮目录体量与保留决定见[治理盘点](../../results/skill-ir/governance-inventory-20261028.json)。日常阅读集的行数只是维护提醒；真实错误以缺路径、断链、冲突或过时结论为准。

@@ -5,15 +5,17 @@ result 流水。状态为 `not-established` 时表示现有比较不能识别该
 
 当前实验的机器可读入口是 [`results/skill-ir/experiment-catalog.json`](../../results/skill-ir/experiment-catalog.json)。本页只保留能帮助判断主张的摘要；单元级输入、响应、引用和差异报告仍以结果根为准。
 
-## 当前路线
+## 新课题与可继承证据
+
+新课题的“分类选择粒度＋检验失败状态接续＋质量保持下加速”目前为 **not-established**：已完成研究与实现审查，尚未实现并运行相应配对。下表中的旧结果是可复用资产和设计依据，不是新方法成绩。见[新主文档](tiered-solidification.md)和[结果保留说明](../../results/skill-ir/README.md)。
 
 | 主张 | 状态与最窄范围 | 权威结果 | 禁止外推 |
 |---|---|---|---|
-| 授权任务工具已进入程序实现 | supported-engineering；声明编译、只读取证、有限分支与结论检查已有实现；AR 仍在开发 | [AP 验证](../../results/skill-ir/authorization-runtime-contract-repair-20261001/verification.json)、[AQ 状态](../../results/skill-ir/skill-dsl-research/development/authorization-domain-execution-v1/status.json)、[AR 状态](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/status.json) | 运行合同检查与源码语义正确性分别核验 |
-| 领域执行已稳定改善真实任务质量 | not-established；AQ 四质量臂各 1/10 full，原 skill checked 交付 0/4；AR 主面板未完成 | [AQ 评价](../../results/skill-ir/skill-dsl-research/development/authorization-domain-execution-v1/evaluation-summary.json)、[AR 评价](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/evaluation-summary.json) | 自动读取次数、局部测试或格式有效不能代替完整任务交付 |
+| 授权有限程序与源码差分已实际使用 | supported-bounded；BU M 六输入、五要求共 30 项，base 为 14 匹配/9 反例/7 未知，check 为 23/4/3；G 仅源码评阅 | [BU 汇总](../../results/skill-ir/skill-dsl-research/development/authorization-source-differential-v1/summary.json)、[验收](../../results/skill-ir/skill-dsl-research/development/authorization-source-differential-v1/verification/acceptance-matrix.json) | 局部反例修稿不证明一般授权安全、完整语义或运行时节省 |
+| 领域执行已稳定改善真实任务质量 | not-established；旧授权路线已在 BU 收束，局部改进与整体缺口同时存在 | [BU 结论](../../results/skill-ir/skill-dsl-research/development/authorization-source-differential-v1/summary.json)、[历史研究](skill-dsl-research.md) | 不再把 AR 状态快照当作活动开发；不以字段/轨迹测试替代整题质量 |
 | 真实 trace 已产生可复核闭环 | supported-as-selected-development-route；3 skill / 3 repo，2 package + 1 evidence-backed no-change | `results/skill-ir/trace-guided-skill-optimization-20260913/status.json` | 随机代表性、held-out、live API、任意 skill |
 | 新包在匹配任务保持 checker 质量 | supported-on-four-selected-pairs；original 4/4、optimized 4/4 | `results/skill-ir/trace-guided-skill-optimization-20260913/u6/effect-report-all.json` | 跨模型、跨职责、真实 API 行为 |
-| 新包减少总体成本 | not-established；duration/output 降，input/cache/observed total 升，USD unknown | 同上 | 不得声称成本或人工节省 |
+| 新包减少总体成本 | not-established；四对合计 duration −56.79%、output −75.66%，observed total token +60.59%，USD unknown | 同上 | 局部耗时改善保留；不得只看 output 声称总成本或人工节省 |
 | 通用生成已覆盖多种 skill 的局部流程 | supported-development；G 阶段 5 次优化、4 个 skill、9 次消费，8 次评价中 5 次通过；唯一严格配对仍 mixed | [G 总报告](../../results/skill-ir/general-skill-optimization-20260913/final-report.json) | 单项 input-token 改善不能代表总成本降低；无稳定多 skill 效果结论 |
 | 外部项目可复用同一授权流程 | supported-bounded；2项目/4操作/8状态，16/16交付；MD 8 full、DSL 6 full/2标签错误，实际授权推理均正确 | [AB汇总](../../results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/summary.json) | 工程复用不等于DSL收益；不得外推生产安全、纯语法因果、真人节省或一般泛化 |
 | AI作者变化稿可经普通流程获得新答案 | supported-bounded；2包/8 session/16场景独立源码复核full；作者直接有效7/8，另1稿机械恢复后消费 | [AI真实消费](../../results/skill-ir/skill-dsl-research/development/authorization-task-semantics-v1/author-use-summary.json) | 不能把恢复稿计作者成功，或外推未见任务、人工省时与部署安全 |

@@ -1,30 +1,72 @@
-# Skill IR AOT 当前执行计划
+# 当前计划：分类驱动的分层固化与状态接续
 
-更新于2026-10-23。唯一实时入口为[current-status](current-status.md)。
+更新于 2026-10-28。方法依据：[新课题主文档](tiered-solidification.md)。本页复用旧计划路径，旧 BU 任务书和证据见[历史索引](history.md)。本轮只完成研究与治理，以下实现项尚未执行。
 
-- 当前任务书：[BU0–BU19](../superpowers/plans/2026-10-21-authorization-source-differential-verification.md)，BU0–BU19全部完成，实质成果`0b46a974`已发布并核对用户origin；停止本轮。
-- 方法合同：[spec §14.60](skill-ir-aot-optimization-spec.md#1460-bu-source-differential-verification)；复盘统一在[研究 §7.82](skill-dsl-research.md#782-bt-复核与-bu-源码差分核验)，同时维护该文§1与§11。
-- identity：`authorization-source-differential-v1`，基线BT最终`491812b4ade0751ad6dc8989d12677e5d0d4a870`。实际接管含计划的新提交，继续skill-ir-aot，仅用户origin，不建分支/worktree。
-- 开发gpt-6-astra/high，实验已授权官方gpt-5.6-sol/high；第三方暂停，旧unknown不重发，历史原件和.tmp保留。
-- 本机STS 0.2.5最初observing，后经真实hook确认本开发线程armed；冻结实验提示不注入新插件。
+## 0. 已完成的方向切换
 
-## 本轮责任
+- [x] 核对现有 runtime、solidifier、trace 和验证资产，区分已有代码与待开发机制。
+- [x] 核对相关原始论文，记录 SkillSmith、TraceCompiler、Adaptive Skill Granularity 等直接重叠工作及其限制。
+- [x] 新课题集中一份主文档；更新当前状态、分类、证据及结果导航；历史原路径保留。
+- [x] 盘点开发文档和结果体量，明确保留原件、冻结包及 `.tmp/`，不按文件名批量删除。
 
-| 责任 | 当前缺口 | 交付 |
-|---|---|---|
-| 独立核验要求 | 作者漏声明关系便没有检查项 | 原题/政策确定要求，缺映射具名unknown |
-| 源码行为依据 | M fake忽略查询参数，G未读callee正文 | 参数敏感原函数观察；G具名执行或源码评阅边界 |
-| 共享比较 | 目前只核对程序自洽 | 同输入的对象、事件、首错和返回差分 |
-| 普通修稿 | 真实反例未接进正常作者反馈 | check/run/trial/details共用比较器，模型正常patch复验 |
-| 方法判断 | 多轮消费者面板无稳定优势 | 真实错误、正确控制、变异及LLM复核/修稿诊断 |
-| 文档 | 当前入口堆积历史，旧plan曾停留待开发 | BU末期压缩当前状态、复用history与现有研究正文 |
+## 1. 首个原型：子流程能接续
 
-顺序：BU0–BU10定义责任、源码观察和共享实现；BU11–BU16十个正常模型用途及至多两次有据确认；BU17–BU19验证、文档与发布。代码错误当场定向修复，不继续跑同一坏实现；同因两次无改善时暂停该责任，继续独立工作。有限队列结束不自动BV。
+**交付目标：** 一个普通 bare-agent 任务里，固化程序完成一段工作后继续剩余任务；程序异常或结果不合格时，模型接收到有效中间状态，完成剩余工作。先用确定性测试验收，然后才运行少量真实模型配对。
 
-首要真实结构为Memos既有原access函数。保留共享比较接口和两个匿名测试结构；G若缺可执行边界，按源码评阅报告，不为第二结构扩建完整框架。原题质量、源码忠实性、政策满足、自动修稿和成本分别验收。普通入口和默认保持兼容，新检查显式使用。
+### 1.1 先写失败测试
 
-## 继承的证据
+针对实际观察到的缺口，覆盖以下情况；不制造一套脱离普通入口的模拟成功链。
 
-BT最终491812b4已发布，十用途关闭；M修稿修复局部顺序，Gconverter错误仍在。八消费位置29/48域full、整题0/8；参考执行对规则没有稳定优势。具体数字、原件和132项定向验证见[BT执行记录](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-validation-v1/execution.md)与[验收](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-validation-v1/verification/acceptance-matrix.json)。
+1. T1/T2 成功：实际结果进入 trace/history，后续模型仍被调用；没有把子流程误判为整题结束。
+2. 退出码为零但产物不合格：结果不作为成功交付；恢复模型看到检查诊断。
+3. 第二步失败：第一步已验证的产物仍可用，失败步骤及依赖它的结果标为不可用；恢复不重复第一步的效果。
+4. 输入或依赖改变：旧候选失配走普通流程，不能静默使用旧结果。
+5. 恢复后完成或再次失败：都有真实终态、完整调用与耗时，失败不记为零成本。
+6. 原有 T0 和整任务 replace 行为兼容；mock 能观察实际循环次序和工具结果，而非只校验返回对象形状。
 
-BS及更早结果保持，统一查[研究正文](skill-dsl-research.md)、[历史](history.md)及current-status历史表。BU普通入口与参数敏感M原函数观察已接通；13案离线结果见[执行记录](../../results/skill-ir/skill-dsl-research/development/authorization-source-differential-v1/execution.md)，M检查臂局部修复成立、G两臂均修复，U两次采用结果并保留原稿缺口；完整自动语义与稳定优势未建立。688原件/6分卷已无损读回；已发布并停止，不自动BV。
+### 1.2 共享实现责任
+
+| 文件/模块 | 改动责任 |
+|---|---|
+| `src/runtime/types.ts` 及 hook 调用方 | 明确子流程成功、带状态恢复、整任务完成的区别；设计紧凑检查点和剩余职责 |
+| `src/adapters/bare-agent.ts` 及其已有 agent-loop 接口 | 把结果/失败状态接入真实历史与 trace，保留实际 iteration；避免 replace 直接结束剩余任务 |
+| `src/jit-boost/solidifier.ts`、`src/jit-boost/types.ts` | 从工具执行后形成候选证据；输入/依赖检查；结果验证；成功/失败接续；完整计量 |
+| 现有 trace、包与 validation 组件 | 按现有接口复用，遇到具体缺口再补；不平行创建第二套运行器 |
+
+编辑前定位现有测试与 adapter 的消息合同，按照失败测试→最小实现→定向回归推进。先保证一个本地、无远端效果的子流程；不要求第一版支持所有 harness，也不把 harness 不支持伪装成任务不适用。
+
+## 2. 分类与候选选择
+
+- [ ] 从已暴露 skill/真实 trace 提取候选步骤，记录用途类别和运行特征，两者分开。
+- [ ] 明确参数来自输入、前序输出、稳定常量还是外部状态；来源不明时不自动固化。
+- [ ] 初版只做 T0/T1/T2 的透明规则，分类提供倾向，本次输入与验证覆盖决定可用性；T3 留给有明确完整合同的任务。
+- [ ] 优先复用已有脚本，记录候选为何选择/拒绝、验证依据与恢复出口。不要靠 skill 名称或已知成功输入选分支。
+- [ ] 类别标签由任务结构得出，先于结果；保留“不确定”和混合标签。旧 52 包/30 卡用于开发，不宣称生态比例。
+
+## 3. 有限真实验证
+
+仅在第 1 节普通链通过后开始。用户只需 skill、任务、工作目录和模型配置，trace/参数来源由系统采集。
+
+- [ ] 选两到三个不同类别，每类多个 skill/任务；先做小规模接线，不一开始铺大面板。登记来源、变化输入、允许效果与独立评价。
+- [ ] 同任务比较原 agent、现有 JIT、固定粒度和分类策略；共享候选/验证器的比较用于定位路由贡献。
+- [ ] 专门比较失败全重做与状态接续，覆盖早期失败、晚期失败、成功退出但产物错误。只在可控的本地任务注入故障。
+- [ ] 首轮原件保留，真实缺陷当场定位并修复，再做具名确认；不继续派发受同一已知缺陷影响的重复请求。
+- [ ] 质量、延迟、模型调用、输入/输出/缓存、验证和恢复成本分开报告；编写成本与复用摊销同时给出。
+
+停止重复同因失败；若类别没有增益，保留运行特征策略并记录负结果。若质量不达非劣要求，不能用速度换取“优化成功”。实验需有明确终态，不以固定小时数或重复全量审计凑工作量。
+
+## 4. 证据、验证与交付
+
+实现回归优先覆盖 runtime hooks、bare-agent/agent-loop 和 solidifier；精确测试路径在代码定位后写入本页，不预造不存在的文件。生产变更完成后运行相关测试和项目类型检查；纯文档治理不运行全仓生产测试。
+
+文档与导航验证：
+
+```powershell
+python scripts/check_skill_ir_doc_links.py
+python -m unittest discover -s scripts -p check_skill_ir_doc_links_test.py
+bun ./scripts/experiment-catalog/cli.ts check
+```
+
+新研究结果在开始首轮实验前建立一个主题结果根，编写、选择、执行、恢复和评价放同一根下；不为每次修复再开新队列。结果保留首轮/修订及所有成本，日常方法复盘只更新[主文档](tiered-solidification.md)。
+
+继续 `skill-ir-aot`，只推用户 origin。只修改本轮归属文件；不删除历史证据、未知请求或他人工作。官方账号实验授权保留，第三方付费仍暂停。开发状态从[唯一入口](current-status.md)恢复。
