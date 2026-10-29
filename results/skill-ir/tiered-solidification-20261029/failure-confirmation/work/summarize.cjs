@@ -1,0 +1,1 @@
+require('fs').writeFileSync('summary.json','{"sum":99}');

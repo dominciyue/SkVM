@@ -266,6 +266,8 @@ export const RunResultSchema = z.object({
   executionObservation: RunExecutionObservationSchema.optional(),
   /** Opt-in source-only authorization runtime, with exact tool evidence and provider accounting. */
   authorizationInquiry: z.record(z.unknown()).optional(),
+  /** Ordinary official-account lifecycle, usage and local checkpoints. USD may remain unknown. */
+  accountSession: z.record(z.unknown()).optional(),
   /** Display-only: human-debug stderr snippet. NOT a status signal — check runStatus instead. */
   adapterError: z.object({
     exitCode: z.number(),

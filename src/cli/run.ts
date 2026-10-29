@@ -75,7 +75,9 @@ export const RUN_FLAGS = defineFlags(
       placeholder: "<path>",
       help: "Write a value-free execution observation JSON sidecar",
     },
-    subworkflow: { kind: "string", placeholder: "<candidate.json>", help: "Explicitly enable a reviewed local subworkflow candidate; bare-agent only. Checked progress is handed back to the agent." },
+    subworkflow: { kind: "string", placeholder: "<candidate.json>", help: "Enable a reviewed local subworkflow for bare-agent or codex-account. Checked progress is handed back to the agent." },
+    "account-boundary": { kind: "string", placeholder: "<path>", help: "Reviewed account instruction sources for ordinary codex-account tasks." },
+    "account-trace": { kind: "string", placeholder: "<directory>", help: "Save ordinary account events, checkpoints and final result in this new directory." },
     "authorization-scope": { kind: "string", placeholder: "<path>", help: "Opt into bounded read-only authorization source tools using an inquiry input file (bare-agent or codex-account)." },
     "authorization-account-boundary": { kind: "string", placeholder: "<path>", help: "Pin reviewed generic account instruction sources by SHA256 (codex-account only)." },
     "authorization-domain-tools": { kind: "bool", help: "Enable inquiry compilation, relation observations and result checking in the restricted source run." },
@@ -162,7 +164,8 @@ export type ValidatedRunConfig = {
 }
 
 export function validateRunConfig(config: RunConfig): ValidatedRunConfig {
-  if (config.subworkflow && (config.adapter !== "bare-agent" || config["authorization-scope"] || config.optimize || config["resume-optimization"])) throw new UsageError("run: --subworkflow requires ordinary bare-agent execution without authorization scope or optimization", RUN_FLAGS.help)
+  if (config.subworkflow && (!["bare-agent", "codex-account"].includes(config.adapter) || config["authorization-scope"] || config.optimize || config["resume-optimization"])) throw new UsageError("run: --subworkflow requires ordinary bare-agent or codex-account execution without authorization scope or optimization", RUN_FLAGS.help)
+  if ((config["account-boundary"] || config["account-trace"]) && (config.adapter !== "codex-account" || config["authorization-scope"])) throw new UsageError("run: account-boundary/account-trace require ordinary codex-account execution", RUN_FLAGS.help)
   if (config["authorization-account-boundary"] && (config.adapter !== "codex-account" || !config["authorization-scope"])) throw new UsageError("run: authorization-account-boundary requires codex-account and --authorization-scope", RUN_FLAGS.help)
   if ((config["authorization-domain-tools"] || config["authorization-trace"] || config["authorization-strategy"] || config["authorization-method"] || config["authorization-max-provider-calls"] || config["authorization-max-tool-calls"] || config["authorization-max-display-bytes"] || config["authorization-max-read-bytes"] || config["authorization-max-output-tokens"] || config["authorization-request-timeout-ms"] || config["authorization-session-timeout-ms"] || config["authorization-readonly-recovery"]) && !config["authorization-scope"]) throw new UsageError("run: authorization tools/trace/strategy/method/budgets require --authorization-scope", RUN_FLAGS.help)
   if (config["authorization-method"] && (!isOperationInquiryStrategy(config["authorization-strategy"]) || !config["authorization-domain-tools"])) throw new UsageError("run: authorization-method requires operation-evidence-v1 or operation-evidence-v2 and --authorization-domain-tools", RUN_FLAGS.help)
@@ -350,7 +353,7 @@ export async function runRun(config: RunConfig): Promise<void> {
     const { SKVM_CACHE } = await import("../core/config.ts")
     const bannerLines: [string, string][] = [
       ["Adapter", describeAdapter(harness)],
-      ["Model", describeModelRoute(model)],
+      ["Model", harness === "codex-account" ? `${model} via official account` : describeModelRoute(model)],
       ["Task", validated.taskSource.kind === "task" ? validated.taskSource.path : "natural prompt"],
     ]
     if (skillPath) bannerLines.push(["Skill", skillPath])
@@ -418,6 +421,12 @@ export async function runRun(config: RunConfig): Promise<void> {
     mode: adapterModeRun,
     ...(config["authorization-scope"] ? { providerOptions: { authorizationScope: path.resolve(config["authorization-scope"]), authorizationDomainTools: config["authorization-domain-tools"] === true, authorizationMaxProviderCalls: config["authorization-max-provider-calls"], authorizationMaxToolCalls: config["authorization-max-tool-calls"], authorizationMaxDisplayBytes: config["authorization-max-display-bytes"], authorizationMaxReadBytes: config["authorization-max-read-bytes"], authorizationMaxOutputTokens: config["authorization-max-output-tokens"], authorizationRequestTimeoutMs: config["authorization-request-timeout-ms"], authorizationSessionTimeoutMs: config["authorization-session-timeout-ms"], authorizationReadonlyRecovery: config["authorization-readonly-recovery"] === true, ...(config["authorization-method"] ? { authorizationMethod: config["authorization-method"] } : {}), ...(config["authorization-strategy"] ? { authorizationStrategy: config["authorization-strategy"] } : {}), ...(config["authorization-account-boundary"] ? { authorizationAccountBoundary: path.resolve(config["authorization-account-boundary"]) } : {}), ...(config["authorization-trace"] ? { authorizationTraceDir: path.resolve(config["authorization-trace"] + ".events") } : {}) } } : {}),
   }
+  if (harness === "codex-account" && !config["authorization-scope"]) {
+    adapterConfig.providerOptions = {
+      ...(config["account-boundary"] ? { accountBoundary: path.resolve(config["account-boundary"]) } : {}),
+      accountTraceDir: config["account-trace"] ? path.resolve(config["account-trace"]) : path.join(runtimeLogDir, runSession.id, "account"),
+    }
+  }
 
   const adapter = createAdapter(harness)
 
@@ -428,9 +437,10 @@ export async function runRun(config: RunConfig): Promise<void> {
       const { BoostCandidateSchema } = await import("../jit-boost/types.ts")
       const { Solidifier } = await import("../jit-boost/solidifier.ts")
       const { BareAgentAdapter } = await import("../adapters/bare-agent.ts")
+      const { CodexAccountAdapter } = await import("../adapters/codex-account.ts")
       const candidate = BoostCandidateSchema.parse(await Bun.file(config.subworkflow).json())
       if (!candidate.subworkflow) throw new Error("--subworkflow candidate must declare steps and artifact checks")
-      if (!(adapter instanceof BareAgentAdapter)) throw new Error("--subworkflow adapter does not support continuation hooks")
+      if (!(adapter instanceof BareAgentAdapter) && !(adapter instanceof CodexAccountAdapter)) throw new Error("--subworkflow adapter does not support continuation hooks")
       const solidifier = new Solidifier([candidate])
       // Explicit user selection, not automatic promotion or an effect claim.
       solidifier.getEntries()[0]!.state.promoted = true
@@ -517,6 +527,12 @@ export async function runRun(config: RunConfig): Promise<void> {
     console.log(`Task: ${result.task.id}`)
     console.log(`Skill: ${result.skill?.skillPath ?? "<none>"}`)
     console.log(`Model: ${model}`)
+    if (result.runResult.accountSession) {
+      const account = result.runResult.accountSession
+      console.log(`Account terminal: ${account.terminalStatus}; delivery: ${account.answerDelivery}`)
+      if (account.usage) console.log(`Account observed tokens: ${JSON.stringify(account.usage)}; input includes cache-read; USD unknown`)
+      console.log(`Account record: ${account.traceDir}`)
+    }
     console.log(`Adapter: ${harness}`)
     console.log(`WorkDir: ${result.workDir}`)
     console.log(`Duration: ${(result.runResult.durationMs / 1000).toFixed(1)}s`)

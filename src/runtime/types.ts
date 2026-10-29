@@ -1,5 +1,6 @@
 import type { ToolCall, RunResult } from "../core/types.ts"
 import type { LLMResponse } from "../providers/types.ts"
+import type { ValidationReport } from "./artifact-checks.ts"
 
 // ---------------------------------------------------------------------------
 // Interceptor hooks for the agent loop
@@ -35,6 +36,7 @@ export interface SubworkflowCheckpoint {
   failed?: { stepId: string; diagnostic: string; invalidatedOutputs: string[] }
   remainingSteps: string[]
   remainingTask: string
+  validations?: (ValidationReport & { stepId: string })[]
 }
 
 /**
@@ -65,6 +67,15 @@ export interface AfterToolContext {
   iteration: number
 }
 
+/** Actual dispatch boundary: capture immutable evaluation inputs before a tool mutates them. */
+export interface BeforeToolContext {
+  toolCall: { id: string; name: string; arguments: Record<string, unknown> }
+  prompt: string
+  workDir: string
+  iteration: number
+}
+export interface BeforeToolHook { (ctx: BeforeToolContext): Promise<void> }
+
 /**
  * Called after the full run completes.
  */
@@ -82,6 +93,7 @@ export interface AfterRunContext {
 export interface RuntimeHooks {
   beforeLLM?: BeforeLLMHook[]
   afterLLM?: AfterLLMHook[]
+  beforeTool?: BeforeToolHook[]
   afterTool?: AfterToolHook[]
   afterRun?: AfterRunHook[]
 }

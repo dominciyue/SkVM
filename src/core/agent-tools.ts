@@ -79,12 +79,12 @@ export function createAgentToolExecutor(
           const filePath = path.resolve(workDir, args.path as string)
           const file = Bun.file(filePath)
           if (!(await file.exists())) {
-            return { output: `Error: File not found: ${args.path}`, durationMs: performance.now() - start }
+            return { output: `Error: File not found: ${args.path}`, exitCode: 1, durationMs: performance.now() - start }
           }
           if (opts?.requireReadBeforeWrite) {
             readPaths.add(filePath)
           }
-          return { output: await file.text(), durationMs: performance.now() - start }
+          return { output: await file.text(), exitCode: 0, durationMs: performance.now() - start }
         }
 
         case "write_file": {
@@ -94,13 +94,14 @@ export function createAgentToolExecutor(
             if (exists && !readPaths.has(filePath)) {
               return {
                 output: `Error: You must read_file('${args.path}') before writing to it. This ensures you're editing from the current content, not generating from scratch.`,
+                exitCode: 1,
                 durationMs: performance.now() - start,
               }
             }
           }
           await mkdir(path.dirname(filePath), { recursive: true })
           await Bun.write(filePath, args.content as string)
-          return { output: `File written: ${args.path}`, durationMs: performance.now() - start }
+          return { output: `File written: ${args.path}`, exitCode: 0, durationMs: performance.now() - start }
         }
 
         case "execute_command": {
@@ -109,6 +110,7 @@ export function createAgentToolExecutor(
           if (/\b(pkill|killall)\b/.test(cmd)) {
             return {
               output: "Error: pkill/killall are not allowed. Use `kill <PID>` to stop a specific process.",
+              exitCode: 1,
               durationMs: performance.now() - start,
             }
           }
@@ -137,15 +139,15 @@ export function createAgentToolExecutor(
             return { output, exitCode, durationMs: performance.now() - start }
           } catch {
             proc.kill()
-            return { output: "Error: command timed out after 30s", durationMs: performance.now() - start }
+            return { output: "Error: command timed out after 30s", exitCode: 1, durationMs: performance.now() - start }
           }
         }
 
         default:
-          return { output: `Unknown tool: ${call.name}`, durationMs: performance.now() - start }
+          return { output: `Unknown tool: ${call.name}`, exitCode: 1, durationMs: performance.now() - start }
       }
     } catch (err) {
-      return { output: `Error: ${err}`, durationMs: performance.now() - start }
+      return { output: `Error: ${err}`, exitCode: 1, durationMs: performance.now() - start }
     }
   }
 }

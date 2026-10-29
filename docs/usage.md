@@ -45,9 +45,9 @@ Eight agent harness adapters, all registered in `src/adapters/registry.ts`:
 - `jiuwenclaw` — wraps `jiuwenclaw-cli` over JSON-RPC. Token/cost are **not** persisted upstream, so bench/profile aggregators report `$0` for jiuwenclaw runs.
 - `pi` — wraps the [pi](https://shittycodingagent.ai/) CLI (`@mariozechner/pi-coding-agent`). Populates full token/cost usage via JSON mode.
 - `claude-code` — drives the `claude -p` CLI in a sandbox. Populates token/cost usage. Heavy headless use may hit account rate limits / usage-terms.
-- `codex-account` — bounded authorization source runtime through the official Codex app-server and existing login. Requires an explicit source scope and verified version/configuration; exact CLI 0.159.0-alpha.12.1, 0.160.0 and 0.162.0-alpha.2 are admitted with per-session effective controls.
+- `codex-account` — ordinary skill/task execution or explicitly scoped authorization through the official Codex app-server and existing login. CLI versions include 0.165.0-alpha.1.2; every session verifies effective configuration and tool boundaries.
 
-The registry accepts `--adapter=<name>` across harness commands. `codex-account` requires bounded source configuration and is currently intended for the two authorization entrances below; it is not a general profile/compiler provider.
+The registry accepts `--adapter=<name>` across harness commands. `codex-account` accepts ordinary skill/natural tasks without authorization scope. The official CLI owns generation and history; it is not an LLMProvider for profiling or compilation.
 
 Three LLM provider route kinds under `src/providers/`, selected per model id via `providers.routes` in `skvm.config.json` — the `<provider>/` prefix on every model id picks the matching route (first glob match wins):
 
@@ -57,9 +57,9 @@ Three LLM provider route kinds under `src/providers/`, selected per model id via
 
 ### Checked local subworkflows (opt-in prototype)
 
-`run --adapter=bare-agent --subworkflow=<candidate.json>` executes an explicitly selected local prefix, checks its declared artifacts, then lets the agent finish the original task. On failure, validated earlier outputs remain available and the failed step's declared files are restored; the checkpoint names remaining work. A zero process exit alone does not pass artifact checks. Default runs and legacy whole-task replacement are unchanged.
+`run --adapter=bare-agent|codex-account --subworkflow=<candidate.json>` executes an explicitly selected local prefix, checks its declared artifacts, then lets the agent finish the original task. On failure, validated earlier outputs remain available and the failed step's declared files are restored; the checkpoint names remaining work. A zero process exit alone does not pass artifact checks. Default runs and legacy whole-task replacement are unchanged.
 
-The candidate uses the existing JIT format with an optional `subworkflow` containing ordered `argv` steps, output checks, dependency bindings and remaining duties. This initial implementation uses local files and explicit/regex parameters. It does not automatically choose a category or generate the candidate. Commands must declare their mutable outputs; external side effects and cross-session recovery are outside this prototype. The account adapter is not supported by this option yet.
+The candidate uses the existing JIT format with an optional `subworkflow` containing ordered `argv` steps, output checks, dependency bindings and remaining duties. This initial implementation uses local files and explicit/regex parameters. It does not automatically choose a category or generate the candidate. Commands must declare their mutable outputs; external side effects and cross-session recovery are outside this prototype. Both bare-agent and ordinary codex-account support this option; account mode uses a real turn boundary.
 
 Run the [success/failure examples](../examples/tiered-solidification/README.md) with `bun examples/tiered-solidification/run.ts --mode=failure`. They execute real local files with a scripted provider and report zero actual model calls. Real model quality and performance remain to be measured.
 
@@ -729,3 +729,15 @@ skvm logs --type=aot-compile
 | `SKVM_PROFILES_DIR` | Override the cached-TCP directory |
 | `SKVM_LOGS_DIR` | Override the runtime-log directory |
 | `SKVM_PROPOSALS_DIR` | Override the proposals-tree root |
+
+### Ordinary official-account tasks
+
+```powershell
+bun src/index.ts run --adapter=codex-account --model=gpt-5.6-sol --prompt="Finish the report" --skill=<SKILL.md> --workdir=<workspace> --subworkflow=<candidate.json> --account-boundary=<reviewed-boundary.json> --account-trace=<new-directory>
+```
+
+Skill and subworkflow are optional. Account boundary pins reviewed instruction sources; changed or unknown sources are unavailable. The host runs ordinary tools with the same authority as bare-agent. The account permission profile restricts native CLI tools, not the host callbacks. `--max-steps` bounds host tool calls; at exhaustion further tools are refused while the same turn may deliver its final answer within the session deadline. No extra turn is dispatched. Account events retain real tool/turn identity, observed token usage and terminal/delivery status; internal provider request counts and USD remain unknown. Existing authorization flags retain their scoped behavior.
+
+Candidate `validation` and subworkflow step `checks` support `json-number` (JSON pointers, source snapshot, sum/count/equal and tolerance), `preserve` (exact bytes or regex-matched occurrences including duplicates), and `command` with numeric/preservation/semantic scope. A command evaluator emits JSON `{"status":"passed|failed|unknown","details":"basis for verdict","usage":{}}`; nonzero exit, invalid response or unavailable evaluator is unknown and cannot pass. Commands are trusted local programs. Reports record scope, outcome and duration. Preservation is not translation-quality evaluation.
+
+Default JIT promotion requires matching before/after tool receipts, exit zero, observed artifact creation/update and passed declared checks. Signature-only promotion is available only through explicit `promotionPolicy: legacy-signature`. Old unverified state does not count as validated observation.

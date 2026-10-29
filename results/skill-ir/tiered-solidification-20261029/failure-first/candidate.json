@@ -1,0 +1,73 @@
+{
+  "purposeId": "rows-prefix",
+  "keywords": [
+    "rows"
+  ],
+  "codeSignature": "rows",
+  "functionTemplate": "",
+  "params": {},
+  "materializationType": "shell",
+  "subworkflow": {
+    "remainingTask": "Use the current rows to produce summary.json with their sum, then write report.txt explaining row count and sum. Keep the validated prefix; do not rerun prepare.cjs.",
+    "bindings": [
+      {
+        "path": "prepare.cjs",
+        "sha256": "e84f44c61b48b530f004fe6ea70d153e57ca2c4a8053470f171a65e5056b9dd4"
+      },
+      {
+        "path": "summarize.cjs",
+        "sha256": "4f1a1a585fef444cad337ba98d926debe2be3fa3b38761ad29d7a88ec510291e"
+      }
+    ],
+    "steps": [
+      {
+        "id": "prepare",
+        "argv": [
+          "C:\\Users\\14182\\AppData\\Roaming\\npm\\node_modules\\bun\\bin\\bun.exe",
+          "prepare.cjs"
+        ],
+        "outputs": [
+          {
+            "path": "rows.json",
+            "format": "json",
+            "requiredKeys": [
+              "rows"
+            ]
+          },
+          {
+            "path": "count.txt",
+            "format": "text"
+          }
+        ]
+      },
+      {
+        "id": "summarize",
+        "argv": [
+          "C:\\Users\\14182\\AppData\\Roaming\\npm\\node_modules\\bun\\bin\\bun.exe",
+          "summarize.cjs"
+        ],
+        "outputs": [
+          {
+            "path": "summary.json",
+            "format": "json",
+            "requiredKeys": [
+              "sum"
+            ]
+          }
+        ],
+        "checks": [
+          {
+            "id": "sum",
+            "kind": "json-number",
+            "path": "summary.json",
+            "pointer": "/sum",
+            "source": "rows.json",
+            "sourcePointer": "/rows",
+            "operation": "sum",
+            "tolerance": 0
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -34,6 +34,8 @@ export interface BoostConfig {
   demotionThreshold?: number
   /** Model for LLM-based param extraction (e.g., "anthropic/claude-haiku-4.5"). If set, enables LLM fallback. */
   extractModel?: string
+  /** Historical signature-only behavior is opt-in; default requires executed artifact evidence. */
+  promotionPolicy?: "executed" | "legacy-signature"
 }
 
 export interface BoostHookResult {
@@ -77,11 +79,14 @@ export async function createBoostHooks(config: BoostConfig): Promise<BoostHookRe
     promotionThreshold: config.promotionThreshold,
     demotionThreshold: config.demotionThreshold,
     llmProvider,
+    promotionPolicy: config.promotionPolicy,
   })
 
   const hooks: RuntimeHooks = {
     beforeLLM: [solidifier.createBeforeLLMHook()],
     afterLLM: [solidifier.createAfterLLMHook()],
+    beforeTool: [solidifier.createBeforeToolHook()],
+    afterTool: [solidifier.createAfterToolHook()],
   }
 
   log.info(`Boost hooks created for ${skillId} (${candidates.length} candidates)`)

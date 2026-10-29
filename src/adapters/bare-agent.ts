@@ -43,7 +43,7 @@ const WEB_FETCH_TOOL: LLMTool = {
   },
 }
 
-const TOOLS: LLMTool[] = [...AGENT_TOOLS, LIST_DIRECTORY_TOOL, WEB_FETCH_TOOL]
+export const ORDINARY_AGENT_TOOLS: LLMTool[] = [...AGENT_TOOLS, LIST_DIRECTORY_TOOL, WEB_FETCH_TOOL]
 
 // ---------------------------------------------------------------------------
 // Tool Execution
@@ -69,7 +69,7 @@ export function createToolExecutor(workDir: string) {
           const listing = entries
             .map((e) => `${e.isDirectory() ? "[dir]" : "[file]"} ${e.name}`)
             .join("\n")
-          return { output: listing || "(empty directory)", durationMs: performance.now() - start }
+          return { output: listing || "(empty directory)", exitCode: 0, durationMs: performance.now() - start }
         }
 
         case "web_fetch": {
@@ -83,17 +83,17 @@ export function createToolExecutor(workDir: string) {
             if (args.body) fetchOpts.body = args.body as string
             const res = await fetch(args.url as string, fetchOpts)
             const body = await res.text()
-            return { output: `HTTP ${res.status}\n${body}`, durationMs: performance.now() - start }
+            return { output: `HTTP ${res.status}\n${body}`, exitCode: res.ok ? 0 : 1, durationMs: performance.now() - start }
           } finally {
             clearTimeout(timer)
           }
         }
 
         default:
-          return { output: `Unknown tool: ${toolCall.name}`, durationMs: performance.now() - start }
+          return { output: `Unknown tool: ${toolCall.name}`, exitCode: 1, durationMs: performance.now() - start }
       }
     } catch (err) {
-      return { output: `Error: ${err}`, durationMs: performance.now() - start }
+      return { output: `Error: ${err}`, exitCode: 1, durationMs: performance.now() - start }
     }
   }
 }
@@ -233,7 +233,7 @@ Available skills:
         {
         provider: wrappedProvider,
         model: this.model,
-        tools: restricted?.definitions ?? TOOLS,
+        tools: restricted?.definitions ?? ORDINARY_AGENT_TOOLS,
         executeTool: restricted?.execute ?? createToolExecutor(task.workDir),
         system,
         maxIterations: this.maxSteps,
@@ -271,6 +271,9 @@ Available skills:
             }
           }
         },
+        onBeforeTool: this.hooks.beforeTool?.length ? async (toolCall, iteration) => {
+          for (const hook of this.hooks.beforeTool!) await hook({ toolCall, iteration, workDir: task.workDir, prompt: task.prompt })
+        } : undefined,
         onAfterTool: this.hooks.afterTool
           ? async (completedCall, iteration) => {
               allToolCalls.push(completedCall)

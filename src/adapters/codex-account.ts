@@ -12,6 +12,7 @@ import type { InquiryReuseInfo, InquiryReuseSeed } from "../benchmarks/authoriza
 import type { SourcePreparationOptions } from "../benchmarks/authorization-dsl/evidence-preparation/preparation.ts"
 import { writeFile } from "node:fs/promises"
 import path from "node:path"
+import type { RuntimeHooks } from "../runtime/types.ts"
 import { decideProgramAuthorContinuation, INITIAL_PROGRAM_AUTHORING_INSTRUCTION } from "../task-dsl/authorization/program-authoring-context.ts"
 import { PROGRAM_RULES_INSTRUCTION } from "../task-dsl/authorization/program-rule-context.ts"
 import { createProgramDelivery, decideFinalProgramDelivery, FINAL_PROGRAM_ANSWER_INSTRUCTION, projectPriorProgramViews, type ProgramDeliveryPhase } from "../task-dsl/authorization/program-delivery.ts"
@@ -180,10 +181,16 @@ export async function runCodexAccountInquiry(options: AccountInquiryOptions) {
 export class CodexAccountAdapter implements AgentAdapter {
   readonly name = "codex-account"
   private config!: AdapterConfig
+  private hooks: RuntimeHooks = {}
   constructor(private transportFactory?: () => AccountTransport) {}
+  setHooks(hooks: RuntimeHooks) { this.hooks = hooks }
   async setup(config: AdapterConfig) {
     if (config.apiKey || config.extraCliArgs?.length) throw new Error("codex-account uses official CLI login; external credentials/CLI overrides are unsupported")
-    if (!config.providerOptions?.authorizationScope) throw new Error("codex-account requires an explicit bounded source scope")
+    if (!config.providerOptions?.authorizationScope) {
+      if (Object.entries(config.providerOptions ?? {}).some(([key, value]) => key.startsWith("authorization") && value !== undefined && value !== false)) throw new Error("authorization options require an explicit authorizationScope")
+      this.config = config
+      return
+    }
     const unsupported = ["authorizationMaxProviderCalls", "authorizationMaxOutputTokens", "authorizationRequestTimeoutMs"].filter(key => config.providerOptions?.[key] !== undefined)
     if (unsupported.length || config.providerOptions.authorizationReadonlyRecovery === true) throw new Error(`account-provider-limit-unobservable: provider limits/recovery are unsupported by this account protocol (${unsupported.join(",")}); use host tool/read/display/session limits`)
     parseInquiryStrategy(config.providerOptions.authorizationStrategy)
@@ -197,6 +204,7 @@ export class CodexAccountAdapter implements AgentAdapter {
   }
   async run(task: Parameters<AgentAdapter["run"]>[0]): Promise<RunResult> {
     const p = this.config.providerOptions ?? {}, numeric = (key: string) => typeof p[key] === "number" ? p[key] as number : undefined
+    if (!p.authorizationScope) return (await import("./codex-account-task.ts")).runCodexAccountTask(task, this.config, this.hooks, this.transportFactory)
     const { account, native } = await runCodexAccountInquiry({ programSupport: p.authorizationProgramSupport as AccountInquiryOptions["programSupport"], authoringTargetMode: p.authorizationAuthoringTarget as AccountInquiryOptions["authoringTargetMode"], programMode: p.authorizationProgramMode as AccountInquiryOptions["programMode"], executionPolicy: p.authorizationExecutionPolicy as AccountInquiryOptions["executionPolicy"], programContext: p.authorizationProgramContext as AccountInquiryOptions["programContext"], purpose: typeof p.authorizationPurpose === "string" ? p.authorizationPurpose : undefined, attempt: typeof p.authorizationAttempt === "string" ? p.authorizationAttempt : undefined, inputFile: p.authorizationScope as string, workDir: task.workDir, model: this.config.model, method: parseNativeInquiryMethod(p.authorizationMethod), strategy: parseInquiryStrategy(p.authorizationStrategy), domainTools: p.authorizationDomainTools === true, skillContent: task.skill?.content, maxToolCalls: numeric("authorizationMaxToolCalls"), maxDisplayBytes: numeric("authorizationMaxDisplayBytes"), maxReadBytes: numeric("authorizationMaxReadBytes"), timeoutMs: numeric("authorizationSessionTimeoutMs") ?? task.timeoutMs ?? this.config.timeoutMs, traceDir: typeof p.authorizationTraceDir === "string" ? p.authorizationTraceDir : undefined, domainProgramFile: typeof p.authorizationDomainProgram === "string" ? p.authorizationDomainProgram : undefined, accountBoundaryFile: typeof p.authorizationAccountBoundary === "string" ? p.authorizationAccountBoundary : undefined, transportFactory: this.transportFactory, preparation: p.authorizationPreparation as SourcePreparationOptions | undefined })
     const runStatus = account.hostFailure ? "adapter-crashed" : account.status === "completed" ? "ok" : account.status === "timeout-unknown" ? "timeout" : account.status === "undelivered" ? "parse-failed" : "adapter-crashed"
     // Legacy RunResult requires numeric slots; availability=false prevents them

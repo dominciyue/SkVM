@@ -1,9 +1,10 @@
 import { createHash } from "node:crypto"
-import { readFile, writeFile, unlink, realpath, lstat } from "node:fs/promises"
+import { readFile, writeFile, unlink, realpath } from "node:fs/promises"
 import path from "node:path"
 import type { ToolCall } from "../core/types.ts"
 import { SubworkflowSchema, type Subworkflow } from "../jit-boost/types.ts"
 import type { BeforeLLMContext, BeforeLLMResult, SubworkflowCheckpoint } from "./types.ts"
+import { checkArtifacts, prepareArtifactValidation, workspacePathResolver } from "./artifact-checks.ts"
 
 /** A checked, local-file prefix. Commands must declare all their mutable outputs. */
 export async function executeSubworkflow(
@@ -26,18 +27,7 @@ export async function executeSubworkflow(
     checkpoint.failed = { stepId: "preflight", diagnostic: `workspace unavailable: ${String(error)}`, invalidatedOutputs: [] }
     return result
   }
-  const localPath = async (relative: string): Promise<string> => {
-    const resolved = path.resolve(root, fill(relative))
-    if (!resolved.startsWith(root + path.sep)) throw new Error(`output/dependency outside workspace: ${relative}`)
-    // Do not roll back through a symlink, including a linked parent directory.
-    let current = resolved
-    while (current !== root) {
-      try { if ((await lstat(current)).isSymbolicLink()) throw new Error(`linked output/dependency: ${relative}`) }
-      catch (error) { if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error }
-      current = path.dirname(current)
-    }
-    return resolved
-  }
+  const localPath = await workspacePathResolver(root, fill)
   let flow: Subworkflow
   try {
     flow = SubworkflowSchema.parse(definition)
@@ -71,6 +61,7 @@ export async function executeSubworkflow(
           snapshots.set(file, undefined)
         }
       }
+      const validation = await prepareArtifactValidation({ outputs: step.outputs, checks: step.checks }, root, fill, localPath)
       const proc = Bun.spawn(step.argv.map(fill), { cwd: root, stdout: "pipe", stderr: "pipe" })
       let expired = false
       const timer = setTimeout(() => { expired = true; proc.kill() }, Math.max(1, Math.min(step.timeoutMs ?? 30000, deadline - performance.now())))
@@ -83,16 +74,9 @@ export async function executeSubworkflow(
       } finally { clearTimeout(timer) }
       if (expired) throw new Error("step timeout")
       if (exitCode !== 0) throw new Error(`step exited with code ${exitCode}`)
-      for (const artifact of step.outputs) {
-        const bytes = await readFile(await localPath(artifact.path))
-        if (bytes.length < (artifact.minimumBytes ?? 1)) throw new Error(`artifact too small: ${artifact.path}`)
-        if (artifact.format === "json") {
-          const value: unknown = JSON.parse(bytes.toString("utf8"))
-          for (const key of artifact.requiredKeys ?? []) {
-            if (!value || typeof value !== "object" || !Object.hasOwn(value, key)) throw new Error(`missing required key: ${key} in ${artifact.path}`)
-          }
-        }
-      }
+      const report = await checkArtifacts(validation, deadline - performance.now())
+      ;(checkpoint.validations ??= []).push({ ...report, stepId: step.id })
+      if (report.status !== "passed") throw new Error(report.diagnostics.join("; "))
     } catch (error) { diagnostic = String(error) }
     toolResults.push({ id: `subworkflow-${workflowId}-${step.id}-${ctx.iteration}`, name: "execute_command",
       input: { argv: step.argv.map(fill), subworkflowId: workflowId, stepId: step.id },

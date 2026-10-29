@@ -21,15 +21,19 @@ export interface CodexAccountSessionOptions {
   purpose?: string; attempt?: string
   resumeAfter?: AccountSessionResult
   model: string; effort: "high"; cwd: string; system: string; prompt: string; tools: LLMTool[]
-  execute(call: LLMToolCall): Promise<{ output: string; exitCode?: number; durationMs: number }>
+  execute(call: LLMToolCall, lifetime?: { isActive(): boolean }): Promise<{ output: string; exitCode?: number; durationMs: number }>
   rejectArguments?(call: LLMToolCall, diagnostics: AccountArgumentDiagnostic[]): Promise<{ output: string; exitCode?: number; durationMs: number }>
   argumentDiagnostics?(call: LLMToolCall): AccountArgumentDiagnostic[] | undefined
   maxToolCalls?: number
+  /** Refuse further tools while allowing this same turn to deliver its answer. */
+  answerAfterToolBudget?: boolean
   shouldFinalize?(): boolean
   finalizeAfterMs?: number
   timeoutMs?: number; signal?: AbortSignal; transportFactory?: () => AccountTransport
   instructionSources?: Array<{ path: string; sha256: string }>
   onEvent?(event: unknown): void | Promise<void>
+  /** Runs after configuration admission, immediately before a real turn/start. */
+  beforeTurn?(remainingMs: number): Promise<string | undefined>
 }
 export interface AccountArgumentDiagnostic { path: string; keyword: string; message: string; expected: unknown }
 export type AccountSessionStatus = "completed" | "failed" | "interrupted" | "undelivered" | "unavailable" | "timeout-unknown" | "completion-unknown"
@@ -147,7 +151,7 @@ export function createAccountStderrTail() {
 }
 // Admit exact versions whose experimental RPC/config contracts were inspected.
 // Every real session still rechecks effective config, roots and instruction pins.
-const controlledVersions = new Set(["0.159.0-alpha.12.1", "0.160.0", "0.162.0-alpha.2", "0.162.0-alpha.17.2", "0.163.0-alpha.10.2", "0.163.0-alpha.11"])
+const controlledVersions = new Set(["0.159.0-alpha.12.1", "0.160.0", "0.162.0-alpha.2", "0.162.0-alpha.17.2", "0.163.0-alpha.10.2", "0.163.0-alpha.11", "0.165.0-alpha.1.2"])
 const disabledFeatures = ["shell_tool", "unified_exec", "apps", "plugins", "remote_plugin", "multi_agent", "multi_agent_v2", "browser_use", "computer_use", "js_repl", "view_image", "image_generation", "hooks", "memories", "skill_search", "skill_mcp_dependency_install", "goals", "sleep_tool", "tool_suggest", "auth_elicitation", "request_permissions_tool"]
 function object(value: unknown): Record<string, unknown> { return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {} }
 function controls(config: unknown = {}, skills: unknown = {}): Record<string, unknown> {
@@ -318,6 +322,9 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
         if (typeof params.callId !== "string" || !params.callId || executed.get(params.callId)?.fingerprint && executed.get(params.callId)!.fingerprint !== fingerprint) { failure = "account-tool-call-identity-conflict"; finish("unavailable"); return }
         let execution = executed.get(params.callId)?.output
         if (!execution) {
+          if (tools.length + toolRejections.length >= maxToolCalls && options.answerAfterToolBudget) {
+            reply(message.id, { success: false, contentItems: [{ type: "inputText", text: "Tool budget exhausted. This call was not executed. Make no further tool calls; deliver the final answer from existing evidence and state any unfinished work." }] }); return
+          }
           if (tools.length + toolRejections.length >= maxToolCalls) { if (options.shouldFinalize) { finalize(); reply(message.id, { success: false, contentItems: [{ type: "inputText", text: "tool-phase-closing" }] }); return }; failure = "account-tool-budget"; finish("unavailable"); reply(message.id, { success: false, contentItems: [{ type: "inputText", text: failure }] }); return }
           const call: LLMToolCall = { id: params.callId, name: params.tool, arguments: params.arguments }, validator = validators.get(params.tool)!
           const valid = validator(params.arguments)
@@ -332,8 +339,9 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
             // Known, malformed data is a local repair opportunity, never a host
             // execution. Unknown tools, identity conflicts and native activity
             // still close the capability boundary immediately.
-            const output = valid ? await options.execute(call) : options.rejectArguments ? await options.rejectArguments(call, diagnostics) : { output: JSON.stringify({ status: "error", code: "account-tool-arguments-invalid", diagnostics, instruction: "Correct the named fields using the supplied tool schema; the rejected call executed no tool." }), exitCode: 1, durationMs: 0 }
-            return { success: active && output.exitCode !== 1, contentItems: [{ type: "inputText", text: active ? output.output : "session-closed" }] }
+            const output = valid ? await options.execute(call, { isActive: () => active }) : options.rejectArguments ? await options.rejectArguments(call, diagnostics) : { output: JSON.stringify({ status: "error", code: "account-tool-arguments-invalid", diagnostics, instruction: "Correct the named fields using the supplied tool schema; the rejected call executed no tool." }), exitCode: 1, durationMs: 0 }
+            const budget = options.answerAfterToolBudget ? `\nRemaining host tool calls: ${Math.max(0, maxToolCalls - tools.length - toolRejections.length)}. At zero, deliver your final answer from existing evidence; report unfinished work.` : ""
+            return { success: active && (output.exitCode === undefined || output.exitCode === 0), contentItems: [{ type: "inputText", text: active ? output.output + budget : "session-closed" }] }
           }).catch(() => ({ success: false, contentItems: [{ type: "inputText", text: "dynamic-tool-execution-failed" }] }))
           executed.set(params.callId, { fingerprint, output: execution })
         }
@@ -414,8 +422,10 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
       }
     }
     if (finished) return result(await terminal)
+    const prompt = await options.beforeTurn?.(Math.max(0, (options.timeoutMs ?? 1200000) - (Date.now() - started))) ?? options.prompt
+    if (finished) return result(await terminal)
     active = true; inferenceDispatched = true; terminalStatus = "unknown"; lifecycle.turnStartAttempted = true
-    const turn = await request("turn/start", { threadId, input: [{ type: "text", text: options.prompt, text_elements: [] }], environments: [], model: options.model, effort: options.effort })
+    const turn = await request("turn/start", { threadId, input: [{ type: "text", text: prompt, text_elements: [] }], environments: [], model: options.model, effort: options.effort })
     turnId ??= turn.turn.id
     lifecycle.turnStartAcknowledged = true
     if (options.finalizeAfterMs !== undefined) reserveTimer = setTimeout(finalize, Math.max(1, options.finalizeAfterMs - (Date.now() - started)))

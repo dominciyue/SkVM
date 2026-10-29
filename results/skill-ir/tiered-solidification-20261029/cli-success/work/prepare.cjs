@@ -1,0 +1,1 @@
+const fs=require('fs');const rows=JSON.parse(fs.readFileSync('input.json','utf8'));fs.appendFileSync('count.txt','1');fs.writeFileSync('rows.json',JSON.stringify({rows}));

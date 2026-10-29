@@ -42,6 +42,7 @@ export interface AgentLoopConfig {
 
   /** Called after each tool execution (for tracking) */
   onAfterTool?: (completedCall: ToolCall, iteration: number) => Promise<void> | void
+  onBeforeTool?: (call: LLMToolCall, iteration: number) => Promise<void> | void
 
   /**
    * ILP dispatch: when the LLM returns multiple tool_use blocks in a single
@@ -266,8 +267,9 @@ export async function runAgentLoop(
       const dispatchOne = async (tc: LLMToolCall): Promise<{ tr: LLMToolResult; completed: ToolCall }> => {
         ensureActive()
         log.debug(`Tool: ${tc.name}(${JSON.stringify(tc.arguments).slice(0, 100)})`)
+        await withinLifetime(() => config.onBeforeTool?.(tc, iteration))
         const result = await withinLifetime(() => executeTool(tc))
-        return {
+        const dispatched = {
           tr: { toolCallId: tc.id, content: result.output },
           completed: {
             id: tc.id,
@@ -278,9 +280,12 @@ export async function runAgentLoop(
             exitCode: result.exitCode,
           },
         }
+        // With evidence hooks, validate before the next tool can overwrite these artifacts.
+        if (config.onBeforeTool) await withinLifetime(() => config.onAfterTool?.(dispatched.completed, iteration))
+        return dispatched
       }
 
-      const ilpEnabled = config.parallelToolExecution === true && response.toolCalls.length > 1
+      const ilpEnabled = config.parallelToolExecution === true && !config.onBeforeTool && response.toolCalls.length > 1
       const dispatched = ilpEnabled
         ? await Promise.all(response.toolCalls.map(dispatchOne))
         : await (async () => {
@@ -307,7 +312,7 @@ export async function runAgentLoop(
         allToolCalls.push(completed)
         // After-tool callbacks still run sequentially to preserve ordering
         // guarantees expected by JIT boost / monitoring consumers.
-        if (config.onAfterTool) {
+        if (config.onAfterTool && !config.onBeforeTool) {
           await withinLifetime(() => config.onAfterTool!(completed, iteration))
         }
       }

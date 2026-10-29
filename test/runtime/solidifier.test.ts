@@ -44,7 +44,7 @@ function makeLLMResponse(toolCalls: Array<{ name: string; args: Record<string, u
 
 describe("Solidifier - Stage 2 (monitoring)", () => {
   test("skeleton match increments consecutiveMatches", async () => {
-    const solidifier = new Solidifier([CANDIDATE])
+    const solidifier = new Solidifier([CANDIDATE], { promotionPolicy: "legacy-signature",  })
     const hook = solidifier.createAfterLLMHook()
 
     await hook({
@@ -63,7 +63,7 @@ describe("Solidifier - Stage 2 (monitoring)", () => {
   })
 
   test("non-matching tool call resets consecutiveMatches", async () => {
-    const solidifier = new Solidifier([CANDIDATE])
+    const solidifier = new Solidifier([CANDIDATE], { promotionPolicy: "legacy-signature",  })
     const hook = solidifier.createAfterLLMHook()
 
     // First match
@@ -91,7 +91,7 @@ describe("Solidifier - Stage 2 (monitoring)", () => {
   })
 
   test("3 consecutive matches promotes candidate", async () => {
-    const solidifier = new Solidifier([CANDIDATE])
+    const solidifier = new Solidifier([CANDIDATE], { promotionPolicy: "legacy-signature",  })
     const hook = solidifier.createAfterLLMHook()
 
     for (let i = 1; i <= 3; i++) {
@@ -112,7 +112,7 @@ describe("Solidifier - Stage 2 (monitoring)", () => {
   })
 
   test("2 matches + miss + 2 matches does NOT promote", async () => {
-    const solidifier = new Solidifier([CANDIDATE])
+    const solidifier = new Solidifier([CANDIDATE], { promotionPolicy: "legacy-signature",  })
     const hook = solidifier.createAfterLLMHook()
 
     // 2 matches
@@ -153,7 +153,7 @@ describe("Solidifier - Stage 2 (monitoring)", () => {
   })
 
   test("ignores non-exec/write tool calls", async () => {
-    const solidifier = new Solidifier([CANDIDATE])
+    const solidifier = new Solidifier([CANDIDATE], { promotionPolicy: "legacy-signature",  })
     const hook = solidifier.createAfterLLMHook()
 
     await hook({
@@ -275,7 +275,7 @@ describe("Solidifier - state restoration", () => {
       updatedAt: "2026-04-04T00:00:00Z",
     }
 
-    const solidifier = new Solidifier([CANDIDATE], { savedState })
+    const solidifier = new Solidifier([CANDIDATE], { promotionPolicy: "legacy-signature", savedState })
     const entries = solidifier.getEntries()
 
     expect(entries).toHaveLength(1)
@@ -286,7 +286,7 @@ describe("Solidifier - state restoration", () => {
   })
 
   test("fresh init when no saved state", () => {
-    const solidifier = new Solidifier([CANDIDATE])
+    const solidifier = new Solidifier([CANDIDATE], { promotionPolicy: "legacy-signature",  })
     const entries = solidifier.getEntries()
 
     expect(entries).toHaveLength(1)
@@ -297,7 +297,7 @@ describe("Solidifier - state restoration", () => {
 
 describe("Solidifier - exportState", () => {
   test("exports current state for persistence", () => {
-    const solidifier = new Solidifier([CANDIDATE])
+    const solidifier = new Solidifier([CANDIDATE], { promotionPolicy: "legacy-signature",  })
     const exported = solidifier.exportState("weather")
 
     expect(exported.skillId).toBe("weather")
@@ -307,7 +307,7 @@ describe("Solidifier - exportState", () => {
   })
 
   test("exports updated state after monitoring", async () => {
-    const solidifier = new Solidifier([CANDIDATE])
+    const solidifier = new Solidifier([CANDIDATE], { promotionPolicy: "legacy-signature",  })
     const hook = solidifier.createAfterLLMHook()
 
     await hook({
@@ -331,7 +331,7 @@ describe("Solidifier - configurable monitor scope", () => {
       ...CANDIDATE,
       codeSignature: "weather\\.com",
     }
-    const solidifier = new Solidifier([candidate])
+    const solidifier = new Solidifier([candidate], { promotionPolicy: "legacy-signature",  })
     const hook = solidifier.createAfterLLMHook()
 
     await hook({
@@ -353,7 +353,7 @@ describe("Solidifier - configurable monitor scope", () => {
       codeSignature: "weather\\.com",
       monitoredTools: ["web_fetch"],
     }
-    const solidifier = new Solidifier([candidate])
+    const solidifier = new Solidifier([candidate], { promotionPolicy: "legacy-signature",  })
     const hook = solidifier.createAfterLLMHook()
 
     await hook({
@@ -382,7 +382,7 @@ describe("Solidifier - configurable monitor scope", () => {
       ...CANDIDATE,
       codeSignature: "test",
     }
-    const solidifier = new Solidifier([candidate], { monitoredTools: new Set(["read_file"]) })
+    const solidifier = new Solidifier([candidate], { promotionPolicy: "legacy-signature", monitoredTools: new Set(["read_file"]) })
     const hook = solidifier.createAfterLLMHook()
 
     await hook({

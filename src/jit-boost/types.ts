@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { ArtifactSchema, ArtifactValidationSchema, ContentCheckSchema, ValidationReportSchema } from "../runtime/artifact-checks.ts"
 
 // ---------------------------------------------------------------------------
 // Param definitions (per-parameter extraction config)
@@ -37,12 +38,8 @@ export const SubworkflowSchema = z.object({
     id: z.string().min(1),
     argv: z.array(z.string()).min(1),
     timeoutMs: z.number().int().positive().optional(),
-    outputs: z.array(z.object({
-      path: z.string().min(1),
-      format: z.enum(["text", "json"]),
-      minimumBytes: z.number().int().nonnegative().optional(),
-      requiredKeys: z.array(z.string()).optional(),
-    })).min(1),
+    outputs: z.array(ArtifactSchema).min(1),
+    checks: z.array(ContentCheckSchema).optional(),
   })).min(1),
 }).refine(flow => new Set(flow.steps.map(step => step.id)).size === flow.steps.length, "step IDs must be unique")
 
@@ -62,6 +59,8 @@ export const BoostCandidateSchema = z.object({
   monitoredTools: z.array(z.string()).optional(),
   /** Opt-in checked local prefix; legacy templates still replace the whole task. */
   subworkflow: SubworkflowSchema.optional(),
+  /** Required for promotion from actual executions; old signature-only files remain readable. */
+  validation: ArtifactValidationSchema.optional(),
 })
 
 export type BoostCandidate = z.infer<typeof BoostCandidateSchema>
@@ -76,6 +75,11 @@ export const MonitorStateSchema = z.object({
   consecutiveMatches: z.number().default(0),
   promoted: z.boolean().default(false),
   fallbackCount: z.number().default(0),
+  evidence: z.object({
+    toolCallId: z.string(), toolName: z.string(), iteration: z.number(), observedAt: z.string(),
+    exitCode: z.number().optional(), durationMs: z.number().optional(), diagnostic: z.string().optional(),
+    validation: ValidationReportSchema.optional(),
+  }).optional(),
 })
 
 export type MonitorState = z.infer<typeof MonitorStateSchema>

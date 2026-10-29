@@ -1,6 +1,6 @@
 # 基于 Skill 分类的分层代码固化 Agent 运行时优化机制
 
-Category-Aware Tiered Code Solidification for Agent Skills。更新于 2026-10-28。
+Category-Aware Tiered Code Solidification for Agent Skills。更新于 2026-10-29。
 
 本文承载新课题的方法、相关研究和开发判断。当前状态见 [current-status](current-status.md)，实施顺序见 [plan](skill-ir-aot-optimization-plan.md)，历史数据见 [evidence-index](evidence-index.md)。本地子流程的检查与状态接续已有首个显式原型；分类选择和真实模型效果仍待实现、测量。
 
@@ -29,14 +29,15 @@ Category-Aware Tiered Code Solidification for Agent Skills。更新于 2026-10-2
 | 授权可执行程序 | 有限执行、事件检查、源码失效、局部差分反例 | 复用检查/失效思路；不再把授权解释器扩张作为主线 |
 | 分类研究与公开 skill 来源 | 52 个登记包、24 个深读 skill、30 张任务卡 | 已暴露的开发材料；重新按新问题标注，不当作新测试集 |
 
-### 运行时审查与已完成修补
+### 2026-10-29 执行证据与普通账号
 
-- [solidifier.ts](../../src/jit-boost/solidifier.ts) 的 `afterLLM` 按工具签名连续命中晋升；这个时点尚不是工具成功及产物验证后的观察。执行模板后主要按退出成功判断，缺少类别对应的输出检查。
-- 同文件失败路径做降级并返回 passthrough，没有完整的已执行前缀、产物有效性和失败状态交还合同。
-- 原 before-hook 只有 passthrough/replace。现在 [runtime/types.ts](../../src/runtime/types.ts) 增加 `continue`，检查点记录有效前缀、诊断和剩余任务。
-- hook 移到 [agent-loop](../../src/core/agent-loop.ts) 的真实派发边界，轮次、工具记录和 history 接通；本地执行不冒充模型响应。旧 replace 继续用于整任务替换，子流程成功与失败都继续模型。
+默认 JIT 在 `beforeTool` 捕获来源快照、调用参数和产物状态，在匹配的 `afterTool` 核对退出 0、全部声明产物创建/更新及内容检查后累计观察。重复回执、错误内容和旧文件不晋升；旧无证据晋升状态会降回未验证。`promotionPolicy: legacy-signature` 才启用历史签名基线。观察时串行检查每个工具，避免下一写入覆盖上一回执的产物。
 
-“成功子流程继续剩余任务，失败子流程从有效状态接着做”的确定性接线已完成。接下来先补执行后证据、任务独立检查和真实模型通道，再判断自动选择是否有效。
+共享 `artifact-checks.ts` 提供文件/JSON 结构、JSON pointer 数值 sum/count/equal、原始字节或保护片段多重集保存检查。`command` 评价器声明 numeric/preservation/semantic 范围，返回 passed/failed/unknown、依据和可选 usage；失败退出或无有效结论记 unknown。每份报告保留范围、耗时和产物摘要；翻译含义仍需独立评价器，保护片段一致不证明翻译质量。检查失败或 unknown 使子流程撤回失败步声明输出、保留有效前缀并交还模型。
+
+普通 `codex-account` 无需授权 inquiry scope，复用官方 CLI 会话和普通主机工具；支持 skill 注入/发现及显式子流程。子流程在真实 turn/start 前执行，检查点进入该回合上下文；工具按执行顺序生成回执。工具预算耗尽后拒绝新工具，但等待同一回合交付或原定超时，不另发请求。旧授权入口维持原有预算/收尾合同。CLI 原生工具隔离不等于普通主机回调被沙箱隔离。
+
+真实故障确认在 `results/skill-ir/tiered-solidification-20261029/failure-confirmation/`：错误 sum=99 被检查器撤回，账号模型从保留前缀修复为 6、完成报告，真实 completed/delivered，前缀一次。首轮因预算关闭未交付，原件保留且只读查得 interrupted。内部模型调用数与 USD 未知；这是手写候选的开发接线证据，不是自动优化或效率收益结论。
 
 ### 2026-10-28 本地原型
 
@@ -189,6 +190,8 @@ T3 不表示“高质量”，只表示覆盖范围更大。一个 T1 也可能�
 
 2026-10-28 的追加调研核对了上述论文、两份外部路由/恢复源码和三份公开 skill 正文，修正了把部分恢复当新颖点的表述。分类、检查和状态有效性按独立研究问题安排，详见[计划](skill-ir-aot-optimization-plan.md)的 P0–P6。此次只修改研究与计划，没有新增生产实现或真实模型实验。
 
-当前最先要解决的是：普通入口采到工具执行后证据；官方账号承载通用任务而不附带旧授权域；验证器能检验任务内容而不仅是文件形状。`codex-account.ts` 当前由官方 CLI 管生成与历史，不能伪装成普通 `LLMProvider`。后续通过共享子流程核心接通其真实工具/回合边界，两臂保持同一 harness；不能用 bare-agent 对比 native account 来宣称路由收益。
+本轮已接通执行证据、普通账号与有限内容检查。下一步回到计划中的分类/任务依据和自动候选责任；不把当前接口或手写示例当作 P0–P6 已完成。账号与 provider 不同 harness 的结果不能拼成路由收益对照。
 
 此后方法发现更新本文对应章节，短复盘留 Git/结果记录。旧 spec、DSL 研究流水与旧开发指南已退出工作目录；需要核对旧合同或设计时按[历史索引](history.md)读取对应提交，不再维护重复长文。
+
+2026-10-29 CLI 具名确认 cli-confirmation 已核对 completed/delivered、report.txt 行数 3/合计 6、summary.sum=6、前缀一次。此前 cli-success 虽交付但未写报告，作为失败保留。四次真实运行及未知费用见 `results/skill-ir/tiered-solidification-20261029/summary.json`；155 项定向测试、712 断言及最终类型检查通过。

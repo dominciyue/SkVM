@@ -1,12 +1,14 @@
 import { z } from "zod"
+import { isDeepStrictEqual } from "node:util"
 import type { ToolCall } from "../core/types.ts"
 import type { LLMProvider } from "../providers/types.ts"
-import type { BeforeLLMHook, BeforeLLMContext, BeforeLLMResult, AfterLLMHook, AfterLLMContext } from "../runtime/types.ts"
+import type { BeforeLLMHook, BeforeLLMContext, BeforeLLMResult, AfterLLMHook, AfterLLMContext, BeforeToolHook, AfterToolHook } from "../runtime/types.ts"
 import type { BoostCandidate, ParamDef, SolidificationEntry, SolidificationState } from "./types.ts"
 import { normalizeParamDef } from "./types.ts"
 import { extractStructured } from "../providers/structured.ts"
 import { createLogger } from "../core/logger.ts"
 import { executeSubworkflow } from "../runtime/subworkflow.ts"
+import { checkArtifacts, prepareArtifactValidation, type PreparedValidation } from "../runtime/artifact-checks.ts"
 
 const log = createLogger("solidifier")
 
@@ -42,7 +44,7 @@ function extractMonitorableContent(tc: { name: string; arguments: Record<string,
 /**
  * Code Solidification Engine
  *
- * Stage 2 (afterLLM hook): monitors LLM responses for code signature matches
+ * Stage 2 (tool hooks): validates the results of executed signature matches
  * Stage 3 (beforeLLM hook): executes promoted templates, bypassing LLM
  */
 export class Solidifier {
@@ -51,6 +53,8 @@ export class Solidifier {
   private promotionThreshold: number
   private demotionThreshold: number
   private llmProvider?: LLMProvider
+  private promotionPolicy: "executed" | "legacy-signature"
+  private pending = new Map<string, { purposeId: string; name: string; input: Record<string, unknown>; validation?: PreparedValidation; diagnostic?: string }[]>()
 
   constructor(
     candidates: BoostCandidate[],
@@ -60,19 +64,21 @@ export class Solidifier {
       promotionThreshold?: number
       demotionThreshold?: number
       llmProvider?: LLMProvider
+      promotionPolicy?: "executed" | "legacy-signature"
     },
   ) {
     this.defaultMonitoredTools = opts?.monitoredTools ?? DEFAULT_MONITORED_TOOLS
     this.promotionThreshold = opts?.promotionThreshold ?? DEFAULT_PROMOTION_THRESHOLD
     this.demotionThreshold = opts?.demotionThreshold ?? DEFAULT_DEMOTION_THRESHOLD
     this.llmProvider = opts?.llmProvider
+    this.promotionPolicy = opts?.promotionPolicy ?? "executed"
 
     if (opts?.savedState) {
       // Restore from persisted state
       for (const entry of opts.savedState.entries) {
         this.entries.set(entry.candidate.purposeId, {
           candidate: entry.candidate,
-          state: entry.state,
+          state: this.restoreState(entry),
           promotedAt: entry.promotedAt,
         })
       }
@@ -92,6 +98,72 @@ export class Solidifier {
         })
       }
       log.info(`Solidifier initialized with ${candidates.length} candidates`)
+    }
+  }
+
+  private restoreState(entry: SolidificationEntry): SolidificationEntry["state"] {
+    const state = { ...entry.state }
+    if (this.promotionPolicy === "executed" && !entry.candidate.subworkflow && state.evidence?.validation?.status !== "passed") {
+      state.promoted = false; state.hitCount = 0; state.consecutiveMatches = 0
+    }
+    return state
+  }
+
+  private receiptKey(workDir: string, iteration: number, id: string) { return JSON.stringify([workDir, iteration, id]) }
+
+  createBeforeToolHook(): BeforeToolHook {
+    return async ctx => {
+      if (this.promotionPolicy !== "executed") return
+      const matches: { purposeId: string; name: string; input: Record<string, unknown>; validation?: PreparedValidation; diagnostic?: string }[] = []
+      for (const [purposeId, entry] of this.entries) {
+        if (entry.candidate.subworkflow || entry.state.promoted) continue
+        const tools = entry.candidate.monitoredTools ? new Set(entry.candidate.monitoredTools) : this.defaultMonitoredTools
+        if (!tools.has(ctx.toolCall.name)) continue
+        let matchesSignature = false
+        try { matchesSignature = new RegExp(entry.candidate.codeSignature, "i").test(extractMonitorableContent(ctx.toolCall)) } catch { /* Invalid legacy signatures never promote. */ }
+        if (!matchesSignature) { entry.state.consecutiveMatches = 0; continue }
+        const observation: typeof matches[number] = { purposeId, name: ctx.toolCall.name, input: structuredClone(ctx.toolCall.arguments) }
+        try {
+          if (!entry.candidate.validation) throw new Error("candidate has no declared artifact validation")
+          const extraction = await extractParamsFromPrompt(ctx.prompt, entry.candidate)
+          if (!extraction.complete) throw new Error("validation parameters unavailable")
+          const fill = (value: string) => {
+            const filled = instantiateTemplate(value, extraction.params)
+            if (/\$\{[^}]+\}/.test(filled)) throw new Error("unfilled validation parameter")
+            return filled
+          }
+          observation.validation = await prepareArtifactValidation(entry.candidate.validation, ctx.workDir, fill)
+        } catch (error) { observation.diagnostic = String(error) }
+        matches.push(observation)
+      }
+      this.pending.set(this.receiptKey(ctx.workDir, ctx.iteration, ctx.toolCall.id), matches)
+    }
+  }
+
+  createAfterToolHook(): AfterToolHook {
+    return async ctx => {
+      const key = this.receiptKey(ctx.workDir, ctx.iteration, ctx.toolCall.id)
+      const observations = this.pending.get(key)
+      this.pending.delete(key)
+      for (const observation of observations ?? []) {
+        const entry = this.entries.get(observation.purposeId)!
+        if (observation.name !== ctx.toolCall.name || !isDeepStrictEqual(observation.input, ctx.toolCall.input)) continue
+        const evidence: NonNullable<typeof entry.state.evidence> = {
+          toolCallId: ctx.toolCall.id, toolName: ctx.toolCall.name, iteration: ctx.iteration, observedAt: new Date().toISOString(),
+          exitCode: ctx.toolCall.exitCode, durationMs: ctx.toolCall.durationMs, diagnostic: observation.diagnostic,
+        }
+        if (ctx.toolCall.exitCode !== 0) evidence.diagnostic = `tool did not report success (exitCode=${ctx.toolCall.exitCode ?? "unknown"})`
+        else if (observation.validation) evidence.validation = await checkArtifacts(observation.validation)
+        entry.state.evidence = evidence
+        if (evidence.validation?.status === "passed" && evidence.validation.artifacts.some(a => !a.observedChange)) evidence.diagnostic = "A declared artifact has no creation or update observed during this tool execution"
+        if (evidence.validation?.status === "passed" && !evidence.diagnostic) {
+          entry.state.hitCount++; entry.state.consecutiveMatches++
+          if (entry.state.consecutiveMatches >= this.promotionThreshold) {
+            entry.state.promoted = true; entry.promotedAt = evidence.observedAt
+            log.info(`PROMOTED: ${entry.candidate.purposeId} after ${entry.state.consecutiveMatches} checked executions`)
+          }
+        } else entry.state.consecutiveMatches = 0
+      }
     }
   }
 
@@ -116,10 +188,11 @@ export class Solidifier {
   /** Import state from disk */
   importState(state: SolidificationState): void {
     this.entries.clear()
+    this.pending.clear()
     for (const entry of state.entries) {
       this.entries.set(entry.candidate.purposeId, {
         candidate: entry.candidate,
-        state: entry.state,
+        state: this.restoreState(entry),
         promotedAt: entry.promotedAt,
       })
     }
@@ -131,6 +204,7 @@ export class Solidifier {
    */
   createAfterLLMHook(): AfterLLMHook {
     return async (ctx: AfterLLMContext) => {
+      if (this.promotionPolicy !== "legacy-signature") return
       for (const tc of ctx.response.toolCalls) {
         const content = extractMonitorableContent(tc)
 
@@ -223,11 +297,19 @@ export class Solidifier {
           log.info(`Solidified execution: ${purposeId} (params via ${extraction.method}, params=${JSON.stringify(extraction.params)})`)
           log.debug(`Solidified code:\n${code.slice(0, 300)}`)
 
+          const validation = entry.candidate.validation
+            ? await prepareArtifactValidation(entry.candidate.validation, ctx.workDir, s => instantiateTemplate(s, extraction.params)) : undefined
+          if (this.promotionPolicy === "executed" && !validation) continue
           const result = await executeTemplate(
             code,
             entry.candidate.materializationType,
             ctx.workDir,
           )
+
+          if (result.success && validation) {
+            const report = await checkArtifacts(validation, ctx.remainingMs)
+            if (report.status !== "passed") { result.success = false; result.output += `\n${report.diagnostics.join("; ")}` }
+          }
 
           if (result.success) {
             const toolCall: ToolCall = {

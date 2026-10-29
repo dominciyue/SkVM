@@ -71,6 +71,11 @@ test("official session initializes, supplies isolated dynamic tools, returns fin
   expect(f.sent.find(m => m.method === "thread/start").params.dynamicTools[0].type).toBe("function")
   expect(f.sent.find(m => m.method === "turn/start").params).toMatchObject({ effort: "high", environments: [] })
 })
+test("every nonzero tool exit is a failure in the account wire", async () => {
+  const f = mock()
+  await f.run({ execute: async () => ({ output: "process failed", exitCode: 2, durationMs: 0 }) })
+  expect(f.sent.find(m => m.id === "call" && m.result).result.success).toBe(false)
+})
 test("tool execution waits for its asynchronous identity event before creating a checkpoint", async () => {
   const f = mock(); let persisted = false, observed = false
   const r = await f.run({ timeoutMs: 1000, onEvent: async (event: any) => {
@@ -173,7 +178,7 @@ function controlled(mode = "normal", cliVersion = "0.159.0-alpha.12.1") {
   return f
 }
 
-for (const cliVersion of ["0.159.0-alpha.12.1", "0.160.0", "0.162.0-alpha.2", "0.162.0-alpha.17.2", "0.163.0-alpha.10.2", "0.163.0-alpha.11"]) test(`${cliVersion} controlled official transport verifies effective settings and thread boundaries before a real tool turn`, async () => {
+for (const cliVersion of ["0.159.0-alpha.12.1", "0.160.0", "0.162.0-alpha.2", "0.162.0-alpha.17.2", "0.163.0-alpha.10.2", "0.163.0-alpha.11", "0.165.0-alpha.1.2"]) test(`${cliVersion} controlled official transport verifies effective settings and thread boundaries before a real tool turn`, async () => {
   const f = controlled("normal", cliVersion), r = await f.run({ timeoutMs: 100 })
   expect(r.status).toBe("completed")
   const t = f.sent.find(m => m.method === "thread/start").params

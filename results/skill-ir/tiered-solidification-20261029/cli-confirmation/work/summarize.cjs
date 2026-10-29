@@ -1,0 +1,1 @@
+const fs=require('fs');const {rows}=JSON.parse(fs.readFileSync('rows.json','utf8'));fs.writeFileSync('summary.json',JSON.stringify({sum:rows.reduce((a,b)=>a+b,0)}));
